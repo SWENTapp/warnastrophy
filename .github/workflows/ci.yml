@@ -69,9 +69,9 @@ jobs:
             # 7. Load google-services.json from the secrets
             - name: Decode secrets
               env:
-                GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+                FIREBASESECRET: ${{ secrets.FIREBASESECRET }}
               run:
-                echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services,json
+                echo "$FIREBASESECRET" | base64 --decode > ./app/google-services,json
             
             - name: AVD cache
               uses: actions/cache@v4
