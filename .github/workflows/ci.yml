@@ -103,11 +103,11 @@ jobs:
 
             # 9. Build application
             - name: Assemble
-              run: ./gradlew assembleDebug lint --parallel --build_cache
+              run: ./gradlew assembleDebug lint --parallel --build-cache
 
             # 10. Run Unit tests
             - name: Run tests
-              run: ./gradlew check --parallel --build_cache
+              run: ./gradlew check --parallel --build-cache
 
             # 11. Run connected tests on emulator
             - name: Run instrumentation tests
@@ -120,7 +120,7 @@ jobs:
                 force-avd-creation: false
                 emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back virtualscene
                 disable-animations: false
-                script: ./gradlew connectedCheck --parallel --build_cache
+                script: ./gradlew connectedCheck --parallel --build-cache
 
             # 12. Generate coverage report for testing purposes
             - name: Generate coverage report
