@@ -1,0 +1,134 @@
+name: Android CI
+
+on:
+    push:
+        branches:
+            - main
+            - 'feature/**'
+            - 'refactor/**'
+            - 'fix/**'
+            - 'ci/**'
+            
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - reopened
+
+jobs:
+    ci:
+        name: CI-warnastrophy
+        runs-on: ubuntu-latest
+
+        env:
+            app-name: warnastrophy
+        
+        steps:
+            # 1. Checkout repository on runner
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                submodules: recursive
+                fetch-depth: 0
+            
+            # 2. Remove current gradle cache to avoid caching issues
+            - name: Remove current gradle cache
+              run: rm -rf ~/.gradle
+
+            # 3. Enable Kernel-based Virtual Machine (KVM) to allow Android emulator to run faster
+            - name: Enable KVM group perms
+              run: |
+                echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+                sudo udevadm control --reload-rules
+                sudo udevadm trigger --name-match=kvm
+            
+            # 4. Setup JDK for Kotlin/Java projects
+            - name: Setup JDK
+              uses: actions/setup-java@v4
+              with:
+                distribution: "temurin"
+                java-version: "17"
+            
+            # 5. Cache gradle folder to reuse it later
+            # path : path to files to cache
+            # key : explicit key for cache entry
+            # restore-keys : used for restoring stale cache if no cache hit occurred for key
+            - name: Retrieve gradle cache
+              uses: actions/cache@v4
+              with:
+                path: |
+                    ~/.gradle/cache
+                    ~/.gradle/wrapper
+                key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', '**/gradle-wrapper.properties') }}
+                restore-keys: ${{ runner.os }}-gradle
+            
+            # 6. Cache gradle files to speed up build process
+            - name: Gradle cache
+              uses: gradle/actions/setup-gradle@v3
+
+            # 7. Load google-services.json from the secrets
+            - name: Decode secrets
+              env:
+                GOOGLE_SERVICES: ${{ secrets.GOOGLE_SERVICES }}
+              run:
+                echo "$GOOGLE_SERVICES" | base64 --decode > ./app/google-services,json
+            
+            - name: AVD cache
+              uses: actions/cache@v4
+              id: avd-cache
+              with:
+                path: |
+                    ~/.android/avd/*
+                    ~/.android/adb*
+                key: avd-34
+            
+            - name: create AVD and generate snapshot for caching
+              if: steps.avd-cache.outputs.cache-hit != 'true'
+              uses: reactivecircus/android-emulator-runner@v2
+              with:
+                api-level: 34
+                target: google_apis
+                arch: x86_64
+                force-avd-creation: false
+                emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back virtualscene
+                disable-animations: false
+                script: echo "Generated AVD snapshot for caching."
+            
+            - name: Grant execute permissions for gradlew
+              run: chmod +x ./gradlew
+            
+            # 8. Check formatting
+            - name: Ktfmt Check
+              run: ./gradlew ktfmtCheck
+
+            # 9. Build application
+            - name: Assemble
+              run: ./gradlew assembleDebug lint --parallel --build_cache
+
+            # 10. Run Unit tests
+            - name: Run tests
+              run: ./gradlew check --parallel --build_cache
+
+            # 11. Run connected tests on emulator
+            - name: Run instrumentation tests
+              uses: reactivecircus/android-emulator-runner@v2
+              with:
+                api-level: 34
+                target: google_apis
+                arch: x86_64
+                avd-name: github
+                force-avd-creation: false
+                emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back virtualscene
+                disable-animations: false
+                script: ./gradlew connectedCheck --parallel --build_cache
+
+            # 12. Generate coverage report for testing purposes
+            - name: Generate coverage report
+              run: ./gradlew jacocoTestReport
+
+            # 13. Upload coverage report (optional if needed in another job)
+            - name: Upload coverage
+              uses: actions/upload-artifact@v4
+              with:
+                name: Coverage report
+                path: app/build/reports/jacoco/jacocoTestReport
