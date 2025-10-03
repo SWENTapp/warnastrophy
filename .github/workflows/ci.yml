@@ -71,7 +71,7 @@ jobs:
               env:
                 FIREBASESECRET: ${{ secrets.FIREBASESECRET }}
               run:
-                echo "$FIREBASESECRET" | base64 --decode > ./app/google-services,json
+                echo "$FIREBASESECRET" | base64 --decode > ./app/google-services.json
             
             - name: AVD cache
               uses: actions/cache@v4
