@@ -96,7 +96,7 @@ sonar {
     properties {
         property("sonar.projectKey", "SWENTapp_warnastrophy")
         property("sonar.projectName", "warnastrophy")
-        property("sonar.organization", "SWENTapp")
+        property("sonar.organization", "swentapp")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.login", System.getenv("SONAR_TOKEN"))
         // Comma-separated paths to the various directories containing the *.xml JUnit report files. Each path may be absolute or relative to the project base directory.
