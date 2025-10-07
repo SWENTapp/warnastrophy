@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.android.sample"
+    namespace = "com.github.warnastrophy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.android.sample"
+        applicationId = "com.github.warnastrophy"
         minSdk = 28
         targetSdk = 34
         versionCode = 1
