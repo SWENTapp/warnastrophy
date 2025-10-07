@@ -144,6 +144,9 @@ dependencies {
     globalTestImplementation(libs.compose.test.junit)
     debugImplementation(libs.compose.test.manifest)
 
+    // Navigation for Compose
+    implementation(libs.androidx.navigation.compose)
+
     // --------- Kaspresso test framework ----------
     globalTestImplementation(libs.kaspresso)
     globalTestImplementation(libs.kaspresso.compose)
