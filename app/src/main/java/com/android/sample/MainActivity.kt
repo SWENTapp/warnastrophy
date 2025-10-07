@@ -1,9 +1,13 @@
 package com.android.sample
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -12,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.android.sample.MapHaitiActivity
 import com.android.sample.resources.C
 import com.android.sample.ui.theme.SampleAppTheme
 
@@ -25,7 +31,13 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier.fillMaxSize().semantics { testTag = C.Tag.main_screen_container },
             color = MaterialTheme.colorScheme.background) {
               Greeting("Android")
+            Column(Modifier.fillMaxSize().padding(24.dp)) {
+                Button(onClick = {
+                    startActivity(Intent(this@MainActivity, MapHaitiActivity::class.java))
+                }) { Text("Open Haiti Map") }
             }
+            }
+
       }
     }
   }
