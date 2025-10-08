@@ -12,7 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.ui.map.HaitiMap
+import com.github.warnastrophy.core.ui.map.MapScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.Screen.HOME
@@ -35,7 +35,7 @@ fun WarnastrophyApp() {
       // TODO: Replace with actual screens
       // TODO: Use string resources for your titles
       composable(HOME.name) { Text(ctx.getString(HOME.title)) }
-      composable(MAP.name) { HaitiMap() }
+      composable(MAP.name) { MapScreen() }
       composable(PROFILE.name) { Text(ctx.getString(PROFILE.title)) }
     }
   }

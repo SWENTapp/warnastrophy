@@ -24,13 +24,13 @@ import com.google.maps.android.compose.rememberCameraPositionState
 class MapHaitiActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContent { HaitiMap() }
+    setContent { MapScreen() }
   }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HaitiMap(
+fun MapScreen(
     viewModel: MapViewModel = viewModel(),
 ) {
   val uiState by viewModel.uiState.collectAsState()
