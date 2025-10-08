@@ -1,7 +1,9 @@
 package com.github.warnastrophy.core.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -19,7 +21,13 @@ fun BottomNavigationBar(currentScreen: Screen, navigateToScreen: (String) -> Uni
       NavigationBarItem(
           // FIXME: Replace with actual icons for each screen
           // FIXME: Use correctly centered labels
-          icon = { Icon(Icons.Filled.Clear, contentDescription = null) },
+          icon = {
+            when (screen) {
+              Screen.HOME -> Icon(Icons.Filled.Home, contentDescription = null)
+              Screen.MAP -> Icon(Icons.Filled.Place, contentDescription = null)
+              Screen.PROFILE -> Icon(Icons.Filled.Person, contentDescription = null)
+            }
+          },
           label = { Text(ctx.getString(screen.title)) },
           selected = currentScreen == screen,
           onClick = { navigateToScreen(screen.name) })
