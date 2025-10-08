@@ -12,22 +12,20 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.rememberCameraPositionState
 
 class MapHaitiActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent { HaitiMap() }
-    }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent { HaitiMap() }
+  }
 }
 
 @Composable
 fun HaitiMap() {
-    // Create a CameraPositionState to control the camera position
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(18.5446778, -72.3395897), 10f) // Port-au-Prince, Haiti
-    }
+  // Create a CameraPositionState to control the camera position
+  val cameraPositionState = rememberCameraPositionState {
+    position =
+        CameraPosition.fromLatLngZoom(LatLng(18.5446778, -72.3395897), 10f) // Port-au-Prince, Haiti
+  }
 
-    // Display the Google Map of Haiti, Port-au-Prince
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
-    )
+  // Display the Google Map of Haiti, Port-au-Prince
+  GoogleMap(modifier = Modifier.fillMaxSize(), cameraPositionState = cameraPositionState)
 }
