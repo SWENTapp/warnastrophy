@@ -22,7 +22,7 @@ class MapHaitiActivity : ComponentActivity() {
 fun HaitiMap() {
     // Create a CameraPositionState to control the camera position
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(18.5446778, -72.3395897), 10f) // San Francisco
+        position = CameraPosition.fromLatLngZoom(LatLng(18.5446778, -72.3395897), 10f) // Port-au-Prince, Haiti
     }
 
     // Display the Google Map of Haiti, Port-au-Prince
