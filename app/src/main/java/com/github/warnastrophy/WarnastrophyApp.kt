@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.github.warnastrophy.core.ui.map.HaitiMap
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.Screen.HOME
@@ -26,7 +27,7 @@ fun WarnastrophyApp() {
   val navController = rememberNavController()
 
   val backStackEntry by navController.currentBackStackEntryAsState()
-  val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: Screen.HOME.name)
+  val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: HOME.name)
 
   Scaffold(bottomBar = { BottomNavigationBar(currentScreen) { navController.navigate(it) } }) {
       innerPadding ->
@@ -34,7 +35,7 @@ fun WarnastrophyApp() {
       // TODO: Replace with actual screens
       // TODO: Use string resources for your titles
       composable(HOME.name) { Text(ctx.getString(HOME.title)) }
-      composable(MAP.name) { Text(ctx.getString(MAP.title)) }
+      composable(MAP.name) { HaitiMap() }
       composable(PROFILE.name) { Text(ctx.getString(PROFILE.title)) }
     }
   }
