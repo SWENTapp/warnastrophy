@@ -155,6 +155,10 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
 
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+
+
     // When using the BoM, you don't specify versions in Firebase library dependencies
 
     // TODO: Add the dependencies for Firebase products you want to use
