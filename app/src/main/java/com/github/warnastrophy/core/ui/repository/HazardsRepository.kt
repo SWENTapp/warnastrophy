@@ -11,7 +11,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-val tag = "HasardsRepository :"
+val TAGrep = "HasardsRepository"
 
 data class Location(
     val latitude: Double,
@@ -35,11 +35,11 @@ class HazardsRepository {
     private fun buildUrlAreaHazards(geometry: String): String = with(Dispatchers.IO) {
         val base = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
         val geom = geometry.replace(" ", "%20")
-        return "$base?geometryArea=$geom&days=30"
+        return "$base?geometryArea=$geom&days=360"
     }
 
     private suspend fun httpGet(urlStr: String): String {
-        println(TAG + "HTTP GET : $urlStr")
+        println(TAGrep + "HTTP GET : $urlStr")
         val url = URL(urlStr)
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
@@ -53,12 +53,12 @@ class HazardsRepository {
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             message = BufferedReader(InputStreamReader(stream)).use { it.readText() }
         } catch (e: Exception) {
-            Log.d("HasardsRepository", "$e")
+            Log.d("TAGrep", "$e")
         }
         finally {
             conn.disconnect()
         }
-        Log.d("HasardsRepository", "$message")
+        Log.d("TAGrep", "resp message: $message")
         return message
     }
 
@@ -70,6 +70,7 @@ class HazardsRepository {
         val hazards = mutableListOf<Hazard>()
         for (i in 0 until jsonHazards.length()) {
             val hazardJson = jsonHazards.getJSONObject(i)
+            Log.d("$TAGrep",  "json obj: " + hazardJson.toString())
             val hazard = parseHazard(hazardJson)
             if (hazard != null) {
                 hazards.add(hazard)
@@ -80,7 +81,7 @@ class HazardsRepository {
     private fun parseHazard(root: JSONObject): Hazard? {
 
         val properties = root.getJSONObject("properties")
-
+        Log.d("$TAGrep",  "properties: " + properties.toString())
         val isCurrent = properties.getBoolean("iscurrent")
         if(!isCurrent) return null
 
@@ -111,7 +112,7 @@ class HazardsRepository {
         }
 
         val hazard = Hazard(
-            id = root.getString("id"),
+            id = properties.getString("eventid"),
             type = properties.getString("eventtype"),
             country = properties.getString("country"),
             date = properties.getString("fromdate"),
@@ -122,7 +123,7 @@ class HazardsRepository {
             coordinates = coordinates
         )
 
-        Log.d("$TAG + hasard object",  hazard.toString())
+        Log.d("$TAGrep", "hazard obj : "  + hazard.toString())
         return hazard
     }
 }
