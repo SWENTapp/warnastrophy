@@ -1,16 +1,17 @@
 import com.github.warnastrophy.core.ui.repository.Hazard
 import com.github.warnastrophy.core.ui.repository.HazardsRepository
 import com.github.warnastrophy.core.ui.repository.Location
+import kotlin.jvm.java
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
 import org.mockito.Mockito.*
-import kotlin.jvm.java
 
 class HazardsRepositoryMockTest {
-    val mockJson = """"
+  val mockJson =
+      """"
         {
           "type": "FeatureCollection",
           "features": [
@@ -123,10 +124,11 @@ class HazardsRepositoryMockTest {
         }
         """"
 
-    @Test
-    fun `getAreaHazards return mock json`() = runBlocking {
-        val mockRepo = mock(HazardsRepository::class.java)
-        val hazards = listOf(
+  @Test
+  fun `getAreaHazards return mock json`() = runBlocking {
+    val mockRepo = mock(HazardsRepository::class.java)
+    val hazards =
+        listOf(
             Hazard(
                 id = "1103510",
                 type = "FL",
@@ -134,10 +136,10 @@ class HazardsRepositoryMockTest {
                 date = "2025-09-21T01:00:00",
                 severity = "0.0",
                 severityUnit = "",
-                reportUrl = "https://www.gdacs.org/report.aspx?eventid=1103510&episodeid=13&eventtype=FL",
+                reportUrl =
+                    "https://www.gdacs.org/report.aspx?eventid=1103510&episodeid=13&eventtype=FL",
                 alertLevel = 1,
-                coordinates = listOf(Location(40.727631, 17.576406))
-            ),
+                coordinates = listOf(Location(40.727631, 17.576406))),
             Hazard(
                 id = "1103443",
                 type = "FL",
@@ -145,24 +147,26 @@ class HazardsRepositoryMockTest {
                 date = "2025-08-15T01:00:00",
                 severity = "0.0",
                 severityUnit = "",
-                reportUrl = "https://www.gdacs.org/report.aspx?eventid=1103443&episodeid=17&eventtype=FL",
+                reportUrl =
+                    "https://www.gdacs.org/report.aspx?eventid=1103443&episodeid=17&eventtype=FL",
                 alertLevel = 1,
-                coordinates = listOf(Location(45.6427259, 13.0546698))
-            )
-        )
-        `when`(mockRepo.getAreaHazards("POLYGON((6.0 45.8%2C6.0 47.8%2C10.5 47.8%2C10.5 45.8%2C6.0 45.8))")).thenReturn(hazards)
+                coordinates = listOf(Location(45.6427259, 13.0546698))))
+    `when`(
+            mockRepo.getAreaHazards(
+                "POLYGON((6.0 45.8%2C6.0 47.8%2C10.5 47.8%2C10.5 45.8%2C6.0 45.8))"))
+        .thenReturn(hazards)
 
-        var response: List<Hazard> = emptyList()
-        GlobalScope.launch { response = mockRepo.getAreaHazards("mocked_geometry") }
+    var response: List<Hazard> = emptyList()
+    GlobalScope.launch { response = mockRepo.getAreaHazards("mocked_geometry") }
 
-        // Attendre la coroutine
-        Thread.sleep(500)
+    // Attendre la coroutine
+    Thread.sleep(500)
 
-        assertEquals(2, response.size)
-        assertEquals("Italy", response[0].country)
-        assertEquals("0.0", response[0].severity)
-        assertEquals(1, response[0].alertLevel)
-        assertEquals(40.727631, response[0].coordinates!![0].latitude, 1e-6)
-        assertEquals(17.576406, response[0].coordinates!![0].longitude, 1e-6)
-    }
+    assertEquals(2, response.size)
+    assertEquals("Italy", response[0].country)
+    assertEquals("0.0", response[0].severity)
+    assertEquals(1, response[0].alertLevel)
+    assertEquals(40.727631, response[0].coordinates!![0].latitude, 1e-6)
+    assertEquals(17.576406, response[0].coordinates!![0].longitude, 1e-6)
+  }
 }

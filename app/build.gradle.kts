@@ -144,6 +144,9 @@ dependencies {
     globalTestImplementation(libs.compose.test.junit)
     debugImplementation(libs.compose.test.manifest)
 
+    // Navigation for Compose
+    implementation(libs.androidx.navigation.compose)
+
     // --------- Kaspresso test framework ----------
     globalTestImplementation(libs.kaspresso)
     globalTestImplementation(libs.kaspresso.compose)
@@ -155,10 +158,6 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
-
-
     // When using the BoM, you don't specify versions in Firebase library dependencies
 
     // TODO: Add the dependencies for Firebase products you want to use
@@ -166,6 +165,11 @@ dependencies {
     // For example, add the dependencies for Firebase Authentication and Cloud Firestore
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+
+    // --------------- Google Maps -------------------
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.maps.android:maps-compose:4.4.1")
+
     //test mock
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-core:5.2.0")
