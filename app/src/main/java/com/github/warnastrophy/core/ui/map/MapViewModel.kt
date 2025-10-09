@@ -1,10 +1,14 @@
 package com.github.warnastrophy.core.ui.map
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 data class MapUIState(
     // TODO : Set to user's location
@@ -42,5 +46,27 @@ class MapViewModel() : ViewModel() {
             LatLng(18.5392, -72.3299) // Carrefour
             )
     _uiState.value = _uiState.value.copy(locations = sampleLocations)
+    println("Current pos: ${_uiState.value.target}")
+  }
+
+  @SuppressLint("MissingPermission")
+  fun updateUserLocation(locationClient: FusedLocationProviderClient) {
+    viewModelScope.launch {
+      locationClient.lastLocation
+          .addOnSuccessListener { location ->
+            if (location != null) {
+              val currentLatLng = LatLng(location.latitude, location.longitude)
+              _uiState.value = _uiState.value.copy(target = currentLatLng)
+              println("User location: $currentLatLng")
+            } else {
+              _uiState.value = _uiState.value.copy(errorMsg = "Unable to get location")
+              println("Location is null")
+            }
+          }
+          .addOnFailureListener {
+            _uiState.value = _uiState.value.copy(errorMsg = it.message)
+            println("Error getting location: ${it.message}")
+          }
+    }
   }
 }
