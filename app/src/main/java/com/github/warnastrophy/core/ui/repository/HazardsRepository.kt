@@ -44,7 +44,7 @@ data class Hazard(
 class HazardsRepository {
 
     private fun buildUrlWorldHazards(hazardType: HazardType): String {
-        val base = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH"
+        val base = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP"
         return "$base?eventtypes=${hazardType.eventType}"
     }
 
