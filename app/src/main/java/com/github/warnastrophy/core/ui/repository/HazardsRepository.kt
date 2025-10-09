@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.repository
 
+import android.util.Log
 import androidx.compose.ui.layout.LookaheadScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,12 +32,13 @@ data class Hazard(
 
 class HazardsRepository {
 
-    private fun buildUrlAreaHazards(geometry: String): String {
+    private fun buildUrlAreaHazards(geometry: String): String = with(Dispatchers.IO) {
         val base = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
-        return "$base?geometryArea=$geometry&days=360"
+        val geom = geometry.replace(" ", "%20")
+        return "$base?geometryArea=$geom&days=30"
     }
 
-    private suspend fun httpGet(urlStr: String): String = withContext(Dispatchers.IO) {
+    private suspend fun httpGet(urlStr: String): String {
         println(TAG + "HTTP GET : $urlStr")
         val url = URL(urlStr)
         val conn = (url.openConnection() as HttpURLConnection).apply {
@@ -45,20 +47,22 @@ class HazardsRepository {
             connectTimeout = 15000
             readTimeout = 15000
         }
-        val message : String
+        var message : String = ""
         try {
             val code = conn.responseCode
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             message = BufferedReader(InputStreamReader(stream)).use { it.readText() }
-        } finally {
+        } catch (e: Exception) {
+            Log.d("HasardsRepository", "$e")
+        }
+        finally {
             conn.disconnect()
         }
-        println(TAG + "$message")
-        return@withContext message
+        Log.d("HasardsRepository", "$message")
+        return message
     }
 
     suspend fun getAreaHazards(geometry: String): List<Hazard> {
-        println(TAG + "getAreaHazards for geometry : $geometry")
         val url = buildUrlAreaHazards(geometry)
         val response = httpGet(url)
         val jsonObject = JSONObject(response)
@@ -106,7 +110,7 @@ class HazardsRepository {
             }
         }
 
-        return Hazard(
+        val hazard = Hazard(
             id = root.getString("id"),
             type = properties.getString("eventtype"),
             country = properties.getString("country"),
@@ -117,8 +121,12 @@ class HazardsRepository {
             alertLevel = properties.getInt("alertscore"),
             coordinates = coordinates
         )
+
+        Log.d("$TAG + hasard object",  hazard.toString())
+        return hazard
     }
 }
+
 
 //private fun buildUrlWorldHazards(hazardType: HazardType): String {
 //    val base = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP"
