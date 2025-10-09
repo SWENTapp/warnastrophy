@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 
 object LoadingTestTags {
   const val LOADING_INDICATOR = "loadingIndicator"
@@ -20,10 +19,4 @@ fun Loading(modifier: Modifier = Modifier) {
       contentAlignment = Alignment.Center) {
         CircularProgressIndicator()
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoadingPreview() {
-  Loading()
 }
