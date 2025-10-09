@@ -7,9 +7,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun BottomNavigationBar(currentScreen: Screen, navigateToScreen: (String) -> Unit = {}) {
+fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
   if (!currentScreen.hasBottomBar) return
 
   val ctx = LocalContext.current
@@ -21,7 +23,16 @@ fun BottomNavigationBar(currentScreen: Screen, navigateToScreen: (String) -> Uni
           icon = { screen.icon?.let { Icon(it, contentDescription = null) } },
           label = { Text(ctx.getString(screen.title)) },
           selected = currentScreen == screen,
-          onClick = { navigateToScreen(screen.name) })
+          onClick = {
+            navController.navigate(screen.name) {
+              // Forward navigation
+              popUpTo(navController.graph.startDestinationId) { saveState = true }
+              // Avoid multiple copies of the same destination when spamming the same item
+              launchSingleTop = true
+              // Allow staying on the same screen after activity recreation (rotation, kill ?)
+              restoreState = true
+            }
+          })
     }
   }
 }
@@ -29,5 +40,5 @@ fun BottomNavigationBar(currentScreen: Screen, navigateToScreen: (String) -> Uni
 @Preview
 @Composable
 fun BottomNavigationBarPreview() {
-  BottomNavigationBar(Screen.HOME)
+  BottomNavigationBar(Screen.HOME, rememberNavController())
 }

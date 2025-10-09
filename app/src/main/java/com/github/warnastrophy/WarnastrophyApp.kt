@@ -32,7 +32,7 @@ fun WarnastrophyApp() {
   val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: HOME.name)
 
   Scaffold(
-      bottomBar = { BottomNavigationBar(currentScreen) { navController.navigate(it) } },
+      bottomBar = { BottomNavigationBar(currentScreen, navController) },
       topBar = { TopBar(currentScreen) }) { innerPadding ->
         NavHost(navController, HOME.name, modifier = Modifier.padding(innerPadding)) {
           // TODO: Replace with actual screens
