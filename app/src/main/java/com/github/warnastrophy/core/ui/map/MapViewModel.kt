@@ -2,20 +2,21 @@ package com.github.warnastrophy.core.ui.map
 
 import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 data class MapUIState(
     // TODO : Set to user's location
-    val target: LatLng = LatLng(18.5446778, -72.3395897),
+    val target: LatLng = LatLng(18.5944, -72.3074), // Default to Port-au-Prince
     // TODO : change this to a list of DangerZone objects
     val locations: List<LatLng> = emptyList(),
-    val errorMsg: String? = null
+    val errorMsg: String? = null,
+    val isLoading: Boolean = false
 )
 
 class MapViewModel() : ViewModel() {
@@ -50,23 +51,25 @@ class MapViewModel() : ViewModel() {
   }
 
   @SuppressLint("MissingPermission")
-  fun updateUserLocation(locationClient: FusedLocationProviderClient) {
-    viewModelScope.launch {
-      locationClient.lastLocation
-          .addOnSuccessListener { location ->
-            if (location != null) {
-              val currentLatLng = LatLng(location.latitude, location.longitude)
-              _uiState.value = _uiState.value.copy(target = currentLatLng)
-              println("User location: $currentLatLng")
-            } else {
-              _uiState.value = _uiState.value.copy(errorMsg = "Unable to get location")
-              println("Location is null")
-            }
+  fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
+    _uiState.value = _uiState.value.copy(isLoading = true)
+    val request =
+        CurrentLocationRequest.Builder()
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setMaxUpdateAgeMillis(0)
+            .build()
+
+    locationClient
+        .getCurrentLocation(request, null)
+        .addOnSuccessListener { location ->
+          location?.let {
+            val latLng = LatLng(it.latitude, it.longitude)
+            _uiState.value = _uiState.value.copy(target = latLng, isLoading = false)
           }
-          .addOnFailureListener {
-            _uiState.value = _uiState.value.copy(errorMsg = it.message)
-            println("Error getting location: ${it.message}")
-          }
-    }
+        }
+        .addOnFailureListener { exception ->
+          setErrorMsg("Error getting location: ${exception.message}")
+          _uiState.value = _uiState.value.copy(isLoading = false)
+        }
   }
 }
