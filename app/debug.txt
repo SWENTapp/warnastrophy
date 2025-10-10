@@ -1,1 +1,0 @@
-HasardsRepositoryHTTP GET : https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea?geometryArea=POLYGON((-124.848974%2049.384358,-124.848974%2024.396308,-66.93457%2024.396308,-66.93457%2049.384358,-124.848974%2049.384358))&days=1

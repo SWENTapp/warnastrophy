@@ -1,7 +1,6 @@
 package com.github.warnastrophy.core.ui.repository
 
 import android.util.Log
-import com.github.warnastrophy.debugPrint
 import androidx.compose.ui.layout.LookaheadScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,14 +10,10 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import com.github.warnastrophy.core.model.util.Location
 import kotlin.toString
 
 val TAGrep = "HasardsRepository"
-
-data class Location(
-    val latitude: Double,
-    val longitude: Double
-)
 
 data class Hazard(
     val id: Int?,
@@ -41,7 +36,6 @@ class HazardsRepository {
     }
 
     private suspend fun httpGet(urlStr: String): String = with(Dispatchers.IO) {
-        debugPrint(TAGrep + "HTTP GET : $urlStr")
         val url = URL(urlStr)
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"

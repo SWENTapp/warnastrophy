@@ -61,8 +61,8 @@ class HazardsRepositoryIntegrationTest {
         val method = HazardsRepository::class.java.getDeclaredMethod("parseHazard", JSONObject::class.java)
         method.isAccessible = true
 
-        val hazard1 = method.invoke(repo, hazardJson1) as com.github.warnastrophy.core.ui.repository.Hazard
-        val hazard2 = method.invoke(repo, hazardJson2) as com.github.warnastrophy.core.ui.repository.Hazard
+        val hazard1 = method.invoke(repo, hazardJson1) as Hazard
+        val hazard2 = method.invoke(repo, hazardJson2) as Hazard
 
         assertEquals(1001222, hazard1.id)
         assertEquals("TC", hazard1.type)
