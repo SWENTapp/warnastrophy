@@ -1,6 +1,6 @@
+import com.github.warnastrophy.core.model.util.Location
 import com.github.warnastrophy.core.ui.repository.Hazard
 import com.github.warnastrophy.core.ui.repository.HazardsRepository
-import com.github.warnastrophy.core.ui.repository.Location
 import kotlin.jvm.java
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
