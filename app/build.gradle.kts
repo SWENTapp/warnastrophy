@@ -40,7 +40,7 @@ android {
     }
 
     testCoverage {
-        jacocoVersion = "0.8.8"
+        jacocoVersion = "0.8.10"
     }
 
     buildFeatures {
@@ -167,8 +167,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     //test mock
-    testImplementation("org.mockito:mockito-core:5.2.0")
-    testImplementation("org.mockito:mockito-core:5.2.0")
+    testImplementation("io.mockk:mockk:1.13.9")
 }
 
 tasks.withType<Test> {

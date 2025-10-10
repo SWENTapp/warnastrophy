@@ -74,6 +74,7 @@ class HazardsRepository {
             val hazard = parseHazard(hazardJson)
             if (hazard != null) {
                 hazards.add(hazard)
+                Log.e("$TAGrep",  "hazard added: " + hazard.toString())
             }
         }
         return hazards
@@ -83,7 +84,7 @@ class HazardsRepository {
         val properties = root.getJSONObject("properties")
         Log.d("$TAGrep",  "properties: " + properties.toString())
         val isCurrent = properties.getBoolean("iscurrent")
-        if(!isCurrent) return null
+        //if(!isCurrent) return null
 
         val geometry = root.getJSONObject("geometry")
         val coordinates = mutableListOf<Location>()

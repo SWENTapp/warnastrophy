@@ -21,7 +21,6 @@ import com.github.warnastrophy.core.ui.repository.HazardsRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-
 /**
  * `MainActivity` is the entry point of the application. It sets up the content view with the
  * `onCreate` methods. You can run the app by running the `app` configuration in Android Studio. NB:
