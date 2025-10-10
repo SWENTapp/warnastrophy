@@ -24,7 +24,6 @@ data class Hazard(
 )
 
 class HazardsRepository {
-
   private fun buildUrlAreaHazards(geometry: String): String =
       with(Dispatchers.IO) {
         val base = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
@@ -64,11 +63,9 @@ class HazardsRepository {
     val hazards = mutableListOf<Hazard>()
     for (i in 0 until jsonHazards.length()) {
       val hazardJson = jsonHazards.getJSONObject(i)
-      Log.d("$TAGrep", "json obj: " + hazardJson.toString())
       val hazard = parseHazard(hazardJson)
       if (hazard != null) {
         hazards.add(hazard)
-        Log.e("$TAGrep", "hazard added: " + hazard.toString())
       }
     }
     return hazards
@@ -77,7 +74,6 @@ class HazardsRepository {
   private fun parseHazard(root: JSONObject): Hazard? {
 
     val properties = root.getJSONObject("properties")
-    Log.d("$TAGrep", "properties: " + properties.toString())
     val isCurrent = properties.getBoolean("iscurrent")
     // if(!isCurrent) return null
 
@@ -110,7 +106,6 @@ class HazardsRepository {
             alertLevel = properties.getInt("alertscore"),
             coordinates = coordinates)
 
-    Log.d("$TAGrep", "hazard obj : " + hazard.toString())
     return hazard
   }
 }

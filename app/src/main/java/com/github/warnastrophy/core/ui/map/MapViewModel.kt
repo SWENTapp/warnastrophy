@@ -3,14 +3,15 @@ package com.github.warnastrophy.core.ui.map
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
 import com.github.warnastrophy.core.ui.repository.Hazard
 import com.github.warnastrophy.core.ui.repository.HazardsRepository
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 /**
  * UI state for [MapScreen].
@@ -32,7 +33,9 @@ data class MapUIState(
  *
  * Currently uses static data. Will be updated to use data from a repository in the future.
  */
-class MapViewModel(private val repository: HazardsRepository = HazardsRepository()) : ViewModel() {
+class MapViewModel(
+    private val repository: HazardsRepository = HazardRepositoryProvider.repository
+) : ViewModel() {
   private val _uiState = MutableStateFlow(MapUIState())
 
   /** The UI state as a read-only [StateFlow]. */
@@ -58,16 +61,14 @@ class MapViewModel(private val repository: HazardsRepository = HazardsRepository
 
   /** Refreshes the UI state by fetching the latest locations. */
   fun refreshUIState() {
-    viewModelScope.launch {
+    viewModelScope.launch(Dispatchers.IO) {
       try {
-        val sampleHazards = runBlocking {
-          repository.getAreaHazards(
-              "POLYGON((6.0 45.8%2C6.0 47.8%2C10.5 47.8%2C10.5 45.8%2C6.0 45.8))")
-        }
+        Log.e("viewModel", "Fetching hazards from repository")
+        val sampleHazards = repository.getAreaHazards(HazardRepositoryProvider.locationPolygon)
         Log.e("viewModel", "Fetched hazards: $sampleHazards")
         _uiState.value = _uiState.value.copy(hazards = sampleHazards)
       } catch (e: Exception) {
-        setErrorMsg("Failed to load hazards: ${e.message}")
+        Log.e("Error", "Failed to load hazards: ${e.message}")
       }
     }
   }
