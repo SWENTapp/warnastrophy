@@ -13,15 +13,33 @@ composeActivity = "1.8.2"
 composeViewModel = "2.7.0"
 lifecycleRuntimeKtx = "2.7.0"
 kaspresso = "1.5.5"
+playServicesLocation = "21.0.1"
 robolectric = "4.11.1"
 sonar = "4.4.1.3373"
 
+# Firebase
+firebaseBom = "32.8.1"
+firebaseAuth = "23.0.0"
+firebaseAuthKtx = "23.0.0"
+firebaseDatabaseKtx = "21.0.0"
+firebaseFirestore = "25.1.0"
+
+# Google Service and Maps
+playServicesAuth = "21.2.0"
+playServicesMaps = "19.0.0"
+mapsCompose = "4.3.3"
+mapsComposeUtils = "4.3.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore", version.ref = "firebaseFirestore" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 
@@ -40,6 +58,8 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 kaspresso = { group = "com.kaspersky.android-components", name = "kaspresso", version.ref = "kaspresso" }
 kaspresso-compose = { group = "com.kaspersky.android-components", name = "kaspresso-compose-support", version.ref = "kaspresso" }
 
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [plugins]

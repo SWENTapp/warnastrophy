@@ -156,19 +156,20 @@ dependencies {
 
     // --------------- firebase -------------------
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation(platform(libs.firebase.bom))
 
     // When using the BoM, you don't specify versions in Firebase library dependencies
 
     // TODO: Add the dependencies for Firebase products you want to use
     // See https://firebase.google.com/docs/android/setup#available-libraries
     // For example, add the dependencies for Firebase Authentication and Cloud Firestore
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
     // --------------- Google Maps -------------------
-    implementation("com.google.android.gms:play-services-maps:19.0.0")
-    implementation("com.google.maps.android:maps-compose:4.4.1")
+    implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.location)
 }
 
 tasks.withType<Test> {
