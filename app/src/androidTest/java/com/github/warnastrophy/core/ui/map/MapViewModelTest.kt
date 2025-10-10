@@ -8,7 +8,7 @@ class MapViewModelTest {
   @Test
   fun testRefreshUIState_updatesLocations() {
     val viewModel = MapViewModel()
-    val locations = viewModel.uiState.value.locations
+    val locations = viewModel.uiState.value.hazards
     assertTrue(locations.isNotEmpty())
     assertEquals(5, locations.size)
   }
