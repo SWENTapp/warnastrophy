@@ -40,7 +40,7 @@ android {
     }
 
     testCoverage {
-        jacocoVersion = "0.8.10"
+        jacocoVersion = "0.8.11"
     }
 
     buildFeatures {
@@ -168,7 +168,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     //test mock
     testImplementation("io.mockk:mockk:1.13.9")
-}
+    implementation("org.json:json:20240303")
+    testImplementation("org.json:json:20240303")}
 
 tasks.withType<Test> {
     // Configure Jacoco for each tests

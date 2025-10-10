@@ -2,6 +2,7 @@ package com.github.warnastrophy
 
 import kotlin.math.*
 import com.github.warnastrophy.core.ui.repository.Location
+import kotlinx.coroutines.Dispatchers
 
 object GeoUtils {
     private const val earthRadiusKm = 6371.009
@@ -31,15 +32,18 @@ object GeoUtils {
         val minLon = min(lon1, lon2)
         val maxLon = max(lon1, lon2)
 
-        val minLatRadius = earthRadiusKm * cos(minLat)
-        //if(minLatRadius){}
+        val currentLatRadius = 2*Math.PI*earthRadiusKm * cos(center.latitude)
+        if (currentLatRadius < km) {
+            return listOf(-180.0, minLat, 180.0, maxLat)
+        }
         return listOf(minLon, minLat, maxLon, maxLat)
-    }
+
+    }//check radius and pole edge case
 
     fun normalizeLat(lat: Double): Double {
         return when {
-            lat > 90.0 -> lat - 180.0
-            lat < -90.0 -> lat + 180.0
+            lat > 90.0 -> 90.0
+            lat < -90.0 -> -90.0
             else -> lat
         }
     }
@@ -51,4 +55,9 @@ object GeoUtils {
             else -> lon
         }
     }
+}
+
+fun debugPrint(msg: String) {
+    val file = java.io.File("debug.txt")
+    file.appendText(msg + "\n")
 }

@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.repository
 
 import android.util.Log
+import com.github.warnastrophy.debugPrint
 import androidx.compose.ui.layout.LookaheadScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,6 +11,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.toString
 
 val TAGrep = "HasardsRepository"
 
@@ -19,11 +21,11 @@ data class Location(
 )
 
 data class Hazard(
-    val id: String?,
+    val id: Int?,
     val type: String?,
     val country: String?,
     val date : String?,
-    val severity: String?,
+    val severity: Double?,
     val severityUnit: String?,
     val reportUrl: String?,
     val alertLevel : Int?,
@@ -32,14 +34,14 @@ data class Hazard(
 
 class HazardsRepository {
 
-    private fun buildUrlAreaHazards(geometry: String): String = with(Dispatchers.IO) {
+    private fun buildUrlAreaHazards(geometry: String, days: String): String {
         val base = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
         val geom = geometry.replace(" ", "%20")
-        return "$base?geometryArea=$geom&days=360"
+        return "$base?geometryArea=$geom&days=$days"
     }
 
-    private suspend fun httpGet(urlStr: String): String {
-        println(TAGrep + "HTTP GET : $urlStr")
+    private suspend fun httpGet(urlStr: String): String = with(Dispatchers.IO) {
+        debugPrint(TAGrep + "HTTP GET : $urlStr")
         val url = URL(urlStr)
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
@@ -58,31 +60,25 @@ class HazardsRepository {
         finally {
             conn.disconnect()
         }
-        Log.d("TAGrep", "resp message: $message")
         return message
     }
 
-    suspend fun getAreaHazards(geometry: String): List<Hazard> {
-        val url = buildUrlAreaHazards(geometry)
+    suspend fun getAreaHazards(geometry: String, days: String = "1"): List<Hazard> {
+        val url = buildUrlAreaHazards(geometry, days)
         val response = httpGet(url)
+        val hazards = mutableListOf<Hazard>()
         val jsonObject = JSONObject(response)
         val jsonHazards = jsonObject.getJSONArray("features")
-        val hazards = mutableListOf<Hazard>()
         for (i in 0 until jsonHazards.length()) {
             val hazardJson = jsonHazards.getJSONObject(i)
-            Log.d("$TAGrep",  "json obj: " + hazardJson.toString())
             val hazard = parseHazard(hazardJson)
-            if (hazard != null) {
-                hazards.add(hazard)
-                Log.e("$TAGrep",  "hazard added: " + hazard.toString())
-            }
+            if (hazard != null) hazards.add(hazard)
         }
         return hazards
     }
     private fun parseHazard(root: JSONObject): Hazard? {
 
         val properties = root.getJSONObject("properties")
-        Log.d("$TAGrep",  "properties: " + properties.toString())
         val isCurrent = properties.getBoolean("iscurrent")
         //if(!isCurrent) return null
 
@@ -113,18 +109,17 @@ class HazardsRepository {
         }
 
         val hazard = Hazard(
-            id = properties.getString("eventid"),
+            id = properties.getInt("eventid"),
             type = properties.getString("eventtype"),
             country = properties.getString("country"),
             date = properties.getString("fromdate"),
-            severity = properties.getJSONObject("severitydata").getString("severity"),
+            severity = properties.getJSONObject("severitydata").getDouble("severity"),
             severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
             reportUrl = properties.getJSONObject("url").getString("report"),
             alertLevel = properties.getInt("alertscore"),
             coordinates = coordinates
         )
 
-        Log.d("$TAGrep", "hazard obj : "  + hazard.toString())
         return hazard
     }
 }
