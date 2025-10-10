@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
-    //id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
     id("jacoco")
 }
 
@@ -169,6 +169,10 @@ dependencies {
     // --------------- Google Maps -------------------
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.maps.android:maps-compose:4.4.1")
+
+    //test mock
+    testImplementation("org.mockito:mockito-core:5.2.0")
+    testImplementation("org.mockito:mockito-core:5.2.0")
 }
 
 tasks.withType<Test> {

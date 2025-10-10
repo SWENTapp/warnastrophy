@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.map
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -8,6 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.model.util.Location
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
@@ -28,16 +31,35 @@ fun MapScreen(
   val cameraPositionState = rememberCameraPositionState {
     position = CameraPosition.fromLatLngZoom(uiState.target, 10f)
   }
+  val hazardsList = uiState.hazards
 
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
       cameraPositionState = cameraPositionState) {
-        uiState.locations.forEach { loc ->
-          Marker(
-              state = MarkerState(loc),
-              title = "Marker in Haiti",
-              snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-          )
+        Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
+        hazardsList.forEach { hazard ->
+          hazard.coordinates?.forEach { coord ->
+            val loc = Location.toLatLng(coord)
+            Marker(
+                state = MarkerState(position = loc),
+                title = "Marker in Haiti",
+                snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
+                icon =
+                    when (hazard.type) {
+                      "FL" ->
+                          BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+                      "DR" ->
+                          BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
+                      "WC" ->
+                          BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
+                      "EQ" -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                      "TC" ->
+                          BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)
+                      else ->
+                          BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                    },
+            )
+          }
         }
       }
 }
