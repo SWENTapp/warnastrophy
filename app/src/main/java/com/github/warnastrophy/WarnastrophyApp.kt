@@ -20,6 +20,9 @@ import com.github.warnastrophy.core.ui.navigation.Screen.MAP
 import com.github.warnastrophy.core.ui.navigation.Screen.PROFILE
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.profile.ProfileScreen
+import com.github.warnastrophy.core.ui.profile.contact.AddContactScreen
+import com.github.warnastrophy.core.ui.profile.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 @Composable
@@ -33,13 +36,30 @@ fun WarnastrophyApp() {
 
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
-      topBar = { TopBar(currentScreen) }) { innerPadding ->
+      topBar = {
+        TopBar(
+            currentScreen,
+            canNavigateBack =
+                currentScreen.title == Screen.ADD_CONTACT.title ||
+                    currentScreen.title == Screen.EDIT_CONTACT.title ||
+                    currentScreen.title == Screen.CONTACT_LIST.title,
+            navigateUp = { navController.navigateUp() })
+      }) { innerPadding ->
         NavHost(navController, HOME.name, modifier = Modifier.padding(innerPadding)) {
           // TODO: Replace with actual screens
           // TODO: Use string resources for your titles
           composable(HOME.name) { HomeScreen() }
           composable(MAP.name) { MapScreen() }
-          composable(PROFILE.name) { ProfileScreen() }
+          composable(PROFILE.name) {
+            ProfileScreen(onContactListClick = { navController.navigate(Screen.CONTACT_LIST.name) })
+          }
+          composable(Screen.CONTACT_LIST.name) {
+            ContactListScreen(
+                onContactClick = { navController.navigate(Screen.EDIT_CONTACT.name) },
+                onAddButtonClick = { navController.navigate(Screen.ADD_CONTACT.name) })
+          }
+          composable(Screen.ADD_CONTACT.name) { AddContactScreen() }
+          composable(Screen.EDIT_CONTACT.name) { EditContactScreen() }
         }
       }
 }

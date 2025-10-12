@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.github.warnastrophy.core.ui.viewModel.MapViewModel
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
