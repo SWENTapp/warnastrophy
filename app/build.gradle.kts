@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -6,6 +9,16 @@ plugins {
     id("com.google.gms.google-services")
     id("jacoco")
 }
+
+val localProps = Properties()
+val localPropsFile = rootProject.file("local.properties")
+if(localPropsFile.exists()){
+    localProps.load(FileInputStream(localPropsFile))
+    localProps.forEach{key, value ->
+        project.extensions.extraProperties[key.toString()] = value
+    }
+}
+
 
 android {
     namespace = "com.github.warnastrophy"
@@ -22,6 +35,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }
 
     buildTypes {
