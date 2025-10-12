@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
@@ -34,6 +35,9 @@ enum class Screen(
   HOME(R.string.home_screen_title, icon = Icons.Filled.Home),
   MAP(R.string.map_screen_title, icon = Icons.Filled.Place),
   PROFILE(R.string.profile_screen_title, icon = Icons.Filled.Person),
+  ADD_CONTACT(R.string.add_contact_screen, icon = Icons.Filled.Add),
+  CONTACT_LIST(R.string.contact_list),
+  EDIT_CONTACT(R.string.edit_contact_screen)
 }
 
 val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.HOME, Screen.MAP, Screen.PROFILE)

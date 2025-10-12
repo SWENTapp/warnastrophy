@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.map
+package com.github.warnastrophy.core.ui.viewModel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * UI state for [MapScreen].
+ * UI state for [com.github.warnastrophy.core.ui.map.MapScreen].
  *
  * @param target The target location where the map camera should be centered.
  * @param hazards List of locations to be marked on the map.
@@ -30,7 +30,7 @@ data class MapUIState(
 )
 
 /**
- * ViewModel for [MapScreen].
+ * ViewModel for [com.github.warnastrophy.core.ui.map.MapScreen].
  *
  * Currently uses static data. Will be updated to use data from a repository in the future.
  */
