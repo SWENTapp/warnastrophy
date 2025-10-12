@@ -32,6 +32,12 @@ jobs:
         run: |
           echo $KEYSTORE_BASE64 | base64 --decode > ${GITHUB_WORKSPACE}/release.jks
 
+      - name: Decode Firebase Config
+        env:
+          FIREBASESECRET: ${{ secrets.FIREBASESECRET }}
+        run:
+          echo "$FIREBASESECRET" | base64 --decode > ./app/google-services.json
+
       # 4. Build the signed APK
       - name: Build with Gradle
         env:
@@ -45,5 +51,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: warnastrophy-release-apk
+          name: warnastrophy-release
           path: app/build/outputs/apk/release/warnastrophy-release-signed.apk
