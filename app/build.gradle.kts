@@ -53,12 +53,11 @@ android {
             storeFile = project.file(
                 System.getenv("SIGNING_STORE_FILE")
                     ?: keystoreProperties["storeFile"] as? String
-                    ?: ""
+                    ?: "unknown.jks"
             )
 
             storePassword = System.getenv("SIGNING_STORE_PASSWORD")
                 ?: keystoreProperties["storePassword"] as? String
-                ?: ""
 
             keyAlias = System.getenv("SIGNING_KEY_ALIAS")
                 ?: keystoreProperties["keyAlias"] as? String
