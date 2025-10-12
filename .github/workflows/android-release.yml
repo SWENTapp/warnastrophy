@@ -30,7 +30,7 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo $KEYSTORE_BASE64 | base64 --decode > ${GITHUB_WORKSPACE}/release.jks
+          echo $KEYSTORE_BASE64 | base64 --decode > ./app/release.jks
 
       - name: Decode Firebase Config
         env:
@@ -41,7 +41,7 @@ jobs:
       # 4. Build the signed APK
       - name: Build with Gradle
         env:
-          SIGNING_STORE_FILE: ${GITHUB_WORKSPACE}/release.jks
+          SIGNING_STORE_FILE: release.jks
           SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}

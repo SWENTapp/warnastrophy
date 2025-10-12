@@ -40,20 +40,23 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = project.file(
-                System.getenv("SIGNING_STORE_FILE")
+            val storeFilePath = System.getenv("SIGNING_STORE_FILE")
                     ?: keystoreProperties["storeFile"] as? String
-                    ?: "unknown.jks"
-            )
-
-            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+            val storePasswordVal = System.getenv("SIGNING_STORE_PASSWORD")
                 ?: keystoreProperties["storePassword"] as? String
-
-            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+            val keyAliasVal = System.getenv("SIGNING_KEY_ALIAS")
                 ?: keystoreProperties["keyAlias"] as? String
-
-            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+            val keyPasswordVal = System.getenv("SIGNING_KEY_PASSWORD")
                 ?: keystoreProperties["keyPassword"] as? String
+
+            if (storeFilePath == null || storePasswordVal == null || keyAliasVal == null || keyPasswordVal == null) {
+                throw GradleException("Release signing config value missing: storeFile, storePassword, keyAlias, or keyPassword")
+            }
+
+            storeFile = project.file(storeFilePath)
+            storePassword = storePasswordVal
+            keyAlias = keyAliasVal
+            keyPassword = keyPasswordVal
         }
     }
 
@@ -65,6 +68,7 @@ android {
                 "proguard-rules.pro"
             )
             val releaseConfig = signingConfigs.getByName("release")
+            println("Release signing config storeFile: ${releaseConfig.storeFile}, exists: ${releaseConfig.storeFile?.exists()}")
             if (releaseConfig.storeFile?.exists() == true) {
                 signingConfig = releaseConfig
             } else {
