@@ -4,16 +4,17 @@ on:
     push:
         branches:
             - main
-            - 'feature/**'
-            - 'refactor/**'
-            - 'fix/**'
-            - 'ci/**'
-            
+            - 'release/**'
     pull_request:
         types:
             - opened
             - synchronize
             - reopened
+
+# Cancel previous runs on the same branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
     ci:
@@ -111,8 +112,9 @@ jobs:
             - name: Run tests
               run: ./gradlew check --parallel --build-cache
 
-            # 11. Run connected tests on emulator
+            # 11. Run instrumentation tests on emulator
             - name: Run instrumentation tests
+              if: github.ref == 'refs/heads/main'
               uses: reactivecircus/android-emulator-runner@v2
               with:
                 api-level: 34
