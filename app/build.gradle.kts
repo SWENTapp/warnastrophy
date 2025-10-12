@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -5,6 +7,16 @@ plugins {
     alias(libs.plugins.sonar)
     id("com.google.gms.google-services")
     id("jacoco")
+}
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use {
+        keystoreProperties.load(it)
+    }
+} else {
+    println("Keystore file not found: ${keystorePropertiesFile.path}")
 }
 
 android {
@@ -24,6 +36,26 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = project.file(
+                System.getenv("SIGNING_STORE_FILE")
+                    ?: keystoreProperties["storeFile"] as? String
+                    ?: ""
+            )
+
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+                ?: keystoreProperties["storePassword"] as? String
+                ?: ""
+
+            keyAlias = System.getenv("SIGNING_KEY_ALIAS")
+                ?: keystoreProperties["keyAlias"] as? String
+
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+                ?: keystoreProperties["keyPassword"] as? String
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -31,6 +63,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val releaseConfig = signingConfigs.getByName("release")
+            if (releaseConfig.storeFile?.exists() == true) {
+                signingConfig = releaseConfig
+            } else {
+                println("Release signing config unavailable")
+            }
         }
 
         debug {
