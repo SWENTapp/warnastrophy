@@ -81,8 +81,8 @@ class HazardsRepository {
         val arr = geometry.getJSONArray("coordinates")
         coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
       }
-      "MultiPolygon" -> {
-        val polygons = geometry.getJSONArray("coordinates")
+      "Polygon" -> {
+        val polygons = geometry.getJSONArray("coordinates").getJSONArray(0).getJSONArray(0)
         for (i in 0 until polygons.length()) {
           val polygon = polygons.getJSONArray(i)
           coordinates.add(
@@ -102,7 +102,6 @@ class HazardsRepository {
             reportUrl = properties.getJSONObject("url").getString("report"),
             alertLevel = properties.getInt("alertscore"),
             coordinates = coordinates)
-
     return hazard
   }
 }

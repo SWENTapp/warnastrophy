@@ -15,7 +15,7 @@ class HazardsRepositoryIntegrationTest {
         "POLYGON((-124.848974 49.384358,-124.848974 24.396308,-66.93457 24.396308," +
             "-66.93457 49.384358,-124.848974 49.384358))"
     // Polygone simplifié des USA (format WKT ou GeoJSON selon l'API attendue)
-    var hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "30")
+    val hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "30")
     assertTrue(hazards.isNotEmpty())
   }
 
@@ -47,7 +47,19 @@ class HazardsRepositoryIntegrationTest {
             """
             {
                 "type":"Feature",
-                "geometry":{"type":"Point","coordinates":[-104.9,18.3]},
+                "geometry": {
+            "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                [-115.2, 25.9],
+                                [-115.3, 26.0],
+                                [-115.1, 26.1],
+                                [-115.2, 25.9]
+                            ]
+                        ]
+                    ]
+                },
                 "properties":{
                     "eventid":1001225,
                     "eventtype":"TC",
