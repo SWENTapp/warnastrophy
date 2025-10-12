@@ -34,6 +34,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        setProperty("archivesBaseName", "$applicationId-v$versionName($versionCode)")
     }
 
     signingConfigs {
