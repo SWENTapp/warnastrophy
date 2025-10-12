@@ -47,9 +47,22 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
+      - name: Get APK Name and Path
+        id : get-apk-name
+        run: |
+          # Find the APK file that matches the pattern in the release directory
+          APK_FILE=$(find app/build/outputs/apk/release/ -name "*.apk" -print -quit)
+          
+          # Set the full file path as an output variable
+          echo "apk_path=$APK_FILE" >> $GITHUB_OUTPUT
+          
+          # Extract just the file name
+          APK_NAME=$(basename $APK_FILE)
+          echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
+
       # 5. Upload the APK as a build artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: warnastrophy-release
-          path: app/build/outputs/apk/release/warnastrophy-release-signed.apk
+          name: ${{ steps.get-apk-name.outputs.apk_name }}
+          path: ${{ steps.get-apk-name.outputs.apk_path }}
