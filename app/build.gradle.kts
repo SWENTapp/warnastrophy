@@ -62,13 +62,13 @@ android {
                 ?: keystoreProperties["keyPassword"] as? String
 
             if (storeFilePath == null || storePasswordVal == null || keyAliasVal == null || keyPasswordVal == null) {
-                throw GradleException("Release signing config value missing: storeFile, storePassword, keyAlias, or keyPassword")
+                println("Release signing config value missing: storeFile, storePassword, keyAlias, or keyPassword")
+            } else {
+                storeFile = project.file(storeFilePath)
+                storePassword = storePasswordVal
+                keyAlias = keyAliasVal
+                keyPassword = keyPasswordVal
             }
-
-            storeFile = project.file(storeFilePath)
-            storePassword = storePasswordVal
-            keyAlias = keyAliasVal
-            keyPassword = keyPasswordVal
         }
     }
 
