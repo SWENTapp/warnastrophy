@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SampleApp</string>
+    <string name="app_name">Warnastrophy</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_second">SecondActivity</string>
     <string name="google_maps_key">AIzaSyCc_vjiK0svwOqzVsWFimCL1m94YrirjGM</string>
