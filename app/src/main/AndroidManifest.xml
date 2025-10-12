@@ -15,7 +15,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/title_activity_main"
             android:theme="@style/Theme.MainApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,5 +25,4 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${GOOGLE_MAPS_API_KEY}" />
     </application>
-
 </manifest>

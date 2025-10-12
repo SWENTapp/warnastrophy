@@ -19,6 +19,15 @@ if(localPropsFile.exists()){
     }
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use {
+        keystoreProperties.load(it)
+    }
+} else {
+    println("Keystore file not found: ${keystorePropertiesFile.path}")
+}
 
 android {
     namespace = "com.github.warnastrophy"
@@ -37,6 +46,30 @@ android {
         }
 
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
+
+        setProperty("archivesBaseName", "$applicationId-v$versionName($versionCode)")
+    }
+
+    signingConfigs {
+        create("release") {
+            val storeFilePath = System.getenv("SIGNING_STORE_FILE")
+                    ?: keystoreProperties["storeFile"] as? String
+            val storePasswordVal = System.getenv("SIGNING_STORE_PASSWORD")
+                ?: keystoreProperties["storePassword"] as? String
+            val keyAliasVal = System.getenv("SIGNING_KEY_ALIAS")
+                ?: keystoreProperties["keyAlias"] as? String
+            val keyPasswordVal = System.getenv("SIGNING_KEY_PASSWORD")
+                ?: keystoreProperties["keyPassword"] as? String
+
+            if (storeFilePath == null || storePasswordVal == null || keyAliasVal == null || keyPasswordVal == null) {
+                println("Release signing config value missing: storeFile, storePassword, keyAlias, or keyPassword")
+            } else {
+                storeFile = project.file(storeFilePath)
+                storePassword = storePasswordVal
+                keyAlias = keyAliasVal
+                keyPassword = keyPasswordVal
+            }
+        }
     }
 
     buildTypes {
@@ -46,6 +79,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val releaseConfig = signingConfigs.getByName("release")
+            println("Release signing config storeFile: ${releaseConfig.storeFile}, exists: ${releaseConfig.storeFile?.exists()}")
+            if (releaseConfig.storeFile?.exists() == true) {
+                signingConfig = releaseConfig
+            } else {
+                println("Release signing config unavailable")
+            }
         }
 
         debug {
