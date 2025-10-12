@@ -114,7 +114,6 @@ jobs:
 
             # 11. Run instrumentation tests on emulator
             - name: Run instrumentation tests
-              if: github.ref == 'refs/heads/main'
               uses: reactivecircus/android-emulator-runner@v2
               with:
                 api-level: 34
