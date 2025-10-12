@@ -1,11 +1,8 @@
 name: Build Signed Release APK
 
 on:
-#  push:
-#    branches: [ release/** ] # Or your primary branch, e.g., master
-
-  pull_request:
-    branches: [ release/** ]
+  push:
+    branches: [ main, release/** ] # Or your primary branch, e.g., master
 
   workflow_dispatch:
 
