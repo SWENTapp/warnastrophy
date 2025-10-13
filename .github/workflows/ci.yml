@@ -4,16 +4,17 @@ on:
     push:
         branches:
             - main
-            - 'feature/**'
-            - 'refactor/**'
-            - 'fix/**'
-            - 'ci/**'
-            
+            - 'release/**'
     pull_request:
         types:
             - opened
             - synchronize
             - reopened
+
+# Cancel previous runs on the same branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
     ci:
@@ -66,12 +67,14 @@ jobs:
             - name: Gradle cache
               uses: gradle/actions/setup-gradle@v3
 
-            # 7. Load google-services.json from the secrets
+            # 7. Load google-services.json and local.properties from the secrets
             - name: Decode secrets
               env:
                 FIREBASESECRET: ${{ secrets.FIREBASESECRET }}
-              run:
-                echo "$FIREBASESECRET" | base64 --decode > ./app/google-services.json
+                LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+              run: |
+                echo "$FIREBASESECRET" | base64 --decode >  app/google-services.json
+                echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
             
             - name: AVD cache
               uses: actions/cache@v4
@@ -109,7 +112,7 @@ jobs:
             - name: Run tests
               run: ./gradlew check --parallel --build-cache
 
-            # 11. Run connected tests on emulator
+            # 11. Run instrumentation tests on emulator
             - name: Run instrumentation tests
               uses: reactivecircus/android-emulator-runner@v2
               with:

@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.ui.map
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.model.util.Location
 import com.github.warnastrophy.core.ui.components.Loading
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -43,6 +45,7 @@ fun MapScreen(
       println("Location permission not granted")
     }
   }
+  val hazardsList = uiState.hazards
 
   LaunchedEffect(uiState.target) {
     cameraPositionState.animate(
@@ -54,12 +57,36 @@ fun MapScreen(
       GoogleMap(
           modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
           cameraPositionState = cameraPositionState) {
-            uiState.locations.forEach { loc ->
-              Marker(
-                  state = MarkerState(loc),
-                  title = "Marker in Haiti",
-                  snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-              )
+            Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
+            hazardsList.forEach { hazard ->
+              hazard.coordinates?.forEach { coord ->
+                val loc = Location.toLatLng(coord)
+                Marker(
+                    state = MarkerState(position = loc),
+                    title = "Marker in Haiti",
+                    snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
+                    icon =
+                        when (hazard.type) {
+                          "FL" ->
+                              BitmapDescriptorFactory.defaultMarker(
+                                  BitmapDescriptorFactory.HUE_GREEN)
+                          "DR" ->
+                              BitmapDescriptorFactory.defaultMarker(
+                                  BitmapDescriptorFactory.HUE_ORANGE)
+                          "WC" ->
+                              BitmapDescriptorFactory.defaultMarker(
+                                  BitmapDescriptorFactory.HUE_BLUE)
+                          "EQ" ->
+                              BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                          "TC" ->
+                              BitmapDescriptorFactory.defaultMarker(
+                                  BitmapDescriptorFactory.HUE_YELLOW)
+                          else ->
+                              BitmapDescriptorFactory.defaultMarker(
+                                  BitmapDescriptorFactory.HUE_AZURE)
+                        },
+                )
+              }
             }
 
             Marker(
