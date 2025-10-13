@@ -20,6 +20,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -40,9 +41,10 @@ fun MapScreen(
   LaunchedEffect(Unit) {
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
         PackageManager.PERMISSION_GRANTED) {
-      viewModel.requestCurrentLocation(locationClient)
+      viewModel.requestCurrentLocation(locationClient) // Request location once at start (initial)
+      viewModel.startLocationUpdates(locationClient) // Start continuous location updates
     } else {
-      println("Location permission not granted")
+      throw Exception("Location permission not granted")
     }
   }
   val hazardsList = uiState.hazards
@@ -56,7 +58,8 @@ fun MapScreen(
   if (!uiState.isLoading)
       GoogleMap(
           modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-          cameraPositionState = cameraPositionState) {
+          cameraPositionState = cameraPositionState,
+          properties = MapProperties(isMyLocationEnabled = true)) {
             Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
             hazardsList.forEach { hazard ->
               hazard.coordinates?.forEach { coord ->
@@ -88,12 +91,6 @@ fun MapScreen(
                 )
               }
             }
-
-            Marker(
-                state = MarkerState(uiState.target),
-                title = "You are here",
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
-            )
           }
   else Loading()
 }
