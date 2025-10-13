@@ -18,11 +18,12 @@ fun TopBar(currentScreen: Screen) {
   val ctx = LocalContext.current
 
   TopAppBar(
-    title = { Text(
-      ctx.getString(currentScreen.title),
-      modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_TITLE))
-            },
-    )
+      title = {
+        Text(
+            ctx.getString(currentScreen.title),
+            modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_TITLE))
+      },
+  )
 }
 
 @Preview
