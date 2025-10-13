@@ -4,7 +4,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
@@ -15,7 +17,12 @@ fun TopBar(currentScreen: Screen) {
 
   val ctx = LocalContext.current
 
-  TopAppBar(title = { Text(ctx.getString(currentScreen.title)) })
+  TopAppBar(
+    title = { Text(
+      ctx.getString(currentScreen.title),
+      modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_TITLE))
+            },
+    )
 }
 
 @Preview

@@ -5,10 +5,18 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+
+private fun tagFor(screen: Screen): String = when (screen) {
+    Screen.HOME -> NavigationTestTags.TAB_HOME
+    Screen.MAP -> NavigationTestTags.TAB_MAP
+    Screen.PROFILE -> NavigationTestTags.TAB_PROFILE
+}
 
 @Composable
 fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
@@ -16,12 +24,16 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
 
   val ctx = LocalContext.current
 
-  NavigationBar {
+  NavigationBar(modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAV)) {
     BOTTOM_NAVIGATION_BAR_SCREENS.forEach { screen ->
       NavigationBarItem(
-          // FIXME: Use correctly centered labels
+          // FIXME: Use correctly centered labels ,
+          modifier = Modifier.testTag(tagFor(screen)),
           icon = { screen.icon?.let { Icon(it, contentDescription = null) } },
-          label = { Text(ctx.getString(screen.title)) },
+          label = { Text(
+              ctx.getString(screen.title),
+              modifier = Modifier.testTag(tagFor(screen)),
+          ) },
           selected = currentScreen == screen,
           onClick = {
             navController.navigate(screen.name) {
