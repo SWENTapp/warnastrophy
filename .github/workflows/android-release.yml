@@ -1,0 +1,65 @@
+name: Build Signed Release APK
+
+on:
+  push:
+    branches: [ main, release/** ] # Or your primary branch, e.g., master
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Set up JDK
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. Decode the keystore from the secret and create the file
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo $KEYSTORE_BASE64 | base64 --decode > ./app/release.jks
+
+      - name: Decode Firebase Config
+        env:
+          FIREBASESECRET: ${{ secrets.FIREBASESECRET }}
+        run:
+          echo "$FIREBASESECRET" | base64 --decode > ./app/google-services.json
+
+      # 4. Build the signed APK
+      - name: Build with Gradle
+        env:
+          SIGNING_STORE_FILE: release.jks
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease
+
+      - name: Get APK Name and Path
+        id : get-apk-name
+        run: |
+          # Find the APK file that matches the pattern in the release directory
+          APK_FILE=$(find app/build/outputs/apk/release/ -name "*.apk" -print -quit)
+          
+          # Set the full file path as an output variable
+          echo "apk_path=$APK_FILE" >> $GITHUB_OUTPUT
+          
+          # Extract just the file name
+          APK_NAME=$(basename $APK_FILE)
+          echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
+
+      # 5. Upload the APK as a build artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.get-apk-name.outputs.apk_name }}
+          path: ${{ steps.get-apk-name.outputs.apk_path }}

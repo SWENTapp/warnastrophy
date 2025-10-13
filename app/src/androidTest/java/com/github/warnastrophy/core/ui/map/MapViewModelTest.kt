@@ -16,7 +16,8 @@ class MapViewModelTest {
     composeTestRule.setContent { MapScreen(viewModel) }
     viewModel.refreshUIState()
     val hazards = viewModel.uiState.value.hazards
-    assertTrue(hazards.isNotEmpty())
+
+    composeTestRule.waitUntil(timeoutMillis = 3000) { hazards.isNotEmpty() }
   }
 
   @Test
