@@ -44,8 +44,6 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        // Instructs Gradle to grant the mock location permission for this app during test runs.
-        testInstrumentationRunnerArguments["mockLocation"] = "true"
 
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
 
