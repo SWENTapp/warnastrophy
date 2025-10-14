@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.github.warnastrophy.core.model.util.AppConfig
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 /**
@@ -17,6 +18,7 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    AppConfig.fetchDelayMs = resources.getInteger(R.integer.fetch_delay_ms).toLong()
     setContent { MainAppTheme { Surface(modifier = Modifier.fillMaxSize()) { WarnastrophyApp() } } }
   }
 }

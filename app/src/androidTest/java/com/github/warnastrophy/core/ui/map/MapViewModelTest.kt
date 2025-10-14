@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.github.warnastrophy.core.model.util.AppConfig
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -32,7 +33,7 @@ class MapViewModelTest {
   fun testHazardsLoadedIntoViewModel() = runBlocking {
     val viewModel = MapViewModel()
     // Wait for hazards to load
-    kotlinx.coroutines.delay(1000)
+    delay(2000)
     val hazards = viewModel.uiState.value.hazards
     assertNotNull(hazards)
     assertTrue(hazards.isNotEmpty())
@@ -41,7 +42,7 @@ class MapViewModelTest {
   @Test
   fun testHazardsPeriodicallyUpdate() = runBlocking {
     val viewModel = MapViewModel()
-    val fetchDelay = viewModel.fetchDelayMs + 1000 // Add buffer to ensure fetch completes
+    val fetchDelay = AppConfig.fetchDelayMs + 2000 // Add buffer to ensure fetch completes
 
     delay(fetchDelay)
     val hazardsAfterFirstFetch = viewModel.uiState.value.hazards

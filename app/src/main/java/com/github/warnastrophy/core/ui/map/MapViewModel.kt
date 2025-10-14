@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.ui.map
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.model.util.AppConfig
 import com.github.warnastrophy.core.model.util.Hazard
 import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.util.HazardsRepository
@@ -38,8 +39,6 @@ class MapViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(MapUIState())
 
-  /** Delay between data fetches in milliseconds. */
-  val fetchDelayMs: Long = 5000L
   /** The UI state as a read-only [StateFlow]. */
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
@@ -47,7 +46,7 @@ class MapViewModel(
     refreshUIState()
     viewModelScope.launch(Dispatchers.IO) {
       while (true) {
-        delay(fetchDelayMs)
+        delay(AppConfig.fetchDelayMs)
         refreshUIState()
       }
     }
