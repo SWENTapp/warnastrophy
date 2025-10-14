@@ -229,6 +229,12 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.maps.android:maps-compose:4.4.1")
 
+    // --------------- Gson -------------------
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // --------------- DataStore -------------------
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
     //test mock
     testImplementation("io.mockk:mockk:1.13.9")
     implementation("org.json:json:20240303")
