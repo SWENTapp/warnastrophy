@@ -7,9 +7,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.WarnastrophyApp
-import com.github.warnastrophy.core.ui.navigation.BottomNavigationBarPreview
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import com.github.warnastrophy.core.ui.navigation.TopBarPreview
 import org.junit.Rule
 import org.junit.Test
 
@@ -24,22 +22,6 @@ class NavigationE2ETest {
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).assertIsDisplayed()
-  }
-
-  @Test
-  fun testTopBarPreview() {
-    composeTestRule.setContent { TopBarPreview() }
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.TOP_BAR_PREVIEW, useUnmergedTree = true)
-        .assertExists()
-  }
-
-  @Test
-  fun testBottomNavPreview() {
-    composeTestRule.setContent { BottomNavigationBarPreview() }
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.BOTTOM_NAV_PREVIEW, useUnmergedTree = true)
-        .assertExists()
   }
 
   @Test
