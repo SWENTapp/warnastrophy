@@ -44,6 +44,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        // Instructs Gradle to grant the mock location permission for this app during test runs.
+        testInstrumentationRunnerArguments["mockLocation"] = "true"
 
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
 
@@ -107,12 +109,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     packaging {
@@ -230,11 +232,17 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.play.services.location)
 
-    //test mock
+    // test mock
     testImplementation(libs.mockk)
     implementation(libs.json)
     testImplementation(libs.json)
-}
+
+    // For mocking objects in tests
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    androidTestImplementation(libs.mockito.core)
+    androidTestImplementation(libs.mockito.android)
+    androidTestImplementation(libs.mockito.kotlin)}
 
 tasks.withType<Test> {
     // Configure Jacoco for each tests

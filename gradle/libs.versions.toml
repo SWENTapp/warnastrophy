@@ -4,6 +4,7 @@ json = "20240303"
 kotlin = "1.9.24"
 coreKtx = "1.12.0"
 kotlinxCoroutinesTest = "1.9.0"
+kotlinxCoroutinesTestVersion = "1.8.1"
 ktfmt = "0.17.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -15,6 +16,10 @@ composeActivity = "1.8.2"
 composeViewModel = "2.7.0"
 lifecycleRuntimeKtx = "2.7.0"
 kaspresso = "1.5.5"
+mockitoAndroid = "5.11.0"
+mockitoCore = "5.11.0"
+mockitoKotlin = "5.2.1"
+mockitoKotlinVersion = "5.4.0"
 mockk = "1.13.9"
 playServicesLocation = "21.0.1"
 robolectric = "4.11.1"
@@ -63,6 +68,9 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 kaspresso = { group = "com.kaspersky.android-components", name = "kaspresso", version.ref = "kaspresso" }
 kaspresso-compose = { group = "com.kaspersky.android-components", name = "kaspresso-compose-support", version.ref = "kaspresso" }
 
+mockito-android = { module = "org.mockito:mockito-android", version.ref = "mockitoAndroid" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlinVersion" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }

@@ -26,6 +26,7 @@
             android:value="${GOOGLE_MAPS_API_KEY}" />
     </application>
 
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" tools:ignore="ManifestOrder,MockLocation" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
         tools:ignore="ManifestOrder" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

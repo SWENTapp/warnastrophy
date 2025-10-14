@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 /**
  * UI state for [MapScreen].
@@ -84,25 +85,32 @@ class MapViewModel(
 
   @SuppressLint("MissingPermission")
   fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
-    _uiState.value = _uiState.value.copy(isLoading = true)
-    val request =
-        CurrentLocationRequest.Builder()
-            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-            .setMaxUpdateAgeMillis(0)
-            .build()
+    viewModelScope.launch {
+      _uiState.value = _uiState.value.copy(isLoading = true)
+      val request =
+          CurrentLocationRequest.Builder()
+              .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+              .setMaxUpdateAgeMillis(0)
+              .build()
 
-    locationClient
-        .getCurrentLocation(request, null)
-        .addOnSuccessListener { location ->
-          location?.let {
-            val latLng = LatLng(it.latitude, it.longitude)
-            _uiState.value = _uiState.value.copy(target = latLng, isLoading = false)
-          }
+      try {
+        // Use .await() to suspend the coroutine until the task is complete
+        val location = locationClient.getCurrentLocation(request, null).await()
+        println("Got location: $location !!")
+        location?.let {
+          val latLng = LatLng(it.latitude, it.longitude)
+          _uiState.value = _uiState.value.copy(target = latLng, isLoading = false)
         }
-        .addOnFailureListener { exception ->
-          setErrorMsg("Error getting location: ${exception.message}")
-          _uiState.value = _uiState.value.copy(isLoading = false)
-        }
+            ?: run {
+              // Handle the case where the successful task returns a null location
+              _uiState.value = _uiState.value.copy(isLoading = false)
+            }
+      } catch (e: Exception) {
+        // await() will throw an exception on failure
+        setErrorMsg("Error getting location: ${e.message}")
+        _uiState.value = _uiState.value.copy(isLoading = false)
+      }
+    }
   }
 
   @SuppressLint("MissingPermission")
