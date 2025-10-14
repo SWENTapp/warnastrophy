@@ -1,7 +1,6 @@
-package com.github.warnastrophy.core.ui.repository
+package com.github.warnastrophy.core.model.util
 
 import android.util.Log
-import com.github.warnastrophy.core.model.util.Location
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection

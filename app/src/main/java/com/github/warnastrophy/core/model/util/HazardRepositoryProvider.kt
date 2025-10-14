@@ -1,7 +1,5 @@
 package com.github.warnastrophy.core.model.util
 
-import com.github.warnastrophy.core.ui.repository.HazardsRepository
-
 object HazardRepositoryProvider {
   private val _repository: HazardsRepository by lazy { HazardsRepository() }
 
