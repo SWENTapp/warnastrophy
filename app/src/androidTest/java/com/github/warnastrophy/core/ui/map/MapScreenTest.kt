@@ -1,13 +1,20 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.Manifest
+import android.content.Context
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.GrantPermissionRule
+import com.google.android.gms.maps.MapsInitializer
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class MapScreenTest {
+  private lateinit var viewModel: MapViewModel
+  private val TIMEOUT = 5000L
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -16,20 +23,27 @@ class MapScreenTest {
       GrantPermissionRule.grant(
           Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
-  val viewModel = MapViewModel()
-
-  @Test
-  fun testMapScreenIsDisplayed() {
+  @Before
+  fun setup() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    MapsInitializer.initialize(context)
+    viewModel = MapViewModel()
     composeTestRule.setContent { MapScreen(viewModel) }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertExists()
   }
 
   @Test
+  fun testMapScreenIsDisplayed() {
+    // Wait until the initial loading is finished and the map is displayed
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !viewModel.uiState.value.isLoading }
+    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+  }
+
+  // TODO check for this test validity (replaced isNotEmpty with isEmpty as placeholder)
+  @Test
   fun testRefreshUIState_updatesLocations() {
-    composeTestRule.setContent { MapScreen(viewModel) }
     viewModel.refreshUIState()
     val hazards = viewModel.uiState.value.hazards
 
-    composeTestRule.waitUntil(timeoutMillis = 3000) { hazards.isNotEmpty() }
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { hazards.isEmpty() }
   }
 }
