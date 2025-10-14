@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.map
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import androidx.test.core.app.ApplicationProvider
@@ -37,7 +36,6 @@ class MapViewModelTest {
   private lateinit var viewModel: MapViewModel
   private val testDispatcher = StandardTestDispatcher()
 
-  @SuppressLint("MissingPermission")
   @Before
   fun setup() = runBlocking {
     Dispatchers.setMain(testDispatcher)
@@ -47,7 +45,6 @@ class MapViewModelTest {
     viewModel = MapViewModel()
   }
 
-  @SuppressLint("MissingPermission")
   @After
   fun tearDown() {
     fusedClient.setMockMode(false)
@@ -64,7 +61,6 @@ class MapViewModelTest {
    * 1. The `target` in the `uiState` is updated to the coordinates returned by the mock client.
    * 2. The `isLoading` state is set to `false` after the location is fetched.
    */
-  @SuppressLint("MissingPermission")
   @Test
   fun requestCurrentLocation_init_location_correctly() = runTest {
     val mockClient = mock<FusedLocationProviderClient>()
@@ -86,6 +82,37 @@ class MapViewModelTest {
     val state = viewModel.uiState.value
     assertEquals(LatLng(fake_gps_location_1.latitude, fake_gps_location_1.longitude), state.target)
     assertFalse(state.isLoading)
+  }
+
+  /**
+   * Tests the behavior of `requestCurrentLocation` when an exception is thrown by the
+   * `FusedLocationProviderClient`.
+   *
+   * This test simulates a failure scenario where the underlying location service fails, for
+   * example, due to a network issue or a problem with Google Play Services. It mocks the
+   * `getCurrentLocation` call to throw a `RuntimeException`.
+   *
+   * The test verifies that:
+   * 1. The `ViewModel` catches the exception.
+   * 2. The `isLoading` state is set to `false`, indicating that the operation has completed (even
+   *    if unsuccessfully).
+   * 3. The `errorMsg` in the `uiState` is updated with a message reflecting the failure,
+   *    incorporating the exception's message.
+   */
+  @Test
+  fun requestCurrentLocation_throw_exception() = runTest {
+    val mockClient = mock<FusedLocationProviderClient>()
+    val e = RuntimeException("Something went wrong")
+
+    // Mock requestLocationUpdates to throw SecurityException
+    whenever(mockClient.getCurrentLocation(any<CurrentLocationRequest>(), anyOrNull())).thenThrow(e)
+
+    viewModel.requestCurrentLocation(mockClient)
+    advanceUntilIdle() // advances all running coroutines to completion
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertEquals("Error getting location: ${e.message}", state.errorMsg)
   }
 
   /**
@@ -135,6 +162,39 @@ class MapViewModelTest {
     assertEquals(route.last(), finalState.target)
     assertFalse(finalState.isLoading)
     assertNull(finalState.errorMsg)
+  }
+
+  /**
+   * Verifies that the ViewModel handles cases where the location provider returns a null location
+   * object.
+   *
+   * This test simulates a scenario where the `FusedLocationProviderClient`'s callback is invoked
+   * with a `LocationResult` containing a `null` `Location`. This can happen, for example, if the
+   * device is indoors or has a poor GPS signal. The test asserts that the ViewModel updates its
+   * `uiState` to show an appropriate error message and sets the loading state to false, preventing
+   * the app from crashing or getting stuck in a loading state.
+   */
+  @Test
+  fun startLocationUpdates_handle_null_location() = runTest {
+    val mockClient = mock<FusedLocationProviderClient>()
+    val callbackCaptor = argumentCaptor<LocationCallback>()
+
+    // Mock requestLocationUpdates to capture callback
+    doAnswer {
+          val callback = it.getArgument<LocationCallback>(1)
+          val locationResult = LocationResult.create(listOf(null))
+          callback.onLocationResult(locationResult)
+          null
+        }
+        .whenever(mockClient)
+        .requestLocationUpdates(any(), callbackCaptor.capture(), anyOrNull())
+
+    viewModel.startLocationUpdates(mockClient)
+    advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+    assertFalse(state.isLoading)
+    assertEquals("No location fix available", state.errorMsg)
   }
 
   /**
