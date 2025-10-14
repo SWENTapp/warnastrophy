@@ -55,8 +55,8 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
 @Preview
 @Composable
 fun BottomNavigationBarPreview() {
-    androidx.compose.foundation.layout.Box(
-        modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAV_PREVIEW)) {
-            BottomNavigationBar(Screen.HOME, rememberNavController())
-        }
+  androidx.compose.foundation.layout.Box(
+      modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAV_PREVIEW)) {
+        BottomNavigationBar(Screen.HOME, rememberNavController())
+      }
 }

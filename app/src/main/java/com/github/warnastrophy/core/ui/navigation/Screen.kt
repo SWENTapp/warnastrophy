@@ -22,7 +22,7 @@ object NavigationTestTags {
 
   const val TOP_BAR_PREVIEW = "topBarPreview"
 
-    const val BOTTOM_NAV_PREVIEW = "bottomNavPreview"
+  const val BOTTOM_NAV_PREVIEW = "bottomNavPreview"
 }
 
 enum class Screen(
