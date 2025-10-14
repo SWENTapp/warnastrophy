@@ -21,6 +21,15 @@ class NavigationE2ETest {
   }
 
   @Test
+  fun testTagsAreCorrectlySet() {
+    composeTestRule.onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).assertIsDisplayed()
+  }
+
+  @Test
   fun startsOnHome_bottomNavVisible() {
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule
