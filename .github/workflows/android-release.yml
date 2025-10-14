@@ -2,7 +2,7 @@ name: Build Signed Release APK
 
 on:
   push:
-    branches: [ main, release/** ] # Or your primary branch, e.g., master
+    branches: [ main, release/** ]
 
   workflow_dispatch:
 
@@ -22,12 +22,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. Decode the keystore from the secret and create the file
+      # 3. Decode the keystore and local properties from GitHub Secrets
       - name: Decode Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo $KEYSTORE_BASE64 | base64 --decode > ./app/release.jks
+          echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
 
       - name: Decode Firebase Config
         env:
