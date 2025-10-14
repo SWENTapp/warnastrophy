@@ -7,6 +7,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.WarnastrophyApp
+import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
+import com.github.warnastrophy.core.ui.navigation.BottomNavigationBarPreview
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.navigation.TopBarPreview
 import org.junit.Rule
@@ -32,6 +34,14 @@ class NavigationE2ETest {
         .onNodeWithTag(NavigationTestTags.TOP_BAR_PREVIEW, useUnmergedTree = true)
         .assertExists()
   }
+
+    @Test
+    fun testBottomNavPreview() {
+        composeTestRule.setContent { BottomNavigationBarPreview() }
+        composeTestRule
+            .onNodeWithTag(NavigationTestTags.BOTTOM_NAV_PREVIEW, useUnmergedTree = true)
+            .assertExists()
+    }
 
   @Test
   fun startsOnHome_bottomNavVisible() {

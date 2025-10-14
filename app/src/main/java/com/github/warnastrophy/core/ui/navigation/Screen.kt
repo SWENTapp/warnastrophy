@@ -21,6 +21,8 @@ object NavigationTestTags {
   const val TAB_HOME = "tabHome"
 
   const val TOP_BAR_PREVIEW = "topBarPreview"
+
+    const val BOTTOM_NAV_PREVIEW = "bottomNavPreview"
 }
 
 enum class Screen(
