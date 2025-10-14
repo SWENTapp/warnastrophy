@@ -13,6 +13,18 @@ import com.github.warnastrophy.R
  *
  * @param title The resource ID for the screen title.
  */
+object NavigationTestTags {
+  const val TOP_BAR_TITLE = "topBarTitle"
+  const val BOTTOM_NAV = "bottomNav"
+  const val TAB_MAP = "tabMap"
+  const val TAB_PROFILE = "tabProfile"
+  const val TAB_HOME = "tabHome"
+
+  const val TOP_BAR_PREVIEW = "topBarPreview"
+
+  const val BOTTOM_NAV_PREVIEW = "bottomNavPreview"
+}
+
 enum class Screen(
     @StringRes val title: Int,
     val hasBottomBar: Boolean = true,
