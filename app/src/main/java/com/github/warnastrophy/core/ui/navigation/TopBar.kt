@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,5 +28,8 @@ fun TopBar(currentScreen: Screen) {
 @Preview
 @Composable
 fun TopBarPreview() {
-  MainAppTheme { TopBar(Screen.HOME) }
+  androidx.compose.foundation.layout.Box(
+      modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_PREVIEW)) {
+        TopBar(Screen.HOME)
+      }
 }

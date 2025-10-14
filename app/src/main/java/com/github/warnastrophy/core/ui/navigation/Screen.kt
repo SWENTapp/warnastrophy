@@ -19,6 +19,8 @@ object NavigationTestTags {
   const val TAB_MAP = "tabMap"
   const val TAB_PROFILE = "tabProfile"
   const val TAB_HOME = "tabHome"
+
+  const val TOP_BAR_PREVIEW = "topBarPreview"
 }
 
 enum class Screen(
