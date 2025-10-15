@@ -47,7 +47,7 @@ fun MapScreen(
       throw Exception("Location permission not granted")
     }
   }
-  val hazardsList = uiState.hazards
+  val hazardsList = uiState.hazards ?: emptyList()
 
   LaunchedEffect(uiState.target) {
     cameraPositionState.animate(

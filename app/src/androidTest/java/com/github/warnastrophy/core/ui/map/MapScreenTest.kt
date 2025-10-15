@@ -14,7 +14,7 @@ import org.junit.Test
 
 class MapScreenTest {
   private lateinit var viewModel: MapViewModel
-  private val TIMEOUT = 5000L
+  private val TIMEOUT = 5_000L
 
   @get:Rule val composeTestRule = createComposeRule()
 
@@ -38,12 +38,13 @@ class MapScreenTest {
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
   }
 
-  // TODO check for this test validity (replaced isNotEmpty with isEmpty as placeholder)
+  // TODO check if hazard could be already fetched during the time the map is loading
   @Test
   fun testRefreshUIState_updatesLocations() {
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !viewModel.uiState.value.isLoading }
     viewModel.refreshUIState()
     val hazards = viewModel.uiState.value.hazards
 
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { hazards.isEmpty() }
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { hazards != null && hazards.isNotEmpty() }
   }
 }
