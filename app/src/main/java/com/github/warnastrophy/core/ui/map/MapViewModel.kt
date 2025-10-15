@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -46,18 +47,9 @@ class MapViewModel(
     private val repository: HazardsRepository = HazardRepositoryProvider.repository
 ) : ViewModel() {
   val LOCATION_UPDATE_INTERVAL = 2000L // 2 seconds
-  private val _uiState = MutableStateFlow(MapUIState())
-      fun stopLocationUpdates() {
-        locationCallback?.let {
-            locationClient.removeLocationUpdates(it)
-            locationCallback = null
-        }
-    }
 
-    override fun onCleared() {
-        super.onCleared()
-        stopLocationUpdates()
-    }
+  private val _uiState = MutableStateFlow(MapUIState())
+
   /** The UI state as a read-only [StateFlow]. */
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
@@ -95,25 +87,26 @@ class MapViewModel(
 
   @SuppressLint("MissingPermission")
   fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
-    viewModelScope.launch {viewModelScope.launch {
-    _uiState.update { it.copy(isLoading = true) }
-    try {
-        val request = CurrentLocationRequest.Builder()
-            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-            .setMaxUpdateAgeMillis(0)
-            .build()
+    viewModelScope.launch {
+      _uiState.update { it.copy(isLoading = true) }
+      try {
+        val request =
+            CurrentLocationRequest.Builder()
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setMaxUpdateAgeMillis(0)
+                .build()
 
         val location = locationClient.getCurrentLocation(request, null).await()
         location?.let {
-            val latLng = LatLng(it.latitude, it.longitude)
-            _uiState.update { it.copy(target = latLng) }
+          val latLng = LatLng(it.latitude, it.longitude)
+          _uiState.update { it.copy(target = latLng) }
         } ?: setErrorMsg("Location unavailable")
-    } catch (e: Exception) {
+      } catch (e: Exception) {
         setErrorMsg("Error getting location: ${e.message}")
-    } finally {
+      } finally {
         _uiState.update { it.copy(isLoading = false) }
+      }
     }
-}
   }
 
   @SuppressLint("MissingPermission")
@@ -125,7 +118,7 @@ class MapViewModel(
 
       locationClient.requestLocationUpdates(
           request,
-          object : LocationCallback() {
+          object : LocationCallback() { // This callback is now assigned to the property
             override fun onLocationResult(result: LocationResult) {
               val location = result.lastLocation
               if (location != null) {
@@ -149,8 +142,9 @@ class MapViewModel(
               }
             }
           },
-          Looper.getMainLooper())
-    } catch (e: SecurityException) {
+          Looper.getMainLooper(),
+      )
+    } catch (_: SecurityException) {
       _uiState.value =
           _uiState.value.copy(errorMsg = "Location permission not granted !", isLoading = false)
     } catch (e: Exception) {

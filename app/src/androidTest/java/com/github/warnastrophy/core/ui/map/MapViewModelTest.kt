@@ -47,7 +47,6 @@ class MapViewModelTest {
 
   @After
   fun tearDown() {
-    fusedClient.setMockMode(false)
     Dispatchers.resetMain()
   }
 
@@ -134,23 +133,24 @@ class MapViewModelTest {
 
     // Mock requestLocationUpdates to capture callback
     doAnswer {
-    val callback = it.getArgument<LocationCallback>(1)
-    route.forEach { latLng ->
-        val location = Location("test").apply {
-            latitude = latLng.latitude
-            longitude = latLng.longitude
+          val callback = it.getArgument<LocationCallback>(1)
+          route.forEach { latLng ->
+            val location =
+                Location("test").apply {
+                  latitude = latLng.latitude
+                  longitude = latLng.longitude
+                }
+            val locationResult = LocationResult.create(listOf(location))
+            callback.onLocationResult(locationResult)
+
+            // Intermediate assertion: check that uiState updated
+            val state = viewModel.uiState.value
+            assertEquals(latLng, state.target)
+          }
+          null
         }
-        val locationResult = LocationResult.create(listOf(location))
-        callback.onLocationResult(locationResult)
-
-        // Intermediate assertion: check that uiState updated
-        val state = viewModel.uiState.value
-        assertEquals(latLng, state.target)
-    }
-    null
-}.whenever(mockClient)
-    .requestLocationUpdates(any(), callbackCaptor.capture(), anyOrNull())
-
+        .whenever(mockClient)
+        .requestLocationUpdates(any(), callbackCaptor.capture(), anyOrNull())
 
     viewModel.startLocationUpdates(mockClient)
 
@@ -210,10 +210,9 @@ class MapViewModelTest {
   @Test
   fun startLocationUpdates_need_permissions() = runTest {
     val mockClient = mock<FusedLocationProviderClient>()
-    val callbackCaptor = argumentCaptor<LocationCallback>()
 
     // Mock requestLocationUpdates to throw SecurityException
-    whenever(mockClient.requestLocationUpdates(any(), callbackCaptor.capture(), anyOrNull()))
+    whenever(mockClient.requestLocationUpdates(any(), any<LocationCallback>(), anyOrNull()))
         .thenThrow(SecurityException())
 
     viewModel.startLocationUpdates(mockClient)
@@ -236,11 +235,10 @@ class MapViewModelTest {
   @Test
   fun startLocationUpdates_throw_exception() = runTest {
     val mockClient = mock<FusedLocationProviderClient>()
-    val callbackCaptor = argumentCaptor<LocationCallback>()
     val e = RuntimeException("Something went wrong")
 
     // Mock requestLocationUpdates to throw Exception
-    whenever(mockClient.requestLocationUpdates(any(), callbackCaptor.capture(), anyOrNull()))
+    whenever(mockClient.requestLocationUpdates(any(), any<LocationCallback>(), anyOrNull()))
         .thenThrow(e)
 
     viewModel.startLocationUpdates(mockClient)
