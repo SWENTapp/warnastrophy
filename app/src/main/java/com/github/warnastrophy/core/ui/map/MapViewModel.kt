@@ -5,10 +5,12 @@ import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.common.ServiceStateManager
 import com.github.warnastrophy.core.model.util.AppConfig
 import com.github.warnastrophy.core.model.util.Hazard
 import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.util.HazardsRepository
+import com.github.warnastrophy.core.service.HazardChecker
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationAvailability
@@ -18,11 +20,13 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -38,8 +42,11 @@ data class MapUIState(
     val target: LatLng = LatLng(18.5944, -72.3074), // Default to Port-au-Prince
     val hazards: List<Hazard>? = null,
     val errorMsg: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val activeHazard: Hazard? = null
 )
+
+// TODO: how to send notification just once
 
 /**
  * ViewModel for [MapScreen].
@@ -53,16 +60,33 @@ class MapViewModel(
 
   private val _uiState = MutableStateFlow(MapUIState())
 
+  private lateinit var hazardChecker: HazardChecker
+  // The LocationCallback is stored for proper removal
+  private var locationCallback: LocationCallback? = null
+
+  // Store the continuous hazard refresh job for proper cancellation
+  private var hazardRefreshJob: Job? = null
+
   /** The UI state as a read-only [StateFlow]. */
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
   init {
-    viewModelScope.launch(Dispatchers.IO) {
-      while (true) {
-        refreshUIState()
-        delay(AppConfig.fetchDelayMs)
-      }
-    }
+    startHazardRefreshLoop()
+    collectActiveAlertsFromService()
+  }
+
+  private fun startHazardRefreshLoop() {
+    hazardRefreshJob =
+        viewModelScope.launch(Dispatchers.IO) {
+          // Initial fetch and checker setup
+          refreshUIState(isInitialSetup = true)
+
+          // Loop for continuous refresh
+          while (this.isActive) {
+            delay(AppConfig.fetchDelayMs)
+            refreshUIState(isInitialSetup = false)
+          }
+        }
   }
 
   /**
@@ -80,21 +104,27 @@ class MapViewModel(
   }
 
   /** Refreshes the UI state by fetching the latest locations. */
-  fun refreshUIState() {
+  fun refreshUIState(isInitialSetup: Boolean = false) {
     viewModelScope.launch(Dispatchers.IO) {
       try {
         Log.e("viewModel", "Fetching hazards from repository")
         val sampleHazards = repository.getAreaHazards(HazardRepositoryProvider.locationPolygon)
         Log.e("viewModel", "Fetched hazards: $sampleHazards")
         _uiState.value = _uiState.value.copy(hazards = sampleHazards)
+        // CRITICAL: Initialize the HazardChecker only after the FIRST successful fetch
+        if (isInitialSetup) {
+          hazardChecker = HazardChecker(sampleHazards)
+        }
       } catch (e: Exception) {
         Log.e("Error", "Failed to load hazards: ${e.message}")
-        setErrorMsg("Failed to load hazards: ${e.message}")
+        // setErrorMsg("Failed to load hazards: ${e.message}")
+        _uiState.value = _uiState.value.copy(errorMsg = "Failed to load hazards")
         // We keep the existing hazards in case of an error
       }
     }
   }
 
+  // TODO: create a better architecture, request and update is not role of viewModel
   @SuppressLint("MissingPermission")
   fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
     viewModelScope.launch {
@@ -138,6 +168,7 @@ class MapViewModel(
                         target = latLng,
                         errorMsg = null, // clear previous errors
                         isLoading = false)
+                hazardChecker.checkAndPublishAlert(location.latitude, location.longitude)
               } else {
                 _uiState.value =
                     _uiState.value.copy(errorMsg = "No location fix available", isLoading = false)
@@ -166,5 +197,29 @@ class MapViewModel(
   /** Resets the hazards list in the UI state to be empty. */
   fun resetHazards() {
     _uiState.value = _uiState.value.copy(hazards = emptyList())
+  }
+
+  private fun collectActiveAlertsFromService() {
+    viewModelScope.launch {
+      ServiceStateManager.activeHazardFlow.collect { hazard ->
+        // Update the ViewModel's UI state with the current active alert status
+        _uiState.value = _uiState.value.copy(activeHazard = hazard)
+      }
+    }
+  }
+
+  fun stopLocationUpdates(locationClient: FusedLocationProviderClient) {
+    locationCallback?.let {
+      locationClient.removeLocationUpdates(it)
+      locationCallback = null
+      _uiState.value = _uiState.value.copy(isLoading = false)
+    }
+  }
+
+  override fun onCleared() {
+    hazardRefreshJob?.cancel()
+    // Crucial: Ensure coroutines and location updates are stopped when the ViewModel is destroyed
+    // You MUST call stopLocationUpdates from the associated Activity/Fragment lifecycle
+    super.onCleared()
   }
 }
