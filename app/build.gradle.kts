@@ -107,12 +107,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     packaging {
@@ -211,10 +211,10 @@ dependencies {
 
     // --------------- firebase -------------------
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation(platform(libs.firebase.bom))
 
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
 
     // When using the BoM, you don't specify versions in Firebase library dependencies
@@ -222,12 +222,13 @@ dependencies {
     // TODO: Add the dependencies for Firebase products you want to use
     // See https://firebase.google.com/docs/android/setup#available-libraries
     // For example, add the dependencies for Firebase Authentication and Cloud Firestore
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
     // --------------- Google Maps -------------------
-    implementation("com.google.android.gms:play-services-maps:19.0.0")
-    implementation("com.google.maps.android:maps-compose:4.4.1")
+    implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.location)
 
     // --------------- Gson -------------------
     implementation("com.google.code.gson:gson:2.10.1")
@@ -235,11 +236,17 @@ dependencies {
     // --------------- DataStore -------------------
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    //test mock
-    testImplementation("io.mockk:mockk:1.13.9")
-    implementation("org.json:json:20240303")
-    testImplementation("org.json:json:20240303")
-}
+    // test mock
+    testImplementation(libs.mockk)
+    implementation(libs.json)
+    testImplementation(libs.json)
+
+    // For mocking objects in tests
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    androidTestImplementation(libs.mockito.core)
+    androidTestImplementation(libs.mockito.android)
+    androidTestImplementation(libs.mockito.kotlin)}
 
 tasks.withType<Test> {
     // Configure Jacoco for each tests
