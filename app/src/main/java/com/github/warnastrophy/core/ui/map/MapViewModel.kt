@@ -43,11 +43,10 @@ class MapViewModel(
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
   init {
-    refreshUIState()
     viewModelScope.launch(Dispatchers.IO) {
       while (true) {
-        delay(AppConfig.fetchDelayMs)
         refreshUIState()
+        delay(AppConfig.fetchDelayMs)
       }
     }
   }
