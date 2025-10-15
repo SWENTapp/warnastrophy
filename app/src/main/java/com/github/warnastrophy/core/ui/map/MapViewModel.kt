@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 data class MapUIState(
     // TODO : Set to user's location
     val target: LatLng = LatLng(18.5446778, -72.3395897),
-    val hazards: List<Hazard> = emptyList(),
+    val hazards: List<Hazard>? = null,
     val errorMsg: String? = null
 )
 
@@ -76,6 +76,8 @@ class MapViewModel(
         _uiState.value = _uiState.value.copy(hazards = sampleHazards)
       } catch (e: Exception) {
         Log.e("Error", "Failed to load hazards: ${e.message}")
+        setErrorMsg("Failed to load hazards: ${e.message}")
+        // We keep the existing hazards in case of an error
       }
     }
   }

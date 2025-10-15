@@ -31,7 +31,7 @@ fun MapScreen(
   val cameraPositionState = rememberCameraPositionState {
     position = CameraPosition.fromLatLngZoom(uiState.target, 10f)
   }
-  val hazardsList = uiState.hazards
+  val hazardsList = uiState.hazards ?: emptyList()
 
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
