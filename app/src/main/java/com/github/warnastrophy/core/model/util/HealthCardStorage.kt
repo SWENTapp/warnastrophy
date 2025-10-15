@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.repository
+package com.github.warnastrophy.core.model.util
 
 import android.content.Context
 import android.util.Log
@@ -8,10 +8,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.github.warnastrophy.core.model.util.CryptoUtils
-import com.github.warnastrophy.core.model.util.HealthCard
-import com.github.warnastrophy.core.model.util.StorageException
-import com.github.warnastrophy.core.model.util.StorageResult
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

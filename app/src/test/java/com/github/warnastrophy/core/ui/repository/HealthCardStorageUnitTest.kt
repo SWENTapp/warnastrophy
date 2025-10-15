@@ -5,8 +5,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.model.util.HealthCard
+import com.github.warnastrophy.core.model.util.HealthCardStorage
 import com.github.warnastrophy.core.model.util.StorageException
 import com.github.warnastrophy.core.model.util.StorageResult
+import com.github.warnastrophy.core.model.util.healthCardDataStore
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
