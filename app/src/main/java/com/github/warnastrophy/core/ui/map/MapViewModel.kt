@@ -3,11 +3,13 @@ package com.github.warnastrophy.core.ui.map
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.model.util.AppConfig
+import com.github.warnastrophy.core.model.util.Hazard
 import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
-import com.github.warnastrophy.core.ui.repository.Hazard
-import com.github.warnastrophy.core.ui.repository.HazardsRepository
+import com.github.warnastrophy.core.model.util.HazardsRepository
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,8 +25,7 @@ import kotlinx.coroutines.launch
 data class MapUIState(
     // TODO : Set to user's location
     val target: LatLng = LatLng(18.5446778, -72.3395897),
-    // TODO : change this to a list of DangerZone objects
-    val hazards: List<Hazard> = emptyList(),
+    val hazards: List<Hazard>? = null,
     val errorMsg: String? = null
 )
 
@@ -42,7 +43,12 @@ class MapViewModel(
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
   init {
-    refreshUIState()
+    viewModelScope.launch(Dispatchers.IO) {
+      while (true) {
+        refreshUIState()
+        delay(AppConfig.fetchDelayMs)
+      }
+    }
   }
 
   /**
@@ -69,7 +75,14 @@ class MapViewModel(
         _uiState.value = _uiState.value.copy(hazards = sampleHazards)
       } catch (e: Exception) {
         Log.e("Error", "Failed to load hazards: ${e.message}")
+        setErrorMsg("Failed to load hazards: ${e.message}")
+        // We keep the existing hazards in case of an error
       }
     }
+  }
+
+  /** Resets the hazards list in the UI state to be empty. */
+  fun resetHazards() {
+    _uiState.value = _uiState.value.copy(hazards = emptyList())
   }
 }
