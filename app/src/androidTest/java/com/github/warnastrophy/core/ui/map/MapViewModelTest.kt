@@ -134,22 +134,23 @@ class MapViewModelTest {
 
     // Mock requestLocationUpdates to capture callback
     doAnswer {
-          // callback is the second parameter
-          val callback = it.getArgument<LocationCallback>(1)
-          // For test demonstration, immediately send all locations
-          route.forEach { latLng ->
-            val location =
-                Location("test").apply {
-                  latitude = latLng.latitude
-                  longitude = latLng.longitude
-                }
-            val locationResult = LocationResult.create(listOf(location))
-            callback.onLocationResult(locationResult)
-          }
-          null
+    val callback = it.getArgument<LocationCallback>(1)
+    route.forEach { latLng ->
+        val location = Location("test").apply {
+            latitude = latLng.latitude
+            longitude = latLng.longitude
         }
-        .whenever(mockClient)
-        .requestLocationUpdates(any(), callbackCaptor.capture(), anyOrNull())
+        val locationResult = LocationResult.create(listOf(location))
+        callback.onLocationResult(locationResult)
+
+        // Intermediate assertion: check that uiState updated
+        val state = viewModel.uiState.value
+        assertEquals(latLng, state.target)
+    }
+    null
+}.whenever(mockClient)
+    .requestLocationUpdates(any(), callbackCaptor.capture(), anyOrNull())
+
 
     viewModel.startLocationUpdates(mockClient)
 

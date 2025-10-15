@@ -47,7 +47,17 @@ class MapViewModel(
 ) : ViewModel() {
   val LOCATION_UPDATE_INTERVAL = 2000L // 2 seconds
   private val _uiState = MutableStateFlow(MapUIState())
+      fun stopLocationUpdates() {
+        locationCallback?.let {
+            locationClient.removeLocationUpdates(it)
+            locationCallback = null
+        }
+    }
 
+    override fun onCleared() {
+        super.onCleared()
+        stopLocationUpdates()
+    }
   /** The UI state as a read-only [StateFlow]. */
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
