@@ -85,32 +85,25 @@ class MapViewModel(
 
   @SuppressLint("MissingPermission")
   fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
-    viewModelScope.launch {
-      _uiState.value = _uiState.value.copy(isLoading = true)
-      val request =
-          CurrentLocationRequest.Builder()
-              .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-              .setMaxUpdateAgeMillis(0)
-              .build()
+    viewModelScope.launch {viewModelScope.launch {
+    _uiState.update { it.copy(isLoading = true) }
+    try {
+        val request = CurrentLocationRequest.Builder()
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setMaxUpdateAgeMillis(0)
+            .build()
 
-      try {
-        // Use .await() to suspend the coroutine until the task is complete
         val location = locationClient.getCurrentLocation(request, null).await()
-        println("Got location: $location !!")
         location?.let {
-          val latLng = LatLng(it.latitude, it.longitude)
-          _uiState.value = _uiState.value.copy(target = latLng, isLoading = false)
-        }
-            ?: run {
-              // Handle the case where the successful task returns a null location
-              _uiState.value = _uiState.value.copy(isLoading = false)
-            }
-      } catch (e: Exception) {
-        // await() will throw an exception on failure
+            val latLng = LatLng(it.latitude, it.longitude)
+            _uiState.update { it.copy(target = latLng) }
+        } ?: setErrorMsg("Location unavailable")
+    } catch (e: Exception) {
         setErrorMsg("Error getting location: ${e.message}")
-        _uiState.value = _uiState.value.copy(isLoading = false)
-      }
+    } finally {
+        _uiState.update { it.copy(isLoading = false) }
     }
+}
   }
 
   @SuppressLint("MissingPermission")
