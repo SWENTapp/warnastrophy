@@ -1,8 +1,11 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Looper
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.model.util.AppConfig
@@ -161,6 +164,13 @@ class MapViewModel(
       _uiState.value =
           _uiState.value.copy(errorMsg = "Location update failed: ${e.message}", isLoading = false)
     }
+  }
+
+  /** Checks if fine location permission is granted. */
+  fun isLocationPermissionGranted(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+        PackageManager.PERMISSION_GRANTED
   }
 
   /** Resets the hazards list in the UI state to be empty. */

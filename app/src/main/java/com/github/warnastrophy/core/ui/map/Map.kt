@@ -1,7 +1,5 @@
 package com.github.warnastrophy.core.ui.map
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -12,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.model.util.Location
 import com.github.warnastrophy.core.ui.components.Loading
@@ -39,14 +36,12 @@ fun MapScreen(
   val cameraPositionState = rememberCameraPositionState()
 
   LaunchedEffect(Unit) {
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-        PackageManager.PERMISSION_GRANTED) {
+    if (viewModel.isLocationPermissionGranted(context)) {
       viewModel.requestCurrentLocation(locationClient) // Request location once at start (initial)
       viewModel.startLocationUpdates(locationClient) // Start continuous location updates
-    } else {
-      throw Exception("Location permission not granted")
     }
   }
+
   val hazardsList = uiState.hazards ?: emptyList()
 
   LaunchedEffect(uiState.target) {
@@ -59,7 +54,8 @@ fun MapScreen(
       GoogleMap(
           modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
           cameraPositionState = cameraPositionState,
-          properties = MapProperties(isMyLocationEnabled = true)) {
+          properties =
+              MapProperties(isMyLocationEnabled = viewModel.isLocationPermissionGranted(context))) {
             Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
             hazardsList.forEach { hazard ->
               hazard.coordinates?.forEach { coord ->
