@@ -18,6 +18,12 @@ class HazardChecker(private val allHazards: List<Hazard>) {
   private val checkerScope = CoroutineScope(Dispatchers.Default + Job())
   private val geometryFactory = GeometryFactory()
 
+  private var hazard: Hazard? = null
+
+  fun getHazard(): Hazard? {
+    return hazard
+  }
+
   // State to track entry time for each hazard (Hazard ID -> Entry Time in Millis)
   private val hazardEntryTimes = mutableMapOf<Int, Long>()
 
@@ -36,6 +42,7 @@ class HazardChecker(private val allHazards: List<Hazard>) {
   fun checkAndPublishAlert(userLng: Double, userLat: Double) {
     checkerScope.launch {
       val activeHazard: Hazard? = findHighestPriorityActiveHazard(userLng, userLat)
+      hazard = activeHazard
 
       // 1. Handle Entry: Start tracking time and schedule a delayed job
       if (activeHazard != null) {
