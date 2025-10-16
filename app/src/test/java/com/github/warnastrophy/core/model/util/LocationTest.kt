@@ -74,6 +74,29 @@ class LocationTest {
       assertEquals(360.0, lonVar, 1.0)
     }
   }
+
+  @Test
+  fun testToLatLng() {
+    val location = Location(46.8182, 8.2275, "Switzerland")
+    val latLng = Location.toLatLng(location)
+    assertEquals(46.8182, latLng.latitude, 0.0001)
+    assertEquals(8.2275, latLng.longitude, 0.0001)
+  }
+
+  @Test
+  fun testLargeLatLonVariationFromSwitzerland() {
+    val switzerland = Location(46.8182, 8.2275, "Switzerland")
+    val latVariation = 60_000.0 // 60 000 km, très grande variation
+    val lonVariation = 2_000.0 // 2 000 km
+    val polygon = Location.getPolygon(switzerland, lonVariation, latVariation)
+    assertNotNull(polygon)
+    // Vérifie que la latitude max et min sont bien espacées
+    val maxLat = polygon.maxOf { it.latitude }
+    val minLat = polygon.minOf { it.latitude }
+    val latVar = maxLat - minLat
+    val latKm = Math.toRadians(latVar) * Location.earthRadiusKm
+    assertTrue(latKm >= 59_000) // tolérance
+  }
 }
 
 // https://www.keene.edu/campus/maps/tool/ keene website
