@@ -20,6 +20,12 @@ val gson = Gson()
 val Context.contactDataStore: DataStore<Preferences> by
     preferencesDataStore(name = CONTACTS_DATASTORE_NAME)
 
+/*
+  TODO: This needs refactoring to only have one public method per operation
+   ideally returning Result<T> instead of throwing exceptions.
+   This will make the errors easier to handle in UI.
+*/
+
 /**
  * A utility class for managing contact storage operations.
  *
@@ -115,7 +121,7 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
    * @param id The ID of the contact to delete.
    * @return Result of the operation.
    */
-  private suspend fun deleteContactInternal(id: String): Result<Unit> {
+  suspend fun deleteContactInternal(id: String): Result<Unit> {
     val key = stringPreferencesKey(id)
     var r = Result.success(Unit)
     dataStore.edit {
