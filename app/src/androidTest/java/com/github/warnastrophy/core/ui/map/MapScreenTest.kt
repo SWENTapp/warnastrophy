@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.GrantPermissionRule
+import com.github.warnastrophy.core.ui.viewModel.MapViewModel
 import com.google.android.gms.maps.MapsInitializer
 import org.junit.Before
 import org.junit.Rule
