@@ -1,13 +1,7 @@
 package com.github.warnastrophy.core.model.util
 
 import com.google.android.gms.maps.model.LatLng
-import kotlin.div
 import kotlin.math.cos
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.text.toInt
-import kotlin.times
-import org.checkerframework.checker.units.qual.km
 
 /**
  * Represents a geographic position in decimal degrees.
