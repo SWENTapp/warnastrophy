@@ -77,4 +77,4 @@ class LocationTest {
 }
 
 // https://www.keene.edu/campus/maps/tool/ keene website
-// test rectangle on map
+// test rectangles on map of website
