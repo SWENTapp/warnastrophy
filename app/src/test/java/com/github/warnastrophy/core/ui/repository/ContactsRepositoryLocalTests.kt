@@ -5,7 +5,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.model.contact.Contact
-import com.github.warnastrophy.core.model.contact.ContactsRepository
 import com.github.warnastrophy.core.model.contact.ContactsRepositoryLocal
 import com.github.warnastrophy.core.model.contact.contactDataStore
 import junit.framework.TestCase.assertEquals
@@ -68,7 +67,7 @@ class ContactsRepositoryLocalTests {
       // Save a valid contact
       assert(repositoryLocal.saveContact(contact).isSuccess)
       // Corrupt the stored data directly
-     datastore.edit {
+      datastore.edit {
         val key = repositoryLocal.keyFor(contact)
         it[key] = "not_a_valid_ciphertext"
       }
@@ -79,22 +78,23 @@ class ContactsRepositoryLocalTests {
   }
 
   // Test: readContact should fail when deciphering succeeds but JSON is invalid
-@Test
-fun `readContact should fail on invalid JSON after decryption`() {
+  @Test
+  fun `readContact should fail on invalid JSON after decryption`() {
     val contact = Contact("badjson", "Mallory", "0001112222", "Intruder")
     runBlocking {
-        // Save a valid contact
-        assert(repositoryLocal.saveContact(contact).isSuccess)
-        // Overwrite with valid ciphertext but invalid JSON
-        datastore.edit {
-            val key = repositoryLocal.keyFor(contact)
-            it[key] = com.github.warnastrophy.core.model.util.CryptoUtils.encrypt("not_a_valid_json")
-        }
-        // Try to read the corrupted contact
-        val result = repositoryLocal.readContact("badjson")
-        assert(result.isFailure)
+      // Save a valid contact
+      assert(repositoryLocal.saveContact(contact).isSuccess)
+      // Overwrite with valid ciphertext but invalid JSON
+      datastore.edit {
+        val key = repositoryLocal.keyFor(contact)
+        it[key] = com.github.warnastrophy.core.model.util.CryptoUtils.encrypt("not_a_valid_json")
+      }
+      // Try to read the corrupted contact
+      val result = repositoryLocal.readContact("badjson")
+      assert(result.isFailure)
     }
-}
+  }
+
   @Test
   fun `update contact`() {
     val contact = Contact("3", "Charlie", "5556667777", "Neighbor")
@@ -150,11 +150,7 @@ fun `readContact should fail on invalid JSON after decryption`() {
 
   @Test
   fun `getContact with invalid id should throw exception`() {
-    assertThrows(Exception::class.java) {
-      runBlocking {
-        repositoryLocal.getContact("invalid_id")
-      }
-    }
+    assertThrows(Exception::class.java) { runBlocking { repositoryLocal.getContact("invalid_id") } }
   }
 
   @Test
@@ -178,18 +174,10 @@ fun `readContact should fail on invalid JSON after decryption`() {
     runBlocking {
       repositoryLocal.addContact(contact)
       repositoryLocal.deleteContact("9")
-      assertThrows(Exception::class.java) {
-        runBlocking {
-          repositoryLocal.getContact("9")
-        }
-      }
+      assertThrows(Exception::class.java) { runBlocking { repositoryLocal.getContact("9") } }
 
       // Deleting again should throw
-      assertThrows(Exception::class.java) {
-        runBlocking {
-          repositoryLocal.deleteContact("9")
-        }
-      }
+      assertThrows(Exception::class.java) { runBlocking { repositoryLocal.deleteContact("9") } }
     }
   }
 
@@ -201,9 +189,7 @@ fun `readContact should fail on invalid JSON after decryption`() {
     runBlocking {
       repositoryLocal.addContact(contact)
       assertThrows(Exception::class.java) {
-        runBlocking {
-          repositoryLocal.editContact("10", updatedContact)
-        }
+        runBlocking { repositoryLocal.editContact("10", updatedContact) }
       }
     }
   }
