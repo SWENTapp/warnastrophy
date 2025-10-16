@@ -29,6 +29,7 @@ package com.github.warnastrophy.core.model.util
 data class HealthCard(
     val fullName: String,
     val birthDate: String,
+    val socialSecurityNumber: String,
     val sex: String? = null,
     val bloodType: String? = null,
     val heightCm: Int? = null,
@@ -36,6 +37,8 @@ data class HealthCard(
     val chronicConditions: List<String> = emptyList(),
     val allergies: List<String> = emptyList(),
     val medications: List<String> = emptyList(),
+    val onGoingTreatments: List<String> = emptyList(),
+    val medicalHistory: List<String> = emptyList(),
     val organDonor: Boolean = false,
     val notes: String? = null
 )

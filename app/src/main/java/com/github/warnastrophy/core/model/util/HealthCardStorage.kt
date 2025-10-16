@@ -147,38 +147,31 @@ object HealthCardStorage {
   }
 
   /**
-   * Updates the [HealthCard] associated with [userId] using the provided [updater] function.
-   *
-   * This method:
-   * 1. Loads the current health card (or null if none exists).
-   * 2. Applies the [updater] function.
-   * 3. Saves the updated card.
+   * Updates the [HealthCard] associated with [userId] using the new [updatedCard].
    *
    * @param context Android context to access DataStore.
    * @param userId Unique identifier for the user.
-   * @param updater A function that takes the current card (nullable) and returns the updated card.
+   * @param updatedCard A function that takes the current card (nullable) and returns the updated
+   *   card.
    * @return [StorageResult.Success] on success, or [StorageResult.Error] if loading or saving
    *   fails.
    */
   suspend fun updateHealthCard(
       context: Context,
       userId: String,
-      updater: (HealthCard?) -> HealthCard
+      updatedCard: HealthCard
   ): StorageResult<Unit> {
-    val currentCard =
-        when (val loadResult = loadHealthCard(context, userId)) {
-          is StorageResult.Success -> loadResult.data
-          is StorageResult.Error -> return StorageResult.Error(loadResult.exception)
-        }
+    return try {
 
-    val updatedCard =
-        try {
-          updater(currentCard)
-        } catch (e: Exception) {
-          Log.e(TAG, "Error when updating health card for user: $userId", e)
-          return StorageResult.Error(StorageException.DataStoreError(e))
-        }
+      val existing = loadHealthCard(context, userId)
+      if (existing is StorageResult.Error) {
+        return existing
+      }
 
-    return saveHealthCard(context, userId, updatedCard)
+      saveHealthCard(context, userId, updatedCard)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error when updating health card for user: $userId", e)
+      StorageResult.Error(StorageException.DataStoreError(e))
+    }
   }
 }

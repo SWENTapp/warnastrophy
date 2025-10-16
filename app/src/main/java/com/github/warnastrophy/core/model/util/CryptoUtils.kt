@@ -27,10 +27,8 @@ object CryptoUtils {
     val secretKey: SecretKey = KeyStoreProvider.getOrCreateKey()
     val cipher = Cipher.getInstance(TRANSFORMATION)
     cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-    val iv = cipher.iv
     val encrypted = cipher.doFinal(plainText.toByteArray())
-
-    val result = iv + encrypted
+    val result = cipher.iv + encrypted
     return Base64.getEncoder().encodeToString(result)
   }
 
@@ -48,6 +46,9 @@ object CryptoUtils {
    */
   fun decrypt(cipherText: String): String {
     val data = Base64.getDecoder().decode(cipherText)
+    if (data.size < IV_LENGTH) {
+      throw IllegalArgumentException("Invalid data: too short")
+    }
     val iv = data.copyOfRange(0, IV_LENGTH)
     val encrypted = data.copyOfRange(IV_LENGTH, data.size)
 
