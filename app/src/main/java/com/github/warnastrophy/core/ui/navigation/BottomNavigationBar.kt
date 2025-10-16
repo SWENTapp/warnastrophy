@@ -17,7 +17,10 @@ private fun tagFor(screen: Screen): String =
       Screen.HOME -> NavigationTestTags.TAB_HOME
       Screen.MAP -> NavigationTestTags.TAB_MAP
       Screen.PROFILE -> NavigationTestTags.TAB_PROFILE
-    }
+      Screen.ADD_CONTACT -> ""
+      Screen.CONTACT_LIST -> ""
+      Screen.EDIT_CONTACT -> ""
+    } // TODO: modify testTag
 
 @Composable
 fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {

@@ -21,21 +21,20 @@ fun TopBar(currentScreen: Screen, canNavigateBack: Boolean = false, navigateUp: 
   val ctx = LocalContext.current
 
   TopAppBar(
-    title = {
-      Text(
-        ctx.getString(currentScreen.title),
-        modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_TITLE))
-    },
-    navigationIcon = {
-      if (canNavigateBack) {
-        IconButton(
-          onClick = navigateUp,
-        ) {
-          Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+      title = {
+        Text(
+            ctx.getString(currentScreen.title),
+            modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_TITLE))
+      },
+      navigationIcon = {
+        if (canNavigateBack) {
+          IconButton(
+              onClick = navigateUp,
+          ) {
+            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+          }
         }
-      }
-    }
-  )
+      })
 }
 
 @Preview

@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.profile.contact
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,11 +11,17 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.ui.viewModel.Contact
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.model.contact.Contact
+import com.github.warnastrophy.core.ui.viewModel.ContactListViewModel
 
 // Create a list of mock contacts to display
 val mockContacts =
@@ -70,10 +77,26 @@ fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactListScreen(
-    contacts: List<Contact> = mockContacts,
+    contactListViewModel: ContactListViewModel = viewModel(),
+    // contacts: List<Contact> = mockContacts,
     onContactClick: () -> Unit = {},
     onAddButtonClick: () -> Unit = {},
 ) {
+  val context = LocalContext.current
+  val uiState by contactListViewModel.uiState.collectAsState()
+  val contacts = uiState.contacts
+
+  // Fetch Contacts when the screen is recomposed
+  LaunchedEffect(Unit) { contactListViewModel.refreshUIState() }
+
+  // Show error message if fetching Contacts fails
+  LaunchedEffect(uiState.errorMsg) {
+    uiState.errorMsg?.let { message ->
+      Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+      contactListViewModel.clearErrorMsg()
+    }
+  }
+
   Scaffold(
       floatingActionButton = {
         FloatingActionButton(onClick = { onAddButtonClick() }) {
@@ -107,9 +130,5 @@ fun ContactListScreen(
 @Composable
 fun ContactListScreenPreview() {
   // Assuming you have a MainAppTheme or just use the system default
-  MaterialTheme {
-    ContactListScreen(
-        contacts = mockContacts, // Use the mock data here
-    )
-  }
+  MaterialTheme { ContactListScreen() }
 }

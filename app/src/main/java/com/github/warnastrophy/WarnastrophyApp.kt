@@ -1,5 +1,7 @@
 package com.github.warnastrophy
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -59,7 +61,18 @@ fun WarnastrophyApp() {
                 onAddButtonClick = { navController.navigate(Screen.ADD_CONTACT.name) })
           }
           composable(Screen.ADD_CONTACT.name) { AddContactScreen() }
-          composable(Screen.EDIT_CONTACT.name) { EditContactScreen() }
+          composable(Screen.EDIT_CONTACT.name) { navBackStackEntry ->
+            val id = navBackStackEntry.arguments?.getString("id")
+
+            id?.let {
+              EditContactScreen(
+                  onDone = { navController.navigate(Screen.PROFILE.name) }, contactID = id)
+            }
+                ?: run {
+                  Log.e("EditContactScreen", "ToDo UID is null")
+                  Toast.makeText(ctx, "Contact ID is null", Toast.LENGTH_SHORT).show()
+                }
+          }
         }
       }
 }

@@ -1,10 +1,10 @@
 package com.github.warnastrophy.core.ui.map
 
 import androidx.compose.ui.test.junit4.createComposeRule
-import com.github.warnastrophy.core.ui.viewModel.MapViewModel
 import com.github.warnastrophy.core.model.util.AppConfig
 import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.util.HazardsRepository
+import com.github.warnastrophy.core.ui.viewModel.MapViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
