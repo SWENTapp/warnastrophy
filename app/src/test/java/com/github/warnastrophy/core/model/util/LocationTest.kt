@@ -84,18 +84,13 @@ class LocationTest {
   }
 
   @Test
-  fun testLargeLatLonVariationFromSwitzerland() {
-    val switzerland = Location(46.8182, 8.2275, "Switzerland")
-    val latVariation = 60_000.0 // 60 000 km, très grande variation
-    val lonVariation = 2_000.0 // 2 000 km
-    val polygon = Location.getPolygon(switzerland, lonVariation, latVariation)
+  fun `pole nord 5000km x 5000km unique points`() {
+    val location = Location(85.0, 0.0, "Pole Nord")
+    val polygon = Location.getPolygon(location, 5000.0, 5000.0)
     assertNotNull(polygon)
-    // Vérifie que la latitude max et min sont bien espacées
-    val maxLat = polygon.maxOf { it.latitude }
-    val minLat = polygon.minOf { it.latitude }
-    val latVar = maxLat - minLat
-    val latKm = Math.toRadians(latVar) * Location.earthRadiusKm
-    assertTrue(latKm >= 59_000) // tolérance
+    // Vérifie l'unicité des points
+    val uniquePoints = polygon.toSet()
+    assertEquals("Il y a des doublons dans le polygone", polygon.size, uniquePoints.size)
   }
 }
 
