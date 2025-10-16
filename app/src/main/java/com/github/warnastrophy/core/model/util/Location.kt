@@ -58,13 +58,13 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
       if (km > localRadius) {
         return 360.0 // full longitude range
       }
-      return Math.toDegrees(km / earthRadiusKm)
+      return Math.toDegrees(km / (earthRadiusKm * cos(latRad)))
     }
 
     /**
      * Builds a set of points distributed around a center by sweeping latitudes and generating, for
      * each, a pair of symmetric longitudes.
-     * - The number of latitudinal steps depends on `kmLat` and `kmBetweeenPoints`.
+     * - The number of latitudinal steps depends on `kmLat`.
      * - For each latitude, the longitudinal variation is computed via [kmToLonVariation].
      * - Coordinates are normalized with [normalizeLat] and [normalizeLon].
      *
@@ -74,14 +74,14 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
      * @return List of normalized \[latitude, longitude\] points.
      */
     fun getPolygon(center: Location, kmLon: Double, kmLat: Double): List<Location> {
-      val nbrLatPoints = kotlin.math.ceil((kmLat / 2.0) / kmBetweeenPoints).toInt()
+      val halfSquareNbrLatPoints = kotlin.math.ceil((kmLat / 2.0) / kmBetweeenPoints).toInt()
 
       val latVar = kmToLatVariation(kmLat)
-      val latVarFrag = (latVar / 2.0) / nbrLatPoints
+      val latVarFrag = (latVar / 2.0) / halfSquareNbrLatPoints
 
       val listOfLocs = mutableListOf<Location>()
 
-      for (i in 0..nbrLatPoints * 2) {
+      for (i in 0..halfSquareNbrLatPoints * 2) {
         val currentLat = normalizeLat(center.latitude - latVar / 2.0 + i * latVarFrag)
         val currentLonVar = kmToLonVariation(kmLon, currentLat) / 2.0
         val lonPair =
