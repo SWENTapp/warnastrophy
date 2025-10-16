@@ -36,6 +36,7 @@ class HealthCardStorageUnitTest {
         HealthCard(
             fullName = "John Doe",
             birthDate = "1992-05-17",
+            socialSecurityNumber = "securityNumber123",
             sex = "M",
             bloodType = "A+",
             heightCm = 180,
@@ -89,26 +90,23 @@ class HealthCardStorageUnitTest {
   fun `update health card should modify fields correctly`() = runTest {
     HealthCardStorage.saveHealthCard(context, testUserId, sampleCard)
 
-    val updateResult =
-        HealthCardStorage.updateHealthCard(context, testUserId) { current ->
-          current!!.copy(weightKg = 80.0)
-        }
+    val updatedCard = sampleCard.copy(weightKg = 80.0)
+    val updateResult = HealthCardStorage.updateHealthCard(context, testUserId, updatedCard)
     assertTrue("Updating should succeed", updateResult is StorageResult.Success)
 
     val loadResult = HealthCardStorage.loadHealthCard(context, testUserId)
     val updated = (loadResult as StorageResult.Success).data
 
-    assertNotNull("The update health card should not be null", updated)
+    assertNotNull("The updated health card should not be null", updated)
     updated!!.weightKg?.let { assertEquals(80.0, it, 1e-6) }
     assertEquals(sampleCard.fullName, updated.fullName)
   }
 
   @Test
   fun `update health card should handle null current gracefully`() = runTest {
-    val updateResult =
-        HealthCardStorage.updateHealthCard(context, testUserId) { current ->
-          (current ?: sampleCard).copy(fullName = "New person")
-        }
+    val updatedCard = sampleCard.copy(fullName = "New person")
+    val updateResult = HealthCardStorage.updateHealthCard(context, testUserId, updatedCard)
+
     assertTrue(
         "The update should succeed even without an existing health card",
         updateResult is StorageResult.Success)
@@ -197,6 +195,7 @@ class HealthCardStorageUnitTest {
         HealthCard(
             fullName = "Test User",
             birthDate = "1990-01-01",
+            socialSecurityNumber = "a social security number",
             sex = null,
             bloodType = null,
             heightCm = null,
@@ -245,10 +244,9 @@ class HealthCardStorageUnitTest {
     HealthCardStorage.saveHealthCard(context, testUserId, sampleCard)
 
     val largeList = (1..100).map { "Medication $it" }
-    val updateResult =
-        HealthCardStorage.updateHealthCard(context, testUserId) { current ->
-          current!!.copy(medications = largeList)
-        }
+    val updatedCard = sampleCard.copy(medications = largeList)
+
+    val updateResult = HealthCardStorage.updateHealthCard(context, testUserId, updatedCard)
 
     assertTrue(updateResult is StorageResult.Success)
 
@@ -277,26 +275,12 @@ class HealthCardStorageUnitTest {
   }
 
   @Test
-  fun `update with exception in updater should return error`() = runTest {
-    HealthCardStorage.saveHealthCard(context, testUserId, sampleCard)
-
-    val updateResult =
-        HealthCardStorage.updateHealthCard(context, testUserId) { _ ->
-          throw IllegalStateException("Test exception in updater")
-        }
-
-    assertTrue("Update should return an error", updateResult is StorageResult.Error)
-    val error = (updateResult as StorageResult.Error).exception
-    assertTrue("Error should be DataStoreError", error is StorageException.DataStoreError)
-  }
-
-  @Test
   fun `update should propagate error from failed load`() = runTest {
     val key = stringPreferencesKey("health_card_$testUserId")
     context.healthCardDataStore.edit { prefs -> prefs[key] = "corrupted" }
 
-    val updateResult =
-        HealthCardStorage.updateHealthCard(context, testUserId) { current -> current ?: sampleCard }
+    val updatedCard = sampleCard.copy(fullName = "Updated but failed load")
+    val updateResult = HealthCardStorage.updateHealthCard(context, testUserId, updatedCard)
 
     assertTrue("Update should return an error when load fails", updateResult is StorageResult.Error)
   }

@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.model.util
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Log
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -61,6 +62,7 @@ object KeyStoreProvider {
     } catch (e: Exception) {
       //  fallback for unit tests (AndroidKeyStore not available)
       if (inMemoryKey == null) {
+        Log.w("KeyStoreProvider", "Keystore not available, using in-memory key", e)
         val keyGenerator = KeyGenerator.getInstance("AES")
         keyGenerator.init(256)
         inMemoryKey = keyGenerator.generateKey()

@@ -20,6 +20,7 @@ class HealthCardStorageTest {
           fullName = "John Doe",
           birthDate = "1990-01-01",
           sex = "M",
+          socialSecurityNumber = "a social security number",
           bloodType = "O+",
           heightCm = 180,
           weightKg = 75.0,
@@ -60,15 +61,15 @@ class HealthCardStorageTest {
     val saveResult = HealthCardStorage.saveHealthCard(context, userId, sampleCard)
     assertTrue(saveResult is StorageResult.Success)
 
-    val updateResult =
-        HealthCardStorage.updateHealthCard(context, userId) { current ->
-          current!!.copy(fullName = "John Smith")
-        }
+    val updatedCard = sampleCard.copy(fullName = "John Smith")
+
+    val updateResult = HealthCardStorage.updateHealthCard(context, userId, updatedCard)
     assertTrue(updateResult is StorageResult.Success)
 
     val loadResult = HealthCardStorage.loadHealthCard(context, userId)
     assertTrue(loadResult is StorageResult.Success)
     val loadedCard = (loadResult as StorageResult.Success).data
+    assertNotNull(loadedCard)
     assertEquals("John Smith", loadedCard!!.fullName)
   }
 }
