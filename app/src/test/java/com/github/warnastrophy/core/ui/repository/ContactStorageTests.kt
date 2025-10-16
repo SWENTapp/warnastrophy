@@ -1,9 +1,9 @@
 package com.github.warnastrophy.core.ui.repository
 
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.model.contact.ContactStorage
+import com.github.warnastrophy.core.model.contact.Contact
+import com.github.warnastrophy.core.model.contact.ContactsRepositoryLocal
 import com.github.warnastrophy.core.model.contact.contactDataStore
-import com.github.warnastrophy.core.ui.viewModel.Contact
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -13,12 +13,12 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class ContactStorageTests {
-  private lateinit var contactStorage: ContactStorage
+  private lateinit var contactStorage: ContactsRepositoryLocal
 
   @Before
   fun setUp() {
     val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-    contactStorage = ContactStorage(context.contactDataStore)
+    contactStorage = ContactsRepositoryLocal(context.contactDataStore)
   }
 
   @Test
