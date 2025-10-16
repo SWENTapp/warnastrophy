@@ -6,13 +6,13 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
-import org.json.JSONArray
 import org.json.JSONObject
 
 val TAGrep = "HasardsRepository"
 
 data class Hazard(
     val id: Int?,
+    val htmlDescription: String?,
     val type: String?,
     val country: String?,
     val date: String?,
@@ -20,9 +20,9 @@ data class Hazard(
     val severityUnit: String?,
     val reportUrl: String?,
     val alertLevel: Int?,
-    val coordinates: List<Location>?,
+    val coordinates: Location?,
     val bbox: List<Double>?,
-    val multiPolygonWKT: String?
+    val polygon: List<Location>?
 )
 
 class HazardsRepository {
@@ -58,14 +58,18 @@ class HazardsRepository {
 
   suspend fun getAreaHazards(geometryWKT: String, days: String = "1"): List<Hazard> {
     val url = buildUrlAreaHazards(geometryWKT, days)
+    Log.d(TAGrep, "Fetching hazards from URL: $url")
     val response = httpGet(url)
+    Log.d(TAGrep, "Response: $response")
     val hazards = mutableListOf<Hazard>()
     val jsonObject = JSONObject(response)
     try {
       val jsonHazards = jsonObject.getJSONArray("features")
+      Log.d(TAGrep, "Number of hazards found: ${jsonHazards.length()}")
       for (i in 0 until jsonHazards.length()) {
         val hazardJson = jsonHazards.getJSONObject(i)
         val hazard = parseHazard(hazardJson)
+        Log.d(TAGrep, "Parsed hazard: $hazard")
         if (hazard != null) hazards.add(hazard)
       }
     } catch (e: Exception) {
@@ -78,68 +82,38 @@ class HazardsRepository {
   private fun parseHazard(root: JSONObject): Hazard? {
 
     val properties = root.getJSONObject("properties")
+    val geometry = root.getJSONObject("geometry")
     val isCurrent = properties.getBoolean("iscurrent")
     // if(!isCurrent) return null
 
-    val bbox: List<Double>? =
-        try {
-          val bboxArray = root.getJSONArray("bbox")
-          (0 until bboxArray.length()).map { bboxArray.getDouble(it) }
-        } catch (e: Exception) {
-          // Handle case where bbox might be missing or null (as in the example's root 'bbox')
-          Log.d("Parsing Hazard", "bbox is missing")
-          null
-        }
-    // --- 3. Extract MultiPolygon WKT/GeoJSON URL (for lazy/eager fetch) ---
-    // We store the URL for the geometry, as the actual multi-polygon is fetched separately.
-    val multiPolygonUrl: String? =
-        try {
-          properties.getJSONObject("url").getString("geometry")
-        } catch (e: Exception) {
-          Log.d("Parsing Hazard", "multipolygon is missing")
-          null
-        }
+    val geometryUrl = properties.getJSONObject("url").getString("geometry")
+    val geometryResponse = httpGet(geometryUrl)
+    val geometryJson = JSONObject(geometryResponse)
+    Log.d(TAGrep, "features length : ${geometryJson.getJSONArray("features").length()}")
+    val feature = geometryJson.getJSONArray("features").getJSONObject(1)
+    Log.d(TAGrep, "feature: $feature")
 
-    // --- 4. Extract Coordinates (Centroid/Simple Points) ---
-    val geometry = root.getJSONObject("geometry")
-    val coordinates = mutableListOf<Location>()
-
-    when (geometry.getString("type")) {
-      "Point" -> {
-        val arr = geometry.getJSONArray("coordinates")
-        // GeoJSON order is [longitude, latitude]
-        coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
-      }
-      "Polygon" -> {
-        // NOTE: This parsing logic assumes a simple Polygon with NO HOLES
-        // and extracts only the main outer ring.
-        try {
-          // Polygon structure: [[[lng, lat], [lng, lat], ...]]
-          val outerRing = geometry.getJSONArray("coordinates").getJSONArray(0)
-          for (i in 0 until outerRing.length()) {
-            val pointArr: JSONArray = outerRing.getJSONArray(i)
-            coordinates.add(
-                Location(latitude = pointArr.getDouble(1), longitude = pointArr.getDouble(0)))
-          }
-        } catch (e: Exception) {
-          println("Error parsing Polygon coordinates: $e")
-          // Fallback: Use the first coordinate as a central point if parsing fails
-          if (coordinates.isEmpty()) {
-            val arr = geometry.getJSONArray("coordinates").getJSONArray(0).getJSONArray(0)
-            coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
-          }
+    // --- 3. Extract Bounding Box ---
+    val bbox =
+        feature.getJSONArray("bbox").let { bboxArray ->
+          List(bboxArray.length() - 1) { i -> bboxArray.getDouble(i) }
         }
-      }
-      // "MultiPolygon" is typically not fully parsed here; we rely on the URL.
-      else -> {
-        // For other types (like MultiPolygon), we rely on the URL/BBox
-        // or simply use the coordinates list as empty.
-      }
-    }
+    val featureGeometry = feature.getJSONObject("geometry")
+    val polygon =
+        when (featureGeometry.getString("type")) {
+          "Polygon" -> featureGeometry.getJSONArray("coordinates").getJSONArray(0)
+          "MultiPolygon" ->
+              featureGeometry
+                  .getJSONArray("coordinates")
+                  .getJSONArray(0)
+                  .getJSONArray(0) // Always fetch outer ring
+          else -> throw IllegalArgumentException("Unsupported geometry type")
+        }
 
     val hazard =
         Hazard(
             id = properties.getInt("eventid"),
+            htmlDescription = properties.getString("htmldescription"),
             type = properties.getString("eventtype"),
             country = properties.getString("country"),
             date = properties.getString("fromdate"),
@@ -147,11 +121,16 @@ class HazardsRepository {
             severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
             reportUrl = properties.getJSONObject("url").getString("report"),
             alertLevel = properties.getInt("alertscore"),
-            coordinates = coordinates,
-            // New Spatial Fields
+            coordinates =
+                Location(
+                    geometry.getJSONArray("coordinates").getDouble(1),
+                    geometry.getJSONArray("coordinates").getDouble(0)),
             bbox = bbox,
-            multiPolygonWKT = multiPolygonUrl // Storing the URL as a String
-            )
+            polygon =
+                List(polygon.length()) { i ->
+                  val point = polygon.getJSONArray(i)
+                  Location(point.getDouble(1), point.getDouble(0))
+                })
 
     return hazard
   }

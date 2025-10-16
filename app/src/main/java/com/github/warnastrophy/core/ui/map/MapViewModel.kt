@@ -83,6 +83,7 @@ class MapViewModel(
 
           // Loop for continuous refresh
           while (this.isActive) {
+            Log.e("viewModel", "Active hazard: ${_uiState.value.activeHazard}")
             delay(AppConfig.fetchDelayMs)
             refreshUIState(isInitialSetup = false)
           }

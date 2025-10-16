@@ -55,10 +55,9 @@ class HazardChecker(private val allHazards: List<Hazard>) {
     for (hazard in allHazards) {
       // Assumes isInsideBBox is already implemented
       if (hazard.bbox != null && isInsideBBox(userLat, userLng, hazard.bbox)) {
+        val polygonWKT = WktParserUtil.polygonWktFromLocations(hazard.polygon) ?: continue
 
-        // Assume isInsideMultiPolygon uses the JTS logic you implemented
-        if (hazard.multiPolygonWKT != null &&
-            isInsideMultiPolygon(userLat, userLng, hazard.multiPolygonWKT)) {
+        if (hazard.polygon != null && isInsideMultiPolygon(userLat, userLng, polygonWKT)) {
 
           if (highestPriorityHazard == null ||
               (hazard.alertLevel ?: 0) > (highestPriorityHazard.alertLevel ?: 0)) {
