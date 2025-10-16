@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.service
 
+import android.util.Log
 import com.github.warnastrophy.core.common.ServiceStateManager
 import com.github.warnastrophy.core.model.util.Hazard
 import com.github.warnastrophy.core.util.WktParserUtil
@@ -32,9 +33,9 @@ class HazardChecker(private val allHazards: List<Hazard>) {
    * @param userLat The user's current latitude.
    * @param userLng The user's current longitude.
    */
-  fun checkAndPublishAlert(userLat: Double, userLng: Double) {
+  fun checkAndPublishAlert(userLng: Double, userLat: Double) {
     checkerScope.launch {
-      val activeHazard: Hazard? = findHighestPriorityActiveHazard(userLat, userLng)
+      val activeHazard: Hazard? = findHighestPriorityActiveHazard(userLng, userLat)
 
       // 1. Handle Entry: Start tracking time and schedule a delayed job
       if (activeHazard != null) {
@@ -49,15 +50,17 @@ class HazardChecker(private val allHazards: List<Hazard>) {
   }
 
   /** Performs the initial check to find the hazard the user is currently inside. */
-  private fun findHighestPriorityActiveHazard(userLat: Double, userLng: Double): Hazard? {
+  private fun findHighestPriorityActiveHazard(userLng: Double, userLat: Double): Hazard? {
     var highestPriorityHazard: Hazard? = null
 
     for (hazard in allHazards) {
+      Log.d("HazardChecker", "Evaluating hazard ID=${hazard.id}...")
       // Assumes isInsideBBox is already implemented
-      if (hazard.bbox != null && isInsideBBox(userLat, userLng, hazard.bbox)) {
+      if (hazard.bbox != null && isInsideBBox(userLng, userLat, hazard.bbox)) {
         val polygonWKT = WktParserUtil.polygonWktFromLocations(hazard.polygon) ?: continue
-
+        Log.d("HazardChecker", "Checking hazard ID=${hazard.id} with WKT=$polygonWKT")
         if (hazard.polygon != null && isInsideMultiPolygon(userLat, userLng, polygonWKT)) {
+          Log.d("HazardChecker", "User is inside hazard ID=${hazard.id}!!!!!!")
 
           if (highestPriorityHazard == null ||
               (hazard.alertLevel ?: 0) > (highestPriorityHazard.alertLevel ?: 0)) {
@@ -115,7 +118,7 @@ class HazardChecker(private val allHazards: List<Hazard>) {
    * Helper function for the efficient Bounding Box (BBox) check. NOTE: Replace with your final
    * implementation.
    */
-  private fun isInsideBBox(lat: Double, lng: Double, bbox: List<Double>): Boolean {
+  private fun isInsideBBox(lng: Double, lat: Double, bbox: List<Double>): Boolean {
     // BBox order is typically [min_lng, min_lat, max_lng, max_lat]
     if (bbox.size != 4) return false
     return lng >= bbox[0] && lat >= bbox[1] && lng <= bbox[2] && lat <= bbox[3]

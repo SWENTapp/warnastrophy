@@ -8,7 +8,7 @@ import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONObject
 
-val TAGrep = "HasardsRepository"
+val TAGrep = "HazardsRepository"
 
 data class Hazard(
     val id: Int?,
@@ -56,7 +56,7 @@ class HazardsRepository {
         return message
       }
 
-  suspend fun getAreaHazards(geometryWKT: String, days: String = "1"): List<Hazard> {
+  fun getAreaHazards(geometryWKT: String, days: String = "1"): List<Hazard> {
     val url = buildUrlAreaHazards(geometryWKT, days)
     Log.d(TAGrep, "Fetching hazards from URL: $url")
     val response = httpGet(url)
@@ -73,9 +73,10 @@ class HazardsRepository {
         if (hazard != null) hazards.add(hazard)
       }
     } catch (e: Exception) {
-      Log.d(TAGrep, "No hazards found: $e")
+      Log.e(TAGrep, "No hazards found: $e")
       return emptyList()
     }
+    Log.d(TAGrep, "Total hazards parsed: ${hazards.size}")
     return hazards
   }
 
@@ -96,7 +97,7 @@ class HazardsRepository {
     // --- 3. Extract Bounding Box ---
     val bbox =
         feature.getJSONArray("bbox").let { bboxArray ->
-          List(bboxArray.length() - 1) { i -> bboxArray.getDouble(i) }
+          List(bboxArray.length()) { i -> bboxArray.getDouble(i) }
         }
     val featureGeometry = feature.getJSONObject("geometry")
     val polygon =

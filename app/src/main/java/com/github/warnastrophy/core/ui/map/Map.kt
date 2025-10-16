@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.core.content.ContextCompat
@@ -23,7 +24,10 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polygon
+import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.compareTo
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
@@ -62,6 +66,33 @@ fun MapScreen(
           properties = MapProperties(isMyLocationEnabled = true)) {
             Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
             hazardsList.forEach { hazard ->
+              val points = hazard.polygon?.map { Location.toLatLng(it) } ?: emptyList()
+
+              if (points.size >= 3) {
+                val color =
+                    when (hazard.type) {
+                      "DR" -> Color(0x80FFA500)
+                      "WC" -> Color(0x800000FF)
+                      "EQ" -> Color(0x80FF0000)
+                      "TC" -> Color(0x80FFFF00)
+                      else -> Color(0x80FFFFFF)
+                    }
+                Polygon(
+                    points = points, strokeColor = Color.Black, strokeWidth = 4f, fillColor = color)
+              } else if (points.size >= 2) {
+                // If only a line, draw a polyline
+                Polyline(points = points, color = Color.Black, width = 4f)
+              }
+
+              // Draw connecting polyline in addition to polygon (optional)
+              if (points.size >= 2) {
+                Polyline(
+                    points = points + points.first(),
+                    color = Color.DarkGray,
+                    width = 2f,
+                    geodesic = false)
+              }
+
               val coord = hazard.coordinates ?: return@forEach
               val loc = Location.toLatLng(coord)
               Marker(

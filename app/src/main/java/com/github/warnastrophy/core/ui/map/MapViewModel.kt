@@ -108,9 +108,7 @@ class MapViewModel(
   fun refreshUIState(isInitialSetup: Boolean = false) {
     viewModelScope.launch(Dispatchers.IO) {
       try {
-        Log.e("viewModel", "Fetching hazards from repository")
         val sampleHazards = repository.getAreaHazards(HazardRepositoryProvider.locationPolygon)
-        Log.e("viewModel", "Fetched hazards: $sampleHazards")
         _uiState.value = _uiState.value.copy(hazards = sampleHazards)
         // CRITICAL: Initialize the HazardChecker only after the FIRST successful fetch
         if (isInitialSetup) {
@@ -118,7 +116,6 @@ class MapViewModel(
         }
       } catch (e: Exception) {
         Log.e("Error", "Failed to load hazards: ${e.message}")
-        // setErrorMsg("Failed to load hazards: ${e.message}")
         _uiState.value = _uiState.value.copy(errorMsg = "Failed to load hazards")
         // We keep the existing hazards in case of an error
       }
@@ -169,7 +166,13 @@ class MapViewModel(
                         target = latLng,
                         errorMsg = null, // clear previous errors
                         isLoading = false)
-                hazardChecker.checkAndPublishAlert(location.latitude, location.longitude)
+                if (::hazardChecker.isInitialized) {
+                  hazardChecker.checkAndPublishAlert(location.longitude, location.latitude)
+                } else {
+                  Log.w(
+                      "MapViewModel",
+                      "hazardChecker not initialized yet; skipping checkAndPublishAlert")
+                }
               } else {
                 _uiState.value =
                     _uiState.value.copy(errorMsg = "No location fix available", isLoading = false)
