@@ -230,6 +230,12 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.play.services.location)
 
+    // --------------- Gson -------------------
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // --------------- DataStore -------------------
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
     // test mock
     testImplementation(libs.mockk)
     implementation(libs.json)
