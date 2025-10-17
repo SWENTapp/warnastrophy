@@ -6,8 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.github.warnastrophy.core.model.util.AppConfig
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+import com.github.warnastrophy.core.util.AppConfig
 
 /**
  * `MainActivity` is the entry point of the application. It sets up the content view with the

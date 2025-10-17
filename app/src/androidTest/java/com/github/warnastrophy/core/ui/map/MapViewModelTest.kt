@@ -3,9 +3,9 @@ package com.github.warnastrophy.core.ui.map
 import android.content.Context
 import android.location.Location
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.model.util.AppConfig
-import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
-import com.github.warnastrophy.core.model.util.HazardsRepository
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.HazardsRepository
+import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback

@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model.util
+package com.github.warnastrophy.core.data.repository
 
 /** Provides a singleton instance of [HazardsRepository] and manages location polygon settings. */
 object HazardRepositoryProvider {

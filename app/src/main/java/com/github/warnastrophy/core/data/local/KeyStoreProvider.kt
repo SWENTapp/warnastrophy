@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model.util
+package com.github.warnastrophy.core.data.local
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -19,8 +19,8 @@ import javax.crypto.SecretKey
  * This object uses AES encryption with a 256-bit key for key generation and supports GCM block mode
  * and no encryption padding for the key.
  *
- * @see KeyStore
- * @see KeyGenerator
+ * @see java.security.KeyStore
+ * @see javax.crypto.KeyGenerator
  */
 object KeyStoreProvider {
 

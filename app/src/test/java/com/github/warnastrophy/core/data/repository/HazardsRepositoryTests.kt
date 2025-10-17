@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.model.repository
 
-import com.github.warnastrophy.core.model.util.Hazard
-import com.github.warnastrophy.core.model.util.HazardsRepository
+import com.github.warnastrophy.core.data.repository.HazardsRepository
+import com.github.warnastrophy.core.model.Hazard
 import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject

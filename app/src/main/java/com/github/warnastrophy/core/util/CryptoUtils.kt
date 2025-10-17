@@ -1,5 +1,6 @@
-package com.github.warnastrophy.core.model.util
+package com.github.warnastrophy.core.util
 
+import com.github.warnastrophy.core.data.local.KeyStoreProvider
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.SecretKey

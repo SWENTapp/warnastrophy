@@ -1,6 +1,8 @@
-package com.github.warnastrophy.core.model.util
+package com.github.warnastrophy.core.data.repository
 
 import android.util.Log
+import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.model.Location
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -9,18 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import org.json.JSONObject
 
 val TAGrep = "HasardsRepository"
-
-data class Hazard(
-    val id: Int?,
-    val type: String?,
-    val country: String?,
-    val date: String?,
-    val severity: Double?,
-    val severityUnit: String?,
-    val reportUrl: String?,
-    val alertLevel: Int?,
-    val coordinates: List<Location>?
-)
 
 class HazardsRepository {
 
