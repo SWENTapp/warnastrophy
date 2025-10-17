@@ -16,5 +16,5 @@ object HazardRepositoryProvider {
       "POLYGON((-180.0 90.0,-180.0 -90.0,180.0 -90.0,180.0 90.0,-180.0 90.0))"
 
   /** The polygon defining the area for which hazards are fetched. Default is the entire world. */
-  var locationPolygon: String = BRAZIL_POLYGON
+  var locationPolygon: String = WORLD_POLYGON
 }

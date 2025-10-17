@@ -68,7 +68,14 @@ class HazardsRepository {
       Log.d(TAGrep, "Number of hazards found: ${jsonHazards.length()}")
       for (i in 0 until jsonHazards.length()) {
         val hazardJson = jsonHazards.getJSONObject(i)
-        val hazard = parseHazard(hazardJson)
+        val geometryUrl =
+            hazardJson.getJSONObject("properties").getJSONObject("url").getString("geometry")
+        val geometry = getHazardGeometry(geometryUrl)
+        if (geometry == null) {
+          Log.e(TAGrep, "Skipping hazard due to missing geometry from $geometryUrl")
+          continue
+        }
+        val hazard = parseHazard(hazardJson, geometry)
         Log.d(TAGrep, "Parsed hazard: $hazard")
         if (hazard != null) hazards.add(hazard)
       }
@@ -80,16 +87,13 @@ class HazardsRepository {
     return hazards
   }
 
-  private fun parseHazard(root: JSONObject): Hazard? {
+  private fun parseHazard(root: JSONObject, geometryJson: JSONObject): Hazard? {
 
     val properties = root.getJSONObject("properties")
     val geometry = root.getJSONObject("geometry")
     val isCurrent = properties.getBoolean("iscurrent")
     // if(!isCurrent) return null
 
-    val geometryUrl = properties.getJSONObject("url").getString("geometry")
-    val geometryResponse = httpGet(geometryUrl)
-    val geometryJson = JSONObject(geometryResponse)
     Log.d(TAGrep, "features length : ${geometryJson.getJSONArray("features").length()}")
     val feature = geometryJson.getJSONArray("features").getJSONObject(1)
     Log.d(TAGrep, "feature: $feature")
@@ -134,6 +138,16 @@ class HazardsRepository {
                 })
 
     return hazard
+  }
+
+  private fun getHazardGeometry(geometryUrl: String): JSONObject? {
+    val geometryResponse = httpGet(geometryUrl)
+    return try {
+      JSONObject(geometryResponse)
+    } catch (e: Exception) {
+      Log.e(TAGrep, "Failed to parse geometry JSON from $geometryUrl: $e")
+      null
+    }
   }
 }
 
