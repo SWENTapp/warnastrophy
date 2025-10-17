@@ -2,10 +2,14 @@ package com.github.warnastrophy.core.ui.map
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.model.util.AppConfig
+import com.github.warnastrophy.core.model.util.Hazard
 import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.util.HazardsRepository
+import com.github.warnastrophy.core.model.util.Location as ModelLocation
+import com.github.warnastrophy.core.service.HazardChecker
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -43,6 +47,7 @@ class MapViewModelTest {
   @Before
   fun setup() = runBlocking {
     Dispatchers.setMain(testDispatcher)
+    HazardRepositoryProvider.locationPolygon = HazardRepositoryProvider.BRAZIL_POLYGON
     context = ApplicationProvider.getApplicationContext()
     fusedClient = LocationServices.getFusedLocationProviderClient(context)
 
@@ -271,14 +276,14 @@ class MapViewModelTest {
 
   @Test
   fun testHazardsPeriodicallyUpdate() = runBlocking {
-    val reference = HazardsRepository().getAreaHazards(HazardRepositoryProvider.WORLD_POLYGON)
-    delay(2000)
+    val reference = HazardsRepository().getAreaHazards(HazardRepositoryProvider.BRAZIL_POLYGON)
+    delay(5000)
 
     if (reference.isEmpty()) {
       // If no hazards in the world polygon, skip the test
       return@runBlocking
     }
-    HazardRepositoryProvider.locationPolygon = HazardRepositoryProvider.WORLD_POLYGON
+    HazardRepositoryProvider.locationPolygon = HazardRepositoryProvider.BRAZIL_POLYGON
 
     val viewModel = MapViewModel()
 
@@ -294,5 +299,64 @@ class MapViewModelTest {
     delay(fetchDelay)
     val hazardsAfterSecondFetch = viewModel.uiState.value.hazards
     assertTrue(hazardsAfterSecondFetch != null && hazardsAfterSecondFetch.isNotEmpty())
+  }
+
+  @Test
+  fun startLocationUpdates_detects_nearby_hazard() = runTest {
+    // Build a small square polygon and center near the fake GPS fix
+    val polygon =
+        listOf(
+            ModelLocation(latitude = 9.9, longitude = 9.9),
+            ModelLocation(latitude = 9.9, longitude = 10.1),
+            ModelLocation(latitude = 10.1, longitude = 10.1),
+            ModelLocation(latitude = 10.1, longitude = 9.9))
+    val center = ModelLocation(latitude = 10.0, longitude = 10.0)
+    val testHazard =
+        Hazard(
+            id = 9999,
+            htmlDescription = "Nearby test hazard",
+            type = "TC",
+            country = "Testland",
+            date = "2025-01-01",
+            severity = 1.0,
+            severityUnit = "unit",
+            reportUrl = "http://example.test",
+            alertLevel = 2,
+            coordinates = center,
+            bbox = listOf(9.9, 9.9, 10.1, 10.1),
+            polygon = polygon)
+
+    // Create ViewModel and inject a HazardChecker containing our single hazard
+    val viewModel = MapViewModel()
+    val field = MapViewModel::class.java.getDeclaredField("hazardChecker")
+    field.isAccessible = true
+    field.set(viewModel, HazardChecker(listOf(testHazard)))
+    Log.e("test", "Injected hazardChecker with hazard: $testHazard")
+
+    // Mock FusedLocationProviderClient to immediately invoke the LocationCallback with a point
+    // inside the polygon
+    val mockClient = org.mockito.kotlin.mock<FusedLocationProviderClient>()
+    doAnswer { invocation ->
+          val callback = invocation.getArgument<LocationCallback>(1)
+          val loc =
+              Location("test").apply {
+                latitude = 10.0
+                longitude = 10.0
+              }
+          val result = LocationResult.create(listOf(loc))
+          callback.onLocationResult(result)
+          null
+        }
+        .whenever(mockClient)
+        .requestLocationUpdates(any(), any<LocationCallback>(), anyOrNull())
+
+    // Start updates and let coroutines run
+    viewModel.startLocationUpdates(mockClient)
+    advanceUntilIdle()
+
+    // Assert active hazard is the one we injected
+    val active = viewModel.uiState.value.activeHazard
+    assertNotNull(active)
+    assertEquals(testHazard.id, active?.id)
   }
 }

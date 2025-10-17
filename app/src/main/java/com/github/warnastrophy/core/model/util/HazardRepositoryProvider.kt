@@ -9,6 +9,9 @@ object HazardRepositoryProvider {
   const val USA_POLYGON: String =
       "POLYGON((-125.0 50.0,-125.0 24.0,-66.0 24.0,-66.0 50.0,-125.0 50.0))"
 
+  const val BRAZIL_POLYGON: String =
+      "POLYGON((-73.99 -33.75,-34.79 -33.75,-34.79 5.27,-73.99 5.27,-73.99 -33.75))"
+
   const val WORLD_POLYGON: String =
       "POLYGON((-180.0 90.0,-180.0 -90.0,180.0 -90.0,180.0 90.0,-180.0 90.0))"
 

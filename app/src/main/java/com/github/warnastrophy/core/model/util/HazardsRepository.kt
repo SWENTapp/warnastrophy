@@ -8,10 +8,11 @@ import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONObject
 
-val TAGrep = "HasardsRepository"
+val TAGrep = "HazardsRepository"
 
 data class Hazard(
     val id: Int?,
+    val htmlDescription: String?,
     val type: String?,
     val country: String?,
     val date: String?,
@@ -19,7 +20,9 @@ data class Hazard(
     val severityUnit: String?,
     val reportUrl: String?,
     val alertLevel: Int?,
-    val coordinates: List<Location>?
+    val coordinates: Location?,
+    val bbox: List<Double>?,
+    val polygon: List<Location>?
 )
 
 class HazardsRepository {
@@ -30,7 +33,7 @@ class HazardsRepository {
     return "$base?geometryArea=$geom&days=$days"
   }
 
-  private suspend fun httpGet(urlStr: String): String =
+  private fun httpGet(urlStr: String): String =
       with(Dispatchers.IO) {
         val url = URL(urlStr)
         val conn =
@@ -53,51 +56,69 @@ class HazardsRepository {
         return message
       }
 
-  suspend fun getAreaHazards(geometry: String, days: String = "1"): List<Hazard> {
-    val url = buildUrlAreaHazards(geometry, days)
+  fun getAreaHazards(geometryWKT: String, days: String = "1"): List<Hazard> {
+    val url = buildUrlAreaHazards(geometryWKT, days)
+    Log.d(TAGrep, "Fetching hazards from URL: $url")
     val response = httpGet(url)
+    Log.d(TAGrep, "Response: $response")
     val hazards = mutableListOf<Hazard>()
     val jsonObject = JSONObject(response)
     try {
       val jsonHazards = jsonObject.getJSONArray("features")
+      Log.d(TAGrep, "Number of hazards found: ${jsonHazards.length()}")
       for (i in 0 until jsonHazards.length()) {
         val hazardJson = jsonHazards.getJSONObject(i)
-        val hazard = parseHazard(hazardJson)
+        val geometryUrl =
+            hazardJson.getJSONObject("properties").getJSONObject("url").getString("geometry")
+        val geometry = getHazardGeometry(geometryUrl)
+        if (geometry == null) {
+          Log.e(TAGrep, "Skipping hazard due to missing geometry from $geometryUrl")
+          continue
+        }
+        val hazard = parseHazard(hazardJson, geometry)
+        Log.d(TAGrep, "Parsed hazard: $hazard")
         if (hazard != null) hazards.add(hazard)
       }
     } catch (e: Exception) {
-      Log.d(TAGrep, "No hazards found: $e")
+      Log.e(TAGrep, "No hazards found: $e")
       return emptyList()
     }
+    Log.d(TAGrep, "Total hazards parsed: ${hazards.size}")
     return hazards
   }
 
-  private fun parseHazard(root: JSONObject): Hazard? {
+  private fun parseHazard(root: JSONObject, geometryJson: JSONObject): Hazard? {
 
     val properties = root.getJSONObject("properties")
+    val geometry = root.getJSONObject("geometry")
     val isCurrent = properties.getBoolean("iscurrent")
     // if(!isCurrent) return null
 
-    val geometry = root.getJSONObject("geometry")
-    val coordinates = mutableListOf<Location>()
-    when (geometry.getString("type")) {
-      "Point" -> {
-        val arr = geometry.getJSONArray("coordinates")
-        coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
-      }
-      "Polygon" -> {
-        val polygons = geometry.getJSONArray("coordinates").getJSONArray(0).getJSONArray(0)
-        for (i in 0 until polygons.length()) {
-          val polygon = polygons.getJSONArray(i)
-          coordinates.add(
-              Location(latitude = polygon.getDouble(1), longitude = polygon.getDouble(0)))
+    Log.d(TAGrep, "features length : ${geometryJson.getJSONArray("features").length()}")
+    val feature = geometryJson.getJSONArray("features").getJSONObject(1)
+    Log.d(TAGrep, "feature: $feature")
+
+    // --- 3. Extract Bounding Box ---
+    val bbox =
+        feature.getJSONArray("bbox").let { bboxArray ->
+          List(bboxArray.length()) { i -> bboxArray.getDouble(i) }
         }
-      }
-    }
+    val featureGeometry = feature.getJSONObject("geometry")
+    val polygon =
+        when (featureGeometry.getString("type")) {
+          "Polygon" -> featureGeometry.getJSONArray("coordinates").getJSONArray(0)
+          "MultiPolygon" ->
+              featureGeometry
+                  .getJSONArray("coordinates")
+                  .getJSONArray(0)
+                  .getJSONArray(0) // Always fetch outer ring
+          else -> throw IllegalArgumentException("Unsupported geometry type")
+        }
 
     val hazard =
         Hazard(
             id = properties.getInt("eventid"),
+            htmlDescription = properties.getString("htmldescription"),
             type = properties.getString("eventtype"),
             country = properties.getString("country"),
             date = properties.getString("fromdate"),
@@ -105,8 +126,28 @@ class HazardsRepository {
             severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
             reportUrl = properties.getJSONObject("url").getString("report"),
             alertLevel = properties.getInt("alertscore"),
-            coordinates = coordinates)
+            coordinates =
+                Location(
+                    geometry.getJSONArray("coordinates").getDouble(1),
+                    geometry.getJSONArray("coordinates").getDouble(0)),
+            bbox = bbox,
+            polygon =
+                List(polygon.length()) { i ->
+                  val point = polygon.getJSONArray(i)
+                  Location(point.getDouble(1), point.getDouble(0))
+                })
+
     return hazard
+  }
+
+  private fun getHazardGeometry(geometryUrl: String): JSONObject? {
+    val geometryResponse = httpGet(geometryUrl)
+    return try {
+      JSONObject(geometryResponse)
+    } catch (e: Exception) {
+      Log.e(TAGrep, "Failed to parse geometry JSON from $geometryUrl: $e")
+      null
+    }
   }
 }
 

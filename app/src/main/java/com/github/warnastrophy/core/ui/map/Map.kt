@@ -24,6 +24,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.compareTo
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
@@ -62,34 +63,30 @@ fun MapScreen(
           properties = MapProperties(isMyLocationEnabled = true)) {
             Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
             hazardsList.forEach { hazard ->
-              hazard.coordinates?.forEach { coord ->
-                val loc = Location.toLatLng(coord)
-                Marker(
-                    state = MarkerState(position = loc),
-                    title = "Marker in Haiti",
-                    snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-                    icon =
-                        when (hazard.type) {
-                          "FL" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_GREEN)
-                          "DR" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_ORANGE)
-                          "WC" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_BLUE)
-                          "EQ" ->
-                              BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
-                          "TC" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_YELLOW)
-                          else ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_AZURE)
-                        },
-                )
-              }
+              val coord = hazard.coordinates ?: return@forEach
+              val loc = Location.toLatLng(coord)
+              Marker(
+                  state = MarkerState(position = loc),
+                  title = hazard.htmlDescription,
+                  snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
+                  icon =
+                      when (hazard.type) {
+                        "FL" ->
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+                        "DR" ->
+                            BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_ORANGE)
+                        "WC" ->
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
+                        "EQ" ->
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                        "TC" ->
+                            BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_YELLOW)
+                        else ->
+                            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                      },
+              )
             }
           }
   else Loading()

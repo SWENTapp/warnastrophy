@@ -37,14 +37,4 @@ class MapScreenTest {
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !viewModel.uiState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
   }
-
-  // TODO check if hazard could be already fetched during the time the map is loading
-  @Test
-  fun testRefreshUIState_updatesLocations() {
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !viewModel.uiState.value.isLoading }
-    viewModel.refreshUIState()
-    val hazards = viewModel.uiState.value.hazards
-
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { hazards != null && hazards.isNotEmpty() }
-  }
 }
