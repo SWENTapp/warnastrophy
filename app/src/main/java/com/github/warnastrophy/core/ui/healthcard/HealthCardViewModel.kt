@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.model.util.HealthCard
 import com.github.warnastrophy.core.model.util.HealthCardStorage
 import com.github.warnastrophy.core.model.util.StorageResult
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,8 +18,11 @@ import kotlinx.coroutines.launch
  *
  * Handles loading, saving, updating, and deleting a HealthCard. Exposes the current card and UI
  * state as [StateFlow] for Compose or other observers.
+ *
+ * @param dispatcher Dispatcher attribute for testing purposes
  */
-class HealthCardViewModel : ViewModel() {
+class HealthCardViewModel(private val dispatcher: CoroutineDispatcher = Dispatchers.Main) :
+    ViewModel() {
 
   private val _uiState = MutableStateFlow<HealthCardUiState>(HealthCardUiState.Idle)
   val uiState: StateFlow<HealthCardUiState> = _uiState.asStateFlow()
@@ -34,7 +39,7 @@ class HealthCardViewModel : ViewModel() {
    * @param userId The unique identifier of the user
    */
   fun loadHealthCard(context: Context, userId: String) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       _uiState.value = HealthCardUiState.Loading
       when (val result = HealthCardStorage.loadHealthCard(context, userId)) {
         is StorageResult.Success -> {
@@ -58,7 +63,7 @@ class HealthCardViewModel : ViewModel() {
    * @param card The HealthCard to save
    */
   fun saveHealthCard(context: Context, userId: String, card: HealthCard) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       _uiState.value = HealthCardUiState.Loading
       when (val result = HealthCardStorage.saveHealthCard(context, userId, card)) {
         is StorageResult.Success -> {
@@ -82,7 +87,7 @@ class HealthCardViewModel : ViewModel() {
    * @param newCard The updated HealthCard data
    */
   fun updateHealthCard(context: Context, userId: String, newCard: HealthCard) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       _uiState.value = HealthCardUiState.Loading
       when (val result = HealthCardStorage.updateHealthCard(context, userId, newCard)) {
         is StorageResult.Success -> {
@@ -105,7 +110,7 @@ class HealthCardViewModel : ViewModel() {
    * @param userId The unique identifier of the user
    */
   fun deleteHealthCard(context: Context, userId: String) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       _uiState.value = HealthCardUiState.Loading
       when (val result = HealthCardStorage.deleteHealthCard(context, userId)) {
         is StorageResult.Success -> {
