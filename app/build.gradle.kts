@@ -240,6 +240,7 @@ dependencies {
     testImplementation(libs.mockk)
     implementation(libs.json)
     testImplementation(libs.json)
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 
     // For mocking objects in tests
     testImplementation(libs.mockito.core)
