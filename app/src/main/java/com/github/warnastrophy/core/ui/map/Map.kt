@@ -63,19 +63,6 @@ fun MapScreen(
           properties = MapProperties(isMyLocationEnabled = true)) {
             Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
             hazardsList.forEach { hazard ->
-              /**
-               * val points = hazard.polygon?.map { Location.toLatLng(it) } ?: emptyList()
-               *
-               * if (points.size >= 3) { val color = when (hazard.type) { "DR" -> Color(0x80FFA500)
-               * "WC" -> Color(0x800000FF) "EQ" -> Color(0x80FF0000) "TC" -> Color(0x80FFFF00) else
-               * -> Color(0x80FFFFFF) } Polygon( points = points, strokeColor = Color.Black,
-               * strokeWidth = 4f, fillColor = color) } else if (points.size >= 2) { // If only a
-               * line, draw a polyline Polyline(points = points, color = Color.Black, width = 4f) }
-               *
-               * // Draw connecting polyline in addition to polygon (optional) if (points.size >= 2)
-               * { Polyline( points = points + points.first(), color = Color.DarkGray, width = 2f,
-               * geodesic = false) }
-               */
               val coord = hazard.coordinates ?: return@forEach
               val loc = Location.toLatLng(coord)
               Marker(
