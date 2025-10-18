@@ -13,7 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.model.GpsService
+import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.model.HazardsService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.components.Loading
 import com.google.android.gms.location.LocationServices
@@ -31,31 +34,36 @@ object MapScreenTestTags {
 
 @Composable
 fun MapScreen(
-    viewModel: MapViewModel = viewModel(),
+    gpsService: GpsService,
+    hazardsService: HazardsService =
+        HazardsService(HazardRepositoryProvider.repository, gpsService),
 ) {
-  val uiState by viewModel.uiState.collectAsState()
-  val context = LocalContext.current
-  val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-  val cameraPositionState = rememberCameraPositionState()
+  val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
 
+  val context = LocalContext.current
+  val cameraPositionState = rememberCameraPositionState()
+  val hazardState by hazardsService.currentHazardsState.collectAsState()
+  val positionState by gpsService.positionState.collectAsState()
   LaunchedEffect(Unit) {
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
         PackageManager.PERMISSION_GRANTED) {
-      viewModel.requestCurrentLocation(locationClient) // Request location once at start (initial)
-      viewModel.startLocationUpdates(locationClient) // Start continuous location updates
+      gpsService.requestCurrentLocation(locationClient)
+      gpsService.startLocationUpdates(locationClient)
     } else {
       throw Exception("Location permission not granted")
     }
   }
-  val hazardsList = uiState.hazards ?: emptyList()
+  var hazardsList = remember { emptyList<Hazard>() }
 
-  LaunchedEffect(uiState.target) {
+  LaunchedEffect(positionState) {
     cameraPositionState.animate(
-        CameraUpdateFactory.newLatLngZoom(uiState.target, 12f), 1000 // 1 second animation
+        CameraUpdateFactory.newLatLngZoom(positionState.position, 12f), 1000 // 1 second animation
         )
   }
 
-  if (!uiState.isLoading)
+  LaunchedEffect(hazardState) { hazardsList = hazardState }
+
+  if (!positionState.isLoading)
       GoogleMap(
           modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
           cameraPositionState = cameraPositionState,
