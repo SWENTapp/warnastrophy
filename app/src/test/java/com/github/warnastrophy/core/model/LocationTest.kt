@@ -1,11 +1,8 @@
-package com.github.warnastrophy.core.model.util
+package com.github.warnastrophy.core.model
 
-import com.github.warnastrophy.core.model.util.Location.Companion.earthRadiusKm
-import kotlin.compareTo
+import com.github.warnastrophy.core.util.debugPrint
 import kotlin.math.abs
-import kotlin.rem
-import kotlin.text.get
-import org.junit.Assert.*
+import org.junit.Assert
 import org.junit.Test
 
 class LocationTest {
@@ -35,14 +32,14 @@ class LocationTest {
     val location = Location(85.0, 0.0, "")
     val polygon = Location.getPolygon(location, 5000.0, 1000.0)
     debugPrint(formatBoundingBoxKeeneSite(polygon))
-    assertNotNull(polygon)
+    Assert.assertNotNull(polygon)
   }
 
   @Test
   fun `equator 1000km x 1000km`() {
     val location = Location(0.0, 0.0, "Equator")
     val polygon = Location.getPolygon(location, 1000.0, 1000.0)
-    assertNotNull(polygon)
+    Assert.assertNotNull(polygon)
     val pairs = polygon.filterIndexed { index, _ -> index % 2 == 0 }
     val impairs = polygon.filterIndexed { index, _ -> index % 2 != 0 }
 
@@ -50,27 +47,27 @@ class LocationTest {
       val lonVar = abs(impairs[i].longitude - pairs[i].longitude)
       val lat = pairs[i].latitude
       val lonKm = varLonToKm(lonVar, lat)
-      assertTrue(abs(lonKm - 1000.0) < 1.0)
+      Assert.assertTrue(abs(lonKm - 1000.0) < 1.0)
     }
 
     val maxLat = pairs.maxOf { it.latitude }
     val minLat = pairs.minOf { it.latitude }
     val latVar = maxLat - minLat
     val latKm = varLatToKm(latVar)
-    assertTrue(abs(latKm - 1000.0) < 1.0)
+    Assert.assertTrue(abs(latKm - 1000.0) < 1.0)
   }
 
   @Test
   fun `pole nord 1000km x 1000km`() {
     val location = Location(85.0, 0.0, "Pole Nord")
     val polygon = Location.getPolygon(location, 5000.0, 100.0)
-    assertNotNull(polygon)
+    Assert.assertNotNull(polygon)
     val pairs = polygon.filterIndexed { index, _ -> index % 2 == 0 }
     val impairs = polygon.filterIndexed { index, _ -> index % 2 != 0 }
 
     for (i in pairs.indices) {
       val lonVar = abs(impairs[i].longitude - pairs[i].longitude)
-      assertEquals(360.0, lonVar, 1.0)
+      Assert.assertEquals(360.0, lonVar, 1.0)
     }
   }
 
@@ -78,18 +75,18 @@ class LocationTest {
   fun testToLatLng() {
     val location = Location(46.8182, 8.2275, "Switzerland")
     val latLng = Location.toLatLng(location)
-    assertEquals(46.8182, latLng.latitude, 0.0001)
-    assertEquals(8.2275, latLng.longitude, 0.0001)
+    Assert.assertEquals(46.8182, latLng.latitude, 0.0001)
+    Assert.assertEquals(8.2275, latLng.longitude, 0.0001)
   }
 
   @Test
   fun `pole nord 5000km x 5000km unique points`() {
     val location = Location(85.0, 0.0, "Pole Nord")
     val polygon = Location.getPolygon(location, 5000.0, 5000.0)
-    assertNotNull(polygon)
+    Assert.assertNotNull(polygon)
     // Vérifie l'unicité des points
     val uniquePoints = polygon.toSet()
-    assertEquals("Il y a des doublons dans le polygone", polygon.size, uniquePoints.size)
+    Assert.assertEquals("Il y a des doublons dans le polygone", polygon.size, uniquePoints.size)
   }
 }
 

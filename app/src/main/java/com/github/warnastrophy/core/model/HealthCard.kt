@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model.util
+package com.github.warnastrophy.core.model
 
 /**
  * A data class representing a health card for an individual, containing personal and medical

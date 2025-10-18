@@ -5,10 +5,10 @@ import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.model.util.AppConfig
-import com.github.warnastrophy.core.model.util.Hazard
-import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
-import com.github.warnastrophy.core.model.util.HazardsRepository
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.HazardsRepository
+import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationAvailability

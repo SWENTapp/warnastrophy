@@ -1,6 +1,7 @@
-package com.github.warnastrophy.core.model.util
+package com.github.warnastrophy.core.model
 
 import com.google.android.gms.maps.model.LatLng
+import kotlin.math.ceil
 import kotlin.math.cos
 
 /**
@@ -20,7 +21,7 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
     val kmBetweeenPoints = 500
 
     /**
-     * Converts a [Location] to a Google Maps [LatLng].
+     * Converts a [Location] to a Google Maps LatLng].
      *
      * @param location Location to convert.
      * @return Equivalent [LatLng] representation.
@@ -74,7 +75,7 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
      * @return List of normalized \[latitude, longitude\] points.
      */
     fun getPolygon(center: Location, kmLon: Double, kmLat: Double): List<Location> {
-      val halfSquareNbrLatPoints = kotlin.math.ceil((kmLat / 2.0) / kmBetweeenPoints).toInt()
+      val halfSquareNbrLatPoints = ceil((kmLat / 2.0) / kmBetweeenPoints).toInt()
 
       val latVar = kmToLatVariation(kmLat)
       val latVarFrag = (latVar / 2.0) / halfSquareNbrLatPoints

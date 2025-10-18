@@ -2,9 +2,9 @@ package com.github.warnastrophy.core.ui.healthcard
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.model.util.HealthCard
-import com.github.warnastrophy.core.model.util.HealthCardStorage
-import com.github.warnastrophy.core.model.util.StorageResult
+import com.github.warnastrophy.core.data.local.HealthCardStorage
+import com.github.warnastrophy.core.data.local.StorageResult
+import com.github.warnastrophy.core.model.HealthCard
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
