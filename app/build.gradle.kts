@@ -246,7 +246,11 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.mockito.core)
     androidTestImplementation(libs.mockito.android)
-    androidTestImplementation(libs.mockito.kotlin)}
+    androidTestImplementation(libs.mockito.kotlin)
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+
+}
 
 tasks.withType<Test> {
     // Configure Jacoco for each tests
