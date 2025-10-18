@@ -93,7 +93,7 @@ class GpsServiceTest {
     sleep(3000)
     val state = gpsService.positionState.value
     Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Erreur de localisation: ${e.message}", state.errorMessage)
+    Assert.assertEquals("Location error: ${e.message}", state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
   }
 
@@ -175,13 +175,13 @@ class GpsServiceTest {
     val state = gpsService.positionState.value
     Log.e("GpsService", "$state")
     Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Location permission not granted !", state.errorMessage)
+    Assert.assertEquals("Location permission not granted!", state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
   }
 
   @Test
   fun startLocationUpdates_throw_exception() = runTest {
-    val e = RuntimeException("Something went wrong")
+    val e = RuntimeException("Location: Something went wrong")
 
     // Simuler une exception générique
     whenever(mockClient.requestLocationUpdates(any(), any<LocationCallback>(), anyOrNull()))
