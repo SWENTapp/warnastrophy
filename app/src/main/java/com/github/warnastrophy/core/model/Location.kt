@@ -1,7 +1,6 @@
 package com.github.warnastrophy.core.model
 
 import com.google.android.gms.maps.model.LatLng
-import com.github.warnastrophy.core.model.Location
 import kotlin.math.ceil
 import kotlin.math.cos
 
