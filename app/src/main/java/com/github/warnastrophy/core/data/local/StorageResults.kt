@@ -1,5 +1,7 @@
 package com.github.warnastrophy.core.data.local
 
+import com.github.warnastrophy.core.model.HealthCard
+
 /**
  * Represents the result of a storage operation.
  *
@@ -27,7 +29,7 @@ sealed class StorageException(message: String, cause: Throwable? = null) :
   /** Thrown when decryption fails while reading from storage. */
   class DecryptionError(cause: Throwable) : StorageException("Error during decryption", cause)
 
-  /** Thrown when serialization of [com.github.warnastrophy.core.model.HealthCard] to JSON fails. */
+  /** Thrown when serialization of [HealthCard] to JSON fails. */
   class SerializationError(cause: Throwable) :
       StorageException("Error during serialization", cause)
 

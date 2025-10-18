@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.model
 
 import com.google.android.gms.maps.model.LatLng
+import com.github.warnastrophy.core.model.Location
 import kotlin.math.ceil
 import kotlin.math.cos
 
@@ -21,10 +22,10 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
     val kmBetweeenPoints = 500
 
     /**
-     * Converts a [Location] to a Google Maps [com.google.android.gms.maps.model.LatLng].
+     * Converts a [Location] to a Google Maps LatLng].
      *
      * @param location Location to convert.
-     * @return Equivalent [com.google.android.gms.maps.model.LatLng] representation.
+     * @return Equivalent [LatLng] representation.
      */
     fun toLatLng(location: Location): LatLng {
       return LatLng(location.latitude, location.longitude)
