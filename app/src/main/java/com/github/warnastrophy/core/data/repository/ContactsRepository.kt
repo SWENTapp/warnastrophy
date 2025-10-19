@@ -17,8 +17,8 @@ interface ContactsRepository {
   /**
    * Retrieves all Contact items from the repository.
    *
-   * @return A [Result] containing a list of all Contact items on success,
-   * or a failure with the error.
+   * @return A [Result] containing a list of all Contact items on success, or a failure with the
+   *   error.
    */
   suspend fun getAllContacts(): Result<List<Contact>>
 
@@ -26,8 +26,8 @@ interface ContactsRepository {
    * Retrieves a specific Contact item by its unique identifier.
    *
    * @param contactID The unique identifier of the Contact item to retrieve.
-   * @return A [Result] containing the Contact item with the specified identifier on success,
-   * or a failure if not found or on error.
+   * @return A [Result] containing the Contact item with the specified identifier on success, or a
+   *   failure if not found or on error.
    */
   suspend fun getContact(contactID: String): Result<Contact>
 
@@ -36,8 +36,8 @@ interface ContactsRepository {
    *
    * @param contactID The unique identifier of the Contact item to edit.
    * @param newContact The new value for the Contact item.
-   * @return A [Result] containing Unit on success
-   * or a failure with the exception if the edit failed.
+   * @return A [Result] containing Unit on success or a failure with the exception if the edit
+   *   failed.
    */
   suspend fun editContact(contactID: String, newContact: Contact): Result<Unit>
 
@@ -45,8 +45,8 @@ interface ContactsRepository {
    * Deletes a Contact item from the repository.
    *
    * @param contactID The unique identifier of the Contact item to delete.
-   * @return A [Result] containing Unit on success
-   * or a failure with the exception if deletion failed.
+   * @return A [Result] containing Unit on success or a failure with the exception if deletion
+   *   failed.
    */
   suspend fun deleteContact(contactID: String): Result<Unit>
 }

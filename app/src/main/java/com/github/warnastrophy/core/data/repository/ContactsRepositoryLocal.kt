@@ -7,14 +7,14 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.CryptoUtils
-import com.github.warnastrophy.core.data.local.StorageException
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import java.util.UUID
 import kotlin.collections.iterator
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 const val CONTACTS_DATASTORE_NAME = "contacts_encrypted"
 
@@ -22,7 +22,6 @@ val gson = Gson()
 
 val Context.contactDataStore: DataStore<Preferences> by
     preferencesDataStore(name = CONTACTS_DATASTORE_NAME)
-
 
 class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : ContactsRepository {
   fun keyFor(contact: Contact) = stringPreferencesKey(contact.id)
@@ -38,9 +37,9 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
       dataStore.edit {
         if (it.contains(keyFor(contact))) {
           r =
-            Result.failure(
-              StorageException.DataStoreError(
-                Exception("Contact ${contact.id} already exists")))
+              Result.failure(
+                  StorageException.DataStoreError(
+                      Exception("Contact ${contact.id} already exists")))
           return@edit
         }
 
@@ -75,37 +74,34 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
     val key = stringPreferencesKey(contactID)
 
     val ciphered =
-      try {
-        dataStore.data.map { it[key] }.first()
-      } catch (e: ClassCastException) {
-        Log.e("ContactStorage", "Failed to load ciphered JSON for $contactID", e)
-        return Result.failure(StorageException.DataStoreError(e))
-      }
+        try {
+          dataStore.data.map { it[key] }.first()
+        } catch (e: ClassCastException) {
+          Log.e("ContactStorage", "Failed to load ciphered JSON for $contactID", e)
+          return Result.failure(StorageException.DataStoreError(e))
+        }
 
     if (ciphered == null) {
       Log.e("ContactStorage", "Contact $contactID not found")
       return Result.failure(
-        StorageException.DataStoreError(
-          Exception("Contact $contactID not found")
-        )
-      )
+          StorageException.DataStoreError(Exception("Contact $contactID not found")))
     }
 
     val deciphered =
-      try {
-        CryptoUtils.decrypt(ciphered)
-      } catch (e: Exception) {
-        Log.e("ContactStorage", "Failed to decipher contact $contactID", e)
-        return Result.failure(StorageException.DecryptionError(e))
-      }
+        try {
+          CryptoUtils.decrypt(ciphered)
+        } catch (e: Exception) {
+          Log.e("ContactStorage", "Failed to decipher contact $contactID", e)
+          return Result.failure(StorageException.DecryptionError(e))
+        }
 
     val contact =
-      try {
-        gson.fromJson(deciphered, Contact::class.java)
-      } catch (e: Exception) {
-        Log.e("ContactStorage", "Failed to parse JSON for contact $contactID", e)
-        return Result.failure(StorageException.DeserializationError(e))
-      }
+        try {
+          gson.fromJson(deciphered, Contact::class.java)
+        } catch (e: Exception) {
+          Log.e("ContactStorage", "Failed to parse JSON for contact $contactID", e)
+          return Result.failure(StorageException.DeserializationError(e))
+        }
 
     return Result.success(contact)
   }
@@ -114,32 +110,28 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
     var r: Result<Unit> = Result.success(Unit)
 
     if (contactID != newContact.id) {
-      return Result.failure(
-        StorageException.DataStoreError(
-          Exception("Contact ID mismatch")
-        )
-      )
+      return Result.failure(StorageException.DataStoreError(Exception("Contact ID mismatch")))
     }
 
     dataStore.edit {
       if (!it.contains(keyFor(newContact))) {
         r =
-          Result.failure(
-            StorageException.DataStoreError(
-              Exception("Edit failed: contact $contactID does not exist")))
+            Result.failure(
+                StorageException.DataStoreError(
+                    Exception("Edit failed: contact $contactID does not exist")))
         return@edit
       }
 
       it[keyFor(newContact)] =
-        try {
-          val ciphered = CryptoUtils.encrypt(gson.toJson(newContact))
-          r = Result.success(Unit)
-          ciphered
-        } catch (e: Exception) {
-          Log.e("ContactStorage", "Error encrypting contact", e)
-          r = Result.failure(StorageException.EncryptionError(e))
-          return@edit
-        }
+          try {
+            val ciphered = CryptoUtils.encrypt(gson.toJson(newContact))
+            r = Result.success(Unit)
+            ciphered
+          } catch (e: Exception) {
+            Log.e("ContactStorage", "Error encrypting contact", e)
+            r = Result.failure(StorageException.EncryptionError(e))
+            return@edit
+          }
     }
 
     return r
@@ -152,9 +144,9 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
     dataStore.edit {
       if (!it.contains(key)) {
         r =
-          Result.failure(
-            StorageException.DataStoreError(
-              Exception("Delete failed: contact $contactID does not exist")))
+            Result.failure(
+                StorageException.DataStoreError(
+                    Exception("Delete failed: contact $contactID does not exist")))
         return@edit
       }
 
