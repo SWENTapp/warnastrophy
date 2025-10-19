@@ -31,129 +31,102 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
   }
 
   override suspend fun addContact(contact: Contact): Result<Unit> {
-    var r = Result.success(Unit)
-
-    try {
+    return runCatching {
       dataStore.edit {
         if (it.contains(keyFor(contact))) {
-          r =
-              Result.failure(
-                  StorageException.DataStoreError(
-                      Exception("Contact ${contact.id} already exists")))
-          return@edit
+          throw StorageException.DataStoreError(Exception("Contact ${contact.id} already exists"))
+        } else {
+          val ciphered = CryptoUtils.encrypt(gson.toJson(contact))
+          it[keyFor(contact)] = ciphered
         }
-
-        val ciphered = CryptoUtils.encrypt(gson.toJson(contact))
-        it[keyFor(contact)] = ciphered
-        r = Result.success(Unit)
       }
-    } catch (e: Exception) {
-      Log.e("ContactStorage", "Error saving contact ${contact.id}", e)
-      r = Result.failure(StorageException.DataStoreError(e))
     }
-
-    return r
   }
 
   override suspend fun getAllContacts(): Result<List<Contact>> {
-    val prefs = dataStore.data.first()
-    val contacts = mutableListOf<Contact>()
-    for ((_, value) in prefs.asMap()) {
+    return runCatching {
       try {
-        val decrypted = CryptoUtils.decrypt(value as String)
-        val contact = gson.fromJson(decrypted, Contact::class.java)
-        contacts.add(contact)
+        dataStore.data
+            .first()
+            .asMap()
+            .values
+            .map { CryptoUtils.decrypt(it as String) }
+            .map { gson.fromJson(it, Contact::class.java) }
       } catch (e: Exception) {
         throw StorageException.DataStoreError(e)
       }
     }
-    return Result.success(contacts)
   }
 
   override suspend fun getContact(contactID: String): Result<Contact> {
     val key = stringPreferencesKey(contactID)
 
-    val ciphered =
-        try {
-          dataStore.data.map { it[key] }.first()
-        } catch (e: ClassCastException) {
-          Log.e("ContactStorage", "Failed to load ciphered JSON for $contactID", e)
-          return Result.failure(StorageException.DataStoreError(e))
-        }
+    return runCatching {
+      val ciphered =
+          try {
+            dataStore.data.map { it[key] }.first()
+          } catch (e: ClassCastException) {
+            Log.e("ContactStorage", "Failed to load ciphered JSON for $contactID", e)
+            throw StorageException.DataStoreError(e)
+          }
 
-    if (ciphered == null) {
-      Log.e("ContactStorage", "Contact $contactID not found")
-      return Result.failure(
-          StorageException.DataStoreError(Exception("Contact $contactID not found")))
+      if (ciphered == null) {
+        Log.e("ContactStorage", "Contact $contactID not found")
+        throw StorageException.DataStoreError(Exception("Contact $contactID not found"))
+      }
+
+      val deciphered =
+          try {
+            CryptoUtils.decrypt(ciphered)
+          } catch (e: Exception) {
+            Log.e("ContactStorage", "Failed to decipher contact $contactID", e)
+            throw StorageException.DecryptionError(e)
+          }
+
+      try {
+        gson.fromJson(deciphered, Contact::class.java)
+      } catch (e: Exception) {
+        Log.e("ContactStorage", "Failed to parse JSON for contact $contactID", e)
+        throw StorageException.DeserializationError(e)
+      }
     }
-
-    val deciphered =
-        try {
-          CryptoUtils.decrypt(ciphered)
-        } catch (e: Exception) {
-          Log.e("ContactStorage", "Failed to decipher contact $contactID", e)
-          return Result.failure(StorageException.DecryptionError(e))
-        }
-
-    val contact =
-        try {
-          gson.fromJson(deciphered, Contact::class.java)
-        } catch (e: Exception) {
-          Log.e("ContactStorage", "Failed to parse JSON for contact $contactID", e)
-          return Result.failure(StorageException.DeserializationError(e))
-        }
-
-    return Result.success(contact)
   }
 
   override suspend fun editContact(contactID: String, newContact: Contact): Result<Unit> {
-    var r: Result<Unit> = Result.success(Unit)
-
-    if (contactID != newContact.id) {
-      return Result.failure(StorageException.DataStoreError(Exception("Contact ID mismatch")))
-    }
-
-    dataStore.edit {
-      if (!it.contains(keyFor(newContact))) {
-        r =
-            Result.failure(
-                StorageException.DataStoreError(
-                    Exception("Edit failed: contact $contactID does not exist")))
-        return@edit
+    return runCatching {
+      if (contactID != newContact.id) {
+        throw StorageException.DataStoreError(Exception("Contact ID mismatch"))
       }
 
-      it[keyFor(newContact)] =
-          try {
-            val ciphered = CryptoUtils.encrypt(gson.toJson(newContact))
-            r = Result.success(Unit)
-            ciphered
-          } catch (e: Exception) {
-            Log.e("ContactStorage", "Error encrypting contact", e)
-            r = Result.failure(StorageException.EncryptionError(e))
-            return@edit
-          }
-    }
+      dataStore.edit {
+        if (!it.contains(keyFor(newContact))) {
+          throw StorageException.DataStoreError(
+              Exception("Edit failed: contact $contactID does not exist"))
+        }
 
-    return r
+        it[keyFor(newContact)] =
+            try {
+              val ciphered = CryptoUtils.encrypt(gson.toJson(newContact))
+              ciphered
+            } catch (e: Exception) {
+              Log.e("ContactStorage", "Error encrypting contact", e)
+              throw StorageException.EncryptionError(e)
+            }
+      }
+    }
   }
 
   override suspend fun deleteContact(contactID: String): Result<Unit> {
     val key = stringPreferencesKey(contactID)
-    var r = Result.success(Unit)
 
-    dataStore.edit {
-      if (!it.contains(key)) {
-        r =
-            Result.failure(
-                StorageException.DataStoreError(
-                    Exception("Delete failed: contact $contactID does not exist")))
-        return@edit
+    return runCatching {
+      dataStore.edit {
+        if (!it.contains(key)) {
+          throw StorageException.DataStoreError(
+              Exception("Delete failed: contact $contactID does not exist"))
+        }
+        it.remove(key)
       }
-
-      it.remove(key)
-      r = Result.success(Unit)
     }
-
-    return r
   }
 }
