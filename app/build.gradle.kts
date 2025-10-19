@@ -230,6 +230,12 @@ dependencies {
     implementation(libs.maps.compose)
     implementation(libs.play.services.location)
 
+    // --------------- Gson -------------------
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // --------------- DataStore -------------------
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
     // test mock
     testImplementation(libs.mockk)
     implementation(libs.json)
@@ -240,15 +246,7 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.mockito.core)
     androidTestImplementation(libs.mockito.android)
-    androidTestImplementation(libs.mockito.kotlin)
-
-    // --------------- Gson -------------------
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    // --------------- DataStore -------------------
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-
-}
+    androidTestImplementation(libs.mockito.kotlin)}
 
 tasks.withType<Test> {
     // Configure Jacoco for each tests
