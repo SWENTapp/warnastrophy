@@ -19,6 +19,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -26,6 +27,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class HealthCardScreenTest {
+
   @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
   private lateinit var mockViewModel: HealthCardViewModel
@@ -34,8 +36,7 @@ class HealthCardScreenTest {
 
   @Before
   fun setUp() {
-    mockViewModel = mockk<HealthCardViewModel>(relaxed = true)
-
+    mockViewModel = mockk(relaxed = true)
     every { mockViewModel.uiState } returns uiStateFlow.asStateFlow()
     every { mockViewModel.currentCard } returns currentCardFlow.asStateFlow()
 
@@ -99,97 +100,118 @@ class HealthCardScreenTest {
 
   @Test
   fun updateAndDeleteButtons_areDisplayed_when_cardExists() {
-    currentCardFlow.value = dummyCard()
-    composeRule.waitForIdle()
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON)
-        .performScrollTo()
-        .assertIsDisplayed()
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.DELETE_BUTTON)
-        .performScrollTo()
-        .assertIsDisplayed()
-    composeRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).assertDoesNotExist()
+    runBlocking {
+      currentCardFlow.value = dummyCard()
+      composeRule.awaitIdle()
+
+      composeRule
+          .onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON)
+          .performScrollTo()
+          .assertIsDisplayed()
+      composeRule
+          .onNodeWithTag(HealthCardTestTags.DELETE_BUTTON)
+          .performScrollTo()
+          .assertIsDisplayed()
+      composeRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).assertDoesNotExist()
+    }
   }
 
   @Test
   fun clickingAddButton_withValidFields_callsSaveHealthCard() {
-    // Fill required fields
-    composeRule.onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD).performTextInput("John Doe")
-    composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).performTextInput("01/01/2000")
-    composeRule.onNodeWithTag(HealthCardTestTags.SSN_FIELD).performTextInput("123-45-6789")
+    runBlocking {
+      composeRule.onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD).performTextInput("John Doe")
+      composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).performTextInput("01/01/2000")
+      composeRule.onNodeWithTag(HealthCardTestTags.SSN_FIELD).performTextInput("123-45-6789")
+      composeRule.awaitIdle()
 
-    composeRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performScrollTo().performClick()
-
-    verify { mockViewModel.saveHealthCard(any(), "user123", any()) }
+      composeRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performScrollTo().performClick()
+      verify { mockViewModel.saveHealthCard(any(), "user123", any()) }
+    }
   }
 
   @Test
   fun clickingUpdateButton_callsUpdateHealthCard() {
-    currentCardFlow.value = dummyCard()
-    composeRule.waitForIdle()
+    runBlocking {
+      currentCardFlow.value = dummyCard()
+      composeRule.awaitIdle()
 
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD)
-        .performScrollTo()
-        .performTextInput("Diabetes, Asthma")
+      composeRule
+          .onNodeWithTag(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD)
+          .performScrollTo()
+          .performTextInput("Diabetes, Asthma")
+      composeRule.awaitIdle()
 
-    composeRule.onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON).performScrollTo().performClick()
-
-    verify { mockViewModel.updateHealthCard(any(), "user123", any()) }
+      composeRule.onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON).performScrollTo().performClick()
+      verify { mockViewModel.updateHealthCard(any(), "user123", any()) }
+    }
   }
 
   @Test
   fun clickingDeleteButton_callsDeleteHealthCard() {
-    currentCardFlow.value = dummyCard()
-    composeRule.waitForIdle()
+    runBlocking {
+      currentCardFlow.value = dummyCard()
+      composeRule.awaitIdle()
 
-    composeRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performScrollTo().performClick()
-
-    verify { mockViewModel.deleteHealthCard(any(), "user123") }
+      composeRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performScrollTo().performClick()
+      verify { mockViewModel.deleteHealthCard(any(), "user123") }
+    }
   }
 
   @Test
   fun errorMessages_areDisplayed_whenRequiredFieldsTouchedAndEmpty() {
-    // Touch the fields but leave empty
-    composeRule.onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD).performClick()
-    composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).performClick()
-    composeRule.onNodeWithTag(HealthCardTestTags.SSN_FIELD).performClick()
+    runBlocking {
+      composeRule.onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD).performClick()
+      composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).performClick()
+      composeRule.onNodeWithTag(HealthCardTestTags.SSN_FIELD).performClick()
 
-    // Force validation by trying to click Add
-    composeRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performScrollTo().performClick()
+      composeRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performScrollTo().performClick()
+      composeRule.awaitIdle()
 
-    composeRule.onAllNodesWithText("Mandatory field").assertCountEquals(3)
+      composeRule.onAllNodesWithText("Mandatory field").assertCountEquals(3)
+    }
   }
 
   @Test
   fun loadingIndicator_isDisplayed_whenUiStateLoading() {
-    uiStateFlow.value = HealthCardUiState.Loading
-    composeRule.waitForIdle()
+    runBlocking {
+      uiStateFlow.value = HealthCardUiState.Loading
+      composeRule.awaitIdle()
 
-    composeRule
-        .onNodeWithTag(LoadingTestTags.LOADING_INDICATOR)
-        .performScrollTo()
-        .assertIsDisplayed()
+      composeRule
+          .onNodeWithTag(LoadingTestTags.LOADING_INDICATOR)
+          .performScrollTo()
+          .assertIsDisplayed()
+    }
   }
 
   @Test
   fun birthDate_field_accepts_and_formats_proper_date() {
-    composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).performTextInput("15/07/1998")
-    composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).assertTextContains("15/07/1998")
+    runBlocking {
+      composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).performTextInput("15/07/1998")
+      composeRule.awaitIdle()
+      composeRule
+          .onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD)
+          .assertTextContains("15/07/1998")
+    }
   }
 
   @Test
   fun existingCard_isPopulated_intoForm() {
-    val card = dummyCard()
-    currentCardFlow.value = card
-    composeRule.waitForIdle()
+    runBlocking {
+      val card = dummyCard()
+      currentCardFlow.value = card
+      composeRule.awaitIdle()
 
-    composeRule.onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD).assertTextContains(card.fullName)
-    composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).assertTextContains("01/01/2000")
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.SSN_FIELD)
-        .assertTextContains(card.socialSecurityNumber)
+      composeRule
+          .onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD)
+          .assertTextContains(card.fullName)
+      composeRule
+          .onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD)
+          .assertTextContains("01/01/2000")
+      composeRule
+          .onNodeWithTag(HealthCardTestTags.SSN_FIELD)
+          .assertTextContains(card.socialSecurityNumber)
+    }
   }
 
   private fun dummyCard() =
