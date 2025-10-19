@@ -29,6 +29,7 @@ object EditContactTestTags {
     const val INPUT_FULL_NAME = "inputFullName"
     const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
     const val ERROR_MESSAGE = "errorMessage"
+    const val INPUT_RELATIONSHIP = "inputRelationship"
     const val CONTACT_SAVE = "contactSave"
     const val CONTACT_DELETE = "contactDelete"
 }
