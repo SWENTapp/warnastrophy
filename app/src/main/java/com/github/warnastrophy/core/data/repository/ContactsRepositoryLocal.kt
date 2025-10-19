@@ -14,6 +14,7 @@ import com.google.gson.Gson
 import java.util.UUID
 import kotlin.collections.iterator
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 
 const val CONTACTS_DATASTORE_NAME = "contacts_encrypted"
@@ -60,7 +61,7 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
 
     return runCatching {
       val ciphered =
-          dataStore.data.map { it[key] as? String }.firstOrNull()
+          dataStore.data.map { it[key] }.firstOrNull()
               ?: run {
                 Log.e("ContactStorage", "Contact $contactID not found")
                 throw StorageException.DataStoreError(Exception("Contact $contactID not found"))
