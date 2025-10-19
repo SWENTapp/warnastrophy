@@ -46,6 +46,12 @@ class HealthCardScreenTest {
 
   @Test
   fun topBar_displaysCorrectTitle_andBackButton() {
+    composeRule.waitForIdle()
+
+    composeRule.waitUntil(timeoutMillis = 5000) {
+      composeRule.onAllNodesWithText("Health card").fetchSemanticsNodes().isNotEmpty()
+    }
+
     composeRule.onNodeWithText("Health card").assertIsDisplayed()
     composeRule.onNodeWithTag(HealthCardTestTags.BACK_BUTTON).assertIsDisplayed()
   }
@@ -70,6 +76,12 @@ class HealthCardScreenTest {
 
   @Test
   fun optionalFields_areDisplayed() {
+    composeRule.waitForIdle()
+
+    composeRule.waitUntil(timeoutMillis = 5000) {
+      composeRule.onAllNodesWithTag(HealthCardTestTags.SEX_FIELD).fetchSemanticsNodes().isNotEmpty()
+    }
+
     composeRule.onNodeWithTag(HealthCardTestTags.SEX_FIELD).assertIsDisplayed()
     composeRule.onNodeWithTag(HealthCardTestTags.BLOOD_TYPE_FIELD).assertIsDisplayed()
     composeRule.onNodeWithTag(HealthCardTestTags.HEIGHT_FIELD).assertIsDisplayed()
@@ -77,19 +89,24 @@ class HealthCardScreenTest {
     composeRule.onNodeWithTag(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD).assertIsDisplayed()
     composeRule.onNodeWithTag(HealthCardTestTags.ALLERGIES_FIELD).assertIsDisplayed()
     composeRule.onNodeWithTag(HealthCardTestTags.MEDICATIONS_FIELD).assertIsDisplayed()
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.TREATMENTS_FIELD)
-        .performScrollTo()
-        .assertIsDisplayed()
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.HISTORY_FIELD)
-        .performScrollTo()
-        .assertIsDisplayed()
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD)
-        .performScrollTo()
-        .assertIsDisplayed()
-    composeRule.onNodeWithTag(HealthCardTestTags.NOTES_FIELD).performScrollTo().assertIsDisplayed()
+
+    composeRule.waitForIdle()
+
+    composeRule.onNodeWithTag(HealthCardTestTags.TREATMENTS_FIELD).performScrollTo()
+    composeRule.waitForIdle()
+    composeRule.onNodeWithTag(HealthCardTestTags.TREATMENTS_FIELD).assertIsDisplayed()
+
+    composeRule.onNodeWithTag(HealthCardTestTags.HISTORY_FIELD).performScrollTo()
+    composeRule.waitForIdle()
+    composeRule.onNodeWithTag(HealthCardTestTags.HISTORY_FIELD).assertIsDisplayed()
+
+    composeRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).performScrollTo()
+    composeRule.waitForIdle()
+    composeRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).assertIsDisplayed()
+
+    composeRule.onNodeWithTag(HealthCardTestTags.NOTES_FIELD).performScrollTo()
+    composeRule.waitForIdle()
+    composeRule.onNodeWithTag(HealthCardTestTags.NOTES_FIELD).assertIsDisplayed()
   }
 
   @Test
