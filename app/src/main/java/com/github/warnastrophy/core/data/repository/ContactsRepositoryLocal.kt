@@ -62,18 +62,13 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
     val key = stringPreferencesKey(contactID)
 
     return runCatching {
-      val ciphered =
-          try {
-            dataStore.data.map { it[key] }.first()
-          } catch (e: ClassCastException) {
-            Log.e("ContactStorage", "Failed to load ciphered JSON for $contactID", e)
-            throw StorageException.DataStoreError(e)
-          }
-
-      if (ciphered == null) {
-        Log.e("ContactStorage", "Contact $contactID not found")
-        throw StorageException.DataStoreError(Exception("Contact $contactID not found"))
-      }
+      val ciphered = dataStore.data
+        .map { it[key] as? String }
+        .firstOrNull()
+        ?: run {
+            Log.e("ContactStorage", "Contact $contactID not found")
+            throw StorageException.DataStoreError(Exception("Contact $contactID not found"))
+        }
 
       val deciphered =
           try {
