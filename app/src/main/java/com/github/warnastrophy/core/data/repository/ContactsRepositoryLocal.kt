@@ -43,20 +43,16 @@ class ContactsRepositoryLocal(private val dataStore: DataStore<Preferences>) : C
     }
   }
 
-  override suspend fun getAllContacts(): Result<List<Contact>> {
-    return runCatching {
-      try {
-        dataStore.data
-            .first()
-            .asMap()
-            .values
-            .map { CryptoUtils.decrypt(it as String) }
-            .map { gson.fromJson(it, Contact::class.java) }
-      } catch (e: Exception) {
-        throw StorageException.DataStoreError(e)
-      }
+  override suspend fun getAllContacts(): Result<List<Contact>> = runCatching {
+    val prefs = dataStore.data.first()
+    prefs.asMap().values.map { value ->
+        val stringValue = value as? String
+            ?: throw StorageException.DataStoreError(Exception("Invalid contact entry"))
+
+        val decrypted = CryptoUtils.decrypt(stringValue)
+        gson.fromJson(decrypted, Contact::class.java)
     }
-  }
+}
 
   override suspend fun getContact(contactID: String): Result<Contact> {
     val key = stringPreferencesKey(contactID)
