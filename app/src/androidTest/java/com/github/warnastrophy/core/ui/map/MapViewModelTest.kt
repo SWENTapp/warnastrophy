@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.model.util.AppConfig
 import com.github.warnastrophy.core.model.util.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.util.HazardsRepository
+import com.github.warnastrophy.core.ui.viewModel.MapViewModel
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -15,7 +16,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Tasks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import com.github.warnastrophy.core.ui.viewModel.MapViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher

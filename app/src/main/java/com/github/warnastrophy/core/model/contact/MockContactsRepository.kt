@@ -3,7 +3,7 @@ package com.github.warnastrophy.core.model.contact
 /** The purpose of this class is testing contact UI */
 class MockContactsRepository : ContactsRepository {
   val mockContacts =
-      listOf(
+      mutableListOf<Contact>(
           Contact("1", "Alice Johnson", "+1234567890", "Family"),
           Contact("2", "Dr. Robert Smith", "+9876543210", "Doctor"),
           Contact("3", "Chloé Dupont", "+41791234567", "Friend"),
@@ -17,11 +17,16 @@ class MockContactsRepository : ContactsRepository {
       )
 
   override suspend fun addContact(contact: Contact) {
-    TODO("Not yet implemented")
+    // 1. Check if a contact with the same ID already exists (optional, but good practice)
+    if (mockContacts.none { it.id == contact.id }) {
+      // 2. If not, add the new contact to the list
+      mockContacts.add(contact)
+    }
   }
 
   override fun getNewUid(): String {
-    TODO("Not yet implemented")
+    val newId = mockContacts.size + 1
+    return newId.toString()
   }
 
   override suspend fun getAllContacts(): List<Contact> {
@@ -29,14 +34,23 @@ class MockContactsRepository : ContactsRepository {
   }
 
   override suspend fun deleteContact(contactID: String) {
-    TODO("Not yet implemented")
+    mockContacts.removeIf { it.id == contactID }
   }
 
   override suspend fun editContact(contactID: String, newContact: Contact) {
-    TODO("Not yet implemented")
+    // 1. Find the index of the contact to be edited
+    val index = mockContacts.indexOfFirst { it.id == contactID }
+
+    if (index != -1) {
+      // 2. Replace the old contact object at that index with the new contact object
+      // NOTE: We MUST ensure newContact has the SAME ID as contactID to keep the list consistent.
+      mockContacts[index] = newContact.copy(id = contactID)
+    }
   }
 
   override suspend fun getContact(contactID: String): Contact {
-    TODO("Not yet implemented")
+    // 1. Find the contact by ID, or throw an exception if not found
+    return mockContacts.firstOrNull { it.id == contactID }
+        ?: throw NoSuchElementException("Contact with ID $contactID not found in mock data.")
   }
 }

@@ -7,13 +7,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavHostController
 import com.github.warnastrophy.R
 
-/**
- * Screen defines the different screens in the app along with their titles.
- *
- * @param title The resource ID for the screen title.
- */
 object NavigationTestTags {
   const val TOP_BAR_TITLE = "topBarTitle"
   const val BOTTOM_NAV = "bottomNav"
@@ -26,18 +22,62 @@ object NavigationTestTags {
   const val BOTTOM_NAV_PREVIEW = "bottomNavPreview"
 }
 
-enum class Screen(
+sealed class Screen(
     @StringRes val title: Int,
+    val route: String,
     val hasBottomBar: Boolean = true,
     val hasTopBar: Boolean = true,
-    val icon: ImageVector? = null
+    val icon: ImageVector? = null,
+    val isTopLevelDestination: Boolean = false
 ) {
-  HOME(R.string.home_screen_title, icon = Icons.Filled.Home),
-  MAP(R.string.map_screen_title, icon = Icons.Filled.Place),
-  PROFILE(R.string.profile_screen_title, icon = Icons.Filled.Person),
-  ADD_CONTACT(R.string.add_contact_screen, icon = Icons.Filled.Add),
-  CONTACT_LIST(R.string.contact_list),
-  EDIT_CONTACT(R.string.edit_contact_screen)
+  object Home : Screen(R.string.home_screen_title, icon = Icons.Filled.Home, route = "home", isTopLevelDestination = true)
+  object Map: Screen(R.string.map_screen_title, icon = Icons.Filled.Place, route = "map", isTopLevelDestination = true)
+  object Profile: Screen(R.string.profile_screen_title, icon = Icons.Filled.Person, route = "profile", isTopLevelDestination = true)
+  object AddContact: Screen(R.string.add_contact_screen, icon = Icons.Filled.Add, route = "add_contact")
+  object ContactList: Screen(R.string.contact_list, route = "contact_list")
+    data class EditContact(val contactID: String) :
+        Screen(route = "edit_contact/${contactID}", title = R.string.edit_contact_screen){
+                companion object{
+                    const val route = "edit_contact/{id}"
+                }
+            }
+
+    companion object
 }
 
-val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.HOME, Screen.MAP, Screen.PROFILE)
+val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Home, Screen.Map, Screen.Profile)
+
+open class NavigationActions(
+    private val navController: NavHostController
+) {
+    /**
+     * Navigate to the specified screen.
+     *
+     * @param screen The screen to navigate to
+     */
+    open fun navigateTo(screen: Screen) {
+        if(screen.isTopLevelDestination && currentRoute() == screen.route){
+            return
+        }
+        navController.navigate(screen.route) {
+            if (screen.isTopLevelDestination) {
+                launchSingleTop = true
+                popUpTo(screen.route) { inclusive = true }
+            }
+        }
+    }
+
+    /** Navigate back to the previous screen. */
+    open fun goBack() {
+        navController.popBackStack()
+    }
+
+    /**
+     * Get the current route of the navigation controller.
+     *
+     * @return The current route
+     */
+    open fun currentRoute(): String {
+        return navController.currentDestination?.route ?: ""
+    }
+}

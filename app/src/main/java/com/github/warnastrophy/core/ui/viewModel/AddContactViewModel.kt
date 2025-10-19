@@ -28,7 +28,7 @@ data class AddContactUIState(
   }
 
   val isValid: Boolean
-    get() = fullName.isNotEmpty() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
+    get() = fullName.isNotBlank() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
 }
 
 class AddContactViewModel(

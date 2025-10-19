@@ -23,27 +23,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.model.contact.Contact
 import com.github.warnastrophy.core.ui.viewModel.ContactListViewModel
 
-// Create a list of mock contacts to display
-val mockContacts =
-    listOf(
-        Contact("1", "Alice Johnson", "+1234567890", "Family"),
-        Contact("2", "Dr. Robert Smith", "+9876543210", "Doctor"),
-        Contact("3", "Chloé Dupont", "+41791234567", "Friend"),
-        Contact("4", "Emergency Services", "911", "Critical"),
-        Contact("5", "Michael Brown", "+447700900000", "Colleague"),
-        Contact("6", "Grandma Sue", "+15551234567", "Family"),
-        Contact("7", "Mr. Chen", "+8613800000000", "Neighbor"),
-        Contact("8", "Security Guard Bob", "+18005551212", "Work"),
-        Contact("9", "Zack Taylor", "+12341234123", "Friend"),
-        Contact("10", "Yara Habib", "+971501112222", "Family"),
-    )
 
 @Composable
 fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
   Card(
       modifier =
           Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 8.dp).clickable {
-            onContactClick
+            onContactClick()
           } // Handle click on the whole item
       ) {
         Row(
@@ -79,7 +65,7 @@ fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
 fun ContactListScreen(
     contactListViewModel: ContactListViewModel = viewModel(),
     // contacts: List<Contact> = mockContacts,
-    onContactClick: () -> Unit = {},
+    onContactClick: (Contact) -> Unit = {},
     onAddButtonClick: () -> Unit = {},
 ) {
   val context = LocalContext.current
@@ -115,7 +101,7 @@ fun ContactListScreen(
           // Display the list of contacts
           LazyColumn(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             items(contacts, key = { it.id }) { contact ->
-              ContactItem(contact = contact, onContactClick = { onContactClick() })
+              ContactItem(contact = contact, onContactClick = { onContactClick(contact) })
               HorizontalDivider(
                   Modifier,
                   DividerDefaults.Thickness,

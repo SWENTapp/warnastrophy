@@ -15,19 +15,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.ui.viewModel.AddContactViewModel
 
 object AddContactTestTags {
-  // TODO: define testTags
+  const val INPUT_FULL_NAME = "inputFullName"
+  const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
+  const val INPUT_RELATIONSHIP = "inputRelationship"
+  const val ERROR_MESSAGE = "errorMessage"
+  const val CONTACT_SAVE = "contactSave"
 }
 // Utility function for basic phone number format validation
 fun isValidPhoneNumber(phone: String): Boolean {
@@ -53,15 +55,6 @@ fun AddContactScreen(
     }
   }
 
-  // 1. State variables to hold the user input
-  var fullName by remember { mutableStateOf("") }
-  var phoneNumber by remember { mutableStateOf("") }
-  var relationship by remember { mutableStateOf("") }
-
-  // 2. State variables for error messages (Form Validation)
-  var fullNameError by remember { mutableStateOf(false) }
-  var phoneError by remember { mutableStateOf(false) }
-
   Column(
       modifier = Modifier.fillMaxSize().padding(16.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
@@ -76,8 +69,15 @@ fun AddContactScreen(
             onValueChange = { addContactViewModel.setFullName(it) },
             label = { Text("Full Name") },
             isError = contactUIState.invalidFullNameMsg != null,
-            supportingText = { contactUIState.invalidFullNameMsg?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+            supportingText = {
+              contactUIState.invalidFullNameMsg?.let {
+                Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
+              }
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .testTag(AddContactTestTags.INPUT_FULL_NAME))
 
         // --- Input Field: Phone Number ---
         OutlinedTextField(
@@ -87,8 +87,15 @@ fun AddContactScreen(
             // Note: Use KeyboardOptions to hint at numeric input
             // keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             isError = contactUIState.invalidPhoneNumberMsg != null,
-            supportingText = { contactUIState.invalidPhoneNumberMsg?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+            supportingText = {
+              contactUIState.invalidPhoneNumberMsg?.let {
+                Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
+              }
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .testTag(AddContactTestTags.INPUT_PHONE_NUMBER))
 
         // --- Input Field: Relationship ---
         OutlinedTextField(
@@ -96,8 +103,15 @@ fun AddContactScreen(
             onValueChange = { addContactViewModel.setRelationShip(it) },
             label = { Text("Relationship (e.g., family, friend, doctor, etc.)") },
             isError = contactUIState.invalidRelationshipMsg != null,
-            supportingText = { contactUIState.invalidRelationshipMsg?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp))
+            supportingText = {
+              contactUIState.invalidRelationshipMsg?.let {
+                Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
+              }
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 32.dp)
+                    .testTag(AddContactTestTags.INPUT_RELATIONSHIP))
 
         // --- Save Button with Validation ---
         Button(
@@ -108,7 +122,8 @@ fun AddContactScreen(
 
               }
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp)) {
+            modifier =
+                Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.CONTACT_SAVE)) {
               Text("Save Contact")
             }
       }

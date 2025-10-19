@@ -14,13 +14,11 @@ import androidx.navigation.compose.rememberNavController
 
 private fun tagFor(screen: Screen): String =
     when (screen) {
-      Screen.HOME -> NavigationTestTags.TAB_HOME
-      Screen.MAP -> NavigationTestTags.TAB_MAP
-      Screen.PROFILE -> NavigationTestTags.TAB_PROFILE
-      Screen.ADD_CONTACT -> ""
-      Screen.CONTACT_LIST -> ""
-      Screen.EDIT_CONTACT -> ""
-    } // TODO: modify testTag
+      Screen.Home -> NavigationTestTags.TAB_HOME
+      Screen.Map -> NavigationTestTags.TAB_MAP
+      Screen.Profile -> NavigationTestTags.TAB_PROFILE
+        else -> ""
+    }
 
 @Composable
 fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
@@ -42,9 +40,9 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
           },
           selected = currentScreen == screen,
           onClick = {
-            navController.navigate(screen.name) {
+            navController.navigate(screen.route) {
               // Forward navigation
-              popUpTo(navController.graph.startDestinationId) { saveState = true }
+              popUpTo(navController.graph.startDestinationId) { saveState = false }
               // Avoid multiple copies of the same destination when spamming the same item
               launchSingleTop = true
               // Allow staying on the same screen after activity recreation (rotation, kill ?)
@@ -60,6 +58,6 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
 fun BottomNavigationBarPreview() {
   androidx.compose.foundation.layout.Box(
       modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAV_PREVIEW)) {
-        BottomNavigationBar(Screen.HOME, rememberNavController())
+        BottomNavigationBar(Screen.Home, rememberNavController())
       }
 }

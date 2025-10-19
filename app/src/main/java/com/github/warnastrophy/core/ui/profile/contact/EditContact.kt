@@ -2,11 +2,13 @@ package com.github.warnastrophy.core.ui.profile.contact
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,13 +20,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.ui.viewModel.EditContactViewModel
 
+object EditContactTestTags {
+    const val INPUT_FULL_NAME = "inputFullName"
+    const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
+    const val ERROR_MESSAGE = "errorMessage"
+    const val CONTACT_SAVE = "contactSave"
+    const val CONTACT_DELETE = "contactDelete"
+}
+
+
 @Composable
 fun EditContactScreen(
-    contactID: String,
+    contactID: String = "1", // just for testing purpose
     editContactViewModel: EditContactViewModel = viewModel(),
     onDone: () -> Unit = {}
 ) {
@@ -47,7 +59,7 @@ fun EditContactScreen(
       modifier = Modifier.fillMaxSize().padding(16.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Add Contact Form",
+            text = "Edit Contact Form",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 32.dp))
 
@@ -57,8 +69,11 @@ fun EditContactScreen(
             onValueChange = { editContactViewModel.setFullName(it) },
             label = { Text("Full Name") },
             isError = contactUIState.invalidFullNameMsg != null,
-            supportingText = { contactUIState.invalidFullNameMsg?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+            supportingText = { contactUIState.invalidFullNameMsg?.let { Text(it, modifier = Modifier.testTag(
+                EditContactTestTags.ERROR_MESSAGE)) } },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag(EditContactTestTags.INPUT_FULL_NAME
+            )
+        )
 
         // --- Input Field: Phone Number ---
         OutlinedTextField(
@@ -68,8 +83,10 @@ fun EditContactScreen(
             // Note: Use KeyboardOptions to hint at numeric input
             // keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             isError = contactUIState.invalidPhoneNumberMsg != null,
-            supportingText = { contactUIState.invalidPhoneNumberMsg?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+            supportingText = { contactUIState.invalidPhoneNumberMsg?.let { Text(it, modifier = Modifier.testTag(
+                EditContactTestTags.ERROR_MESSAGE)) } },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag(EditContactTestTags.INPUT_PHONE_NUMBER)
+        )
 
         // --- Input Field: Relationship ---
         OutlinedTextField(
@@ -77,8 +94,10 @@ fun EditContactScreen(
             onValueChange = { editContactViewModel.setRelationShip(it) },
             label = { Text("Relationship (e.g., family, friend, doctor, etc.)") },
             isError = contactUIState.invalidRelationshipMsg != null,
-            supportingText = { contactUIState.invalidRelationshipMsg?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp))
+            supportingText = { contactUIState.invalidRelationshipMsg?.let { Text(it, modifier = Modifier.testTag(
+                EditContactTestTags.ERROR_MESSAGE)) } },
+            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp).testTag(AddContactTestTags.INPUT_RELATIONSHIP)
+        )
 
         // --- Save Button with Validation ---
         Button(
@@ -89,16 +108,27 @@ fun EditContactScreen(
 
               }
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp)) {
+            modifier = Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.CONTACT_SAVE)
+        ) {
               Text("Save Contact")
             }
+
+      Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
               editContactViewModel.deleteContact(contactID)
               onDone()
-            }) {
+            },
+            colors = ButtonColors(
+                containerColor = Color.Red,
+                contentColor = Color.White,
+                disabledContainerColor = Color.Gray,
+                disabledContentColor = Color.DarkGray
+            ),
+            modifier = Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.CONTACT_DELETE)
+        ) {
               Text("Delete", color = Color.White)
-            }
+        }
       }
 }

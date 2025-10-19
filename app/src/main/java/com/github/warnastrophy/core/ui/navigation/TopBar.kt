@@ -42,6 +42,6 @@ fun TopBar(currentScreen: Screen, canNavigateBack: Boolean = false, navigateUp: 
 fun TopBarPreview() {
   androidx.compose.foundation.layout.Box(
       modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_PREVIEW)) {
-        TopBar(Screen.HOME)
+        TopBar(Screen.Home)
       }
 }
