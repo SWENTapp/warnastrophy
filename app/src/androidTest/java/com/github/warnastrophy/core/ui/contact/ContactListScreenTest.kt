@@ -1,5 +1,6 @@
-package com.github.warnastrophy.core.ui
+package com.github.warnastrophy.core.ui.contact
 
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasAnyDescendant
@@ -31,7 +32,8 @@ class ContactListScreenTest {
         Contact("9", "Zack Taylor", "+12341234123", "Friend"),
         Contact("10", "Yara Habib", "+971501112222", "Family"),
     )
-    @get:Rule val composeTestRule = createAndroidComposeRule<androidx.activity.ComponentActivity>()
+    @get:Rule
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
     val repository : ContactsRepository = MockContactsRepository()
 
     fun setContent(withInitialContacts: List<Contact> = emptyList()) {
@@ -97,16 +99,3 @@ class ContactListScreenTest {
             .assertIsDisplayed()
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
