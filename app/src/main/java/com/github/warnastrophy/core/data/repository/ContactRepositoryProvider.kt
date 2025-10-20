@@ -1,8 +1,15 @@
 package com.github.warnastrophy.core.data.repository
 
+import android.content.Context
 
 object ContactRepositoryProvider {
-    private val _repository: ContactsRepository by lazy { MockContactsRepository() }
-    var repository: ContactsRepository = _repository
+  lateinit var repository: ContactsRepository
 
+  /**
+   * Initializes the ContactsRepository with a local implementation. To be called once at
+   * application startup.
+   */
+  fun init(context: Context) {
+    repository = ContactsRepositoryLocal(context.contactDataStore)
+  }
 }
