@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-
-
 data class ContactListUIState(
     val contacts: List<Contact> = emptyList(),
     val errorMsg: String? = null
@@ -21,41 +19,38 @@ data class ContactListUIState(
 class ContactListViewModel(
     private val contactsRepository: ContactsRepository = ContactRepositoryProvider.repository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(ContactListUIState())
-    val uiState: StateFlow<ContactListUIState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(ContactListUIState())
+  val uiState: StateFlow<ContactListUIState> = _uiState.asStateFlow()
 
-    init {
-        getAllContacts()
+  init {
+    getAllContacts()
+  }
+
+  /** Clears the error message in the UI state. */
+  fun clearErrorMsg() {
+    _uiState.value = _uiState.value.copy(errorMsg = null)
+  }
+
+  /** Sets an error message in the UI state. */
+  private fun setErrorMsg(errorMsg: String) {
+    _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
+  }
+
+  /** Refreshes the UI state by fetching all Contact items from the repository. */
+  fun refreshUIState() {
+    getAllContacts()
+  }
+
+  private fun getAllContacts() {
+    viewModelScope.launch {
+      val result = contactsRepository.getAllContacts()
+
+      result.fold(
+          onSuccess = { contacts -> _uiState.value = ContactListUIState(contacts = contacts) },
+          onFailure = { e ->
+            Log.e("OverviewViewModel", "Error fetching contacts", e)
+            setErrorMsg("Failed to load contacts: ${e.message}")
+          })
     }
-
-    /** Clears the error message in the UI state. */
-    fun clearErrorMsg() {
-        _uiState.value = _uiState.value.copy(errorMsg = null)
-    }
-
-    /** Sets an error message in the UI state. */
-    private fun setErrorMsg(errorMsg: String) {
-        _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
-    }
-
-    /** Refreshes the UI state by fetching all Contact items from the repository. */
-    fun refreshUIState() {
-        getAllContacts()
-    }
-
-    private fun getAllContacts() {
-        viewModelScope.launch {
-            val result = contactsRepository.getAllContacts()
-
-            result.fold(
-                onSuccess = { contacts ->
-                    _uiState.value = ContactListUIState(contacts = contacts)
-                },
-                onFailure = { e ->
-                    Log.e("OverviewViewModel", "Error fetching contacts", e)
-                    setErrorMsg("Failed to load contacts: ${e.message}")
-                }
-            )
-        }
-    }
+  }
 }
