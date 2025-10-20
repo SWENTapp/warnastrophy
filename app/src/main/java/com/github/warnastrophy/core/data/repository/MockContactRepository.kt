@@ -25,12 +25,14 @@ class MockContactsForContactListTesting : ContactsRepository {
 
   override suspend fun getAllContacts(): Result<List<Contact>> = runCatching {
     // These function calls are just for coverage purpose
+    /*
     getNewUid()
     deleteContact("9")
     editContact("8", Contact("8", "Arsenal", "+41123456789", "football team I love"))
     deleteContact("8")
 
     getContact("4")
+    */
 
     mockContacts.toList() // return a copy
   }
