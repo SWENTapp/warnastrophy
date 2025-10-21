@@ -9,15 +9,21 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.mockito.Mockito
+import org.mockito.kotlin.mock
 
 class GpsServiceMock(initial: LatLng) : PositionService {
+
   override val positionState = MutableStateFlow(GpsPositionState(position = initial))
 
-  override fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
+  override val locationClient: FusedLocationProviderClient =
+      Mockito.mock<FusedLocationProviderClient>()
+
+  override fun requestCurrentLocation() {
     // No-op for mock
   }
 
-  override fun startLocationUpdates(locationClient: FusedLocationProviderClient) {
+  override fun startLocationUpdates() {
     // No-op for mock
   }
 }

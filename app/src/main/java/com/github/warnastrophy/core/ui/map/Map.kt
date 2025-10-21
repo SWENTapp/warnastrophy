@@ -18,7 +18,6 @@ import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -36,17 +35,16 @@ fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
 ) {
-  val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
-
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
   val hazardState by hazardsService.currentHazardsState.collectAsState()
   val positionState by gpsService.positionState.collectAsState()
+
   LaunchedEffect(Unit) {
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
         PackageManager.PERMISSION_GRANTED) {
-      gpsService.requestCurrentLocation(locationClient)
-      gpsService.startLocationUpdates(locationClient)
+      gpsService.requestCurrentLocation()
+      gpsService.startLocationUpdates()
     } else {
       throw Exception("Location permission not granted")
     }

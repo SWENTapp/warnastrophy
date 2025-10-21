@@ -24,6 +24,7 @@ import com.github.warnastrophy.core.ui.navigation.Screen.PROFILE
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.profile.ProfileScreen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+import com.google.android.gms.location.LocationServices
 
 @Composable
 fun WarnastrophyApp() {
@@ -33,7 +34,10 @@ fun WarnastrophyApp() {
 
   val backStackEntry by navController.currentBackStackEntryAsState()
   val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: HOME.name)
-  val gpsService = GpsService(ctx)
+
+  val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  val gpsService = GpsService(locationClient)
+
   val hazardsRepository = HazardsRepository()
   val hazardsService: HazardsService = HazardsService(hazardsRepository, gpsService)
   Scaffold(
