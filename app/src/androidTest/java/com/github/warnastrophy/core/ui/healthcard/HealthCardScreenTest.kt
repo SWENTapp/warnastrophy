@@ -47,11 +47,11 @@ class HealthCardScreenTest {
     composeRule.setContent { HealthCardScreen(userId = "user123", viewModel = mockViewModel) }
     composeRule.waitForIdle()
 
-    composeRule.waitUntil(timeoutMillis = 10000){
-        composeRule
-            .onAllNodesWithTag(HealthCardTestTags.FULL_NAME_FIELD)
-            .fetchSemanticsNodes()
-            .isNotEmpty()
+    composeRule.waitUntil(timeoutMillis = 10000) {
+      composeRule
+          .onAllNodesWithTag(HealthCardTestTags.FULL_NAME_FIELD)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
   }
 
@@ -60,9 +60,7 @@ class HealthCardScreenTest {
     composeRule.waitForIdle()
 
     composeRule.waitUntil(timeoutMillis = 5000) {
-      composeRule.onAllNodesWithText("Health card")
-          .fetchSemanticsNodes()
-          .isNotEmpty()
+      composeRule.onAllNodesWithText("Health card").fetchSemanticsNodes().isNotEmpty()
     }
 
     composeRule.onNodeWithText("Health card").assertIsDisplayed()
@@ -71,13 +69,13 @@ class HealthCardScreenTest {
 
   @Test
   fun requiredFields_areDisplayed_andInitiallyEmpty() {
-   composeRule.waitForIdle()
+    composeRule.waitForIdle()
 
-    composeRule.waitUntil(timeoutMillis = 5000){
-        composeRule
-            .onAllNodesWithTag(HealthCardTestTags.FULL_NAME_FIELD)
-            .fetchSemanticsNodes()
-            .isNotEmpty()
+    composeRule.waitUntil(timeoutMillis = 5000) {
+      composeRule
+          .onAllNodesWithTag(HealthCardTestTags.FULL_NAME_FIELD)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
     composeRule
@@ -98,31 +96,31 @@ class HealthCardScreenTest {
 
   @Test
   fun optionalFields_areDisplayed() {
-      composeRule.waitForIdle()
+    composeRule.waitForIdle()
 
-      composeRule.onNodeWithTag(HealthCardTestTags.SEX_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.BLOOD_TYPE_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.HEIGHT_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.WEIGHT_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.ALLERGIES_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.MEDICATIONS_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.SEX_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.BLOOD_TYPE_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.HEIGHT_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.WEIGHT_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.ALLERGIES_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.MEDICATIONS_FIELD).assertExists()
 
-      composeRule.onNodeWithTag(HealthCardTestTags.TREATMENTS_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.HISTORY_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).assertExists()
-      composeRule.onNodeWithTag(HealthCardTestTags.NOTES_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.TREATMENTS_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.HISTORY_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).assertExists()
+    composeRule.onNodeWithTag(HealthCardTestTags.NOTES_FIELD).assertExists()
   }
 
   @Test
   fun addButton_isDisplayed_when_noHealthCard() {
     composeRule.waitForIdle()
 
-    composeRule.waitUntil(timeoutMillis = 5000){
-        composeRule
-            .onAllNodesWithTag(HealthCardTestTags.ADD_BUTTON)
-            .fetchSemanticsNodes()
-            .isNotEmpty()
+    composeRule.waitUntil(timeoutMillis = 5000) {
+      composeRule
+          .onAllNodesWithTag(HealthCardTestTags.ADD_BUTTON)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
     }
 
     composeRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performScrollTo().assertIsDisplayed()
@@ -227,10 +225,7 @@ class HealthCardScreenTest {
     composeRule.waitForIdle()
 
     composeRule.waitUntil(timeoutMillis = 5000) {
-      composeRule
-          .onAllNodesWithText("Mandatory field")
-          .fetchSemanticsNodes()
-          .size == 3
+      composeRule.onAllNodesWithText("Mandatory field").fetchSemanticsNodes().size == 3
     }
 
     composeRule.onAllNodesWithText("Mandatory field").assertCountEquals(3)
@@ -251,14 +246,10 @@ class HealthCardScreenTest {
           .isNotEmpty()
     }
 
-      composeRule
-          .onNodeWithTag(LoadingTestTags.LOADING_INDICATOR)
-          .performScrollTo()
-      composeRule.waitForIdle()
+    composeRule.onNodeWithTag(LoadingTestTags.LOADING_INDICATOR).performScrollTo()
+    composeRule.waitForIdle()
 
-      composeRule
-          .onNodeWithTag(LoadingTestTags.LOADING_INDICATOR)
-          .assertIsDisplayed()
+    composeRule.onNodeWithTag(LoadingTestTags.LOADING_INDICATOR).assertIsDisplayed()
   }
 
   @Test
@@ -266,9 +257,7 @@ class HealthCardScreenTest {
     composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).performTextInput("15/07/1998")
     composeRule.waitForIdle()
 
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD)
-        .assertTextContains("15/07/1998")
+    composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).assertTextContains("15/07/1998")
   }
 
   @Test
@@ -284,12 +273,8 @@ class HealthCardScreenTest {
           .isNotEmpty()
     }
 
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD)
-        .assertTextContains(card.fullName)
-    composeRule
-        .onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD)
-        .assertTextContains("01/01/2000")
+    composeRule.onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD).assertTextContains(card.fullName)
+    composeRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).assertTextContains("01/01/2000")
     composeRule
         .onNodeWithTag(HealthCardTestTags.SSN_FIELD)
         .assertTextContains(card.socialSecurityNumber)
