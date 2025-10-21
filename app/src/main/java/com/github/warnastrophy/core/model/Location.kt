@@ -1,8 +1,10 @@
 package com.github.warnastrophy.core.model
 
 import com.google.android.gms.maps.model.LatLng
+import kotlin.div
 import kotlin.math.ceil
 import kotlin.math.cos
+import kotlin.times
 
 /**
  * Represents a geographic position in decimal degrees.
@@ -38,7 +40,7 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
      * @param km Distance in kilometers.
      * @return Latitude variation in degrees.
      */
-    fun kmToLatVariation(km: Double): Double {
+    private fun kmToLatVariation(km: Double): Double {
       return Math.toDegrees((km / earthRadiusKm))
     }
 
@@ -53,7 +55,7 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
      * @param latitude Current latitude in degrees.
      * @return Longitude variation in degrees.
      */
-    fun kmToLonVariation(km: Double, latitude: Double): Double {
+    private fun kmToLonVariation(km: Double, latitude: Double): Double {
       val latRad = Math.toRadians(latitude)
       val localRadius = 2 * Math.PI * earthRadiusKm * cos(latRad)
       if (km > localRadius) {
@@ -98,6 +100,8 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
           listOfLocs.add(Location(currentLat, lonPair.max()))
         }
       }
+      // close polygon
+      listOfLocs.add(listOfLocs[0])
       return listOfLocs
     }
 
@@ -107,7 +111,7 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
      * @param lat Latitude in degrees.
      * @return Latitude clamped to \[-90.0, 90.0\].
      */
-    fun normalizeLat(lat: Double): Double {
+    private fun normalizeLat(lat: Double): Double {
       return when {
         lat > 90.0 -> 90.0
         lat < -90.0 -> -90.0
@@ -121,12 +125,23 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
      * @param lon Longitude in degrees.
      * @return Longitude wrapped to \[-180.0, 180.0\].
      */
-    fun normalizeLon(lon: Double): Double {
+    private fun normalizeLon(lon: Double): Double {
       return when {
         lon > 180 -> lon - 360
         lon < -180 -> lon + 360
         else -> lon
       }
+    }
+
+    fun locationsToWktPolygon(points: List<Location>): String {
+      if (points.isEmpty()) return ""
+      val coords =
+          points.joinToString(",") {
+            java.util.Locale.US.run {
+              String.format(this, "%.2f%%20%.2f", it.longitude, it.latitude)
+            }
+          }
+      return "POLYGON(($coords))"
     }
   }
 }

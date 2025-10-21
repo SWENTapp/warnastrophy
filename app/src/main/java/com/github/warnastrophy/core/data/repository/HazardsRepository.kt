@@ -12,7 +12,11 @@ import org.json.JSONObject
 
 val TAGrep = "HasardsRepository"
 
-class HazardsRepository {
+interface HazardsDataSource {
+  suspend fun getAreaHazards(geometry: String, days: String): List<Hazard>
+}
+
+class HazardsRepository : HazardsDataSource {
 
   private fun buildUrlAreaHazards(geometry: String, days: String): String {
     val base = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
@@ -43,7 +47,7 @@ class HazardsRepository {
         return message
       }
 
-  suspend fun getAreaHazards(geometry: String, days: String = "1"): List<Hazard> {
+  override suspend fun getAreaHazards(geometry: String, days: String): List<Hazard> {
     val url = buildUrlAreaHazards(geometry, days)
     val response = httpGet(url)
     val hazards = mutableListOf<Hazard>()

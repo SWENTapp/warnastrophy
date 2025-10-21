@@ -38,7 +38,7 @@ class LocationTest {
   @Test
   fun `equator 1000km x 1000km`() {
     val location = Location(0.0, 0.0, "Equator")
-    val polygon = Location.getPolygon(location, 1000.0, 1000.0)
+    val polygon = Location.getPolygon(location, 1000.0, 1000.0).dropLast(1)
     Assert.assertNotNull(polygon)
     val pairs = polygon.filterIndexed { index, _ -> index % 2 == 0 }
     val impairs = polygon.filterIndexed { index, _ -> index % 2 != 0 }
@@ -60,7 +60,7 @@ class LocationTest {
   @Test
   fun `pole nord 1000km x 1000km`() {
     val location = Location(85.0, 0.0, "Pole Nord")
-    val polygon = Location.getPolygon(location, 5000.0, 100.0)
+    val polygon = Location.getPolygon(location, 5000.0, 100.0).dropLast(1)
     Assert.assertNotNull(polygon)
     val pairs = polygon.filterIndexed { index, _ -> index % 2 == 0 }
     val impairs = polygon.filterIndexed { index, _ -> index % 2 != 0 }
@@ -84,9 +84,22 @@ class LocationTest {
     val location = Location(85.0, 0.0, "Pole Nord")
     val polygon = Location.getPolygon(location, 5000.0, 5000.0)
     Assert.assertNotNull(polygon)
-    // Vérifie l'unicité des points
+    // Vérifie l'unicité des points. Au moins un point similaire car polygone fermé
     val uniquePoints = polygon.toSet()
-    Assert.assertEquals("Il y a des doublons dans le polygone", polygon.size, uniquePoints.size)
+    Assert.assertEquals("Il y a des doublons dans le polygone", polygon.size, uniquePoints.size + 1)
+  }
+
+  @Test
+  fun `wktPolygonFormat`() {
+    val locations =
+        listOf(
+            Location(10.3850934834, 20.3850934834, ""),
+            Location(10.3850934834, 30.3850934834, ""),
+            Location(20.3850934834, 30.3850934834, ""),
+            Location(10.3850934834, 20.3850934834, ""),
+        )
+    val polygon = Location.locationsToWktPolygon(locations)
+    debugPrint(polygon)
   }
 }
 
