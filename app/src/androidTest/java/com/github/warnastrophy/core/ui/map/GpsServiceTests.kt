@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.ui.map
 
 import android.content.Context
 import android.location.Location
-import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.model.GpsResult
 import com.github.warnastrophy.core.model.GpsService
@@ -56,7 +55,6 @@ class GpsServiceTests {
 
   @Test
   fun requestCurrentLocation_init_location_correctly() = runTest {
-    Log.e("GpsService", "Starting test: requestCurrentLocation_init_location_correctly")
     val fake_gps_location =
         Location("test").apply {
           longitude = 2.3486
@@ -119,7 +117,6 @@ class GpsServiceTests {
 
       // Vérifie l'état intermédiaire
       val state = gpsService.positionState.value
-      Log.e("GpsService", "Intermediate state: $state")
       assertEquals(latLng, state.position)
     }
 
@@ -148,7 +145,6 @@ class GpsServiceTests {
 
     // Vérifie l’état
     val state = gpsService.positionState.value
-    Log.e("GpsService : test null", "$state")
     assertFalse(state.isLoading)
     assertEquals("No location fix available", state.errorMessage)
   }
@@ -163,7 +159,6 @@ class GpsServiceTests {
     advanceUntilIdle()
     sleep(3000)
     val state = gpsService.positionState.value
-    Log.e("GpsService", "$state")
     Assert.assertFalse(state.isLoading)
     Assert.assertEquals("Location permission not granted!", state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
