@@ -36,7 +36,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.whenever
 
 @ExperimentalCoroutinesApi
-class GpsServiceTest {
+class GpsServiceTests {
   private lateinit var context: Context
   private lateinit var mockClient: FusedLocationProviderClient
   private lateinit var gpsService: GpsService

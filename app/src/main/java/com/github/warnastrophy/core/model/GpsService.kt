@@ -26,6 +26,10 @@ import kotlinx.coroutines.tasks.await
 interface PositionService {
   /** Observable state representing the current GPS position and metadata. */
   val positionState: StateFlow<GpsPositionState>
+
+  fun requestCurrentLocation(locationClient: FusedLocationProviderClient): Unit
+
+  fun startLocationUpdates(locationClient: FusedLocationProviderClient): Unit
 }
 
 val TAG = "GpsService"
@@ -59,7 +63,7 @@ class GpsService(
    * @param locationClient The location provider client to use for fetching the location.
    */
   @SuppressLint("MissingPermission")
-  fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
+  override fun requestCurrentLocation(locationClient: FusedLocationProviderClient) {
     Log.e("GpsService", "Requesting current location")
     serviceScope.launch {
       setLoading(true)
@@ -96,7 +100,7 @@ class GpsService(
    * @param locationClient The location provider client to use for location updates.
    */
   @SuppressLint("MissingPermission")
-  fun startLocationUpdates(locationClient: FusedLocationProviderClient) {
+  override fun startLocationUpdates(locationClient: FusedLocationProviderClient) {
     Log.e(TAG, "launching startLocationUpdates")
     setLoading(true)
 

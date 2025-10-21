@@ -14,10 +14,19 @@ import kotlinx.coroutines.flow.asStateFlow
  * @property repository Data source used to retrieve hazards.
  * @property gpsService Service providing the current GPS position.
  */
+interface HazardsDataService {
+  val repository: HazardsDataSource
+  val gpsService: PositionService
+
+  val currentHazardsState: kotlinx.coroutines.flow.StateFlow<List<Hazard>>
+
+  suspend fun fetchHazards(polygon: String, days: String = AppConfig.priorDaysFetch): List<Hazard>
+}
+
 class HazardsService(
-    private val repository: HazardsDataSource,
-    private val gpsService: PositionService
-) {
+    override val repository: HazardsDataSource,
+    override val gpsService: PositionService
+) : HazardsDataService {
   /** Coroutine scope used for background hazard fetching. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
 
@@ -25,7 +34,7 @@ class HazardsService(
   private val _currentHazardsState = MutableStateFlow<List<Hazard>>(emptyList())
 
   /** Public state flow exposing the current list of hazards. */
-  val currentHazardsState = _currentHazardsState.asStateFlow()
+  override val currentHazardsState = _currentHazardsState.asStateFlow()
 
   /** Initializes the service and starts periodic hazard fetching based on the user's position. */
   init {
@@ -56,7 +65,7 @@ class HazardsService(
    * @param days The number of days to look back for hazards (default: [AppConfig.priorDaysFetch]).
    * @return A list of hazards found in the specified area and time frame.
    */
-  suspend fun fetchHazards(polygon: String, days: String = AppConfig.priorDaysFetch): List<Hazard> {
+  override suspend fun fetchHazards(polygon: String, days: String): List<Hazard> {
     return repository.getAreaHazards(polygon, days)
   }
 

@@ -13,11 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.core.content.ContextCompat
-import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
-import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -34,9 +33,8 @@ object MapScreenTestTags {
 
 @Composable
 fun MapScreen(
-    gpsService: GpsService,
-    hazardsService: HazardsService =
-        HazardsService(HazardRepositoryProvider.repository, gpsService),
+    gpsService: PositionService,
+    hazardsService: HazardsDataService,
 ) {
   val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
 
