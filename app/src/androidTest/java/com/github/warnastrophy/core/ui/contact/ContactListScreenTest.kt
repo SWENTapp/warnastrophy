@@ -37,7 +37,6 @@ class ContactListScreenTest {
   val repository: ContactsRepository = MockContactsForContactListTesting()
 
   fun setContent(withInitialContacts: List<Contact> = emptyList()) {
-    // ContactRepositoryProvider.repository = MockContactsRepository()
     runTest { withInitialContacts.forEach { repository.addContact(it) } }
     val mockViewModel = ContactListViewModel(contactsRepository = repository)
     composeTestRule.setContent { ContactListScreen(contactListViewModel = mockViewModel) }

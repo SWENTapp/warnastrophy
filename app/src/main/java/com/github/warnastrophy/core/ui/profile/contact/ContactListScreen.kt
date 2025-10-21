@@ -30,15 +30,25 @@ object ContactListScreenTestTags {
   fun getTestTagForContactItem(contact: Contact): String = "contactItem${contact.id}"
 }
 
+/**
+ * A composable function that renders a single contact item card, optimized for display within a
+ * list (e.g., a LazyColumn).
+ *
+ * It displays the contact's full name, relationship, and phone number, and is configured to be
+ * clickable to navigate to a detail view or initiate an action.
+ *
+ * @param contact The [Contact] data object to display in this item.
+ * @param onContactClick The lambda to be executed when the user taps on the card (e.g., to navigate
+ *   to the contact's detail screen).
+ */
 @Composable
-fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
+private fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
   Card(
       modifier =
           Modifier.fillMaxWidth()
               .padding(vertical = 4.dp, horizontal = 8.dp)
               .testTag(ContactListScreenTestTags.getTestTagForContactItem(contact = contact))
-              .clickable { onContactClick() } // Handle click on the whole item
-      ) {
+              .clickable { onContactClick() }) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween) {
@@ -67,11 +77,25 @@ fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
       }
 }
 
+/**
+ * The main screen composable for displaying a list of contacts.
+ *
+ * This screen observes the [ContactListUIState] from the [ContactListViewModel], handles data
+ * loading, displays the list of contacts or a 'No contacts' message, and manages the floating
+ * action button for adding new contacts. It also handles the display of error messages using a
+ * Toast.
+ *
+ * @param contactListViewModel The ViewModel providing the data and state for this screen. Defaults
+ *   to fetching the ViewModel using the Compose [viewModel()] function.
+ * @param onContactClick Lambda executed when a contact item is clicked, typically used for
+ *   navigation to a edit screen. It receives the clicked [Contact] object.
+ * @param onAddButtonClick Lambda executed when the Floating Action Button ('+') is clicked,
+ *   typically used for navigation to the contact list screen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactListScreen(
     contactListViewModel: ContactListViewModel = viewModel(),
-    // contacts: List<Contact> = mockContacts,
     onContactClick: (Contact) -> Unit = {},
     onAddButtonClick: () -> Unit = {},
 ) {
@@ -79,10 +103,8 @@ fun ContactListScreen(
   val uiState by contactListViewModel.uiState.collectAsState()
   val contacts = uiState.contacts
 
-  // Fetch Contacts when the screen is recomposed
   LaunchedEffect(Unit) { contactListViewModel.refreshUIState() }
 
-  // Show error message if fetching Contacts fails
   LaunchedEffect(uiState.errorMsg) {
     uiState.errorMsg?.let { message ->
       Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -99,7 +121,6 @@ fun ContactListScreen(
             }
       }) { paddingValues ->
         if (contacts.isEmpty()) {
-          // Display a message if the list is empty
           Column(
               modifier = Modifier.fillMaxSize().padding(paddingValues),
               verticalArrangement = Arrangement.Center,
@@ -107,7 +128,6 @@ fun ContactListScreen(
                 Text("No contacts found. Tap '+' to add one.")
               }
         } else {
-          // Display the list of contacts
           LazyColumn(
               modifier =
                   Modifier.fillMaxSize()
