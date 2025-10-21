@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.data.repository
 
 import com.github.warnastrophy.core.model.Contact
 
-class MockContactsForContactListTesting : ContactsRepository {
+class MockContactRepository : ContactsRepository {
   private val mockContacts = mutableListOf<Contact>()
 
   override suspend fun addContact(contact: Contact): Result<Unit> = runCatching {
