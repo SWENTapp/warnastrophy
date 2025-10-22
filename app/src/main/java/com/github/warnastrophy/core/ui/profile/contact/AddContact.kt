@@ -31,7 +31,6 @@ object AddContactTestTags {
   const val CONTACT_SAVE = "contactSave"
 }
 
-
 /**
  * The main screen composable for the Add Contact feature.
  *
@@ -45,7 +44,6 @@ object AddContactTestTags {
  * @param onDone A lambda invoked after a contact is successfully added, signaling to the navigation
  *   host that the screen should be closed or navigated away from (e.g., back to the contact list).
  */
-
 @Composable
 fun AddContactScreen(
     // Optional: Add a callback to handle the save action and pass the contact data
