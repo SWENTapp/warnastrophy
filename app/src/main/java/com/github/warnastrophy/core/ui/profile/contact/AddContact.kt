@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.warnastrophy.core.ui.viewModel.AddContactViewModel
 
 object AddContactTestTags {
   const val INPUT_FULL_NAME = "inputFullName"

@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.viewModel
+package com.github.warnastrophy.core.ui.profile.contact
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
