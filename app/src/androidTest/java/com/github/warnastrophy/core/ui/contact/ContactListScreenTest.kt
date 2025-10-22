@@ -9,11 +9,11 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.data.repository.MockContactsForContactListTesting
+import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.profile.contact.ContactListScreenTestTags
-import com.github.warnastrophy.core.ui.viewModel.ContactListViewModel
+import com.github.warnastrophy.core.ui.profile.contact.ContactListViewModel
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -34,7 +34,7 @@ class ContactListScreenTest {
           Contact("10", "Yara Habib", "+971501112222", "Family"),
       )
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-  val repository: ContactsRepository = MockContactsForContactListTesting()
+  val repository: ContactsRepository = MockContactRepository()
 
   fun setContent(withInitialContacts: List<Contact> = emptyList()) {
     runTest { withInitialContacts.forEach { repository.addContact(it) } }
