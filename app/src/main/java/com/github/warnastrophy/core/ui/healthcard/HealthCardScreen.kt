@@ -128,8 +128,6 @@ data class HealthCardFormState(
     val organDonor: Boolean = false,
     val notes: String = ""
 ) {
-  /** Regex pattern for date validation in dd/MM/yyyy format */
-  private val dateRegex = Regex("""^([0-2]\d|3[01])/(0\d|1[0-2])/(\d{4})$""")
   private val dateFormatter =
       DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
 
@@ -153,10 +151,7 @@ data class HealthCardFormState(
    * @return true if all required fields are valid, false otherwise
    */
   fun isValid(): Boolean =
-      fullName.isNotBlank() &&
-          birthDate.isNotBlank() &&
-          dateRegex.matches(birthDate) &&
-          socialSecurityNumber.isNotBlank()
+      fullName.isNotBlank() && isDateValid() && socialSecurityNumber.isNotBlank()
 
   /**
    * Converts the birth date from dd/MM/yyyy format to ISO format (yyyy-MM-dd).
