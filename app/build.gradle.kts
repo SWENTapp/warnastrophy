@@ -121,6 +121,17 @@ android {
         }
     }
 
+    packaging {
+        resources {
+            excludes += setOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/NOTICE.md"
+            )
+        }
+    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -237,6 +248,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // test mock
+    androidTestImplementation("io.mockk:mockk-android:1.13.8")
     testImplementation(libs.mockk)
     implementation(libs.json)
     testImplementation(libs.json)
