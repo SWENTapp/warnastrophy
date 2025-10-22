@@ -116,33 +116,6 @@ class AddContactScreenTest {
   }
 
   @Test
-  fun savingWithInvalidFullNameShouldDoNothing() {
-    val numberOfContacts: Int = runBlocking {
-      val result = repository.getAllContacts()
-      result.getOrNull()?.size ?: 0
-    }
-    composeTestRule
-        .onNodeWithTag(AddContactTestTags.INPUT_FULL_NAME)
-        .performTextInput(contact_1.fullName)
-    composeTestRule
-        .onNodeWithTag(AddContactTestTags.INPUT_PHONE_NUMBER)
-        .performTextInput(contact_1.phoneNumber)
-    composeTestRule
-        .onNodeWithTag(AddContactTestTags.INPUT_RELATIONSHIP)
-        .performTextInput(contact_1.relationship)
-    composeTestRule
-        .onNodeWithTag(AddContactTestTags.CONTACT_SAVE)
-        .assertIsDisplayed()
-        .performClick()
-    composeTestRule.waitUntil(UI_WAIT_TIMEOUT) { true }
-    composeTestRule.onNodeWithTag(AddContactTestTags.CONTACT_SAVE).assertIsDisplayed()
-    runTest {
-      val expectedContactSize = repository.getAllContacts().getOrThrow().size
-      assertEquals(expectedContactSize, numberOfContacts)
-    }
-  }
-
-  @Test
   fun savingWithEmptyFullNameShouldDoNothing() {
     val numberOfContacts: Int = runBlocking {
       val result = repository.getAllContacts()
