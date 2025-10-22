@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.healthcard
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,6 +51,8 @@ import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.time.format.ResolverStyle
 
 /**
  * Constants for UI testing tags used throughout the Health Card screen. These tags enable automated
@@ -127,6 +130,8 @@ data class HealthCardFormState(
 ) {
   /** Regex pattern for date validation in dd/MM/yyyy format */
   private val dateRegex = Regex("""^([0-2]\d|3[01])/(0\d|1[0-2])/(\d{4})$""")
+  private val dateFormatter =
+      DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
 
   /**
    * Validates the birth date format and ensures it represents a valid date.
@@ -134,13 +139,11 @@ data class HealthCardFormState(
    * @return true if the date is valid and parseable, false otherwise
    */
   fun isDateValid(): Boolean {
-    if (birthDate.isBlank()) return false
-    return try {
-      val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-      LocalDate.parse(birthDate, formatter)
-      true
+    try {
+      val date = LocalDate.parse(birthDate, dateFormatter)
+      return birthDate.isNotBlank() && !date.isAfter(LocalDate.now())
     } catch (e: Exception) {
-      false
+      return false
     }
   }
 
@@ -161,10 +164,19 @@ data class HealthCardFormState(
    * @return The birth date in ISO format
    */
   private fun formatDateToIso(): String {
-    val inputFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val outputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val date = LocalDate.parse(birthDate, inputFormat)
-    return date.format(outputFormat)
+    if (birthDate.isBlank()) {
+      throw IllegalArgumentException("birthDate cannot be null or blank")
+    }
+
+    val trimmedDate = birthDate.trim()
+    Log.d("formatDateToIso", "birthDate: $birthDate")
+    try {
+      val date = LocalDate.parse(trimmedDate, dateFormatter)
+      val outputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+      return date.format(outputFormat)
+    } catch (e: DateTimeParseException) {
+      throw IllegalArgumentException("Invalid birthDate format: ${e.message}")
+    }
   }
 
   /**
@@ -296,7 +308,10 @@ fun HealthCardScreen(
                 viewModel.updateHealthCard(context, userId, validatedState.toHealthCard())
               }
             },
-            onDelete = { viewModel.deleteHealthCard(context, userId) },
+            onDelete = {
+              viewModel.deleteHealthCard(context, userId)
+              formState = HealthCardFormState()
+            },
             modifier = Modifier.padding(paddingValues))
       }
 }
@@ -398,7 +413,7 @@ private fun RequiredFieldsSection(
           formState.birthDate.isBlank() && formState.birthDateTouched -> "Mandatory field"
           formState.birthDate.isNotBlank() &&
               !formState.isDateValid() &&
-              formState.birthDateTouched -> "Invalid birth date"
+              formState.birthDateTouched -> "Invalid birth date (dd/mm/yyyy)"
           else -> null
         }
 
@@ -415,7 +430,7 @@ private fun RequiredFieldsSection(
     LabeledRequiredTextField(
         value = formState.socialSecurityNumber,
         onValueChange = { onFormStateChange(formState.copy(socialSecurityNumber = it)) },
-        label = "Social security number",
+        label = "National ID number",
         testTag = HealthCardTestTags.SSN_FIELD,
         touched = formState.ssnTouched,
         onTouched = { onFormStateChange(formState.copy(ssnTouched = true)) },
@@ -606,7 +621,7 @@ private fun LabeledTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text("$label (Optional)") },
         isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth().testTag(testTag))
