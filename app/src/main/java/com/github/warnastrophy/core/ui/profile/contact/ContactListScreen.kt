@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.model.Contact
-import com.github.warnastrophy.core.ui.viewModel.ContactListViewModel
 
 object ContactListScreenTestTags {
   const val ADD_CONTACT_BUTTON = "addButton"

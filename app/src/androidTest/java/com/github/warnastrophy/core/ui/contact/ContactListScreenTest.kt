@@ -13,7 +13,7 @@ import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.profile.contact.ContactListScreenTestTags
-import com.github.warnastrophy.core.ui.viewModel.ContactListViewModel
+import com.github.warnastrophy.core.ui.profile.contact.ContactListViewModel
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
