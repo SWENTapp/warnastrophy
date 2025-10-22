@@ -70,8 +70,8 @@ fun EditContactScreen(
 
   LaunchedEffect(navigateBack) {
     if (navigateBack) {
-        editContactViewModel.resetNavigation()
-        onDone()
+      editContactViewModel.resetNavigation()
+      onDone()
     }
   }
 
@@ -147,9 +147,7 @@ fun EditContactScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = {
-              editContactViewModel.deleteContact(contactID)
-            },
+            onClick = { editContactViewModel.deleteContact(contactID) },
             colors =
                 ButtonColors(
                     containerColor = Color.Red,
