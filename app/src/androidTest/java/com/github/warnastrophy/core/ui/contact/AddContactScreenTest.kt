@@ -12,7 +12,7 @@ import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
-import com.github.warnastrophy.core.ui.profile.contact.AddContactViewModel
+import com.github.warnastrophy.core.ui.viewModel.AddContactViewModel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

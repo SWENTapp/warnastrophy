@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,6 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.ui.viewModel.AddContactViewModel
 
 object AddContactTestTags {
   const val INPUT_FULL_NAME = "inputFullName"
@@ -30,11 +30,7 @@ object AddContactTestTags {
   const val ERROR_MESSAGE = "errorMessage"
   const val CONTACT_SAVE = "contactSave"
 }
-// Utility function for basic phone number format validation
-fun isValidPhoneNumber(phone: String): Boolean {
-  // Regex for basic validation: optional '+' at start, followed by 10-15 digits
-  return phone.matches(Regex("^\\+?[0-9]{10,15}\$"))
-}
+
 
 /**
  * The main screen composable for the Add Contact feature.
@@ -49,7 +45,7 @@ fun isValidPhoneNumber(phone: String): Boolean {
  * @param onDone A lambda invoked after a contact is successfully added, signaling to the navigation
  *   host that the screen should be closed or navigated away from (e.g., back to the contact list).
  */
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun AddContactScreen(
     // Optional: Add a callback to handle the save action and pass the contact data
