@@ -33,6 +33,20 @@ object EditContactTestTags {
   const val CONTACT_DELETE = "contactDelete"
 }
 
+/**
+ * A screen composable used for editing an existing emergency contact.
+ *
+ * This screen is responsible for:
+ * 1. Loading the contact data chosen by user in Contact List Screen.
+ * 5. Providing buttons for saving and deleting the contact.
+ *
+ * @param contactID The unique identifier of the contact to be loaded and edited.
+ * @param editContactViewModel The ViewModel instance responsible for handling all business logic,
+ *   data persistence, and UI state for the contact editing process.
+ * @param onDone A callback lambda executed when a successful action (Save or Delete) is completed.
+ *   This is typically used by the Navigation Host to navigate back to the previous screen (e.g.,
+ *   the contact list).
+ */
 @Composable
 fun EditContactScreen(
     contactID: String = "1", // just for testing purpose
@@ -43,6 +57,7 @@ fun EditContactScreen(
 
   val contactUIState by editContactViewModel.uiState.collectAsState()
   val errorMsg = contactUIState.errorMsg
+  val navigateBack by editContactViewModel.navigateBack.collectAsState()
 
   val context = LocalContext.current
 
@@ -50,6 +65,13 @@ fun EditContactScreen(
     if (errorMsg != null) {
       Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
       editContactViewModel.clearErrorMsg()
+    }
+  }
+
+  LaunchedEffect(navigateBack) {
+    if (navigateBack) {
+      onDone()
+      editContactViewModel.resetNavigation()
     }
   }
 
@@ -114,11 +136,8 @@ fun EditContactScreen(
         // --- Save Button with Validation ---
         Button(
             onClick = {
-              if (editContactViewModel.editContact(contactID)) {
-                onDone()
-                // TODO: Add navigate back here
-
-              }
+              editContactViewModel.editContact(contactID)
+              // TODO: Add navigate back here
             },
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.CONTACT_SAVE)) {

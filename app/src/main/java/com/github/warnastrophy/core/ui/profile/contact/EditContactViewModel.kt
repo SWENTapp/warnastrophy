@@ -35,6 +35,8 @@ class EditContactViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(EditContactUIState())
   val uiState: StateFlow<EditContactUIState> = _uiState.asStateFlow()
+  val _navigateBack = MutableStateFlow(false)
+  val navigateBack: StateFlow<Boolean> = _navigateBack
 
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
@@ -74,11 +76,11 @@ class EditContactViewModel(
    *
    * @param id The contact document to be added.
    */
-  fun editContact(id: String): Boolean {
+  fun editContact(id: String) {
     val state = _uiState.value
     if (!state.isValid) {
       setErrorMsg("At least one field is not valid")
-      return false
+      return
     }
     editContactToRepository(
         id = id,
@@ -88,16 +90,20 @@ class EditContactViewModel(
                 fullName = state.fullName,
                 relationship = state.relationship,
                 id = id))
-    clearErrorMsg()
-    return true
   }
 
   private fun editContactToRepository(id: String, newContact: Contact) {
     viewModelScope.launch {
-      repository.editContact(id, newContact).onFailure { exception ->
-        Log.e("EditContactViewModel", "Error edit Contact", exception)
-        setErrorMsg("Failed to edit Contact: ${exception.message ?: "Unknown error"}")
-      }
+      val result = repository.editContact(id, newContact)
+      result
+          .onSuccess {
+            clearErrorMsg()
+            _navigateBack.value = true
+          }
+          .onFailure { exception ->
+            Log.e("EditContactViewModel", "Error edit Contact", exception)
+            setErrorMsg("Failed to edit Contact: ${exception.message ?: "Unknown error"}")
+          }
     }
   }
 
@@ -108,10 +114,15 @@ class EditContactViewModel(
    */
   fun deleteContact(contactID: String) {
     viewModelScope.launch {
-      repository.deleteContact(contactID).onFailure { exception ->
-        Log.e("EditContactViewModel", "Error delete Contact", exception)
-        setErrorMsg("Failed to delete Contact: ${exception.message ?: "Unknown error"}")
-      }
+      val res = repository.deleteContact(contactID)
+      res.onSuccess {
+            clearErrorMsg()
+            _navigateBack.value = true
+          }
+          .onFailure { exception ->
+            Log.e("EditContactViewModel", "Error delete Contact", exception)
+            setErrorMsg("Failed to delete Contact: ${exception.message ?: "Unknown error"}")
+          }
     }
   }
 
@@ -137,5 +148,9 @@ class EditContactViewModel(
             relationship = relationship,
             invalidRelationshipMsg =
                 if (relationship.isBlank()) "Relationship cannot be empty" else null)
+  }
+
+  fun resetNavigation() {
+    _navigateBack.value = false
   }
 }
