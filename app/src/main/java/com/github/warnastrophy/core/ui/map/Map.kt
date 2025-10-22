@@ -13,10 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -31,31 +32,34 @@ object MapScreenTestTags {
 
 @Composable
 fun MapScreen(
-    viewModel: MapViewModel = viewModel(),
+    gpsService: PositionService,
+    hazardsService: HazardsDataService,
 ) {
-  val uiState by viewModel.uiState.collectAsState()
   val context = LocalContext.current
-  val locationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
   val cameraPositionState = rememberCameraPositionState()
+  val hazardState by hazardsService.currentHazardsState.collectAsState()
+  val positionState by gpsService.positionState.collectAsState()
 
   LaunchedEffect(Unit) {
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
         PackageManager.PERMISSION_GRANTED) {
-      viewModel.requestCurrentLocation(locationClient) // Request location once at start (initial)
-      viewModel.startLocationUpdates(locationClient) // Start continuous location updates
+      gpsService.requestCurrentLocation()
+      gpsService.startLocationUpdates()
     } else {
       throw Exception("Location permission not granted")
     }
   }
-  val hazardsList = uiState.hazards ?: emptyList()
+  var hazardsList = remember { emptyList<Hazard>() }
 
-  LaunchedEffect(uiState.target) {
+  LaunchedEffect(positionState) {
     cameraPositionState.animate(
-        CameraUpdateFactory.newLatLngZoom(uiState.target, 12f), 1000 // 1 second animation
+        CameraUpdateFactory.newLatLngZoom(positionState.position, 12f), 1000 // 1 second animation
         )
   }
 
-  if (!uiState.isLoading)
+  LaunchedEffect(hazardState) { hazardsList = hazardState }
+
+  if (!positionState.isLoading)
       GoogleMap(
           modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
           cameraPositionState = cameraPositionState,

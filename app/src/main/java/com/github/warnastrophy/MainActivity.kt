@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
-import com.github.warnastrophy.core.util.AppConfig
 
 /**
  * `MainActivity` is the entry point of the application. It sets up the content view with the
@@ -18,7 +17,6 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    AppConfig.fetchDelayMs = resources.getInteger(R.integer.fetch_delay_ms).toLong()
     setContent { MainAppTheme { Surface(modifier = Modifier.fillMaxSize()) { WarnastrophyApp() } } }
   }
 }
