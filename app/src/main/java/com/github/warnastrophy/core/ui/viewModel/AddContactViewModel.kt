@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
-import com.github.warnastrophy.core.ui.profile.contact.isValidPhoneNumber
+import com.github.warnastrophy.core.util.isValidPhoneNumber
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,11 +40,6 @@ data class AddContactUIState(
     val invalidPhoneNumberMsg: String? = null,
     val invalidRelationshipMsg: String? = null
 ) {
-  fun isValidPhoneNumber(phone: String): Boolean {
-    // Regex for basic validation: optional '+' at start, followed by 10-15 digits
-    return phone.matches(Regex("^\\+?[0-9]{10,15}\$"))
-  }
-
   val isValid: Boolean
     get() = fullName.isNotBlank() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
 }
