@@ -248,6 +248,8 @@ dependencies {
     androidTestImplementation(libs.mockito.core)
     androidTestImplementation(libs.mockito.android)
     androidTestImplementation(libs.mockito.kotlin)
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
 

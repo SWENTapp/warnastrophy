@@ -1,23 +1,40 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
+import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -30,6 +47,12 @@ object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
 }
 
+private enum class LocPermStatus {
+  GRANTED,
+  DENIED_TEMP,
+  DENIED_PERMANENT
+}
+
 @Composable
 fun MapScreen(
     gpsService: PositionService,
@@ -40,61 +63,175 @@ fun MapScreen(
   val hazardState by hazardsService.currentHazardsState.collectAsState()
   val positionState by gpsService.positionState.collectAsState()
 
+  val activity = remember { context.findActivity() }
+
+  //  prefs to track first launch & whether we ever asked
+  val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
+  var firstLaunchDone by remember { mutableStateOf(prefs.getBoolean("first_launch_done", false)) }
+  var askedOnce by remember { mutableStateOf(prefs.getBoolean("loc_asked_once", false)) }
+
+  fun hasPermission(): Boolean {
+    val fine =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+    val coarse =
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+    return fine || coarse
+  }
+
+  fun permStatus(): LocPermStatus {
+    if (hasPermission()) return LocPermStatus.GRANTED
+    val showRationaleFine =
+        activity?.let {
+          ActivityCompat.shouldShowRequestPermissionRationale(
+              it, Manifest.permission.ACCESS_FINE_LOCATION)
+        } ?: false
+    val showRationaleCoarse =
+        activity?.let {
+          ActivityCompat.shouldShowRequestPermissionRationale(
+              it, Manifest.permission.ACCESS_COARSE_LOCATION)
+        } ?: false
+    val showRationale = showRationaleFine || showRationaleCoarse
+    return if (!showRationale && askedOnce) LocPermStatus.DENIED_PERMANENT
+    else LocPermStatus.DENIED_TEMP
+  }
+
+  var granted by remember { mutableStateOf(hasPermission()) }
+  var status by remember { mutableStateOf(permStatus()) }
+
+  val launcher =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res
+        ->
+        granted = res.values.any { it }
+        if (!askedOnce) {
+          askedOnce = true
+          prefs.edit().putBoolean("loc_asked_once", true).apply()
+        }
+        status = permStatus()
+      }
+
   LaunchedEffect(Unit) {
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-        PackageManager.PERMISSION_GRANTED) {
-      gpsService.requestCurrentLocation()
-      gpsService.startLocationUpdates()
+    if (!firstLaunchDone) {
+      launcher.launch(
+          arrayOf(
+              Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+      firstLaunchDone = true
+      prefs.edit().putBoolean("first_launch_done", true).apply()
     } else {
-      throw Exception("Location permission not granted")
+      if (!granted && status == LocPermStatus.DENIED_TEMP) {
+        launcher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION))
+      }
     }
   }
+
+  LaunchedEffect(granted) {
+    if (granted) {
+      gpsService.requestCurrentLocation()
+      gpsService.startLocationUpdates()
+    }
+  }
+
   var hazardsList = remember { emptyList<Hazard>() }
 
-  LaunchedEffect(positionState) {
-    cameraPositionState.animate(
-        CameraUpdateFactory.newLatLngZoom(positionState.position, 12f), 1000 // 1 second animation
-        )
+  LaunchedEffect(positionState.position, granted) {
+    if (granted && !positionState.isLoading) {
+      cameraPositionState.animate(
+          CameraUpdateFactory.newLatLngZoom(positionState.position, 12f),
+          1000) // 1 second animation)
+    }
   }
 
   LaunchedEffect(hazardState) { hazardsList = hazardState }
 
-  if (!positionState.isLoading)
-      GoogleMap(
-          modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-          cameraPositionState = cameraPositionState,
-          properties = MapProperties(isMyLocationEnabled = true)) {
-            Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
-            hazardsList.forEach { hazard ->
-              hazard.coordinates?.forEach { coord ->
-                val loc = Location.toLatLng(coord)
-                Marker(
-                    state = MarkerState(position = loc),
-                    title = "Marker in Haiti",
-                    snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-                    icon =
-                        when (hazard.type) {
-                          "FL" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_GREEN)
-                          "DR" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_ORANGE)
-                          "WC" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_BLUE)
-                          "EQ" ->
-                              BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
-                          "TC" ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_YELLOW)
-                          else ->
-                              BitmapDescriptorFactory.defaultMarker(
-                                  BitmapDescriptorFactory.HUE_AZURE)
-                        },
-                )
+  Box(Modifier.fillMaxSize()) {
+    if (granted && positionState.isLoading) {
+      Loading()
+    } else
+        GoogleMap(
+            modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+            cameraPositionState = cameraPositionState,
+            properties = MapProperties(isMyLocationEnabled = granted)) {
+              Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
+              hazardsList.forEach { hazard ->
+                hazard.coordinates?.forEach { coord ->
+                  val loc = Location.toLatLng(coord)
+                  Marker(
+                      state = MarkerState(position = loc),
+                      title = "Marker in Haiti",
+                      snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
+                      icon =
+                          when (hazard.type) {
+                            "FL" ->
+                                BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_GREEN)
+                            "DR" ->
+                                BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_ORANGE)
+                            "WC" ->
+                                BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_BLUE)
+                            "EQ" ->
+                                BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_RED)
+                            "TC" ->
+                                BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_YELLOW)
+                            else ->
+                                BitmapDescriptorFactory.defaultMarker(
+                                    BitmapDescriptorFactory.HUE_AZURE)
+                          },
+                  )
+                }
               }
             }
+
+    // Permission request card
+    if (!granted) {
+      val (title, msg, showAllow) =
+          when (status) {
+            LocPermStatus.DENIED_TEMP ->
+                Triple(
+                    "Location disabled",
+                    "Limited functionality: we can’t center the map or show nearby hazards. You can allow location now or later in Android Settings.",
+                    true)
+            LocPermStatus.DENIED_PERMANENT ->
+                Triple(
+                    "Location blocked",
+                    "You selected “Don’t ask again”. To enable location, open Android Settings and grant permission.",
+                    false)
+            else -> Triple("", "", false)
           }
-  else Loading()
+      if (title.isNotEmpty()) {
+        PermissionRequestCard(
+            title = title,
+            message = msg,
+            showAllowButton = showAllow,
+            onAllowClick = {
+              launcher.launch(
+                  arrayOf(
+                      Manifest.permission.ACCESS_FINE_LOCATION,
+                      Manifest.permission.ACCESS_COARSE_LOCATION))
+            },
+            onOpenSettingsClick = {
+              val intent =
+                  Intent(
+                      Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                      Uri.parse("package:${context.packageName}"))
+              context.startActivity(intent)
+            },
+            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).fillMaxWidth())
+      }
+    }
+  }
 }
+
+private fun Context.findActivity(): Activity? =
+    when (this) {
+      is Activity -> this
+      is ContextWrapper -> baseContext.findActivity()
+      else -> null
+    }
