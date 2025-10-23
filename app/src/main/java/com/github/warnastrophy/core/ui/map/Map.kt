@@ -76,7 +76,6 @@ fun MapScreen(
   val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
   var firstLaunchDone by remember { mutableStateOf(prefs.getBoolean("first_launch_done", false)) }
   var askedOnce by remember { mutableStateOf(prefs.getBoolean("loc_asked_once", false)) }
-  var markersCount = 0
 
   fun hasPermission(): Boolean {
     return permissionOverride
