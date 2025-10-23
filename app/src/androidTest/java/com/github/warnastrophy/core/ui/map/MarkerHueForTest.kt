@@ -49,20 +49,4 @@ class MarkerHueForTest {
     assertEquals(BitmapDescriptorFactory.HUE_AZURE, markerHueFor(null), 0f)
     assertEquals(BitmapDescriptorFactory.HUE_AZURE, markerHueFor("UNKNOWN"), 0f)
   }
-
-  /**
-   * Given a set of map types, verify that the `markerHueFor` function returns the expected hues.
-   */
-  @Test
-  fun markerHueFor_mapsTypes_toExpectedHues() {
-    assertEquals(BitmapDescriptorFactory.HUE_GREEN, markerHueFor("FL"))
-    assertEquals(BitmapDescriptorFactory.HUE_ORANGE, markerHueFor("DR"))
-    assertEquals(BitmapDescriptorFactory.HUE_BLUE, markerHueFor("WC"))
-    assertEquals(BitmapDescriptorFactory.HUE_RED, markerHueFor("EQ"))
-    assertEquals(BitmapDescriptorFactory.HUE_YELLOW, markerHueFor("TC"))
-
-    // Unknown / null → default (AZURE)
-    assertEquals(BitmapDescriptorFactory.HUE_AZURE, markerHueFor("XYZ"))
-    assertEquals(BitmapDescriptorFactory.HUE_AZURE, markerHueFor(null))
-  }
 }
