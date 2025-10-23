@@ -46,6 +46,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
+  const val PERMISSION_REQUEST_CARD = "permRequestCard"
   const val USER_LOCATION = "userLocation" // tiny probe to check if shown
 }
 
@@ -59,7 +60,8 @@ private enum class LocPermStatus {
 fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
-    permissionOverride: Boolean? = null // for testing purposes
+    permissionOverride: Boolean? =
+        null // for testing purposes, gives or denies permission to access user's location
 ) {
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
@@ -252,7 +254,11 @@ fun MapScreen(
                       Uri.parse("package:${context.packageName}"))
               context.startActivity(intent)
             },
-            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).fillMaxWidth())
+            modifier =
+                Modifier.align(Alignment.BottomCenter)
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .testTag(MapScreenTestTags.PERMISSION_REQUEST_CARD))
       }
     }
   }

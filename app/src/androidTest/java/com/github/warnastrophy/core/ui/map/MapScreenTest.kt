@@ -65,6 +65,9 @@ class MapScreenTest {
     MapsInitializer.initialize(context)
   }
 
+  /**
+   * Given MapScreen is composed, When the initial loading is finished, Then the map is displayed.
+   */
   @Test
   fun testMapScreenIsDisplayed() {
     composeTestRule.setContent {
@@ -73,6 +76,48 @@ class MapScreenTest {
     // Wait until the initial loading is finished and the map is displayed
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+  }
+
+  /**
+   * Given it's the first launch and permission hasn't been asked yet, When MapScreen is composed,
+   * Then the permission request card is displayed.
+   */
+  @Test
+  fun testPermissionRequestCardIsDisplayedOnFirstLaunch() {
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    // Set preferences to simulate first launch
+    setPref(firstLaunchDone = false, askedOnce = false)
+
+    composeTestRule.setContent {
+      MapScreen(gpsService = gpsService, hazardsService = hazardService, permissionOverride = false)
+    }
+
+    // Wait until the initial loading is finished
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+
+    // Check that the permission request card is displayed
+    composeTestRule.onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD).assertIsDisplayed()
+  }
+
+  /**
+   * Given location permission is granted, When MapScreen is composed, Then the permission request
+   * card is not displayed.
+   */
+  @Test
+  fun testPermissionRequestCardIsNotDisplayedWhenPermissionGranted() {
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    // Set preferences to simulate first launch
+    setPref(firstLaunchDone = false, askedOnce = false)
+
+    composeTestRule.setContent {
+      MapScreen(gpsService = gpsService, hazardsService = hazardService, permissionOverride = true)
+    }
+
+    // Wait until the initial loading is finished
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+
+    // Check that the permission request card is not displayed
+    composeTestRule.onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD).assertIsNotDisplayed()
   }
 
   /**
