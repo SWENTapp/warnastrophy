@@ -99,40 +99,37 @@ class AddContactViewModel(
           }
     }
   }
-    /*
-    Helper function
-     */
-    private fun updateUiState(
-        // This accepts a lambda that operates on the current state (this)
-        // and must return the new state.
-        updateBlock: AddContactUIState.() -> AddContactUIState
-    ) {
-        // Executes the lambda, effectively doing: _uiState.value = _uiState.value.updateBlock()
-        _uiState.value = _uiState.value.updateBlock()
-    }
+  /*
+  Helper function
+   */
+  private fun updateUiState(
+      // This accepts a lambda that operates on the current state (this)
+      // and must return the new state.
+      updateBlock: AddContactUIState.() -> AddContactUIState
+  ) {
+    // Executes the lambda, effectively doing: _uiState.value = _uiState.value.updateBlock()
+    _uiState.value = _uiState.value.updateBlock()
+  }
 
   // Functions to update the UI state.
   fun setFullName(fullName: String) = updateUiState {
-      copy(
-          fullName = fullName,
-          invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null
-      )
+    copy(
+        fullName = fullName,
+        invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null)
   }
 
   fun setPhoneNumber(phoneNumber: String) = updateUiState {
-      copy(
-          phoneNumber = phoneNumber,
-          invalidPhoneNumberMsg =
-              if (!isValidPhoneNumber(phoneNumber)) "Invalid phone number" else null
-      )
+    copy(
+        phoneNumber = phoneNumber,
+        invalidPhoneNumberMsg =
+            if (!isValidPhoneNumber(phoneNumber)) "Invalid phone number" else null)
   }
 
   fun setRelationShip(relationship: String) = updateUiState {
-      copy(
-          relationship = relationship,
-          invalidRelationshipMsg =
-              if (relationship.isBlank()) "Relationship cannot be empty" else null
-      )
+    copy(
+        relationship = relationship,
+        invalidRelationshipMsg =
+            if (relationship.isBlank()) "Relationship cannot be empty" else null)
   }
 
   fun resetNavigation() {
