@@ -69,7 +69,7 @@ class MapScreenTest {
    * Given MapScreen is composed, When the initial loading is finished, Then the map is displayed.
    */
   @Test
-  fun testMapScreenIsDisplayed() {
+  fun testMapScreenIsDisplayed_WithoutPermissionOverload() {
     composeTestRule.setContent {
       MapScreen(gpsService = gpsService, hazardsService = hazardService)
     }
@@ -79,8 +79,22 @@ class MapScreenTest {
   }
 
   /**
-   * Given it's the first launch and permission hasn't been asked yet, When MapScreen is composed,
-   * Then the permission request card is displayed.
+   * Given MapScreen is composed and location permission is null (by default), When the initial
+   * loading is finished, Then the map is displayed.
+   */
+  @Test
+  fun testMapScreenIsDisplayed_WithPermissionOverload() {
+    composeTestRule.setContent {
+      MapScreen(gpsService = gpsService, hazardsService = hazardService, permissionOverride = true)
+    }
+    // Wait until the initial loading is finished and the map is displayed
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+  }
+
+  /**
+   * Given location permission is not null, When MapScreen is composed on first launch, Then the
+   * permission request card is displayed.
    */
   @Test
   fun testPermissionRequestCardIsDisplayedOnFirstLaunch() {
@@ -254,5 +268,157 @@ class MapScreenTest {
         .putBoolean("first_launch_done", firstLaunchDone)
         .putBoolean("loc_asked_once", askedOnce)
         .apply()
+  }
+
+  private fun getPrefBoolean(key: String, defaultValue: Boolean = false): Boolean {
+    val ctx = ApplicationProvider.getApplicationContext<Context>()
+    return ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE).getBoolean(key, defaultValue)
+  }
+
+  /**
+   * Given the permissions callback returns at least one granted value, When we inject that result,
+   * Then the app treats location as granted, 'askedOnce' is persisted, and the card is hidden.
+   */
+  @Test
+  fun permissionsResult_granted_updatesState_andHidesCard() {
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+
+    // Start as "first launch" and not asked yet
+    setPref(firstLaunchDone = false, askedOnce = false)
+
+    // Fake system result: fine=true, coarse=false → any() == true
+    val fakeResult =
+        mapOf(
+            Manifest.permission.ACCESS_FINE_LOCATION to true,
+            Manifest.permission.ACCESS_COARSE_LOCATION to false)
+
+    composeTestRule.setContent {
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          permissionOverride = null, // use real logic path
+      )
+    }
+
+    // Wait until GPS mock settles
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+
+    // Card should be gone, map & user location probe shown
+    composeTestRule.onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertIsDisplayed()
+
+    // 'askedOnce' persisted
+    val ctx = ApplicationProvider.getApplicationContext<Context>()
+    val askedOnce =
+        ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            .getBoolean("loc_asked_once", false)
+    assert(askedOnce)
+  }
+
+  /**
+   * Given the permissions callback returns all false, When we inject that result, Then the app
+   * treats location as denied temporarily, persists 'askedOnce', and shows the permission card.
+   */
+  @Test
+  fun permissionsResult_denied_persistsAskedOnce_andShowsCard() {
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+
+    // Start as "first launch" and not asked yet
+    setPref(firstLaunchDone = false, askedOnce = false)
+
+    // Fake system result: both denied → any() == false
+    val fakeDenied =
+        mapOf(
+            Manifest.permission.ACCESS_FINE_LOCATION to false,
+            Manifest.permission.ACCESS_COARSE_LOCATION to false)
+
+    composeTestRule.setContent {
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          permissionOverride = null, // IMPORTANT: allow real flow to run
+          testPermissionsResult = fakeDenied)
+    }
+
+    // Let composition + injection settle
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+
+    // Card is visible; user location probe should not exist
+    composeTestRule.onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertDoesNotExist()
+
+    // 'askedOnce' persisted to SharedPreferences
+    val ctx = ApplicationProvider.getApplicationContext<Context>()
+    val askedOncePersisted =
+        ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            .getBoolean("loc_asked_once", /* default */ false)
+    assert(askedOncePersisted)
+  }
+
+  /**
+   * Given the permissions callback returns all false, When we inject an override to short-circuit
+   * the LaunchedEffect, Then the 'first_launch_done' flag is NOT set to true.
+   */
+  @Test
+  fun launchedEffect_earlyReturn_whenOverrideProvided_doesNotSetFirstLaunchDone() {
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+
+    // Simulate very first launch
+    setPref(firstLaunchDone = false, askedOnce = false)
+
+    // Give override to short-circuit the LaunchedEffect(Unit)
+    composeTestRule.setContent {
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          permissionOverride = true, // non-null triggers early return
+          testPermissionsResult = null)
+    }
+
+    // Let composition settle
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+
+    // Because we early-returned, the block that writes 'first_launch_done = true' never ran
+    val firstLaunchDone = getPrefBoolean("first_launch_done", defaultValue = false)
+    assert(!firstLaunchDone)
+
+    // Map shows and no permission card (since granted via override)
+    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD).assertDoesNotExist()
+  }
+
+  /**
+   * Given the permissions callback returns all false, When we let the LaunchedEffect run normally,
+   * Then the 'first_launch_done' flag is set to true, and the permission card is shown.
+   */
+  @Test
+  fun launchedEffect_deniedInjection_showsCard_andHidesUserLocation() {
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+
+    setPref(firstLaunchDone = false, askedOnce = false)
+
+    val fakeDenied =
+        mapOf(
+            Manifest.permission.ACCESS_FINE_LOCATION to false,
+            Manifest.permission.ACCESS_COARSE_LOCATION to false)
+
+    composeTestRule.setContent {
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          permissionOverride = null,
+          testPermissionsResult = fakeDenied)
+    }
+
+    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+
+    // Card is visible; user location probe not present
+    composeTestRule
+        .onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD, useUnmergedTree = true)
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(MapScreenTestTags.USER_LOCATION, useUnmergedTree = true)
+        .assertDoesNotExist()
   }
 }

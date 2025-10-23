@@ -61,7 +61,9 @@ fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
     permissionOverride: Boolean? =
-        null // for testing purposes, gives or denies permission to access user's location
+        null, // for testing purposes, gives or denies permission to access user's location
+    testPermissionsResult: Map<String, Boolean>? =
+        null // test hook to inject a fake permissions result
 ) {
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
@@ -90,8 +92,11 @@ fun MapScreen(
         }
   }
 
-  fun permStatus(): LocPermStatus {
-    if (hasPermission()) return LocPermStatus.GRANTED
+  var granted by remember { mutableStateOf(hasPermission()) }
+  var status by remember { mutableStateOf(LocPermStatus.GIVEN_TEMP) }
+
+  fun recomputeStatus(): LocPermStatus {
+    if (granted) return LocPermStatus.GRANTED
     val showRationaleFine =
         activity?.let {
           ActivityCompat.shouldShowRequestPermissionRationale(
@@ -107,32 +112,35 @@ fun MapScreen(
     else LocPermStatus.GIVEN_TEMP
   }
 
-  var granted by remember { mutableStateOf(hasPermission()) }
-  var status by remember { mutableStateOf(permStatus()) }
-
-  // Make the override authoritative at runtime too
-  LaunchedEffect(permissionOverride) {
-    permissionOverride?.let {
-      granted = it
-      status = permStatus()
-    }
+  LaunchedEffect(Unit) {
+    granted = permissionOverride ?: hasPermission()
+    status = recomputeStatus()
   }
 
+  fun applyPermissionsResult(res: Map<String, Boolean>) {
+    granted = res.values.any { it }
+    if (!askedOnce) {
+      askedOnce = true
+      prefs.edit().putBoolean("loc_asked_once", true).apply()
+    }
+    status = recomputeStatus()
+  }
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res
         ->
         if (permissionOverride != null) return@rememberLauncherForActivityResult
-
-        granted = res.values.any { it }
-        if (!askedOnce) {
-          askedOnce = true
-          prefs.edit().putBoolean("loc_asked_once", true).apply()
-        }
-        status = permStatus()
+        applyPermissionsResult(res)
       }
 
+  LaunchedEffect(testPermissionsResult) {
+    testPermissionsResult?.let {
+      if (permissionOverride != null) return@LaunchedEffect
+      applyPermissionsResult(it)
+    }
+  }
+
   LaunchedEffect(Unit) {
-    if (permissionOverride != null) return@LaunchedEffect
+    if (permissionOverride != null || testPermissionsResult != null) return@LaunchedEffect
 
     if (!firstLaunchDone) {
       launcher.launch(
@@ -212,7 +220,6 @@ fun MapScreen(
             }
 
     if (granted && !positionState.isLoading) {
-      // give it a tiny size so assertIsDisplayed works
       Box(
           modifier =
               Modifier.align(Alignment.TopStart) // anywhere; it’s just a probe
