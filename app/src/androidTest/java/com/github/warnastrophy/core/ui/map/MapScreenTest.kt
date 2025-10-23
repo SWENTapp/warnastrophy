@@ -357,8 +357,8 @@ class MapScreenTest {
   }
 
   /**
-   * Given the permissions callback returns all false, When we inject an override to short-circuit
-   * the LaunchedEffect, Then the 'first_launch_done' flag is NOT set to true.
+   * Given we provide a non-null permission override, When MapScreen is composed, Then the
+   * LaunchedEffect early-returns and does not set 'first_launch_done' to true
    */
   @Test
   fun launchedEffect_earlyReturn_whenOverrideProvided_doesNotSetFirstLaunchDone() {
@@ -389,8 +389,8 @@ class MapScreenTest {
   }
 
   /**
-   * Given the permissions callback returns all false, When we let the LaunchedEffect run normally,
-   * Then the 'first_launch_done' flag is set to true, and the permission card is shown.
+   * Given we provide a non-null permission override, When MapScreen is composed, Then the
+   * LaunchedEffect early-returns and shows the permission card if override is false.
    */
   @Test
   fun launchedEffect_deniedInjection_showsCard_andHidesUserLocation() {

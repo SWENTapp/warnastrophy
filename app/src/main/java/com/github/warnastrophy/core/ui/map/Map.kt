@@ -63,7 +63,7 @@ fun MapScreen(
     permissionOverride: Boolean? =
         null, // for testing purposes, gives or denies permission to access user's location
     testPermissionsResult: Map<String, Boolean>? =
-        null // test hook to inject a fake permissions result
+        null, // test hook to inject a fake permissions result
 ) {
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
@@ -76,6 +76,7 @@ fun MapScreen(
   val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
   var firstLaunchDone by remember { mutableStateOf(prefs.getBoolean("first_launch_done", false)) }
   var askedOnce by remember { mutableStateOf(prefs.getBoolean("loc_asked_once", false)) }
+  var markersCount = 0
 
   fun hasPermission(): Boolean {
     return permissionOverride
@@ -193,28 +194,7 @@ fun MapScreen(
                       state = MarkerState(position = loc),
                       title = "Marker in Haiti",
                       snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-                      icon =
-                          when (hazard.type) {
-                            "FL" ->
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_GREEN)
-                            "DR" ->
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_ORANGE)
-                            "WC" ->
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_BLUE)
-                            "EQ" ->
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_RED)
-                            "TC" ->
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_YELLOW)
-                            else ->
-                                BitmapDescriptorFactory.defaultMarker(
-                                    BitmapDescriptorFactory.HUE_AZURE)
-                          },
-                  )
+                      icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type)))
                 }
               }
             }
@@ -276,4 +256,16 @@ private fun Context.findActivity(): Activity? =
       is Activity -> this
       is ContextWrapper -> baseContext.findActivity()
       else -> null
+    }
+
+@JvmSynthetic // keeps it out of Java API, no-op for Kotlin
+@kotlin.jvm.JvmName("markerHueForType")
+internal fun markerHueFor(type: String?): Float =
+    when (type) {
+      "FL" -> BitmapDescriptorFactory.HUE_GREEN
+      "DR" -> BitmapDescriptorFactory.HUE_ORANGE
+      "WC" -> BitmapDescriptorFactory.HUE_BLUE
+      "EQ" -> BitmapDescriptorFactory.HUE_RED
+      "TC" -> BitmapDescriptorFactory.HUE_YELLOW
+      else -> BitmapDescriptorFactory.HUE_AZURE
     }
