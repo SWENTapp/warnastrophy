@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.ui.repository.contact
 
-import com.github.warnastrophy.core.data.repository.MockContactRepository
+import com.github.warnastrophy.core.data.repository.UIMockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.AddContactViewModel
 import junit.framework.TestCase.assertEquals
@@ -19,7 +19,7 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddContactViewModelTest {
-  private lateinit var repository: MockContactRepository
+  private lateinit var repository: UIMockContactRepository
   private lateinit var viewModel: AddContactViewModel
   private val testDispatcher = StandardTestDispatcher()
 
@@ -28,7 +28,7 @@ class AddContactViewModelTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    repository = MockContactRepository()
+    repository = UIMockContactRepository()
     viewModel = AddContactViewModel(repository = repository)
   }
 

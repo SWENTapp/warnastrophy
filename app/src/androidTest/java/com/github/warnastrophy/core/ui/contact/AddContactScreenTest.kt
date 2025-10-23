@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.data.repository.MockContactRepository
+import com.github.warnastrophy.core.data.repository.UIMockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
@@ -23,7 +23,7 @@ import org.junit.Test
 class AddContactScreenTest {
   val UI_WAIT_TIMEOUT = 5000L
   @get:Rule val composeTestRule = createAndroidComposeRule<androidx.activity.ComponentActivity>()
-  val repository: ContactsRepository = MockContactRepository()
+  val repository: ContactsRepository = UIMockContactRepository()
 
   @Before
   fun setUp() {

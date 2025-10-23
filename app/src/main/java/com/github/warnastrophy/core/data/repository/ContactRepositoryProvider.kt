@@ -11,5 +11,6 @@ object ContactRepositoryProvider {
    */
   fun init(context: Context) {
     repository = ContactsRepositoryLocal(context.contactDataStore)
+    // repository = NavigationMockContactRepository()
   }
 }

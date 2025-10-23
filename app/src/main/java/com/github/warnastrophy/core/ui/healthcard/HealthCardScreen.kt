@@ -12,19 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -42,12 +36,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
-import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -258,13 +249,11 @@ data class HealthCardFormState(
  *
  * @param userId The ID of the user whose health card is being managed
  * @param viewModel The ViewModel managing the health card data and operations
- * @param navController Navigation controller for screen transitions
  */
 @Composable
 fun HealthCardScreen(
     userId: String = "John Doe",
     viewModel: HealthCardViewModel = viewModel(),
-    navController: NavController = rememberNavController()
 ) {
   val context = LocalContext.current
   val uiState by viewModel.uiState.collectAsState()
@@ -280,55 +269,32 @@ fun HealthCardScreen(
     currentCard?.let { card -> formState = HealthCardFormState.fromHealthCard(card) }
   }
 
-  Scaffold(
-      topBar = {
-        HealthCardTopBar(onNavigateBack = { navController.navigate(Screen.PROFILE.name) })
-      }) { paddingValues ->
-        HealthCardContent(
-            formState = formState,
-            onFormStateChange = { formState = it },
-            currentCard = currentCard,
-            uiState = uiState,
-            onSave = {
-              val validatedState = formState.markAllTouched()
-              formState = validatedState
-              if (validatedState.isValid()) {
-                viewModel.saveHealthCard(context, userId, validatedState.toHealthCard())
-              }
-            },
-            onUpdate = {
-              val validatedState = formState.markAllTouched()
-              formState = validatedState
-              if (validatedState.isValid()) {
-                viewModel.updateHealthCard(context, userId, validatedState.toHealthCard())
-              }
-            },
-            onDelete = {
-              viewModel.deleteHealthCard(context, userId)
-              formState = HealthCardFormState()
-            },
-            modifier = Modifier.padding(paddingValues))
-      }
-}
-
-/**
- * Top app bar for the Health Card screen with navigation.
- *
- * @param onNavigateBack Callback invoked when the back button is pressed
- * @param modifier Optional modifier for customization
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun HealthCardTopBar(onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
-  TopAppBar(
-      title = { Text("Health card") },
-      navigationIcon = {
-        IconButton(
-            onClick = onNavigateBack, modifier = Modifier.testTag(HealthCardTestTags.BACK_BUTTON)) {
-              Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Return")
-            }
-      },
-      modifier = modifier)
+  Scaffold() { paddingValues ->
+    HealthCardContent(
+        formState = formState,
+        onFormStateChange = { formState = it },
+        currentCard = currentCard,
+        uiState = uiState,
+        onSave = {
+          val validatedState = formState.markAllTouched()
+          formState = validatedState
+          if (validatedState.isValid()) {
+            viewModel.saveHealthCard(context, userId, validatedState.toHealthCard())
+          }
+        },
+        onUpdate = {
+          val validatedState = formState.markAllTouched()
+          formState = validatedState
+          if (validatedState.isValid()) {
+            viewModel.updateHealthCard(context, userId, validatedState.toHealthCard())
+          }
+        },
+        onDelete = {
+          viewModel.deleteHealthCard(context, userId)
+          formState = HealthCardFormState()
+        },
+        modifier = Modifier.padding(paddingValues))
+  }
 }
 
 /**

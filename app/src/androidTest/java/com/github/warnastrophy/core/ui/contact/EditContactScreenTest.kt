@@ -10,7 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.data.repository.MockContactRepository
+import com.github.warnastrophy.core.data.repository.UIMockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.profile.contact.EditContactScreen
@@ -26,7 +26,7 @@ import org.junit.Test
 class EditContactScreenTest {
   val UI_WAIT_TIMEOUT = 5000L
   @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-  val repository: ContactsRepository = MockContactRepository()
+  val repository: ContactsRepository = UIMockContactRepository()
   private val mockContacts =
       mutableListOf(
           Contact("1", "Alice Johnson", "+1234567890", "Family"),

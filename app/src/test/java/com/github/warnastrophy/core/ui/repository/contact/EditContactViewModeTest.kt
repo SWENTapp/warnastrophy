@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.ui.repository.contact
 
 import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.data.repository.MockContactRepository
+import com.github.warnastrophy.core.data.repository.UIMockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.EditContactViewModel
 import junit.framework.TestCase.assertEquals
@@ -31,7 +31,7 @@ class EditContactViewModeTest {
   @Before
   fun setUp() = runTest {
     Dispatchers.setMain(testDispatcher)
-    repository = MockContactRepository()
+    repository = UIMockContactRepository()
     // Add some contacts to the repository
     repository.addContact(contact1)
     repository.addContact(contact2)
