@@ -44,6 +44,7 @@ class HazardsRepository : HazardsDataSource {
         } finally {
           conn.disconnect()
         }
+        Log.d(TAGrep, "HTTP GET $urlStr \nResponse: $message")
         return message
       }
 

@@ -4,6 +4,7 @@ import com.google.android.gms.maps.model.LatLng
 import kotlin.div
 import kotlin.math.ceil
 import kotlin.math.cos
+import kotlin.rem
 import kotlin.times
 
 /**
@@ -101,7 +102,6 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
         }
       }
       // close polygon
-      listOfLocs.add(listOfLocs[0])
       return listOfLocs
     }
 
@@ -135,8 +135,10 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
 
     fun locationsToWktPolygon(points: List<Location>): String {
       if (points.isEmpty()) return ""
+      val pairs = points.filterIndexed { index, _ -> index % 2 == 0 }
+      val impairs = points.filterIndexed { index, _ -> index % 2 == 1 }
       val coords =
-          points.joinToString(",") {
+          (pairs + impairs.reversed() + pairs[0]).joinToString(",") {
             java.util.Locale.US.run {
               String.format(this, "%.2f%%20%.2f", it.longitude, it.latitude)
             }
