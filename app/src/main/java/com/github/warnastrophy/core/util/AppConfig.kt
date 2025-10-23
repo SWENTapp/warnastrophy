@@ -11,6 +11,6 @@ object AppConfig {
   var fetchDelayMs: Long = 5_000L
   val defaultPosition: LatLng = LatLng(18.5944, -72.3074) // Port au prince
   val positionUpdateDelayMs: Long = 10_000L
-  val rectangleHazardZone = Pair(20.0, 40.0)
+  val rectangleHazardZone = Pair(10000.0, 10000.0)
   val priorDaysFetch = "4"
 }
