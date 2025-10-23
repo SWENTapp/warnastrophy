@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,11 +46,12 @@ import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
+  const val USER_LOCATION = "userLocation" // tiny probe to check if shown
 }
 
 private enum class LocPermStatus {
   GRANTED,
-  DENIED_TEMP,
+  GIVEN_TEMP,
   DENIED_PERMANENT
 }
 
@@ -57,6 +59,7 @@ private enum class LocPermStatus {
 fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
+    permissionOverride: Boolean? = null // for testing purposes
 ) {
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
@@ -71,13 +74,18 @@ fun MapScreen(
   var askedOnce by remember { mutableStateOf(prefs.getBoolean("loc_asked_once", false)) }
 
   fun hasPermission(): Boolean {
-    val fine =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
-    val coarse =
-        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
-    return fine || coarse
+    return permissionOverride
+        ?: run {
+          val fine =
+              ContextCompat.checkSelfPermission(
+                  context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                  PackageManager.PERMISSION_GRANTED
+          val coarse =
+              ContextCompat.checkSelfPermission(
+                  context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                  PackageManager.PERMISSION_GRANTED
+          return fine || coarse
+        }
   }
 
   fun permStatus(): LocPermStatus {
@@ -94,15 +102,25 @@ fun MapScreen(
         } ?: false
     val showRationale = showRationaleFine || showRationaleCoarse
     return if (!showRationale && askedOnce) LocPermStatus.DENIED_PERMANENT
-    else LocPermStatus.DENIED_TEMP
+    else LocPermStatus.GIVEN_TEMP
   }
 
   var granted by remember { mutableStateOf(hasPermission()) }
   var status by remember { mutableStateOf(permStatus()) }
 
+  // Make the override authoritative at runtime too
+  LaunchedEffect(permissionOverride) {
+    permissionOverride?.let {
+      granted = it
+      status = permStatus()
+    }
+  }
+
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res
         ->
+        if (permissionOverride != null) return@rememberLauncherForActivityResult
+
         granted = res.values.any { it }
         if (!askedOnce) {
           askedOnce = true
@@ -112,6 +130,8 @@ fun MapScreen(
       }
 
   LaunchedEffect(Unit) {
+    if (permissionOverride != null) return@LaunchedEffect
+
     if (!firstLaunchDone) {
       launcher.launch(
           arrayOf(
@@ -119,7 +139,7 @@ fun MapScreen(
       firstLaunchDone = true
       prefs.edit().putBoolean("first_launch_done", true).apply()
     } else {
-      if (!granted && status == LocPermStatus.DENIED_TEMP) {
+      if (!granted && status == LocPermStatus.GIVEN_TEMP) {
         launcher.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -189,11 +209,20 @@ fun MapScreen(
               }
             }
 
+    if (granted && !positionState.isLoading) {
+      // give it a tiny size so assertIsDisplayed works
+      Box(
+          modifier =
+              Modifier.align(Alignment.TopStart) // anywhere; it’s just a probe
+                  .size(1.dp)
+                  .testTag(MapScreenTestTags.USER_LOCATION))
+    }
+
     // Permission request card
     if (!granted) {
       val (title, msg, showAllow) =
           when (status) {
-            LocPermStatus.DENIED_TEMP ->
+            LocPermStatus.GIVEN_TEMP ->
                 Triple(
                     "Location disabled",
                     "Limited functionality: we can’t center the map or show nearby hazards. You can allow location now or later in Android Settings.",

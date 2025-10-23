@@ -16,8 +16,6 @@ class PermissionRequestCardTest {
 
   private val TITLE = "Location permission"
   private val MESSAGE = "We use your location to center the map and display nearby hazards."
-  private val ALLOW_LABEL = "Allow location"
-  private val SETTINGS_LABEL = "Open settings"
 
   @Test
   fun renders_card_title_message_and_both_buttons_when_showAllow_true_and_invokes_callbacks() {
