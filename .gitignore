@@ -33,3 +33,4 @@ app/google-services.json
 
 # Android Profiling
 *.hprof
+debug.txt
