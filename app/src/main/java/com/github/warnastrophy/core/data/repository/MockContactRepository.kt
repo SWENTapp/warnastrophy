@@ -18,10 +18,18 @@ class MockContactRepository : ContactsRepository {
     mockContacts.toList() // return a copy
   }
 
-  override suspend fun deleteContact(contactID: String): Result<Unit> = runCatching {}
+  override suspend fun deleteContact(contactID: String): Result<Unit> = runCatching {
+    val index = mockContacts.indexOfFirst { it.id == contactID }
+    if (index == -1) throw NoSuchElementException("Contact $contactID not found")
+    mockContacts.removeAt(index)
+  }
 
   override suspend fun editContact(contactID: String, newContact: Contact): Result<Unit> =
-      runCatching {}
+      runCatching {
+        val index = mockContacts.indexOfFirst { it.id == contactID }
+        if (index == -1) throw NoSuchElementException("Contact $contactID not found")
+        mockContacts[index] = newContact
+      }
 
   override suspend fun getContact(contactID: String): Result<Contact> = runCatching {
     mockContacts.firstOrNull { it.id == contactID }
