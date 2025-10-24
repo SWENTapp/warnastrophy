@@ -4,6 +4,9 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 
 /**
@@ -31,12 +34,17 @@ abstract class BaseComposeTest {
    *
    * @param timeoutMillis The maximum time (in milliseconds) to wait for idle and for the condition
    *   to complete. Default value is [defaultTimeout]
+   * @throws AssertionError if the timeout is exceeded while waiting for the Compose UI to become
+   *   idle.
    */
   protected fun ComposeContentTestRule.waitForIdleWithTimeout(
       timeoutMillis: Long = defaultTimeout
   ) {
-    waitForIdle()
-    waitUntil(timeoutMillis = timeoutMillis) { true }
+    try {
+      runBlocking { withTimeout(timeoutMillis) { waitForIdle() } }
+    } catch (e: TimeoutCancellationException) {
+      throw AssertionError("Timed out waiting for Compose to be idle after $timeoutMillis ms", e)
+    }
   }
 
   /**
