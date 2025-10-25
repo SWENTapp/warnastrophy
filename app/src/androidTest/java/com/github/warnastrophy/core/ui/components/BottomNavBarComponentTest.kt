@@ -1,23 +1,18 @@
 package com.github.warnastrophy.core.ui.components
 
-import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBarPreview
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.navigation.Screen
-import org.junit.Rule
+import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import org.junit.Test
 
-class BottomNavBarComponentTest {
-
-  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-
+class BottomNavBarComponentTest : BaseAndroidComposeTest() {
   @Test
   fun testBottomNavPreview() {
     composeTestRule.setContent { BottomNavigationBarPreview() }
