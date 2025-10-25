@@ -51,12 +51,20 @@ fun AddContactScreen(
 ) {
   val contactUIState by addContactViewModel.uiState.collectAsState()
   val errorMsg = contactUIState.errorMsg
+  val navigateBack by addContactViewModel.navigateBack.collectAsState()
 
   val context = LocalContext.current
   LaunchedEffect(errorMsg) {
     if (errorMsg != null) {
       Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
       addContactViewModel.clearErrorMsg()
+    }
+  }
+
+  LaunchedEffect(navigateBack) {
+    if (navigateBack) {
+      addContactViewModel.resetNavigation()
+      onDone()
     }
   }
 
@@ -121,10 +129,9 @@ fun AddContactScreen(
         // --- Save Button with Validation ---
         Button(
             onClick = {
-              if (addContactViewModel.addContact()) {
-                onDone()
-                // TODO: Add navigate back here
-              }
+              addContactViewModel.addContact()
+              // TODO: Add navigate back here
+
             },
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.CONTACT_SAVE)) {

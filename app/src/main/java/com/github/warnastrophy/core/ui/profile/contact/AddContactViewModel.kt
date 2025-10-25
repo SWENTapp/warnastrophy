@@ -57,6 +57,8 @@ class AddContactViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(AddContactUIState())
   val uiState: StateFlow<AddContactUIState> = _uiState.asStateFlow()
+  private val _navigateBack = MutableStateFlow(false)
+  var navigateBack = _navigateBack.asStateFlow()
 
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
@@ -69,11 +71,11 @@ class AddContactViewModel(
   }
 
   /** Adds a Contact document. */
-  fun addContact(): Boolean {
+  fun addContact() {
     val state = _uiState.value
     if (!state.isValid) {
       setErrorMsg("At least one field is not valid!")
-      return false
+      return
     }
     addContactToRepository(
         Contact(
@@ -81,40 +83,56 @@ class AddContactViewModel(
             fullName = state.fullName,
             phoneNumber = state.phoneNumber,
             relationship = state.relationship))
-    clearErrorMsg()
-    return true
   }
 
   private fun addContactToRepository(contact: Contact) {
     viewModelScope.launch {
-      repository.addContact(contact).onFailure { exception ->
-        Log.e("AddContactViewModel", "Error adding Contact", exception)
-        setErrorMsg("Failed to add Contact: ${exception.message ?: "Unknown error"}")
-      }
+      val result = repository.addContact(contact)
+      result
+          .onSuccess {
+            clearErrorMsg()
+            _navigateBack.value = true
+          }
+          .onFailure { exception ->
+            Log.e("AddContactViewModel", "Error add Contact", exception)
+            setErrorMsg("Failed to add Contact: ${exception.message ?: "Unknown error"}")
+          }
     }
+  }
+  /*
+  Helper function
+   */
+  private fun updateUiState(
+      // This accepts a lambda that operates on the current state (this)
+      // and must return the new state.
+      updateBlock: AddContactUIState.() -> AddContactUIState
+  ) {
+    // Executes the lambda, effectively doing: _uiState.value = _uiState.value.updateBlock()
+    _uiState.value = _uiState.value.updateBlock()
   }
 
   // Functions to update the UI state.
-  fun setFullName(fullName: String) {
-    _uiState.value =
-        _uiState.value.copy(
-            fullName = fullName,
-            invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null)
+  fun setFullName(fullName: String) = updateUiState {
+    copy(
+        fullName = fullName,
+        invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null)
   }
 
-  fun setPhoneNumber(phoneNumber: String) {
-    _uiState.value =
-        _uiState.value.copy(
-            phoneNumber = phoneNumber,
-            invalidPhoneNumberMsg =
-                if (!isValidPhoneNumber(phoneNumber)) "Invalid phone number" else null)
+  fun setPhoneNumber(phoneNumber: String) = updateUiState {
+    copy(
+        phoneNumber = phoneNumber,
+        invalidPhoneNumberMsg =
+            if (!isValidPhoneNumber(phoneNumber)) "Invalid phone number" else null)
   }
 
-  fun setRelationShip(relationship: String) {
-    _uiState.value =
-        _uiState.value.copy(
-            relationship = relationship,
-            invalidRelationshipMsg =
-                if (relationship.isBlank()) "Relationship cannot be empty" else null)
+  fun setRelationShip(relationship: String) = updateUiState {
+    copy(
+        relationship = relationship,
+        invalidRelationshipMsg =
+            if (relationship.isBlank()) "Relationship cannot be empty" else null)
+  }
+
+  fun resetNavigation() {
+    _navigateBack.value = false
   }
 }

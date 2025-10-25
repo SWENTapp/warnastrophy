@@ -122,13 +122,6 @@ class EditContactViewModel(
         operation = { repository.deleteContact(contactID) }, actionName = "delete contact")
   }
 
-  // Functions to update the UI state.
-  fun setFullName(fullName: String) = updateUiState {
-    copy(
-        fullName = fullName,
-        invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null)
-  }
-
   /*
      Helper function
   */
@@ -141,6 +134,13 @@ class EditContactViewModel(
     _uiState.value = _uiState.value.updateBlock()
   }
 
+  // Functions to update the UI state.
+  fun setFullName(fullName: String) = updateUiState {
+    copy(
+        fullName = fullName,
+        invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null)
+  }
+
   fun setPhoneNumber(phoneNumber: String) = updateUiState {
     copy(
         phoneNumber = phoneNumber,
@@ -148,7 +148,7 @@ class EditContactViewModel(
             if (!isValidPhoneNumber(phoneNumber)) "Invalid phone number" else null)
   }
 
-  fun setRelationShip(relationship: String) = updateUiState {
+  fun setRelationship(relationship: String) = updateUiState {
     copy(
         relationship = relationship,
         invalidRelationshipMsg =
