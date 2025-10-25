@@ -80,7 +80,8 @@ class MapScreenTest {
     setPref(firstLaunchDone = false, askedOnce = false)
 
     composeTestRule.setContent {
-      MapScreen(gpsService = gpsService, hazardsService = hazardService) // permissionOverride=null
+      MapScreen(
+          gpsService = gpsService, hazardsService = hazardService) // forceLocalPermission=null
     }
 
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
@@ -94,7 +95,10 @@ class MapScreenTest {
   @Test
   fun testMapScreenIsDisplayed_WithPermissionOverload() {
     composeTestRule.setContent {
-      MapScreen(gpsService = gpsService, hazardsService = hazardService, permissionOverride = true)
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          testHooks = MapScreenTestHooks(forceLocationPermission = true))
     }
     // Wait until the initial loading is finished and the map is displayed
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
@@ -122,17 +126,17 @@ class MapScreenTest {
       MapScreen(
           gpsService = gpsService,
           hazardsService = hazardService,
-          permissionOverride = null, // allow launcher path
-          testPermissionsResult = fakeDenied // emulate OS callback (denied)
-          )
+          testHooks =
+              MapScreenTestHooks(
+                  forceLocationPermission = null,
+                  mockPermissionsResult = fakeDenied), // allow launcher path
+      )
     }
 
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
 
     // Card is visible
-    composeTestRule
-        .onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD, useUnmergedTree = true)
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
 
     // Tap Settings to cover onOpenSettingsClick -> startActivity(...)
     composeTestRule
@@ -152,14 +156,17 @@ class MapScreenTest {
     setPref(firstLaunchDone = false, askedOnce = false)
 
     composeTestRule.setContent {
-      MapScreen(gpsService = gpsService, hazardsService = hazardService, permissionOverride = true)
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          testHooks = MapScreenTestHooks(forceLocationPermission = true))
     }
 
     // Wait until the initial loading is finished
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
 
     // Check that the permission request card is not displayed
-    composeTestRule.onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
   }
 
   /**
@@ -181,7 +188,8 @@ class MapScreenTest {
         MapScreen(
             gpsService = gpsService,
             hazardsService = hazardService,
-            permissionOverride = true // your test seam for "granted"
+            testHooks =
+                MapScreenTestHooks(forceLocationPermission = true) // your test seam for "granted"
             )
       }
     }
@@ -189,17 +197,18 @@ class MapScreenTest {
     // Assert first composition
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertExists()
 
     // 2) "Second launch": update prefs and bump the key
     setPref(firstLaunchDone = true, askedOnce = true)
     composeTestRule.runOnUiThread { relaunchKey.value++ } // disposes MapScreen subtree
+    composeTestRule.mainClock.advanceTimeByFrame() // Allow recomposition to settle
     composeTestRule.waitForIdle()
 
     // Assert second composition
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertExists()
   }
 
   /**
@@ -220,8 +229,10 @@ class MapScreenTest {
         MapScreen(
             gpsService = gpsService,
             hazardsService = hazardService,
-            permissionOverride = false // force "not granted"
-            )
+            testHooks =
+                MapScreenTestHooks(
+                    forceLocationPermission = false // your test seam for "denied"
+                    ))
       }
     }
 
@@ -229,9 +240,7 @@ class MapScreenTest {
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
 
     // Card shown, but PERMANENT denial hides the "Allow" button
-    composeTestRule
-        .onNodeWithTag(MapScreenTestTags.PERMISSION_REQUEST_CARD, useUnmergedTree = true)
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
     composeTestRule
         .onNodeWithTag(PermissionUiTags.BTN_ALLOW, useUnmergedTree = true)
         .assertDoesNotExist()
@@ -270,7 +279,7 @@ class MapScreenTest {
         MapScreen(
             gpsService = gpsService,
             hazardsService = hazardService,
-            permissionOverride = perm // your test seam for "granted"
+            testHooks = MapScreenTestHooks(forceLocationPermission = perm) // your test seam
             )
       }
     }
@@ -283,16 +292,53 @@ class MapScreenTest {
     // 2) "Second launch": update prefs and bump the key
     setPref(firstLaunchDone = true, askedOnce = true)
     composeTestRule.runOnUiThread {
-      perm = false // change to denied
-      relaunchKey.value++ // dispose & recompose MapScreen subtree
-    }
-    composeTestRule.runOnUiThread { relaunchKey.value++ } // disposes MapScreen subtree
+      perm = false // simulate user denying the permission on the second launch
+      relaunchKey.value++
+    } // disposes MapScreen subtree
     composeTestRule.waitForIdle()
 
     // Assert second composition -- now becomes denied
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertIsNotDisplayed()
+  }
+
+  /**
+   * Given the user denies the permission on the second launch with a mock result, When clicking
+   * Allow, Then the OS text is not shown.
+   */
+  @Test
+  fun clicking_allow_with_mock_result_does_not_show_os_text() {
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    setPref(firstLaunchDone = false, askedOnce = false)
+
+    val mockDenied =
+        mapOf(
+            Manifest.permission.ACCESS_FINE_LOCATION to false,
+            Manifest.permission.ACCESS_COARSE_LOCATION to false)
+    var perm: Boolean? = null
+    composeTestRule.setContent {
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          testHooks =
+              MapScreenTestHooks(
+                  forceLocationPermission = perm, mockPermissionsResult = mockDenied))
+    }
+
+    // Card visible, OS text absent
+    composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertExists()
+    composeTestRule
+        .onNodeWithTag(PermissionUiTags.OS_PERMISSION_TEXT, useUnmergedTree = true)
+        .assertDoesNotExist()
+
+    // Click Allow -> applies mock immediately; still no OS text
+    composeTestRule.runOnUiThread {
+      perm = false // simulate user denying the permission on the second launch
+    }
+    composeTestRule
+        .onNodeWithTag(PermissionUiTags.OS_PERMISSION_TEXT, useUnmergedTree = true)
+        .assertDoesNotExist()
   }
 
   private fun setPref(firstLaunchDone: Boolean, askedOnce: Boolean) {

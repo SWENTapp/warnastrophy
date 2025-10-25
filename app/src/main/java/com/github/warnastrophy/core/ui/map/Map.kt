@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,12 +30,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
+import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -46,7 +49,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
-  const val PERMISSION_REQUEST_CARD = "permRequestCard"
   const val USER_LOCATION = "userLocation" // tiny probe to check if shown
 }
 
@@ -56,14 +58,18 @@ private enum class LocPermStatus {
   DENIED_PERMANENT
 }
 
+data class MapScreenTestHooks(
+    // Clearly indicates this forces a permission state for testing
+    val forceLocationPermission: Boolean? = null,
+    // Clearly indicates this provides a mocked result for the permissions request
+    val mockPermissionsResult: Map<String, Boolean>? = null
+)
+
 @Composable
 fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
-    permissionOverride: Boolean? =
-        null, // for testing purposes, gives or denies permission to access user's location
-    testPermissionsResult: Map<String, Boolean>? =
-        null, // test hook to inject a fake permissions result
+    testHooks: MapScreenTestHooks = MapScreenTestHooks()
 ) {
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
@@ -77,8 +83,10 @@ fun MapScreen(
   var firstLaunchDone by remember { mutableStateOf(prefs.getBoolean("first_launch_done", false)) }
   var askedOnce by remember { mutableStateOf(prefs.getBoolean("loc_asked_once", false)) }
 
+  var isOsRequestInFlight by remember { mutableStateOf(false) }
+
   fun hasPermission(): Boolean {
-    return permissionOverride
+    return testHooks.forceLocationPermission
         ?: run {
           val fine =
               ContextCompat.checkSelfPermission(
@@ -113,7 +121,7 @@ fun MapScreen(
   }
 
   LaunchedEffect(Unit) {
-    granted = permissionOverride ?: hasPermission()
+    granted = testHooks.forceLocationPermission ?: hasPermission()
     status = recomputeStatus()
   }
 
@@ -121,26 +129,28 @@ fun MapScreen(
     granted = res.values.any { it }
     if (!askedOnce) {
       askedOnce = true
-      prefs.edit().putBoolean("loc_asked_once", true).apply()
+      prefs.edit { putBoolean("loc_asked_once", true) }
     }
     status = recomputeStatus()
   }
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res
         ->
-        if (permissionOverride != null) return@rememberLauncherForActivityResult
+        if (testHooks.forceLocationPermission != null) return@rememberLauncherForActivityResult
+        isOsRequestInFlight = false
         applyPermissionsResult(res)
       }
 
-  LaunchedEffect(testPermissionsResult) {
-    testPermissionsResult?.let {
-      if (permissionOverride != null) return@LaunchedEffect
+  LaunchedEffect(testHooks.mockPermissionsResult) {
+    testHooks.mockPermissionsResult?.let {
+      if (testHooks.forceLocationPermission != null) return@LaunchedEffect
       applyPermissionsResult(it)
     }
   }
 
   LaunchedEffect(Unit) {
-    if (permissionOverride != null || testPermissionsResult != null) return@LaunchedEffect
+    if (testHooks.forceLocationPermission != null || testHooks.mockPermissionsResult != null)
+        return@LaunchedEffect
 
     if (!firstLaunchDone) {
       launcher.launch(
@@ -155,6 +165,20 @@ fun MapScreen(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION))
       }
+    }
+  }
+
+  val requestPermissions: () -> Unit = {
+    val mock = testHooks.mockPermissionsResult
+    if (mock != null) {
+      // mock path = no OS prompt; do NOT set in-flight
+      applyPermissionsResult(mock)
+    } else {
+      // real OS dialog path
+      isOsRequestInFlight = true
+      launcher.launch(
+          arrayOf(
+              Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
     }
   }
 
@@ -208,43 +232,44 @@ fun MapScreen(
 
     // Permission request card
     if (!granted) {
-      val (title, msg, showAllow) =
-          when (status) {
-            LocPermStatus.GIVEN_TEMP ->
-                Triple(
-                    "Location disabled",
-                    "Limited functionality: we can’t center the map or show nearby hazards. You can allow location now or later in Android Settings.",
-                    true)
-            LocPermStatus.DENIED_PERMANENT ->
-                Triple(
-                    "Location blocked",
-                    "You selected “Don’t ask again”. To enable location, open Android Settings and grant permission.",
-                    false)
-            else -> Triple("", "", false)
-          }
-      if (title.isNotEmpty()) {
-        PermissionRequestCard(
-            title = title,
-            message = msg,
-            showAllowButton = showAllow,
-            onAllowClick = {
-              launcher.launch(
-                  arrayOf(
-                      Manifest.permission.ACCESS_FINE_LOCATION,
-                      Manifest.permission.ACCESS_COARSE_LOCATION))
-            },
-            onOpenSettingsClick = {
-              val intent =
-                  Intent(
-                      Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                      Uri.parse("package:${context.packageName}"))
-              context.startActivity(intent)
-            },
-            modifier =
-                Modifier.align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .testTag(MapScreenTestTags.PERMISSION_REQUEST_CARD))
+      if (isOsRequestInFlight) {
+        Text(
+            "Requesting Android location permission…",
+            modifier = Modifier.testTag(PermissionUiTags.OS_PERMISSION_TEXT))
+      } else {
+        val (title, msg, showAllow) =
+            when (status) {
+              LocPermStatus.GIVEN_TEMP ->
+                  Triple(
+                      "Location disabled",
+                      "Limited functionality: we can’t center the map or show nearby hazards. You can allow location now or later in Android Settings.",
+                      true)
+              LocPermStatus.DENIED_PERMANENT ->
+                  Triple(
+                      "Location blocked",
+                      "You selected “Don’t ask again”. To enable location, open Android Settings and grant permission.",
+                      false)
+              else -> Triple("", "", false)
+            }
+        if (title.isNotEmpty()) {
+          PermissionRequestCard(
+              title = title,
+              message = msg,
+              showAllowButton = showAllow,
+              onAllowClick = requestPermissions,
+              onOpenSettingsClick = {
+                val intent =
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        "package:${context.packageName}".toUri())
+                context.startActivity(intent)
+              },
+              modifier =
+                  Modifier.align(Alignment.BottomCenter)
+                      .padding(16.dp)
+                      .fillMaxWidth()
+                      .testTag(PermissionUiTags.CARD))
+        }
       }
     }
   }

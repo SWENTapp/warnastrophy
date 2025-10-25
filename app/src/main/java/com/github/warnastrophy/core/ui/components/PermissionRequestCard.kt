@@ -11,6 +11,8 @@ object PermissionUiTags {
   const val CARD = "permCard"
   const val BTN_ALLOW = "permAllowBtn"
   const val BTN_SETTINGS = "permSettingsBtn"
+
+  const val OS_PERMISSION_TEXT = "permOsPermissionText"
 }
 
 @Composable
