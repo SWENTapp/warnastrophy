@@ -9,6 +9,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
+import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.maps.MapsInitializer
@@ -32,6 +33,7 @@ class MapScreenTest {
           Hazard(
               id = 1,
               type = null,
+              description = null,
               country = null,
               date = null,
               severity = null,
@@ -42,13 +44,45 @@ class MapScreenTest {
           Hazard(
               id = 2,
               type = null,
+              description = null,
               country = null,
               date = null,
               severity = null,
               severityUnit = null,
               reportUrl = null,
               alertLevel = null,
-              coordinates = null))
+              coordinates = null),
+          Hazard(
+              id = 3,
+              type = null,
+              description = null,
+              country = null,
+              date = null,
+              severity = null,
+              severityUnit = null,
+              reportUrl = null,
+              alertLevel = null,
+              coordinates =
+                  listOf(
+                      // Example: Hexagon coordinates around default position
+                      Location(
+                          latitude = AppConfig.defaultPosition.latitude + 0.01,
+                          longitude = AppConfig.defaultPosition.longitude),
+                      Location(
+                          latitude = AppConfig.defaultPosition.latitude + 0.005,
+                          longitude = AppConfig.defaultPosition.longitude + 0.0087),
+                      Location(
+                          latitude = AppConfig.defaultPosition.latitude - 0.005,
+                          longitude = AppConfig.defaultPosition.longitude + 0.0087),
+                      Location(
+                          latitude = AppConfig.defaultPosition.latitude - 0.01,
+                          longitude = AppConfig.defaultPosition.longitude),
+                      Location(
+                          latitude = AppConfig.defaultPosition.latitude - 0.005,
+                          longitude = AppConfig.defaultPosition.longitude - 0.0087),
+                      Location(
+                          latitude = AppConfig.defaultPosition.latitude + 0.005,
+                          longitude = AppConfig.defaultPosition.longitude - 0.0087))))
 
   @Before
   fun setup() {
@@ -65,6 +99,10 @@ class MapScreenTest {
   fun testMapScreenIsDisplayed() {
     // Wait until the initial loading is finished and the map is displayed
     composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+
+    // Sleep without blocking the main thread to allow visual verification if needed
+    Thread.sleep(10000)
   }
 }
