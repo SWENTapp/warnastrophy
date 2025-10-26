@@ -7,8 +7,11 @@ import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.isValidPhoneNumber
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -57,8 +60,8 @@ class AddContactViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(AddContactUIState())
   val uiState: StateFlow<AddContactUIState> = _uiState.asStateFlow()
-  private val _navigateBack = MutableStateFlow(false)
-  var navigateBack = _navigateBack.asStateFlow()
+  private val _navigateBack = MutableSharedFlow<Unit>(replay = 0)
+  var navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
 
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
@@ -91,7 +94,7 @@ class AddContactViewModel(
       result
           .onSuccess {
             clearErrorMsg()
-            _navigateBack.value = true
+            _navigateBack.emit(Unit)
           }
           .onFailure { exception ->
             Log.e("AddContactViewModel", "Error add Contact", exception)
@@ -130,9 +133,5 @@ class AddContactViewModel(
         relationship = relationship,
         invalidRelationshipMsg =
             if (relationship.isBlank()) "Relationship cannot be empty" else null)
-  }
-
-  fun resetNavigation() {
-    _navigateBack.value = false
   }
 }
