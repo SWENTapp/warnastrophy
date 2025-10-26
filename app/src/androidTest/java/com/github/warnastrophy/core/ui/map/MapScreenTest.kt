@@ -272,14 +272,15 @@ class MapScreenTest {
 
     // State the test can bump to simulate a relaunch
     val relaunchKey = mutableStateOf(0)
-    var perm = true
+    val permState = mutableStateOf(true)
 
     composeTestRule.setContent {
       key(relaunchKey.value) {
         MapScreen(
             gpsService = gpsService,
             hazardsService = hazardService,
-            testHooks = MapScreenTestHooks(forceLocationPermission = perm) // your test seam
+            testHooks =
+                MapScreenTestHooks(forceLocationPermission = permState.value) // your test seam
             )
       }
     }
@@ -292,7 +293,7 @@ class MapScreenTest {
     // 2) "Second launch": update prefs and bump the key
     setPref(firstLaunchDone = true, askedOnce = true)
     composeTestRule.runOnUiThread {
-      perm = false // simulate user denying the permission on the second launch
+      permState.value = false // simulate user denying the permission on the second launch
       relaunchKey.value++
     } // disposes MapScreen subtree
     composeTestRule.waitForIdle()
