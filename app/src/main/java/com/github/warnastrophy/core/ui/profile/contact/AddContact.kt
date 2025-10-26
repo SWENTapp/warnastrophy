@@ -60,6 +60,11 @@ fun AddContactScreen(
     }
   }
 
+  LaunchedEffect(Unit) {
+    // 1. Collect the flow of navigation events
+    addContactViewModel.navigateBack.collect { onDone() }
+  }
+
   Column(
       modifier = Modifier.fillMaxSize().padding(16.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
@@ -121,10 +126,9 @@ fun AddContactScreen(
         // --- Save Button with Validation ---
         Button(
             onClick = {
-              if (addContactViewModel.addContact()) {
-                onDone()
-                // TODO: Add navigate back here
-              }
+              addContactViewModel.addContact()
+              // TODO: Add navigate back here
+
             },
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.CONTACT_SAVE)) {
