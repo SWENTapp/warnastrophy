@@ -1,21 +1,19 @@
-package com.github.warnastrophy.core.ui.components
+package com.github.warnastrophy.core.ui.permissionRequestCard
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import org.junit.Assert.assertTrue
-import org.junit.Rule
+import com.github.warnastrophy.core.ui.components.PermissionRequestCard
+import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.ui.util.BaseSimpleComposeTest
+import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
-class PermissionRequestCardTest {
-
-  @get:Rule val composeTestRule = createComposeRule()
-
-  private val TITLE = "Location permission"
-  private val MESSAGE = "We use your location to center the map and display nearby hazards."
+class PermissionRequestCardTest : BaseSimpleComposeTest() {
+  private val title = "Location permission"
+  private val message = "We use your location to center the map and display nearby hazards."
 
   /**
    * Given showAllowButton is true, When the PermissionRequestCard is rendered, Then it displays the
@@ -25,16 +23,15 @@ class PermissionRequestCardTest {
    * Covers: default modifier, Surface(CARD), "Allow location", "Open settings".
    */
   @Test
-  fun renders_card_title_message_and_both_buttons_when_showAllow_true_and_invokes_callbacks() {
+  fun renders_card_title_message_and_both_buttons_whenAllow_true_and_invoke_callbacks() {
     var allowClicked = false
     var settingsClicked = false
 
     composeTestRule.setContent {
       MaterialTheme {
-        // No modifier passed -> covers `modifier: Modifier = Modifier`
         PermissionRequestCard(
-            title = TITLE,
-            message = MESSAGE,
+            title = title,
+            message = message,
             showAllowButton = true,
             onAllowClick = { allowClicked = true },
             onOpenSettingsClick = { settingsClicked = true })
@@ -43,8 +40,8 @@ class PermissionRequestCardTest {
 
     // Card (Surface) + text visible
     composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
-    composeTestRule.onNodeWithText(TITLE, useUnmergedTree = true).assertIsDisplayed()
-    composeTestRule.onNodeWithText(MESSAGE, useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText(title, useUnmergedTree = true).assertIsDisplayed()
+    composeTestRule.onNodeWithText(message, useUnmergedTree = true).assertIsDisplayed()
 
     // Buttons visible (by tag) and their labels visible (by text)
     composeTestRule
