@@ -133,9 +133,7 @@ fun EditContactScreen(
 
         // --- Save Button with Validation ---
         Button(
-            onClick = {
-              editContactViewModel.editContact(contactID)
-            },
+            onClick = { editContactViewModel.editContact(contactID) },
             enabled = isSaveButtonValid,
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.CONTACT_SAVE)) {
