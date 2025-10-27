@@ -4,7 +4,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
@@ -16,14 +15,9 @@ class AddContactScreenTest : ContactScreenTest() {
   // private val repository: ContactsRepository = MockContactRepository()
   private val contact1 = Contact(id = "a", "Ronaldo", "+41", "Friend")
 
-  override fun setupRepository() {
-    repository = MockContactRepository()
-  }
-
   @Before
   override fun setUp() {
     super.setUp()
-    setupRepository()
     val mockViewModel = AddContactViewModel(repository = repository)
     composeTestRule.setContent { AddContactScreen(addContactViewModel = mockViewModel) }
   }
@@ -137,6 +131,15 @@ class AddContactScreenTest : ContactScreenTest() {
 
     composeTestRule.clickOnSaveForAddContact()
 
+    composeTestRule.onNodeWithTag(AddContactTestTags.CONTACT_SAVE).assertIsDisplayed()
+  }
+
+  @Test
+  fun savingWithInvalidPhoneNumberShouldDoNothing() {
+    composeTestRule.enterEditFullName(contact1.fullName)
+    composeTestRule.enterEditPhoneNumber(contact1.fullName)
+    composeTestRule.enterEditRelationship(contact1.relationship)
+    composeTestRule.clickOnSaveForAddContact()
     composeTestRule.onNodeWithTag(AddContactTestTags.CONTACT_SAVE).assertIsDisplayed()
   }
 }

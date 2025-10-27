@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.warnastrophy.core.data.repository.ContactsRepository
+import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
@@ -16,11 +17,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 
 abstract class ContactScreenTest : BaseAndroidComposeTest() {
-  protected lateinit var repository: ContactsRepository
+  val repository: ContactsRepository = MockContactRepository()
 
   // The setup function must be implemented in subclasses
   // to provide the specific type of repo they need
-  abstract fun setupRepository()
 
   fun ComposeTestRule.enterEditFullName(fullName: String) {
     onNodeWithTag(EditContactTestTags.INPUT_FULL_NAME).performTextClearance()
