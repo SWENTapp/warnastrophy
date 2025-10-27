@@ -15,26 +15,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * Represents the complete UI state for the Add Contact screen, including all input fields,
- * validation messages, and the overall validation status.
- *
- * Moving validation logic into the UI state object keeps the ViewModel focused on data operations.
- *
- * @property fullName The current text input for the contact's full name.
- * @property phoneNumber The current text input for the contact's phone number.
- * @property relationship The current text input for the contact's relationship (e.g., "Family,"
- *   "Work").
- * @property errorMsg A transient error message to be displayed to the user (e.g., via a Toast).
- *   Null if no error.
- * @property invalidFullNameMsg The specific error message if the full name is invalid. Null if
- *   valid.
- * @property invalidPhoneNumberMsg The specific error message if the phone number is invalid. Null
- *   if valid.
- * @property invalidRelationshipMsg The specific error message if the relationship is invalid. Null
- *   if valid.
- */
-data class AddContactUIState(
+data class EditContactUIState(
     val fullName: String = "",
     val phoneNumber: String = "",
     val relationship: String = "",
@@ -44,24 +25,16 @@ data class AddContactUIState(
     val invalidRelationshipMsg: String? = null
 ) {
   val isValid: Boolean
-    get() = fullName.isNotBlank() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
+    get() = fullName.isNotEmpty() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
 }
 
-/**
- * ViewModel responsible for managing the state and logic for the Add Contact screen.
- *
- * It handles form input changes, validates fields, and manages the asynchronous operation of
- * persisting a new contact via the repository.
- *
- * @property repository The data source dependency used for contact persistence.
- */
-class AddContactViewModel(
+class EditContactViewModel(
     private val repository: ContactsRepository = ContactRepositoryProvider.repository
 ) : ViewModel() {
-  private val _uiState = MutableStateFlow(AddContactUIState())
-  val uiState: StateFlow<AddContactUIState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(EditContactUIState())
+  val uiState: StateFlow<EditContactUIState> = _uiState.asStateFlow()
   private val _navigateBack = MutableSharedFlow<Unit>(replay = 0)
-  var navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
+  val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
 
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
@@ -73,42 +46,90 @@ class AddContactViewModel(
     _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
   }
 
-  /** Adds a Contact document. */
-  fun addContact() {
-    val state = _uiState.value
-    if (!state.isValid) {
-      setErrorMsg("At least one field is not valid!")
-      return
+  /**
+   * Loads a Contact by its ID and updates the UI state.
+   *
+   * @param contactId The ID of the Contact to be loaded.
+   */
+  fun loadContact(contactId: String) {
+    viewModelScope.launch {
+      val res = repository.getContact(contactId)
+      res.fold(
+          onSuccess = { contact ->
+            _uiState.value =
+                EditContactUIState(
+                    fullName = contact.fullName,
+                    phoneNumber = contact.phoneNumber,
+                    relationship = contact.relationship)
+          },
+          onFailure = { e ->
+            Log.e("EditContactViewModel", "Error fetching contacts", e)
+            setErrorMsg("Failed to load contacts: ${e.message}")
+          })
     }
-    addContactToRepository(
-        Contact(
-            id = repository.getNewUid(),
-            fullName = state.fullName,
-            phoneNumber = state.phoneNumber,
-            relationship = state.relationship))
   }
 
-  private fun addContactToRepository(contact: Contact) {
+  // Helper function
+  private fun <T> executeRepositoryOperation(
+      operation: suspend () -> Result<T>,
+      actionName: String // e.g., "edit Contact" or "delete Contact"
+  ) {
     viewModelScope.launch {
-      val result = repository.addContact(contact)
+      val result = operation()
+
       result
           .onSuccess {
             clearErrorMsg()
             _navigateBack.emit(Unit)
           }
           .onFailure { exception ->
-            Log.e("AddContactViewModel", "Error add Contact", exception)
-            setErrorMsg("Failed to add Contact: ${exception.message ?: "Unknown error"}")
+            val logTag = "EditContactViewModel"
+            val errorMessage = "Failed to $actionName: ${exception.message ?: "Unknown error"}"
+
+            Log.e(logTag, "Error $actionName", exception)
+            setErrorMsg(errorMessage)
           }
     }
   }
-  /*
-  Helper function
+
+  /**
+   * Adds a Contact document.
+   *
+   * @param id The contact document to be added.
    */
+  fun editContact(id: String) {
+    val state = _uiState.value
+    if (!state.isValid) {
+      setErrorMsg("At least one field is not valid")
+      return
+    }
+    val newContact =
+        Contact(
+            phoneNumber = state.phoneNumber,
+            fullName = state.fullName,
+            relationship = state.relationship,
+            id = id)
+    executeRepositoryOperation(
+        operation = { repository.editContact(id, newContact) }, actionName = "edit contact")
+  }
+
+  /**
+   * Deletes a Contact document by its ID.
+   *
+   * @param contactID The ID of the Contact document to be deleted.
+   */
+  fun deleteContact(contactID: String) {
+    executeRepositoryOperation(
+        operation = { repository.deleteContact(contactID) }, actionName = "delete contact")
+  }
+
+  /*
+     Helper function
+  */
   private fun updateUiState(
       // This accepts a lambda that operates on the current state (this)
       // and must return the new state.
-      updateBlock: AddContactUIState.() -> AddContactUIState
+      updateBlock: EditContactUIState.() -> EditContactUIState
   ) {
     // Executes the lambda, effectively doing: _uiState.value = _uiState.value.updateBlock()
     _uiState.value = _uiState.value.updateBlock()
@@ -128,7 +149,7 @@ class AddContactViewModel(
             if (!isValidPhoneNumber(phoneNumber)) "Invalid phone number" else null)
   }
 
-  fun setRelationShip(relationship: String) = updateUiState {
+  fun setRelationship(relationship: String) = updateUiState {
     copy(
         relationship = relationship,
         invalidRelationshipMsg =
