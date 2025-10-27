@@ -44,7 +44,7 @@ data class AddContactUIState(
     val invalidRelationshipMsg: String? = null
 ) {
   val isValid: Boolean
-    get() = fullName.isNotBlank() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
+    get() = fullName.isNotBlank() && isValidPhoneNumber(phoneNumber) && relationship.isNotBlank()
 }
 
 /**
