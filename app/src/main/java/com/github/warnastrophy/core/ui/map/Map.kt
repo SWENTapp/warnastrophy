@@ -206,9 +206,9 @@ fun MapScreen(
             modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = granted)) {
-              Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
+              Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
               val maxSeverities =
-                  hazardState
+                  hazardsList
                       .filter { it.type != null && it.severity != null }
                       .groupBy { it.type }
                       .map {
@@ -216,7 +216,7 @@ fun MapScreen(
                             (it.value.maxOf { hazard -> hazard.severity ?: 0.0 })
                       }
                       .toMap()
-              hazardState.forEach { hazard -> HazardMarker(hazard, maxSeverities) }
+              hazardsList.forEach { hazard -> HazardMarker(hazard, maxSeverities) }
             }
 
     if (granted && !positionState.isLoading) {
