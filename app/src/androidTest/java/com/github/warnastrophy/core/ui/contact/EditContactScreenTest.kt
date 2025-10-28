@@ -24,7 +24,6 @@ class EditContactScreenTest : ContactScreenTest() {
 
   @Test
   fun displayAllComponents() {
-    // composeTestRule.setContent { EditContactScreen() }
     composeTestRule
         .onNodeWithTag(EditContactTestTags.CONTACT_SAVE)
         .assertTextContains("Save Contact")

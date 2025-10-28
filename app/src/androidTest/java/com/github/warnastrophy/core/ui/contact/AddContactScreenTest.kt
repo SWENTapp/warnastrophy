@@ -12,7 +12,6 @@ import org.junit.Before
 import org.junit.Test
 
 class AddContactScreenTest : ContactScreenTest() {
-  // private val repository: ContactsRepository = MockContactRepository()
   private val contact1 = Contact(id = "a", "Ronaldo", "+41", "Friend")
 
   @Before
