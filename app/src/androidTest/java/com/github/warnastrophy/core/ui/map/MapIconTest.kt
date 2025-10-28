@@ -93,8 +93,10 @@ class MapIconTest : BaseAndroidComposeTest() {
     val highNodeIntensity = highNode.fetchSemanticsNode().config.getOrNull(Tint)
     assertNotNull(highNodeIntensity)
 
-    val lowGrayscale = (lowNodeIntensity!!.red + lowNodeIntensity.green + lowNodeIntensity.blue) / 3f
-    val highGrayscale = (highNodeIntensity!!.red + highNodeIntensity.green + highNodeIntensity.blue) / 3f
+    val lowGrayscale =
+        (lowNodeIntensity!!.red + lowNodeIntensity.green + lowNodeIntensity.blue) / 3f
+    val highGrayscale =
+        (highNodeIntensity!!.red + highNodeIntensity.green + highNodeIntensity.blue) / 3f
     assert(highGrayscale < lowGrayscale)
   }
 
