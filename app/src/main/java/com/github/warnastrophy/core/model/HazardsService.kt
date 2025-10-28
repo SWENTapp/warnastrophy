@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.model
 
-import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider.WORLD_POLYGON
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.fetchDelayMs
@@ -41,7 +40,18 @@ class HazardsService(
   init {
     serviceScope.launch {
       while (isActive) {
-        val hazards = fetchHazards(WORLD_POLYGON)
+        val currPosition =
+            Location(
+                latitude = gpsService.positionState.value.position.latitude,
+                longitude = gpsService.positionState.value.position.longitude)
+        val polygon =
+            Location.getPolygon(
+                currPosition,
+                AppConfig.rectangleHazardZone.first,
+                AppConfig.rectangleHazardZone.second)
+
+        val wktPolygon = Location.locationsToWktPolygon(polygon)
+        val hazards = fetchHazards(wktPolygon)
         _currentHazardsState.value = hazards
         delay(fetchDelayMs)
       }
