@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -38,7 +34,6 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
@@ -47,10 +42,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MarkerComposable
-import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
@@ -214,8 +206,17 @@ fun MapScreen(
             modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = granted)) {
-              Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
-              hazardsList.forEach { hazard -> HazardMarker(hazard) }
+              Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
+              val maxSeverities =
+                  hazardState
+                      .filter { it.type != null && it.severity != null }
+                      .groupBy { it.type }
+                      .map {
+                        (it.key ?: "Unknown") to
+                            (it.value.maxOf { hazard -> hazard.severity ?: 0.0 })
+                      }
+                      .toMap()
+              hazardState.forEach { hazard -> HazardMarker(hazard, maxSeverities) }
             }
 
     if (granted && !positionState.isLoading) {
@@ -278,9 +279,7 @@ private fun Context.findActivity(): Activity? =
       else -> null
     }
 
-/**
- * TODO: Potentially removable after switching to custom markers with MapIcons
- */
+/** TODO: Potentially removable after switching to custom markers with MapIcons */
 @JvmSynthetic // keeps it out of Java API, no-op for Kotlin
 @kotlin.jvm.JvmName("markerHueForType")
 internal fun markerHueFor(type: String?): Float =
@@ -292,61 +291,3 @@ internal fun markerHueFor(type: String?): Float =
       "TC" -> BitmapDescriptorFactory.HUE_YELLOW
       else -> BitmapDescriptorFactory.HUE_AZURE
     }
-
-@Composable
-private fun HazardMarker(hazard: Hazard) {
-  var markerLocation = Location(0.0, 0.0)
-  hazard.coordinates?.let {
-    // The marker location is the average of all coordinates
-
-    if (it.size > 1) {
-      val polygonCoords =
-          it.map { coord ->
-            markerLocation =
-                Location(
-                    markerLocation.latitude + coord.latitude,
-                    markerLocation.longitude + coord.longitude)
-            Location.toLatLng(coord)
-          }
-
-      markerLocation =
-          Location(markerLocation.latitude / it.size, markerLocation.longitude / it.size)
-
-      Polygon(
-          points = polygonCoords,
-          strokeWidth = 2f,
-      )
-    } else {
-      markerLocation = it[0]
-    }
-  }
-
-  MarkerComposable(
-      state = rememberMarkerState(position = Location.toLatLng(markerLocation)),
-      title = hazard.description,
-      snippet = "${hazard.severity} ${hazard.severityUnit}",
-  ) {
-    val imageVector =
-        when (hazard.type) {
-          "FL",
-          "FF",
-          "SS" -> MapIcons.Flood
-          "DR" -> MapIcons.Drought
-          "EQ",
-          "AV",
-          "LS",
-          "MS" -> MapIcons.Earthquake
-          "TC",
-          "EC",
-          "VW",
-          "TO",
-          "ST" -> MapIcons.Cyclone
-          "FR",
-          "WF" -> MapIcons.Fire
-          "VO" -> MapIcons.Volcano
-          "TS" -> MapIcons.Tsunami
-          else -> Icons.Filled.Warning // Default icon
-        }
-    Icon(imageVector, contentDescription = "Hazard", tint = Color.Black)
-  }
-}

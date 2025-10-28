@@ -63,39 +63,7 @@ class MapScreenTest {
               coordinates =
                   listOf(
                       com.github.warnastrophy.core.model.Location(18.61, -72.22),
-                      com.github.warnastrophy.core.model.Location(18.64, -72.10))),
-
-          Hazard(
-              id = 3,
-              type = null,
-              description = null,
-              country = null,
-              date = null,
-              severity = null,
-              severityUnit = null,
-              reportUrl = null,
-              alertLevel = null,
-              coordinates =
-                listOf(
-                  // Example: Hexagon coordinates around default position
-                  Location(
-                    latitude = AppConfig.defaultPosition.latitude + 0.01,
-                    longitude = AppConfig.defaultPosition.longitude),
-                  Location(
-                    latitude = AppConfig.defaultPosition.latitude + 0.005,
-                    longitude = AppConfig.defaultPosition.longitude + 0.0087),
-                  Location(
-                    latitude = AppConfig.defaultPosition.latitude - 0.005,
-                    longitude = AppConfig.defaultPosition.longitude + 0.0087),
-                  Location(
-                    latitude = AppConfig.defaultPosition.latitude - 0.01,
-                    longitude = AppConfig.defaultPosition.longitude),
-                  Location(
-                    latitude = AppConfig.defaultPosition.latitude - 0.005,
-                    longitude = AppConfig.defaultPosition.longitude - 0.0087),
-                  Location(
-                    latitude = AppConfig.defaultPosition.latitude + 0.005,
-                    longitude = AppConfig.defaultPosition.longitude - 0.0087))))
+                      com.github.warnastrophy.core.model.Location(18.64, -72.10))))
 
   @Before
   fun setup() {
