@@ -81,23 +81,21 @@ class MapIconTest : BaseAndroidComposeTest() {
 
     hazard.value = lowHazard
     composeTestRule.waitForIdle()
-
     val lowNode = composeTestRule.onNodeWithTag(MapIcon.Unknown.tag)
     lowNode.assertIsDisplayed()
-
     val lowNodeIntensity = lowNode.fetchSemanticsNode().config.getOrNull(Tint)
     assertNotNull(lowNodeIntensity)
 
     hazard.value = highHazard
     composeTestRule.waitForIdle()
-
     val highNode = composeTestRule.onNodeWithTag(MapIcon.Unknown.tag)
     highNode.assertIsDisplayed()
-
     val highNodeIntensity = highNode.fetchSemanticsNode().config.getOrNull(Tint)
     assertNotNull(highNodeIntensity)
 
-    assert(highNodeIntensity!!.red > lowNodeIntensity!!.red)
+    val lowGrayscale = (lowNodeIntensity!!.red + lowNodeIntensity.green + lowNodeIntensity.blue) / 3f
+    val highGrayscale = (highNodeIntensity!!.red + highNodeIntensity.green + highNodeIntensity.blue) / 3f
+    assert(highGrayscale < lowGrayscale)
   }
 
   @Test
