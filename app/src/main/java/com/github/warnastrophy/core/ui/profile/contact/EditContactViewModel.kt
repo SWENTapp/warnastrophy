@@ -25,7 +25,7 @@ data class EditContactUIState(
     val invalidRelationshipMsg: String? = null
 ) {
   val isValid: Boolean
-    get() = fullName.isNotEmpty() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
+    get() = fullName.isNotBlank() && isValidPhoneNumber(phoneNumber) && relationship.isNotBlank()
 }
 
 class EditContactViewModel(
