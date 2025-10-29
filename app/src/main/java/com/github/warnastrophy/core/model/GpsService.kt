@@ -1,8 +1,12 @@
 package com.github.warnastrophy.core.model
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Looper
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
@@ -33,30 +37,38 @@ interface PositionService {
   fun startLocationUpdates(): Unit
 }
 
-val TAG = "GpsService"
-
 /**
  * Implementation of the PositionService interface, handling GPS position updates and state.
  *
  * @property applicationContext Application context for accessing location services.
  */
-class GpsService(override val locationClient: FusedLocationProviderClient) : PositionService {
+class GpsService(override val locationClient: FusedLocationProviderClient, context: Context) :
+    PositionService {
 
   /** Coroutine scope for background operations. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
-
+  // property setter
   /** Internal state flow holding the current GPS position state. */
   private val _positionState = MutableStateFlow(GpsPositionState())
 
   /** Public state flow exposing the current GPS position state. */
   override val positionState: StateFlow<GpsPositionState> = _positionState.asStateFlow()
+  private val TAG = "GpsService"
+
+  init {
+    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+        PackageManager.PERMISSION_GRANTED) {
+      requestCurrentLocation()
+      startLocationUpdates()
+    } else {
+      throw Exception("Location permission not granted")
+    }
+  }
 
   private val locationCallBack =
       object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
-
           val pos = result.lastLocation
-          Log.e(TAG, "requestPosupd : $pos")
           if (pos == null) {
             setError("No location fix available")
           } else {
@@ -75,7 +87,6 @@ class GpsService(override val locationClient: FusedLocationProviderClient) : Pos
           setLoading(false)
         }
       }
-
   /** Location client for accessing fused location services. */
 
   /**
@@ -86,7 +97,6 @@ class GpsService(override val locationClient: FusedLocationProviderClient) : Pos
    */
   @SuppressLint("MissingPermission")
   override fun requestCurrentLocation() {
-    Log.e("GpsService", "Requesting current location")
     serviceScope.launch {
       try {
         val request =

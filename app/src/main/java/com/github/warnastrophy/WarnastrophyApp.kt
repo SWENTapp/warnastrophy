@@ -36,7 +36,7 @@ fun WarnastrophyApp() {
   val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: HOME.name)
 
   val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
-  val gpsService = GpsService(locationClient)
+  val gpsService = GpsService(locationClient, ctx)
 
   val hazardsRepository = HazardsRepository()
   val hazardsService: HazardsService = HazardsService(hazardsRepository, gpsService)

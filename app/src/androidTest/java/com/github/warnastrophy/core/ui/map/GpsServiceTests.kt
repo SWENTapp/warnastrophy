@@ -1,8 +1,10 @@
 package com.github.warnastrophy.core.ui.map
 
+import android.Manifest
 import android.content.Context
 import android.location.Location
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.GpsResult
 import com.github.warnastrophy.core.model.GpsService
 import com.google.android.gms.location.CurrentLocationRequest
@@ -25,15 +27,20 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.whenever
 
 @ExperimentalCoroutinesApi
 class GpsServiceTests {
+
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
+
   private lateinit var context: Context
   private lateinit var mockClient: FusedLocationProviderClient
   private lateinit var gpsService: GpsService
@@ -43,13 +50,16 @@ class GpsServiceTests {
   fun setup() {
     Dispatchers.setMain(testDispatcher)
     context = ApplicationProvider.getApplicationContext()
-    mockClient = Mockito.mock<FusedLocationProviderClient>()
-    gpsService = GpsService(locationClient = mockClient)
+    mockClient = Mockito.mock(FusedLocationProviderClient::class.java)
+    // La permission est accordée par la rule, donc la création ne jette plus.
+    gpsService = GpsService(locationClient = mockClient, context = context)
   }
 
   @After
   fun tearDown() {
-    gpsService.close()
+    if (::gpsService.isInitialized) {
+      gpsService.close()
+    }
     Dispatchers.resetMain()
   }
 
@@ -61,14 +71,13 @@ class GpsServiceTests {
           latitude = 48.8146
         }
 
-    // Mock location response
     whenever(mockClient.getCurrentLocation(any<CurrentLocationRequest>(), anyOrNull()))
         .thenReturn(Tasks.forResult(fake_gps_location))
 
     gpsService.requestCurrentLocation()
-    advanceUntilIdle() // Fait progresser toutes les coroutines en cours d'exécution
+    advanceUntilIdle()
     sleep(3000)
-    // Vérifier que l'état est correctement mis à jour
+
     val state = gpsService.positionState.value
     Assert.assertEquals(
         LatLng(fake_gps_location.latitude, fake_gps_location.longitude), state.position)
@@ -80,13 +89,12 @@ class GpsServiceTests {
   @Test
   fun requestCurrentLocation_throw_exception() = runTest {
     val e = RuntimeException("Quelque chose s'est mal passé")
-
-    // Simuler une exception
     whenever(mockClient.getCurrentLocation(any<CurrentLocationRequest>(), anyOrNull())).thenThrow(e)
 
     gpsService.requestCurrentLocation()
     advanceUntilIdle()
     sleep(3000)
+
     val state = gpsService.positionState.value
     Assert.assertFalse(state.isLoading)
     Assert.assertEquals("Location error: ${e.message}", state.errorMessage)
@@ -100,12 +108,10 @@ class GpsServiceTests {
     gpsService.startLocationUpdates()
     advanceUntilIdle()
 
-    // Récupère le callback privé via la réflexion
     val field = GpsService::class.java.getDeclaredField("locationCallBack")
     field.isAccessible = true
     val callback = field.get(gpsService) as LocationCallback
 
-    // Simule chaque point du trajet
     route.forEach { latLng ->
       val location =
           Location("test").apply {
@@ -115,12 +121,10 @@ class GpsServiceTests {
       val locationResult = LocationResult.create(listOf(location))
       callback.onLocationResult(locationResult)
 
-      // Vérifie l'état intermédiaire
       val state = gpsService.positionState.value
       assertEquals(latLng, state.position)
     }
 
-    // Vérifie l'état final
     val finalState = gpsService.positionState.value
     assertEquals(route.last(), finalState.position)
     assertFalse(finalState.isLoading)
@@ -129,21 +133,16 @@ class GpsServiceTests {
 
   @Test
   fun startLocationUpdates_handle_null_location() = runTest {
-    // On utilise le mock déjà injecté dans gpsService
-    // Lance la demande de mise à jour de la position
     gpsService.startLocationUpdates()
     advanceUntilIdle()
 
-    // Récupère le callback privé via la réflexion
     val field = GpsService::class.java.getDeclaredField("locationCallBack")
     field.isAccessible = true
     val callback = field.get(gpsService) as LocationCallback
 
-    // Simule un résultat de localisation null
     val locationResult = LocationResult.create(listOf(null))
     callback.onLocationResult(locationResult)
 
-    // Vérifie l’état
     val state = gpsService.positionState.value
     assertFalse(state.isLoading)
     assertEquals("No location fix available", state.errorMessage)
@@ -151,13 +150,13 @@ class GpsServiceTests {
 
   @Test
   fun startLocationUpdates_need_permissions() = runTest {
-    // Simuler une exception de sécurité
     whenever(mockClient.requestLocationUpdates(any(), any<LocationCallback>(), anyOrNull()))
         .thenThrow(SecurityException())
 
     gpsService.startLocationUpdates()
     advanceUntilIdle()
     sleep(3000)
+
     val state = gpsService.positionState.value
     Assert.assertFalse(state.isLoading)
     Assert.assertEquals("Location permission not granted!", state.errorMessage)
@@ -167,16 +166,14 @@ class GpsServiceTests {
   @Test
   fun startLocationUpdates_throw_exception() = runTest {
     val e = RuntimeException("Location: Something went wrong")
-
-    // Simuler une exception générique
     whenever(mockClient.requestLocationUpdates(any(), any<LocationCallback>(), anyOrNull()))
         .thenThrow(e)
 
     gpsService.startLocationUpdates()
     advanceUntilIdle()
     sleep(3000)
+
     val state = gpsService.positionState.value
-    // Assert.assertFalse(state.isLoading)
     Assert.assertEquals("Location update failed: ${e.message}", state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
   }

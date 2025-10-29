@@ -35,7 +35,6 @@ class HazardsService(
 
   /** Public state flow exposing the current list of hazards. */
   override val currentHazardsState = _currentHazardsState.asStateFlow()
-
   /** Initializes the service and starts periodic hazard fetching based on the user's position. */
   init {
     serviceScope.launch {
@@ -49,8 +48,8 @@ class HazardsService(
                 currPosition,
                 AppConfig.rectangleHazardZone.first,
                 AppConfig.rectangleHazardZone.second)
-
         val wktPolygon = Location.locationsToWktPolygon(polygon)
+
         val hazards = fetchHazards(wktPolygon)
         _currentHazardsState.value = hazards
         delay(fetchDelayMs)

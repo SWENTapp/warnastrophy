@@ -1,7 +1,5 @@
 package com.github.warnastrophy.core.ui.map
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -12,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.core.content.ContextCompat
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
@@ -40,15 +37,6 @@ fun MapScreen(
   val hazardState by hazardsService.currentHazardsState.collectAsState()
   val positionState by gpsService.positionState.collectAsState()
 
-  LaunchedEffect(Unit) {
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-        PackageManager.PERMISSION_GRANTED) {
-      gpsService.requestCurrentLocation()
-      gpsService.startLocationUpdates()
-    } else {
-      throw Exception("Location permission not granted")
-    }
-  }
   var hazardsList = remember { emptyList<Hazard>() }
 
   LaunchedEffect(positionState) {
