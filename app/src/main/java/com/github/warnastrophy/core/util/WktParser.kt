@@ -4,7 +4,6 @@ import android.util.Log
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.io.WKTReader
 
-
 object WktParser {
   private const val TAG = "WKTParserUtil"
 
