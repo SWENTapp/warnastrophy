@@ -1,6 +1,5 @@
-package com.github.warnastrophy.core.model.repository
+package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.data.repository.HazardsRepository
 import com.github.warnastrophy.core.model.Hazard
 import io.mockk.spyk
 import kotlinx.coroutines.runBlocking

@@ -57,7 +57,7 @@ fun EditContactScreen(
 
   val contactUIState by editContactViewModel.uiState.collectAsState()
   val errorMsg = contactUIState.errorMsg
-  val navigateBack by editContactViewModel.navigateBack.collectAsState()
+  val isSaveButtonValid = contactUIState.isValid
 
   val context = LocalContext.current
 
@@ -68,11 +68,9 @@ fun EditContactScreen(
     }
   }
 
-  LaunchedEffect(navigateBack) {
-    if (navigateBack) {
-      editContactViewModel.resetNavigation()
-      onDone()
-    }
+  LaunchedEffect(Unit) {
+    // 1. Collect the flow of navigation events
+    editContactViewModel.navigateBack.collect { onDone() }
   }
 
   Column(
@@ -120,7 +118,7 @@ fun EditContactScreen(
         // --- Input Field: Relationship ---
         OutlinedTextField(
             value = contactUIState.relationship,
-            onValueChange = { editContactViewModel.setRelationShip(it) },
+            onValueChange = { editContactViewModel.setRelationship(it) },
             label = { Text("Relationship (e.g., family, friend, doctor, etc.)") },
             isError = contactUIState.invalidRelationshipMsg != null,
             supportingText = {
@@ -135,10 +133,8 @@ fun EditContactScreen(
 
         // --- Save Button with Validation ---
         Button(
-            onClick = {
-              editContactViewModel.editContact(contactID)
-              // TODO: Add navigate back here
-            },
+            onClick = { editContactViewModel.editContact(contactID) },
+            enabled = isSaveButtonValid,
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.CONTACT_SAVE)) {
               Text("Save Contact")

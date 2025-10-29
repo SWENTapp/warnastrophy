@@ -7,8 +7,11 @@ import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.isValidPhoneNumber
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -22,7 +25,7 @@ data class EditContactUIState(
     val invalidRelationshipMsg: String? = null
 ) {
   val isValid: Boolean
-    get() = fullName.isNotEmpty() && isValidPhoneNumber(phoneNumber) && relationship.isNotEmpty()
+    get() = fullName.isNotBlank() && isValidPhoneNumber(phoneNumber) && relationship.isNotBlank()
 }
 
 class EditContactViewModel(
@@ -30,8 +33,8 @@ class EditContactViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(EditContactUIState())
   val uiState: StateFlow<EditContactUIState> = _uiState.asStateFlow()
-  val _navigateBack = MutableStateFlow(false)
-  val navigateBack: StateFlow<Boolean> = _navigateBack
+  private val _navigateBack = MutableSharedFlow<Unit>(replay = 0)
+  val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
 
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
@@ -76,12 +79,10 @@ class EditContactViewModel(
 
       result
           .onSuccess {
-            // SUCCESS: Common boilerplate
             clearErrorMsg()
-            _navigateBack.value = true
+            _navigateBack.emit(Unit)
           }
           .onFailure { exception ->
-            // FAILURE: Common boilerplate, customized by actionName
             val logTag = "EditContactViewModel"
             val errorMessage = "Failed to $actionName: ${exception.message ?: "Unknown error"}"
 
@@ -122,13 +123,6 @@ class EditContactViewModel(
         operation = { repository.deleteContact(contactID) }, actionName = "delete contact")
   }
 
-  // Functions to update the UI state.
-  fun setFullName(fullName: String) = updateUiState {
-    copy(
-        fullName = fullName,
-        invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null)
-  }
-
   /*
      Helper function
   */
@@ -141,6 +135,13 @@ class EditContactViewModel(
     _uiState.value = _uiState.value.updateBlock()
   }
 
+  // Functions to update the UI state.
+  fun setFullName(fullName: String) = updateUiState {
+    copy(
+        fullName = fullName,
+        invalidFullNameMsg = if (fullName.isBlank()) "Full name cannot be empty" else null)
+  }
+
   fun setPhoneNumber(phoneNumber: String) = updateUiState {
     copy(
         phoneNumber = phoneNumber,
@@ -148,14 +149,10 @@ class EditContactViewModel(
             if (!isValidPhoneNumber(phoneNumber)) "Invalid phone number" else null)
   }
 
-  fun setRelationShip(relationship: String) = updateUiState {
+  fun setRelationship(relationship: String) = updateUiState {
     copy(
         relationship = relationship,
         invalidRelationshipMsg =
             if (relationship.isBlank()) "Relationship cannot be empty" else null)
-  }
-
-  fun resetNavigation() {
-    _navigateBack.value = false
   }
 }
