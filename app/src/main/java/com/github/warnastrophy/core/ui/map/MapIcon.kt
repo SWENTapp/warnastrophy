@@ -65,14 +65,14 @@ enum class MapIcon(@DrawableRes val resId: Int?, val tag: String) {
  * Composable function to display a hazard marker on the map.
  *
  * @param hazard The hazard data to be displayed.
- * @param maxSeverities A map containing the maximum intensities for each hazard type.
+ * @param severities A map containing the minimum and maximum severities for each hazard type.
  * @param markerContent A composable function mainly to test the marker content, because
  *   MarkerComposable is not directly testable because it's rasterized on the map.
  */
 @Composable
 fun HazardMarker(
     hazard: Hazard,
-    maxSeverities: Map<String, Double>,
+    severities: Map<String, Pair<Double, Double>>,
     markerContent:
         @Composable
         (
@@ -139,12 +139,19 @@ fun HazardMarker(
 
     val tint: Color =
         hazard.severity?.let {
-          val maxIntensities =
-              maxSeverities[hazard.type]
+          val (minSev, maxSev) =
+              severities[hazard.type]
                   ?: throw IllegalStateException(
                       "Max intensity not found for hazard type ${hazard.type}")
-          val intensityRatio = (it / maxIntensities).coerceIn(0.0, 1.0)
-          lerp(Color.LightGray, Color.Red, intensityRatio.toFloat())
+          val denom = maxSev - minSev
+          val intensityRatio =
+              if (denom != 0.0) {
+                    (it - minSev) / denom
+                  } else {
+                    1.0
+                  }
+                  .coerceIn(0.0, 1.0)
+          lerp(Color.Gray, Color.Red, intensityRatio.toFloat())
         } ?: Color.Black
 
     icon(tint = tint)

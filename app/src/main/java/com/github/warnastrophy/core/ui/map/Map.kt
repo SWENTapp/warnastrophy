@@ -207,16 +207,17 @@ fun MapScreen(
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = granted)) {
               Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
-              val maxSeverities =
+              val severities =
                   hazardsList
                       .filter { it.type != null && it.severity != null }
                       .groupBy { it.type }
                       .map {
-                        (it.key ?: "Unknown") to
-                            (it.value.maxOf { hazard -> hazard.severity ?: 0.0 })
+                        val minSev = it.value.minOf { hazard -> hazard.severity ?: 0.0 }
+                        val maxSev = it.value.maxOf { hazard -> hazard.severity ?: 0.0 }
+                        (it.key ?: "Unknown") to (Pair(minSev, maxSev))
                       }
                       .toMap()
-              hazardsList.forEach { hazard -> HazardMarker(hazard, maxSeverities) }
+              hazardsList.forEach { hazard -> HazardMarker(hazard, severities) }
             }
 
     if (granted && !positionState.isLoading) {
