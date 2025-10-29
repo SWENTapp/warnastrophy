@@ -71,11 +71,11 @@ class MapIconTest : BaseAndroidComposeTest() {
     val highHazard = lowHazard.copy(severity = 10.0)
 
     val hazard = mutableStateOf<Hazard?>(null)
-    val maxSeverities = mapOf("XX" to highHazard.severity!!)
+    val severities = mapOf("XX" to Pair(lowHazard.severity!!, highHazard.severity!!))
 
     composeTestRule.setContent {
       hazard.value?.let {
-        HazardMarker(it, maxSeverities, markerContent = { _, _, _, content -> Box { content() } })
+        HazardMarker(it, severities, markerContent = { _, _, _, content -> Box { content() } })
       }
     }
 
