@@ -177,7 +177,5 @@ class HazardChecker(
       }
       Log.d("HazardChecker", "There is no hazard to clear: ${hazardsToClean.isEmpty()}")
     }
-    // Use a list to hold IDs to remove to avoid ConcurrentModificationException
-
   }
 }

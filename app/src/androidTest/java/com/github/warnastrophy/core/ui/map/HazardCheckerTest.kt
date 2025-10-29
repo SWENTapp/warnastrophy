@@ -23,13 +23,7 @@ class HazardCheckerTest {
     // WKT for a simple square polygon (9.9, 9.9) to (10.1, 10.1)
     // User (10.0, 10.0) is INSIDE.
     val wktA = "POLYGON((9.9 9.9, 9.9 10.1, 10.1 10.1, 10.1 9.9, 9.9 9.9))"
-
-    // WKT for a slightly larger square polygon (9.8, 9.8) to (10.2, 10.2)
-    // User (10.0, 10.0) is INSIDE.
     val wktB = "POLYGON((9.8 9.8, 9.8 10.2, 10.2 10.2, 10.2 9.8, 9.8 9.8))"
-
-    // --- 2. Setup Test Hazard Data ---
-    // Hazard A: Higher Alert Level (3), Location (10.0, 10.0) - Should win
     val testHazardA =
         Hazard(
             id = 1001, // Unique ID
@@ -44,7 +38,6 @@ class HazardCheckerTest {
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZoneWkt = wktA)
 
-    // Hazard B: Lower Alert Level (2), Location (10.0, 10.0)
     val testHazardB =
         Hazard(
             id = 1002, // Unique ID
@@ -63,7 +56,6 @@ class HazardCheckerTest {
     val serviceStateManager = ServiceStateManager
     val testDispatcher = StandardTestDispatcher(testScheduler)
 
-    // Reset the test state before running (Assumes TestServiceStateManager is available)
     serviceStateManager.updateActiveHazard(null)
 
     val hazardChecker =
@@ -74,11 +66,9 @@ class HazardCheckerTest {
     advanceTimeBy(HAZARD_TIME_THRESHOLD_MS)
     runCurrent()
 
-    // --- 5. Assertion ---
     val currentHazard = ServiceStateManager.activeHazardFlow.value
 
     assertNotNull("The active hazard should not be null after delay.", currentHazard)
-    // Assert that the highest priority hazard (A, with alertLevel 3) was selected
     assertEquals(testHazardA.id, currentHazard?.id)
   }
 }
