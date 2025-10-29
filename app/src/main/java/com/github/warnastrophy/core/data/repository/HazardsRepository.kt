@@ -24,7 +24,7 @@ class HazardsRepository : HazardsDataSource {
     return "$base?geometryArea=$geom&days=$days"
   }
 
-  private suspend fun httpGet(urlStr: String): String =
+  private fun httpGet(urlStr: String): String =
       with(Dispatchers.IO) {
         val url = URL(urlStr)
         val conn =
