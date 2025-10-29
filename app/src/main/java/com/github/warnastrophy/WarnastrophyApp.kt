@@ -97,7 +97,7 @@ fun WarnastrophyApp() {
                     onAddButtonClick = { navigationActions.navigateTo(Screen.AddContact) })
               }
               composable(Screen.AddContact.route) {
-                AddContactScreen(onDone = { navigationActions.navigateTo(Screen.ContactList) })
+                AddContactScreen(onDone = { navigationActions.goBack() })
               }
               composable(Screen.HealthCard.route) { HealthCardScreen() }
               composable(route = Screen.EditContact.route) { navBackStackEntry ->
@@ -105,7 +105,7 @@ fun WarnastrophyApp() {
 
                 id?.let {
                   EditContactScreen(
-                      onDone = { navigationActions.navigateTo(Screen.ContactList) }, contactID = id)
+                      onDone = { navigationActions.goBack() }, contactID = id)
                 }
                     ?: run {
                       Log.e("EditContactScreen", "Contact ID is null")
