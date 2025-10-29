@@ -51,9 +51,14 @@ class HazardsRepository : HazardsDataSource {
   override suspend fun getAreaHazards(geometry: String, days: String): List<Hazard> {
     val url = buildUrlAreaHazards(geometry, days)
     val response = httpGet(url)
+    if (response.isBlank()) {
+      Log.d("GetAreaHazards", "Received empty or null response from server.")
+      return emptyList()
+    }
     val hazards = mutableListOf<Hazard>()
-    val jsonObject = JSONObject(response)
+
     try {
+      val jsonObject = JSONObject(response)
       val jsonHazards = jsonObject.getJSONArray("features")
       for (i in 0 until jsonHazards.length()) {
         val hazardJson = jsonHazards.getJSONObject(i)
@@ -61,9 +66,10 @@ class HazardsRepository : HazardsDataSource {
         if (hazard != null) hazards.add(hazard)
       }
     } catch (e: Exception) {
-      Log.d(TAGrep, "No hazards found: $e")
+      Log.d(TAGrep, "No hazards found: $e for geometry: $geometry")
       return emptyList()
     }
+    Log.d(TAGrep, "Fetched ${hazards.size} hazards for geometry: $geometry")
     return hazards
   }
 

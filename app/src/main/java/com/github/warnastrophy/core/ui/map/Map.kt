@@ -32,7 +32,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
@@ -186,7 +185,7 @@ fun MapScreen(
     }
   }
 
-  var hazardsList = remember { emptyList<Hazard>() }
+  val hazardsList = hazardState
 
   LaunchedEffect(positionState.position, granted) {
     if (granted && !positionState.isLoading) {
@@ -195,8 +194,6 @@ fun MapScreen(
           1000) // 1 second animation)
     }
   }
-
-  LaunchedEffect(hazardState) { hazardsList = hazardState }
 
   Box(Modifier.fillMaxSize()) {
     if (granted && positionState.isLoading) {

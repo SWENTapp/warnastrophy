@@ -3,12 +3,10 @@ package com.github.warnastrophy.core.ui.map
 import android.Manifest
 import android.content.Context
 import android.os.Build
-import androidx.activity.ComponentActivity
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -18,6 +16,7 @@ import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.maps.MapsInitializer
 import org.junit.Assume.assumeTrue
@@ -25,12 +24,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class MapScreenTest {
+class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var gpsService: PositionService
   private lateinit var hazardService: HazardsDataService
-  private val TIMEOUT = 5_000L
-
-  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
   @get:Rule
   val permissionRule: GrantPermissionRule =
@@ -49,7 +45,7 @@ class MapScreenTest {
               severityUnit = null,
               reportUrl = null,
               alertLevel = null,
-              coordinates = listOf(com.github.warnastrophy.core.model.Location(18.55, -72.34))),
+              coordinates = listOf(Location(18.55, -72.34))),
           Hazard(
               id = 2,
               type = "EQ", // will map to HUE_RED
@@ -60,15 +56,15 @@ class MapScreenTest {
               severityUnit = null,
               reportUrl = null,
               alertLevel = null,
-              coordinates =
-                  listOf(
-                      com.github.warnastrophy.core.model.Location(18.61, -72.22),
-                      com.github.warnastrophy.core.model.Location(18.64, -72.10))))
+              coordinates = listOf(Location(18.61, -72.22), Location(18.64, -72.10))))
+
+  private val defaultPosition = AppConfig.defaultPosition
 
   @Before
-  fun setup() {
-    gpsService = GpsServiceMock(AppConfig.defaultPosition)
-    hazardService = HazardServiceMock(hazards, AppConfig.defaultPosition)
+  override fun setUp() {
+    super.setUp()
+    gpsService = GpsServiceMock(defaultPosition)
+    hazardService = HazardServiceMock(hazards, defaultPosition)
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
   }
@@ -78,16 +74,14 @@ class MapScreenTest {
    */
   @Test
   fun testMapScreenIsDisplayed_WithoutPermissionOverload() {
-    // Make it the first launch so LaunchedEffect(Unit) hits the "firstLaunch" path and calls
-    // launcher.launch(...)
     setPref(firstLaunchDone = false, askedOnce = false)
 
     composeTestRule.setContent {
-      MapScreen(
-          gpsService = gpsService, hazardsService = hazardService) // forceLocalPermission=null
+      MapScreen(gpsService = gpsService, hazardsService = hazardService)
     }
 
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
+
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
   }
 
@@ -103,8 +97,10 @@ class MapScreenTest {
           hazardsService = hazardService,
           testHooks = MapScreenTestHooks(forceLocationPermission = true))
     }
+
     // Wait until the initial loading is finished and the map is displayed
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
+
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
   }
 
@@ -132,11 +128,11 @@ class MapScreenTest {
           testHooks =
               MapScreenTestHooks(
                   forceLocationPermission = null,
-                  mockPermissionsResult = fakeDenied), // allow launcher path
-      )
+                  mockPermissionsResult = fakeDenied) // allow launcher path
+          )
     }
 
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
 
     // Card is visible
     composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
@@ -155,7 +151,7 @@ class MapScreenTest {
   @Test
   fun testPermissionRequestCardIsNotDisplayedWhenPermissionGranted() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-    // Set preferences to simulate first launch
+    // Set Preferences to simulate first launch
     setPref(firstLaunchDone = false, askedOnce = false)
 
     composeTestRule.setContent {
@@ -166,7 +162,7 @@ class MapScreenTest {
     }
 
     // Wait until the initial loading is finished
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
 
     // Check that the permission request card is not displayed
     composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
@@ -198,7 +194,7 @@ class MapScreenTest {
     }
 
     // Assert first composition
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertExists()
 
@@ -209,7 +205,7 @@ class MapScreenTest {
     composeTestRule.waitForIdle()
 
     // Assert second composition
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertExists()
   }
@@ -239,7 +235,7 @@ class MapScreenTest {
       }
     }
 
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
 
     // Card shown, but PERMANENT denial hides the "Allow" button
@@ -256,7 +252,8 @@ class MapScreenTest {
     composeTestRule.runOnUiThread { relaunchKey.value++ }
     composeTestRule.waitForIdle()
 
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
+
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertIsNotDisplayed()
   }
@@ -289,7 +286,7 @@ class MapScreenTest {
     }
 
     // Assert first composition
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertIsDisplayed()
 
@@ -302,7 +299,7 @@ class MapScreenTest {
     composeTestRule.waitForIdle()
 
     // Assert second composition -- now becomes denied
-    composeTestRule.waitUntil(timeoutMillis = TIMEOUT) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
     composeTestRule.onNodeWithTag(MapScreenTestTags.USER_LOCATION).assertIsNotDisplayed()
   }

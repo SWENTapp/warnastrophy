@@ -1,22 +1,25 @@
 package com.github.warnastrophy.e2e
 
-import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.WarnastrophyApp
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import org.junit.Rule
+import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import org.junit.Before
 import org.junit.Test
 
-class NavigationE2ETest {
-  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+class NavigationE2ETest : BaseAndroidComposeTest() {
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    composeTestRule.setContent { WarnastrophyApp() }
+  }
 
   @Test
   fun testTagsAreCorrectlySet() {
-    composeTestRule.setContent { WarnastrophyApp() }
     composeTestRule.onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).assertIsDisplayed()
@@ -26,7 +29,6 @@ class NavigationE2ETest {
 
   @Test
   fun startsOnHome_bottomNavVisible() {
-    composeTestRule.setContent { WarnastrophyApp() }
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
@@ -36,8 +38,6 @@ class NavigationE2ETest {
 
   @Test
   fun navigate_Home_to_Map_and_back() {
-    composeTestRule.setContent { WarnastrophyApp() }
-
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
 
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
@@ -53,8 +53,6 @@ class NavigationE2ETest {
 
   @Test
   fun navigate_to_Profile_then_back_to_Home() {
-    composeTestRule.setContent { WarnastrophyApp() }
-
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
@@ -68,8 +66,6 @@ class NavigationE2ETest {
 
   @Test
   fun can_visit_all_tabs_in_sequence() {
-    composeTestRule.setContent { WarnastrophyApp() }
-
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
