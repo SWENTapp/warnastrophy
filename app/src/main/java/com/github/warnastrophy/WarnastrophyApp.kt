@@ -104,8 +104,7 @@ fun WarnastrophyApp() {
                 val id = navBackStackEntry.arguments?.getString("id")
 
                 id?.let {
-                  EditContactScreen(
-                      onDone = { navigationActions.goBack() }, contactID = id)
+                  EditContactScreen(onDone = { navigationActions.goBack() }, contactID = id)
                 }
                     ?: run {
                       Log.e("EditContactScreen", "Contact ID is null")
