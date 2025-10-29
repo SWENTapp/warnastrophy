@@ -4,18 +4,21 @@ import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.AddContactViewModel
 import junit.framework.TestCase
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddContactViewModelTest {
@@ -38,62 +41,86 @@ class AddContactViewModelTest {
   }
 
   @Test
-  fun `add contact successfully sets navigateBack and clears error`() = runTest {
-      // Set valid UI state
-      viewModel.setFullName(contact1.fullName)
-      viewModel.setPhoneNumber(contact1.phoneNumber)
-      viewModel.setRelationShip(contact1.relationship)
+  /**
+   * Tests that [addContact] successfully adds a valid contact to the repository, emits
+   * [navigateBack] event, and ensures that any previous error message in [uiState] is cleared upon
+   * success.
+   */
+  fun `add contact successfully emits navigateBack and clears error`() = runTest {
+    // Setup: Collect the navigateBack event flow concurrently
+    val navigateBackEvent = async { viewModel.navigateBack.firstOrNull() }
+    // Set valid UI state
+    viewModel.setFullName(contact1.fullName)
+    viewModel.setPhoneNumber(contact1.phoneNumber)
+    viewModel.setRelationShip(contact1.relationship)
 
-      // Call addContact
-      viewModel.addContact()
-      advanceUntilIdle() // wait for coroutine to finish
+    viewModel.addContact()
+    advanceUntilIdle()
 
-      // Check repository
-      val added = repository.getAllContacts().getOrNull()!!
-      TestCase.assertEquals(1, added.size)
-      assertEquals(contact1.fullName, added[0].fullName)
+    val added = repository.getAllContacts().getOrNull()!!
+    TestCase.assertEquals(1, added.size)
+    TestCase.assertEquals(contact1.fullName, added[0].fullName)
 
-      // Check navigateBack
-      val navigateBack = viewModel.navigateBack.first()
-      TestCase.assertEquals(true, navigateBack)
+    TestCase.assertNotNull(navigateBackEvent.await())
 
-      // Check error cleared
-      TestCase.assertNull(viewModel.uiState.value.errorMsg)
+    // Check error cleared
+    TestCase.assertNull(viewModel.uiState.value.errorMsg)
   }
 
   @Test
+  /**
+   * Tests that [addContact] correctly handles an invalid UI state (e.g., missing required field).
+   * It should set an appropriate error message in [uiState].
+   */
   fun `add contact with invalid UI state sets error message`() = runTest {
-      // Leave fullName blank to trigger validation
-      viewModel.setFullName("")
-      viewModel.setPhoneNumber(contact1.phoneNumber)
-      viewModel.setRelationShip(contact1.relationship)
+    // Setup: Collect the navigateBack event flow concurrently with a timeout
+    val navigateBackEvent = async {
+      withTimeoutOrNull(100.milliseconds) {
+        viewModel.navigateBack.first() // first() throws if timeout reached before emission
+      }
+    }
 
-      // Call addContact
-      viewModel.addContact()
-      advanceUntilIdle()
+    viewModel.setFullName("")
+    viewModel.setPhoneNumber(contact1.phoneNumber)
+    viewModel.setRelationShip(contact1.relationship)
 
-      // Check navigateBack is false
-      val navigateBack = viewModel.navigateBack.first()
-      TestCase.assertEquals(false, navigateBack)
+    viewModel.addContact()
+    advanceUntilIdle()
 
-      // Check error message
-      TestCase.assertEquals("At least one field is not valid!", viewModel.uiState.value.errorMsg)
+    TestCase.assertNull(navigateBackEvent.await())
+
+    TestCase.assertEquals("At least one field is not valid!", viewModel.uiState.value.errorMsg)
   }
 
   @Test
-  fun `resetNavigation sets navigateBack to false`() = runTest {
-      viewModel.setFullName(contact1.fullName)
-      viewModel.setPhoneNumber(contact1.phoneNumber)
-      viewModel.setRelationShip(contact1.relationship)
+  /**
+   * Tests the core principle of using [MutableSharedFlow] for navigation events.
+   * * It ensures that after the ViewModel successfully emits the [navigateBack] event upon contact
+   *   creation (consuming the first event), no subsequent event remains buffered or is immediately
+   *   re-emitted to a new collector. This validates that the event is truly **transient**
+   *   (fire-and-forget) and confirms that the separate [resetNavigation] call is correctly obsolete
+   *   for this pattern.
+   */
+  fun `MapsBack event is transient (no need for reset)`() = runTest {
+    // 1. Setup: Collect the first event
+    val firstEvent = async {
+      withTimeoutOrNull(100.milliseconds) { viewModel.navigateBack.first() }
+    }
 
-      viewModel.addContact()
-      advanceUntilIdle()
+    viewModel.setFullName(contact1.fullName)
+    viewModel.setPhoneNumber(contact1.phoneNumber)
+    viewModel.setRelationShip(contact1.relationship)
 
-      // navigateBack should be true now
-      TestCase.assertEquals(true, viewModel.navigateBack.first())
+    viewModel.addContact()
+    advanceUntilIdle()
 
-      // Reset navigation
-      viewModel.resetNavigation()
-      TestCase.assertEquals(false, viewModel.navigateBack.first())
+    TestCase.assertNotNull(firstEvent.await())
+
+    val secondEvent =
+        withTimeoutOrNull(10.milliseconds) {
+          viewModel.navigateBack.first() // If an event arrives in 10ms, this returns Unit
+        }
+
+    TestCase.assertNull(secondEvent)
   }
 }
