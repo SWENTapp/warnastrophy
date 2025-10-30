@@ -3,7 +3,6 @@ package com.github.warnastrophy.core.model
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.compose.ui.geometry.isEmpty
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 
@@ -81,10 +80,6 @@ class PermissionManager(private val activity: Activity) {
       // If all permissions have been evaluated and none are denied, they must all be granted.
       else -> PermissionResult.Granted
     }
-  }
-
-  fun isGranted(permissionResult: PermissionResult): Boolean {
-    return permissionResult is PermissionResult.Granted
   }
 
   fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
