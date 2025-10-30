@@ -20,7 +20,7 @@ object NavigationTestTags {
   const val TOP_BAR_PREVIEW = "topBarPreview"
 
   const val BOTTOM_NAV_PREVIEW = "bottomNavPreview"
-  const val BOTTOM_BACK = "bottomBack"
+  const val BUTTON_BACK = "buttonBack"
   const val CONTACT_LIST = "contactList"
   const val HEALTH_CARD = "healthCard"
 }

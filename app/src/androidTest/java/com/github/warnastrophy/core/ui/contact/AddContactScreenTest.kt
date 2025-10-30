@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
+import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
@@ -11,21 +12,20 @@ import com.github.warnastrophy.core.ui.profile.contact.AddContactViewModel
 import org.junit.Before
 import org.junit.Test
 
-class AddContactScreenTest : ContactScreenTest() {
+class AddContactScreenTest : UITest() {
   private val contact1 = Contact(id = "a", "Ronaldo", "+41", "Friend")
 
   @Before
   override fun setUp() {
     super.setUp()
+    repository = MockContactRepository()
     val mockViewModel = AddContactViewModel(repository = repository)
     composeTestRule.setContent { AddContactScreen(addContactViewModel = mockViewModel) }
   }
 
   @Test
   fun displayAllComponents() {
-    composeTestRule
-        .onNodeWithTag(AddContactTestTags.CONTACT_SAVE)
-        .assertTextContains("Save Contact")
+    composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertTextContains("Save Contact")
     composeTestRule.onNodeWithTag(AddContactTestTags.INPUT_FULL_NAME).assertIsDisplayed()
     composeTestRule.onNodeWithTag(AddContactTestTags.INPUT_PHONE_NUMBER).assertIsDisplayed()
     composeTestRule.onNodeWithTag(AddContactTestTags.INPUT_RELATIONSHIP).assertIsDisplayed()
@@ -115,9 +115,9 @@ class AddContactScreenTest : ContactScreenTest() {
 
     composeTestRule.enterAddRelationship(contact1.relationship)
 
-    composeTestRule.clickOnSaveForAddContact()
+    composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
 
-    composeTestRule.onNodeWithTag(AddContactTestTags.CONTACT_SAVE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -128,9 +128,9 @@ class AddContactScreenTest : ContactScreenTest() {
 
     composeTestRule.enterAddRelationship(" ")
 
-    composeTestRule.clickOnSaveForAddContact()
+    composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
 
-    composeTestRule.onNodeWithTag(AddContactTestTags.CONTACT_SAVE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -138,7 +138,7 @@ class AddContactScreenTest : ContactScreenTest() {
     composeTestRule.enterEditFullName(contact1.fullName)
     composeTestRule.enterEditPhoneNumber(contact1.fullName)
     composeTestRule.enterEditRelationship(contact1.relationship)
-    composeTestRule.clickOnSaveForAddContact()
-    composeTestRule.onNodeWithTag(AddContactTestTags.CONTACT_SAVE).assertIsDisplayed()
+    composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
+    composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 }

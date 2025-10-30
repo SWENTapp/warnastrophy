@@ -29,7 +29,7 @@ fun TopBar(currentScreen: Screen, canNavigateBack: Boolean = false, navigateUp: 
       navigationIcon = {
         if (canNavigateBack) {
           IconButton(
-              onClick = navigateUp, modifier = Modifier.testTag(NavigationTestTags.BOTTOM_BACK)) {
+              onClick = navigateUp, modifier = Modifier.testTag(NavigationTestTags.BUTTON_BACK)) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
         }
