@@ -16,10 +16,19 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.model.Error
 import com.github.warnastrophy.core.ui.navigation.Screen
 
+/** Object containing test tags for the ErrorScreen composable. */
 object ErrorScreenTestTags {
   const val ERROR_MESSAGE = "error_message"
 }
 
+/**
+ * A composable function that displays an error screen with a list of error messages.
+ *
+ * @param message The main error message to display.
+ * @param onDismiss A callback function to be invoked when the error screen is dismissed.
+ * @param expanded A boolean indicating whether the error screen is expanded or not.
+ * @param errors A list of [Error] objects representing the errors to be displayed.
+ */
 @Composable
 fun ErrorScreen(
     message: String,
