@@ -1,5 +1,6 @@
 package com.github.warnastrophy
 
+import android.app.Activity
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -28,14 +29,15 @@ import com.google.android.gms.location.LocationServices
 
 @Composable
 fun WarnastrophyApp() {
-  val ctx = LocalContext.current
+  val activity = LocalContext.current as Activity
+  val context = activity.applicationContext
 
   val navController = rememberNavController()
 
   val backStackEntry by navController.currentBackStackEntryAsState()
   val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: HOME.name)
 
-  val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  val locationClient = LocationServices.getFusedLocationProviderClient(context)
   val gpsService = GpsService(locationClient)
 
   val hazardsRepository = HazardsRepository()
@@ -48,7 +50,7 @@ fun WarnastrophyApp() {
           // TODO: Use string resources for your titles
           composable(HOME.name) { HomeScreen() }
           composable(MAP.name) {
-            MapScreen(hazardsService = hazardsService, gpsService = gpsService)
+            MapScreen(hazardsService = hazardsService, gpsService = gpsService, activity = activity)
           }
           composable(PROFILE.name) { ProfileScreen() }
         }
