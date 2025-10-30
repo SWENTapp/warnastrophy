@@ -23,9 +23,9 @@ class TopBarComponentTest : BaseAndroidComposeTest() {
 
   @Test
   fun topBar_showsTitle_whenHasTopBarTrue() {
-    composeTestRule.setContent { MaterialTheme { TopBar(Screen.HOME) } }
+    composeTestRule.setContent { MaterialTheme { TopBar(Screen.Home) } }
 
-    val expected = composeTestRule.activity.getString(Screen.HOME.title)
+    val expected = composeTestRule.activity.getString(Screen.Home.title)
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertIsDisplayed()

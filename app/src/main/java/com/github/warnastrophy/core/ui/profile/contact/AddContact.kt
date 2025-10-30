@@ -27,7 +27,7 @@ object AddContactTestTags {
   const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
   const val INPUT_RELATIONSHIP = "inputRelationship"
   const val ERROR_MESSAGE = "errorMessage"
-  const val CONTACT_SAVE = "contactSave"
+  const val SAVE_BUTTON = "contactSave"
 }
 
 /**
@@ -132,7 +132,7 @@ fun AddContactScreen(
             },
             enabled = isSaveButtonValid,
             modifier =
-                Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.CONTACT_SAVE)) {
+                Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.SAVE_BUTTON)) {
               Text("Save Contact")
             }
       }

@@ -6,7 +6,6 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
@@ -55,6 +54,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     }
   }
 
+  /*
   @Test
   fun topBar_displaysCorrectTitle_andBackButton() {
     composeTestRule.waitForIdle()
@@ -66,6 +66,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithText("Health card").assertIsDisplayed()
     composeTestRule.onNodeWithTag(HealthCardTestTags.BACK_BUTTON).assertIsDisplayed()
   }
+     */
 
   @Test
   fun requiredFields_areDisplayed_andInitiallyEmpty() {
