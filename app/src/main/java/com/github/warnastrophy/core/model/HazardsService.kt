@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
  *
  * @property repository Data source used to retrieve hazards.
  * @property gpsService Service providing the current GPS position.
+ * @property errorHandler Handler for managing errors that occur during hazard fetching.
  */
 interface HazardsDataService {
   val repository: HazardsDataSource
@@ -91,6 +92,14 @@ class HazardsService(
   }
 }
 
+/**
+ * Data class representing the state of the hazard fetcher, including the list of hazards, loading
+ * status, and any error messages.
+ *
+ * @property hazards List of currently fetched hazards.
+ * @property isLoading Indicates whether a fetch operation is in progress.
+ * @property errorMsg Optional error message if an error occurred during fetching.
+ */
 data class FetcherState(
     val hazards: List<Hazard> = emptyList(),
     val isLoading: Boolean = false,

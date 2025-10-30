@@ -21,7 +21,9 @@ import kotlinx.coroutines.tasks.await
  * Service managing the user's GPS position. Maintains an observable state representing the current
  * position and possible errors.
  *
- * @param applicationContext Application context to access location services.
+ * @property positionState Observable state of the current GPS position and metadata.
+ * @property locationClient Location provider client for accessing fused location services.
+ * @property errorHandler Handler for managing errors related to GPS operations.
  */
 interface PositionService {
   /** Observable state representing the current GPS position and metadata. */
@@ -31,8 +33,16 @@ interface PositionService {
 
   val errorHandler: ErrorHandler
 
+  /**
+   * Requests the user's current location and updates [positionState] with the new position or the
+   * corresponding error.
+   */
   fun requestCurrentLocation(): Unit
 
+  /**
+   * Starts automatic location updates. Updates are received via a callback that updates
+   * [positionState].
+   */
   fun startLocationUpdates(): Unit
 }
 
