@@ -7,24 +7,34 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.Envelope
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
 
 private const val TAG = "HazardChecker"
 
+/**
+ * Manages the geofencing logic for a set of hazards.
+ *
+ * This class implements a dwell-time requirement to filter out GPS drift and ensure alert
+ * stability. An alert is only published if the user remains stationary inside the highest-priority
+ * hazard zone for the duration defined by [HAZARD_TIME_THRESHOLD_MS].
+ *
+ * @property allHazards A static list of all known hazards, including geometry and priority level.
+ * @property dispatcher The CoroutineDispatcher used for executing geofencing checks and scheduling
+ *   delays.
+ * @property scope The parent CoroutineScope that manages the lifecycle of the checker jobs.
+ */
 class HazardChecker(
     private val allHazards: List<Hazard>,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
     private val scope: CoroutineScope
 ) {
-
-  private val checkerScope = CoroutineScope(dispatcher + Job())
   private val geometryFactory = GeometryFactory()
   private val hazardLock = Mutex()
 
@@ -82,21 +92,27 @@ class HazardChecker(
     return highestPriorityHazard
   }
 
+  /**
+   * Manages the state when the user enters or remains in a hazard zone.
+   *
+   * This function is synchronized using [hazardLock] and implements the dwell-time entry logic:
+   * 1. If the [hazard] is not currently tracked in [hazardEntryTimes], it records the current time
+   *    as the entry time and schedules a delayed alert check via [scheduleAlertCheck].
+   * 2. If the user is already inside (the hazard is tracked), no action is taken, preserving the
+   *    original entry time to maintain the stability of the dwell-time timer.
+   *
+   * @param hazard The highest-priority hazard the user is currently inside.
+   */
   private suspend fun handleHazardEntry(hazard: Hazard) =
       hazardLock.withLock {
         val hazardId = hazard.id ?: return
         val currentTime = System.currentTimeMillis()
 
-        // CASE 1: New Entry (or first time detected since last exit)
         if (!hazardEntryTimes.containsKey(hazardId)) {
           hazardEntryTimes[hazardId] = currentTime
 
-          // Schedule the job to check containment after the threshold period
           scheduleAlertCheck(hazard)
         }
-
-        // CASE 2: Already inside (no action needed, timer is running/job is scheduled)
-        // We don't need to reset the time, as the original entry time holds.
       }
 
   private fun scheduleAlertCheck(hazard: Hazard) {
@@ -128,14 +144,13 @@ class HazardChecker(
     pendingAlertJobs[hazardId] = job
   }
 
-  /**
-   * Helper function for the efficient Bounding Box (BBox) check. NOTE: Replace with your final
-   * implementation.
-   */
+  /** Helper function for the efficient Bounding Box (BBox) check */
   private fun isInsideBBox(lng: Double, lat: Double, bbox: List<Double>): Boolean {
-    // BBox order is typically [min_lng, min_lat, max_lng, max_lat]
-    if (bbox.size != 4) return false
-    return lng >= bbox[0] && lat >= bbox[1] && lng <= bbox[2] && lat <= bbox[3]
+    val envelope = Envelope(bbox[0], bbox[2], bbox[1], bbox[3]) // (minX, maxX, minY, maxY)
+
+    // 2. Use the JTS Envelope's built-in containment check
+    // The Envelope class provides the fastest check possible.
+    return envelope.contains(lng, lat)
   }
 
   /**
@@ -160,6 +175,16 @@ class HazardChecker(
     return hazardGeometry.contains(userPoint)
   }
 
+  /**
+   * Cleans up the state for hazards that the user has exited or that are lower-priority than the
+   * current [currentActiveHazard].
+   *
+   * This is critical for preventing stale alerts and ensuring only the highest-priority alert is
+   * active.
+   *
+   * @param currentActiveHazard The highest-priority hazard the user is currently inside (or null if
+   *   none).
+   */
   private suspend fun cleanUpInactiveHazards(currentActiveHazard: Hazard?) {
     val currentHazardId = currentActiveHazard?.id
 
