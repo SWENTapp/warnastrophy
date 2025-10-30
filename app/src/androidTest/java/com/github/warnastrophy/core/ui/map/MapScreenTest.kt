@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.ui.map
 import android.Manifest
 import android.content.Context
 import android.os.Build
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
@@ -19,6 +20,8 @@ import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.maps.MapsInitializer
+import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.rememberCameraPositionState
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -348,5 +351,49 @@ class MapScreenTest : BaseAndroidComposeTest() {
         .putBoolean("first_launch_done", firstLaunchDone)
         .putBoolean("loc_asked_once", askedOnce)
         .apply()
+  }
+
+  @Test
+  fun trackLocationButtonSwitches() {
+    val isTracking = mutableStateOf(false)
+
+    composeTestRule.setContent { Box { TrackLocationButton(isTracking) } }
+
+    // Click the track location button
+    composeTestRule
+        .onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    assert(isTracking.value)
+  }
+
+  @Test
+  fun trackLocationButtonAnimatesOnClick() {
+    lateinit var cameraPositionState: CameraPositionState
+
+    composeTestRule.setContent {
+      cameraPositionState = rememberCameraPositionState()
+
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          cameraPositionState = cameraPositionState)
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntilWithTimeout { !cameraPositionState.isMoving }
+
+    val initialPosition = cameraPositionState.position.target
+    // Click the track location button to start tracking and trigger the animation
+    composeTestRule
+        .onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    // The click should cause the camera to move.
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntilWithTimeout { !cameraPositionState.isMoving }
+    composeTestRule.waitUntilWithTimeout { initialPosition != cameraPositionState.position.target }
   }
 }

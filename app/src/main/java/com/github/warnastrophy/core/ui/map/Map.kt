@@ -11,17 +11,25 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +40,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import com.github.warnastrophy.core.model.GpsPositionState
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
@@ -40,8 +49,11 @@ import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.maps.android.compose.CameraMoveStartedReason
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -49,6 +61,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
   const val USER_LOCATION = "userLocation" // tiny probe to check if shown
+  const val TRACK_LOCATION_BUTTON = "trackLocationButton"
 }
 
 private enum class LocPermStatus {
@@ -68,10 +81,10 @@ data class MapScreenTestHooks(
 fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
-    testHooks: MapScreenTestHooks = MapScreenTestHooks()
+    testHooks: MapScreenTestHooks = MapScreenTestHooks(),
+    cameraPositionState: CameraPositionState = rememberCameraPositionState()
 ) {
   val context = LocalContext.current
-  val cameraPositionState = rememberCameraPositionState()
   val hazardState by hazardsService.currentHazardsState.collectAsState()
   val positionState by gpsService.positionState.collectAsState()
 
@@ -83,6 +96,7 @@ fun MapScreen(
   var askedOnce by remember { mutableStateOf(prefs.getBoolean("loc_asked_once", false)) }
 
   var isOsRequestInFlight by remember { mutableStateOf(false) }
+  val trackingLocation = rememberSaveable { mutableStateOf(false) }
 
   fun hasPermission(): Boolean {
     return testHooks.forceLocationPermission
@@ -190,34 +204,47 @@ fun MapScreen(
 
   val hazardsList = hazardState
 
-  LaunchedEffect(positionState.position, granted) {
-    if (granted && !positionState.isLoading) {
-      cameraPositionState.animate(
-          CameraUpdateFactory.newLatLngZoom(positionState.position, 12f),
-          1000) // 1 second animation)
+  LaunchedEffect(positionState.position, granted, trackingLocation.value) {
+    if (granted && !positionState.isLoading && trackingLocation.value) {
+      defaultAnimate(cameraPositionState, positionState) // 1 second animation)
+    }
+  }
+
+  LaunchedEffect(cameraPositionState.isMoving, cameraPositionState.cameraMoveStartedReason) {
+    if (cameraPositionState.isMoving &&
+        cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) {
+      trackingLocation.value = false
     }
   }
 
   Box(Modifier.fillMaxSize()) {
     if (granted && positionState.isLoading) {
       Loading()
-    } else
-        GoogleMap(
-            modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-            cameraPositionState = cameraPositionState,
-            properties = MapProperties(isMyLocationEnabled = granted)) {
-              Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
-              hazardsList.forEach { hazard ->
-                hazard.coordinates?.forEach { coord ->
-                  val loc = Location.toLatLng(coord)
-                  Marker(
-                      state = MarkerState(position = loc),
-                      title = "${hazard.type} in ${hazard.country}",
-                      snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-                      icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type)))
-                }
+    } else {
+      GoogleMap(
+          modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+          cameraPositionState = cameraPositionState,
+          uiSettings =
+              MapUiSettings(
+                  myLocationButtonEnabled = false,
+                  zoomControlsEnabled = false,
+              ),
+          properties = MapProperties(isMyLocationEnabled = granted)) {
+            Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
+            hazardsList.forEach { hazard ->
+              hazard.coordinates?.forEach { coord ->
+                val loc = Location.toLatLng(coord)
+                Marker(
+                    state = MarkerState(position = loc),
+                    title = "${hazard.type} in ${hazard.country}",
+                    snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
+                    icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type)))
               }
             }
+          }
+
+      TrackLocationButton(trackingLocation)
+    }
 
     if (granted && !positionState.isLoading) {
       Box(
@@ -270,6 +297,34 @@ fun MapScreen(
       }
     }
   }
+}
+
+@Composable
+fun BoxScope.TrackLocationButton(trackingLocation: MutableState<Boolean>) {
+  val tint =
+      if (trackingLocation.value) {
+        MaterialTheme.colorScheme.primary
+      } else {
+        MaterialTheme.colorScheme.inversePrimary
+      }
+
+  FloatingActionButton(
+      onClick = { trackingLocation.value = true },
+      shape = MaterialTheme.shapes.extraLarge,
+      containerColor = tint,
+      modifier =
+          Modifier.align(Alignment.BottomEnd)
+              .padding(16.dp)
+              .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
+        Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
+      }
+}
+
+private suspend fun defaultAnimate(
+    cameraPositionState: CameraPositionState,
+    positionState: GpsPositionState
+) {
+  cameraPositionState.animate(CameraUpdateFactory.newLatLng(positionState.position), 1000)
 }
 
 private fun Context.findActivity(): Activity? =
