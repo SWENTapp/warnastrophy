@@ -14,9 +14,11 @@ import androidx.navigation.compose.rememberNavController
 
 private fun tagFor(screen: Screen): String =
     when (screen) {
-      Screen.HOME -> NavigationTestTags.TAB_HOME
-      Screen.MAP -> NavigationTestTags.TAB_MAP
-      Screen.PROFILE -> NavigationTestTags.TAB_PROFILE
+      Screen.Home -> NavigationTestTags.TAB_HOME
+      Screen.Map -> NavigationTestTags.TAB_MAP
+      Screen.Profile -> NavigationTestTags.TAB_PROFILE
+      else -> ""
+    // TODO: add test tags if needed
     }
 
 @Composable
@@ -39,7 +41,7 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
           },
           selected = currentScreen == screen,
           onClick = {
-            navController.navigate(screen.name) {
+            navController.navigate(screen.route) {
               // Forward navigation
               popUpTo(navController.graph.startDestinationId) { saveState = true }
               // Avoid multiple copies of the same destination when spamming the same item
@@ -57,6 +59,6 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
 fun BottomNavigationBarPreview() {
   androidx.compose.foundation.layout.Box(
       modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAV_PREVIEW)) {
-        BottomNavigationBar(Screen.HOME, rememberNavController())
+        BottomNavigationBar(Screen.Home, rememberNavController())
       }
 }

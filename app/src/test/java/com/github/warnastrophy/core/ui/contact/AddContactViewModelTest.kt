@@ -28,6 +28,7 @@ class AddContactViewModelTest {
 
   private val contact1 = Contact("1", "Alice Johnson", "+1234567890", "Family")
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)

@@ -39,7 +39,6 @@ import androidx.core.net.toUri
 import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.GpsPositionState
 import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
@@ -54,8 +53,6 @@ import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
@@ -209,16 +206,17 @@ fun MapScreen(
                   mapToolbarEnabled = false),
           properties = MapProperties(isMyLocationEnabled = granted)) {
             Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
-            hazardState.forEach { hazard ->
-              hazard.coordinates?.forEach { coord ->
-                val loc = Location.toLatLng(coord)
-                Marker(
-                    state = MarkerState(position = loc),
-                    title = "${hazard.type} in ${hazard.country}",
-                    snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-                    icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type)))
-              }
-            }
+            val severities =
+                hazardState
+                    .filter { it.type != null && it.severity != null }
+                    .groupBy { it.type }
+                    .map {
+                      val minSev = it.value.minOf { hazard -> hazard.severity ?: 0.0 }
+                      val maxSev = it.value.maxOf { hazard -> hazard.severity ?: 0.0 }
+                      (it.key ?: "Unknown") to (Pair(minSev, maxSev))
+                    }
+                    .toMap()
+            hazardState.forEach { hazard -> HazardMarker(hazard, severities) }
           }
       TrackLocationButton(trackingLocation)
     }
@@ -315,6 +313,7 @@ private fun Context.findActivity(): Activity? =
       else -> null
     }
 
+/** TODO: Potentially removable after switching to custom markers with MapIcons */
 @JvmSynthetic // keeps it out of Java API, no-op for Kotlin
 @kotlin.jvm.JvmName("markerHueForType")
 internal fun markerHueFor(type: String?): Float =
