@@ -28,14 +28,14 @@ import com.google.android.gms.location.LocationServices
 
 @Composable
 fun WarnastrophyApp() {
-  val ctx = LocalContext.current
+  val context = LocalContext.current
 
   val navController = rememberNavController()
 
   val backStackEntry by navController.currentBackStackEntryAsState()
   val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: HOME.name)
 
-  val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  val locationClient = LocationServices.getFusedLocationProviderClient(context)
   val gpsService = GpsService(locationClient)
 
   val hazardsRepository = HazardRepositoryProvider.repository
