@@ -150,8 +150,6 @@ fun MapScreen(
     }
   }
 
-  val hazardsList = hazardState
-
   LaunchedEffect(positionState.position, granted) {
     if (granted && !positionState.isLoading) {
       cameraPositionState.animate(
@@ -168,8 +166,8 @@ fun MapScreen(
             modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = granted)) {
-              Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
-              hazardsList.forEach { hazard ->
+              Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
+              hazardState.forEach { hazard ->
                 hazard.coordinates?.forEach { coord ->
                   val loc = Location.toLatLng(coord)
                   Marker(
