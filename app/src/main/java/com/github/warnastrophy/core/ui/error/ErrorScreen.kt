@@ -63,9 +63,9 @@ fun ErrorScreen(
 fun ErrorScreenPreview() {
   val sampleErrors =
       listOf(
-          Error("First error message", Screen.MAP),
-          Error("Second error message", Screen.HOME),
-          Error("Third error message", Screen.PROFILE))
+          Error("First error message", Screen.Map),
+          Error("Second error message", Screen.Home),
+          Error("Third error message", Screen.Profile))
 
   ErrorScreen(
       message = "Sample error messages", onDismiss = {}, expanded = true, errors = sampleErrors)

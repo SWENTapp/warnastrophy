@@ -174,7 +174,7 @@ class GpsService(
     _positionState.update { currentState ->
       currentState.copy(result = GpsResult.Failed, errorMessage = message)
     }
-    errorHandler.addError("GPS Error: $message", Screen.MAP)
+    errorHandler.addError("GPS Error: $message", Screen.Map)
   }
 
   /**

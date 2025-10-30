@@ -68,7 +68,7 @@ class HazardsService(
         } catch (e: Exception) {
           Log.e("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
-              "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.MAP)
+              "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
         }
         delay(fetchDelayMs)
       }

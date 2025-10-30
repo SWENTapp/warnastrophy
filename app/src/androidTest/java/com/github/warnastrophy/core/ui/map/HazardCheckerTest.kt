@@ -29,6 +29,7 @@ class HazardCheckerTest {
         Hazard(
             id = 1001, // Unique ID
             type = "TC",
+            description = "Test Hazard A",
             country = "Testland",
             date = "2025-01-01",
             severity = 2.0,
@@ -43,6 +44,7 @@ class HazardCheckerTest {
         Hazard(
             id = 1002, // Unique ID
             type = "FL",
+            description = "Test Hazard B",
             country = "Testland",
             date = "2025-01-01",
             severity = 1.0,
@@ -81,6 +83,7 @@ class HazardCheckerTest {
         Hazard(
             id = 1001,
             type = "TC",
+            description = "Test Hazard A",
             country = "Testland",
             date = "2025-01-01",
             severity = 2.0,
@@ -114,6 +117,7 @@ class HazardCheckerTest {
             id = 1001,
             alertLevel = 3,
             type = "TC",
+            description = "Test Hazard A",
             country = "Testland",
             date = "2025-01-01",
             severity = 2.0,
@@ -148,6 +152,7 @@ class HazardCheckerTest {
             id = 1001,
             alertLevel = 3,
             type = "TC",
+            description = "Test Hazard A",
             country = "Testland",
             date = "2025-01-01",
             severity = 2.0,

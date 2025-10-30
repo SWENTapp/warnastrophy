@@ -18,7 +18,7 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
   @Test
   fun errorScreen_displaysErrorMessage() {
     val testErrorMessage = "Test error message"
-    val errors = listOf(Error(testErrorMessage, Screen.HOME))
+    val errors = listOf(Error(testErrorMessage, Screen.Home))
     composeTestRule.setContent {
       ErrorScreen(message = testErrorMessage, onDismiss = {}, expanded = true, errors)
     }
@@ -32,10 +32,10 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
   @Test
   fun errorScreen_correctlyDisplayErrorsFromHandler() {
     val errorHandler = ErrorHandler()
-    composeTestRule.setContent { TopBar(currentScreen = Screen.HOME, errorHandler = errorHandler) }
+    composeTestRule.setContent { TopBar(currentScreen = Screen.Home, errorHandler = errorHandler) }
 
     val testErrorMessage = "Handler error message"
-    errorHandler.addError(testErrorMessage, Screen.HOME)
+    errorHandler.addError(testErrorMessage, Screen.Home)
 
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_ERROR_ICON, useUnmergedTree = true)
