@@ -132,6 +132,14 @@ class NavigationE2ETest : UITest() {
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Contact List", ignoreCase = true)
+    // Click on existing contact, enter text, but not save it
+    composeTestRule.onNodeWithText("Messi", ignoreCase = true).assertIsDisplayed().performClick()
+    fillContactFormToEdit()
+    composeTestRule.onNodeWithTag(NavigationTestTags.BUTTON_BACK).performClick()
+    composeTestRule
+        .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
+        .assertTextContains("Contact List", ignoreCase = true)
+    composeTestRule.onNodeWithText("Messi", ignoreCase = true).assertIsDisplayed()
     // Click on existing contact and edit it
     composeTestRule.onNodeWithText("Messi", ignoreCase = true).assertIsDisplayed().performClick()
     fillContactFormToEdit()
