@@ -50,7 +50,6 @@ fun WarnastrophyApp() {
         Screen.ContactList.route -> Screen.ContactList
         Screen.HealthCard.route -> Screen.HealthCard
 
-
         // For screens with arguments, use the route pattern that matches the base route.
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
@@ -102,7 +101,10 @@ fun WarnastrophyApp() {
 
                 id?.let {
                   EditContactScreen(onDone = { navigationActions.goBack() }, contactID = id)
-                } ?: run { Toast.makeText(ctx, "Contact ID is null", Toast.LENGTH_SHORT).show() }
+                }
+                    ?: run {
+                      Toast.makeText(context, "Contact ID is null", Toast.LENGTH_SHORT).show()
+                    }
               }
             }
       }
