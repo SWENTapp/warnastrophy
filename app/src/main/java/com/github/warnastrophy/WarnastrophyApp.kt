@@ -1,6 +1,5 @@
 package com.github.warnastrophy
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -71,11 +70,7 @@ fun WarnastrophyApp() {
       topBar = {
         TopBar(
             currentScreen,
-            canNavigateBack =
-                currentScreen is Screen.AddContact ||
-                    currentScreen is Screen.EditContact ||
-                    currentScreen is Screen.ContactList ||
-                    currentScreen is Screen.HealthCard,
+            canNavigateBack = !currentScreen.isTopLevelDestination,
             navigateUp = { navigationActions.goBack() })
       }) { innerPadding ->
         NavHost(
@@ -105,11 +100,7 @@ fun WarnastrophyApp() {
 
                 id?.let {
                   EditContactScreen(onDone = { navigationActions.goBack() }, contactID = id)
-                }
-                    ?: run {
-                      Log.e("EditContactScreen", "Contact ID is null")
-                      Toast.makeText(ctx, "Contact ID is null", Toast.LENGTH_SHORT).show()
-                    }
+                } ?: run { Toast.makeText(ctx, "Contact ID is null", Toast.LENGTH_SHORT).show() }
               }
             }
       }
