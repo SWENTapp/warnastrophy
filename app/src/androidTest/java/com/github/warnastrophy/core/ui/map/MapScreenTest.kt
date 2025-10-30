@@ -3,8 +3,8 @@ package com.github.warnastrophy.core.ui.map
 import android.Manifest
 import android.content.Context
 import android.os.Build
-import androidx.compose.runtime.MutableState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext

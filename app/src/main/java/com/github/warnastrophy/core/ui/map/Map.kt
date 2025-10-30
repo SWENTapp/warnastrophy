@@ -1,11 +1,9 @@
 package com.github.warnastrophy.core.ui.map
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -51,8 +49,8 @@ import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.util.findActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.CameraMoveStartedReason
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
@@ -192,7 +190,7 @@ fun MapScreen(
 
   LaunchedEffect(cameraPositionState.isMoving, cameraPositionState.cameraMoveStartedReason) {
     if (cameraPositionState.isMoving &&
-      cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) {
+        cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) {
       trackingLocation.value = false
     }
   }
@@ -202,29 +200,26 @@ fun MapScreen(
       Loading()
     } else {
       GoogleMap(
-        modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-        cameraPositionState = cameraPositionState,
-        uiSettings =
-          MapUiSettings(
-            myLocationButtonEnabled = false,
-            zoomControlsEnabled = false,
-            mapToolbarEnabled = false
-          ),
-        properties = MapProperties(isMyLocationEnabled = granted)
-      ) {
-        Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
-        hazardState.forEach { hazard ->
-          hazard.coordinates?.forEach { coord ->
-            val loc = Location.toLatLng(coord)
-            Marker(
-              state = MarkerState(position = loc),
-              title = "${hazard.type} in ${hazard.country}",
-              snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-              icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type))
-            )
+          modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+          cameraPositionState = cameraPositionState,
+          uiSettings =
+              MapUiSettings(
+                  myLocationButtonEnabled = false,
+                  zoomControlsEnabled = false,
+                  mapToolbarEnabled = false),
+          properties = MapProperties(isMyLocationEnabled = granted)) {
+            Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
+            hazardState.forEach { hazard ->
+              hazard.coordinates?.forEach { coord ->
+                val loc = Location.toLatLng(coord)
+                Marker(
+                    state = MarkerState(position = loc),
+                    title = "${hazard.type} in ${hazard.country}",
+                    snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
+                    icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type)))
+              }
+            }
           }
-        }
-      }
       TrackLocationButton(trackingLocation)
     }
 
