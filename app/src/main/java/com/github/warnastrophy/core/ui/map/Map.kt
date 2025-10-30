@@ -32,16 +32,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.warnastrophy.core.model.ErrorHandler
-import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
-import com.github.warnastrophy.core.ui.navigation.Screen
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -72,20 +68,13 @@ data class MapScreenTestHooks(
 fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
-    testHooks: MapScreenTestHooks = MapScreenTestHooks(),
-    errorHandler: ErrorHandler = viewModel()
+    testHooks: MapScreenTestHooks = MapScreenTestHooks()
 ) {
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
   val fetcherState by hazardsService.fetcherState.collectAsState()
-  val hazardsState = fetcherState.hazards
+  val hazards = fetcherState.hazards
   val positionState by gpsService.positionState.collectAsState()
-
-  val errorMsg = errorHandler.getScreenErrors(Screen.MAP)
-
-  if (errorMsg.isNotEmpty()) {
-    errorHandler.clear()
-  }
 
   val activity = remember { context.findActivity() }
 
@@ -200,8 +189,6 @@ fun MapScreen(
     }
   }
 
-  var hazardsList = remember { emptyList<Hazard>() }
-
   LaunchedEffect(positionState.position, granted) {
     if (granted && !positionState.isLoading) {
       cameraPositionState.animate(
@@ -209,8 +196,6 @@ fun MapScreen(
           1000) // 1 second animation)
     }
   }
-
-  LaunchedEffect(hazardsState) { hazardsList = hazardsState }
 
   Box(Modifier.fillMaxSize()) {
     if (granted && positionState.isLoading) {
@@ -220,8 +205,8 @@ fun MapScreen(
             modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = granted)) {
-              Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
-              hazardsList.forEach { hazard ->
+              Log.d("Log", "Rendering ${hazards.size} hazards on the map")
+              hazards.forEach { hazard ->
                 hazard.coordinates?.forEach { coord ->
                   val loc = Location.toLatLng(coord)
                   Marker(

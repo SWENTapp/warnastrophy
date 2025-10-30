@@ -15,7 +15,7 @@ class ErrorHandler : ViewModel() {
   }
 
   fun getScreenErrors(screen: Screen): String {
-    return _errors.value.errors
+    return errors.value.errors
         .filter { it.screenType == screen }
         .joinToString(separator = "\n") { it.message }
   }

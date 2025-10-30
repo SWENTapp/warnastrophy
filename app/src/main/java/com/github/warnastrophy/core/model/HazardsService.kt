@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.model
 
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
@@ -45,6 +46,8 @@ class HazardsService(
   init {
     serviceScope.launch {
       while (isActive) {
+        // for now we only use a fixed polygon from the repository provider
+        /*
         val currPosition =
             Location(
                 latitude = gpsService.positionState.value.position.latitude,
@@ -56,8 +59,9 @@ class HazardsService(
                 AppConfig.rectangleHazardZone.second)
 
         val wktPolygon = Location.locationsToWktPolygon(polygon)
+           */
         try {
-          val hazards = fetchHazards(wktPolygon)
+          val hazards = fetchHazards(HazardRepositoryProvider.locationPolygon)
           _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
         } catch (e: Exception) {
           errorHandler.addError(

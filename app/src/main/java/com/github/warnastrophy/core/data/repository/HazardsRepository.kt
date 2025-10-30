@@ -34,7 +34,6 @@ class HazardsRepository : HazardsDataSource {
               connectTimeout = 15000
               readTimeout = 15000
             }
-        var message: String = ""
         try {
           val code = conn.responseCode
           val stream = if (code in 200..299) conn.inputStream else conn.errorStream

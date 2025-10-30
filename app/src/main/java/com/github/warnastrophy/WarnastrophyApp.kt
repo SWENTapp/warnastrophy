@@ -14,7 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.data.repository.HazardsRepository
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.HazardsService
@@ -43,7 +43,7 @@ fun WarnastrophyApp() {
   val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
   val gpsService = GpsService(locationClient, errorHandler)
 
-  val hazardsRepository = HazardsRepository()
+  val hazardsRepository = HazardRepositoryProvider.repository
   val hazardsService = HazardsService(hazardsRepository, gpsService, errorHandler)
 
   var showErrors by remember { mutableStateOf(false) }
@@ -64,10 +64,7 @@ fun WarnastrophyApp() {
         NavHost(navController, HOME.name, modifier = Modifier.padding(innerPadding)) {
           composable(HOME.name) { HomeScreen() }
           composable(MAP.name) {
-            MapScreen(
-                hazardsService = hazardsService,
-                gpsService = gpsService,
-                errorHandler = errorHandler)
+            MapScreen(hazardsService = hazardsService, gpsService = gpsService)
           }
           composable(PROFILE.name) { ProfileScreen() }
         }
