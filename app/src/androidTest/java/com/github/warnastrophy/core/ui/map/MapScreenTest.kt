@@ -40,6 +40,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
           Hazard(
               id = 1,
               type = "FL", // will map to HUE_GREEN
+              description = null,
               country = null,
               date = null,
               severity = null,
@@ -50,6 +51,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
           Hazard(
               id = 2,
               type = "EQ", // will map to HUE_RED
+              description = null,
               country = null,
               date = null,
               severity = null,

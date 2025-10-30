@@ -22,6 +22,7 @@ class HazardsServiceTests {
           Hazard(
               id = 1,
               type = null,
+              description = null,
               country = null,
               date = null,
               severity = null,
@@ -32,6 +33,7 @@ class HazardsServiceTests {
           Hazard(
               id = 2,
               type = null,
+              description = null,
               country = null,
               date = null,
               severity = null,

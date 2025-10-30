@@ -1,5 +1,8 @@
 package com.github.warnastrophy.core.ui.map
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
@@ -27,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
@@ -39,8 +41,6 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
@@ -182,16 +182,17 @@ fun MapScreen(
             cameraPositionState = cameraPositionState,
             properties = MapProperties(isMyLocationEnabled = granted)) {
               Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
-              hazardState.forEach { hazard ->
-                hazard.coordinates?.forEach { coord ->
-                  val loc = Location.toLatLng(coord)
-                  Marker(
-                      state = MarkerState(position = loc),
-                      title = "${hazard.type} in ${hazard.country}",
-                      snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
-                      icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type)))
-                }
-              }
+              val severities =
+                  hazardState
+                      .filter { it.type != null && it.severity != null }
+                      .groupBy { it.type }
+                      .map {
+                        val minSev = it.value.minOf { hazard -> hazard.severity ?: 0.0 }
+                        val maxSev = it.value.maxOf { hazard -> hazard.severity ?: 0.0 }
+                        (it.key ?: "Unknown") to (Pair(minSev, maxSev))
+                      }
+                      .toMap()
+              hazardState.forEach { hazard -> HazardMarker(hazard, severities) }
             }
 
     if (granted && !positionState.isLoading) {
@@ -251,6 +252,16 @@ fun MapScreen(
   }
 }
 
+private fun Context.findActivity(): Activity? =
+    when (this) {
+      is Activity -> this
+      is ContextWrapper -> baseContext.findActivity()
+      else -> null
+    }
+
+/** TODO: Potentially removable after switching to custom markers with MapIcons */
+@JvmSynthetic // keeps it out of Java API, no-op for Kotlin
+@kotlin.jvm.JvmName("markerHueForType")
 internal fun markerHueFor(type: String?): Float =
     when (type) {
       "FL" -> BitmapDescriptorFactory.HUE_GREEN
