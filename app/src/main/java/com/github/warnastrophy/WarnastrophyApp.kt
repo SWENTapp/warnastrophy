@@ -13,7 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.data.repository.HazardsRepository
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.HazardsService
 import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
@@ -64,7 +64,7 @@ fun WarnastrophyApp() {
   val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
   val gpsService = GpsService(locationClient)
 
-  val hazardsRepository = HazardsRepository()
+  val hazardsRepository = HazardRepositoryProvider.repository
   val hazardsService = HazardsService(hazardsRepository, gpsService)
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
