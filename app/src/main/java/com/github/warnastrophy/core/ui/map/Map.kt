@@ -228,7 +228,7 @@ fun MapScreen(
               MapUiSettings(
                   myLocationButtonEnabled = false,
                   zoomControlsEnabled = false,
-              ),
+                  mapToolbarEnabled = false),
           properties = MapProperties(isMyLocationEnabled = granted)) {
             Log.d("Log", "Rendering ${hazardsList.size} hazards on the map")
             hazardsList.forEach { hazard ->
