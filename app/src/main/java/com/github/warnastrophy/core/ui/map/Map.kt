@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.map
 
-import android.app.Activity
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
@@ -15,12 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -33,6 +34,7 @@ import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.util.findActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -58,8 +60,18 @@ fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
     testHooks: MapScreenTestHooks = MapScreenTestHooks(),
-    activity: Activity
 ) {
+  val activity = LocalContext.current.findActivity()
+
+  if (activity == null) {
+    // safe fallback UI. It prevents a crash and informs the developer.
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+      Text("Error: Map screen cannot function without an Activity context.")
+    }
+    // Stop executing the rest of the composable.
+    return
+  }
+
   val locationPermissions = AppPermissions.LocationFine
 
   val cameraPositionState = rememberCameraPositionState()
@@ -71,10 +83,10 @@ fun MapScreen(
 
   // Recompute permissions whenever isOsRequestInFlight changes, e.g., after returning from a
   // permission prompt.
-  val permissionsResult by
-      remember(isOsRequestInFlight) {
-        mutableStateOf(permissionsManager.getPermissionResult(locationPermissions))
-      }
+  val permissionsResult: PermissionResult by remember {
+    derivedStateOf { permissionsManager.getPermissionResult(locationPermissions) }
+  }
+
   var granted by
       remember(permissionsResult, testHooks.forceLocationPermission) {
         mutableStateOf(

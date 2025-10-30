@@ -76,15 +76,8 @@ class MapScreenTest : BaseAndroidComposeTest() {
           @androidx.compose.runtime.Composable {
             if (testHooks != null) {
               MapScreen(
-                  gpsService = gpsService,
-                  hazardsService = hazardService,
-                  testHooks = testHooks,
-                  activity = composeTestRule.activity)
-            } else
-                MapScreen(
-                    gpsService = gpsService,
-                    hazardsService = hazardService,
-                    activity = composeTestRule.activity)
+                  gpsService = gpsService, hazardsService = hazardService, testHooks = testHooks)
+            } else MapScreen(gpsService = gpsService, hazardsService = hazardService)
           }
       relaunchKey?.let { key(it.value) { content() } } ?: content()
     }
