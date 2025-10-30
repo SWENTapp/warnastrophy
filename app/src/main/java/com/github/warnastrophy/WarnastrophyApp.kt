@@ -61,7 +61,7 @@ fun WarnastrophyApp() {
 
   val startDestination = Home.route
   val locationClient = LocationServices.getFusedLocationProviderClient(context)
-  
+
   val errorHandler = ErrorHandler()
 
   val gpsService = GpsService(locationClient, errorHandler)

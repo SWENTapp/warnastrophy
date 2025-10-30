@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,10 +26,10 @@ import com.github.warnastrophy.core.ui.error.ErrorScreen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
-  currentScreen: Screen, 
-  errorHandler: ErrorHandler = ErrorHandler(), 
-  canNavigateBack: Boolean = false, 
-  navigateUp: () -> Unit = {}
+    currentScreen: Screen,
+    errorHandler: ErrorHandler = ErrorHandler(),
+    canNavigateBack: Boolean = false,
+    navigateUp: () -> Unit = {}
 ) {
   if (!currentScreen.hasTopBar) return
 
@@ -71,8 +71,7 @@ fun TopBar(
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
               }
         }
-      }
-  )
+      })
 }
 
 @Preview
