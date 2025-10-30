@@ -66,9 +66,10 @@ class HazardsRepository : HazardsDataSource {
         if (hazard != null) hazards.add(hazard)
       }
     } catch (e: Exception) {
-      Log.d(TAGrep, "No hazards found: $e")
+      Log.d(TAGrep, "No hazards found: $e for geometry: $geometry")
       return emptyList()
     }
+    Log.d(TAGrep, "Fetched ${hazards.size} hazards for geometry: $geometry")
     return hazards
   }
 

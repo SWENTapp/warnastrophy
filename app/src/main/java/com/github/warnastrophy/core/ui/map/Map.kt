@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.warnastrophy.core.model.AppPermissions
-import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PermissionManager
@@ -151,7 +150,7 @@ fun MapScreen(
     }
   }
 
-  var hazardsList = remember { emptyList<Hazard>() }
+  val hazardsList = hazardState
 
   LaunchedEffect(positionState.position, granted) {
     if (granted && !positionState.isLoading) {
@@ -160,8 +159,6 @@ fun MapScreen(
           1000) // 1 second animation)
     }
   }
-
-  LaunchedEffect(hazardState) { hazardsList = hazardState }
 
   Box(Modifier.fillMaxSize()) {
     if (granted && positionState.isLoading) {
@@ -177,7 +174,7 @@ fun MapScreen(
                   val loc = Location.toLatLng(coord)
                   Marker(
                       state = MarkerState(position = loc),
-                      title = "Marker in Haiti",
+                      title = "${hazard.type} in ${hazard.country}",
                       snippet = "Lat: ${loc.latitude}, Lng: ${loc.longitude}",
                       icon = BitmapDescriptorFactory.defaultMarker(markerHueFor(hazard.type)))
                 }
