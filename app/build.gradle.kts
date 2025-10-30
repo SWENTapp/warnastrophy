@@ -263,6 +263,9 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
 
+    implementation("org.locationtech.jts:jts-core:1.20.0")
+    implementation("org.locationtech.jts.io:jts-io-common:1.20.0")
+
 }
 
 tasks.withType<Test> {

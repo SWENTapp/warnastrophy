@@ -1,11 +1,6 @@
 package com.github.warnastrophy.core.ui.map
 
-import android.Manifest
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -19,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,16 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import androidx.core.net.toUri
+import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.model.PermissionManager
+import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.util.findActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -49,12 +46,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
   const val USER_LOCATION = "userLocation" // tiny probe to check if shown
-}
-
-private enum class LocPermStatus {
-  GRANTED,
-  GIVEN_TEMP,
-  DENIED_PERMANENT
+  const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
 }
 
 data class MapScreenTestHooks(
@@ -68,71 +60,52 @@ data class MapScreenTestHooks(
 fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
-    testHooks: MapScreenTestHooks = MapScreenTestHooks()
+    testHooks: MapScreenTestHooks = MapScreenTestHooks(),
 ) {
-  val context = LocalContext.current
+  val activity = LocalContext.current.findActivity()
+
+  if (activity == null) {
+    // safe fallback UI. It prevents a crash and informs the developer.
+    Box(
+        modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR),
+        contentAlignment = Alignment.Center) {
+          Text("Error: Map screen cannot function without an Activity context.")
+        }
+    // Stop executing the rest of the composable.
+    return
+  }
+
+  val locationPermissions = AppPermissions.LocationFine
+
   val cameraPositionState = rememberCameraPositionState()
   val fetcherState by hazardsService.fetcherState.collectAsState()
   val hazards = fetcherState.hazards
   val positionState by gpsService.positionState.collectAsState()
 
-  val activity = remember { context.findActivity() }
-
-  //  prefs to track first launch & whether we ever asked
-  val prefs = remember { context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE) }
-  var firstLaunchDone by remember { mutableStateOf(prefs.getBoolean("first_launch_done", false)) }
-  var askedOnce by remember { mutableStateOf(prefs.getBoolean("loc_asked_once", false)) }
-
   var isOsRequestInFlight by remember { mutableStateOf(false) }
+  val permissionsManager = remember { PermissionManager(activity) }
 
-  fun hasPermission(): Boolean {
-    return testHooks.forceLocationPermission
-        ?: run {
-          val fine =
-              ContextCompat.checkSelfPermission(
-                  context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                  PackageManager.PERMISSION_GRANTED
-          val coarse =
-              ContextCompat.checkSelfPermission(
-                  context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                  PackageManager.PERMISSION_GRANTED
-          return fine || coarse
-        }
+  // Recompute permissions whenever isOsRequestInFlight changes, e.g., after returning from a
+  // permission prompt.
+  val permissionsResult: PermissionResult by remember {
+    derivedStateOf { permissionsManager.getPermissionResult(locationPermissions) }
   }
 
-  var granted by remember { mutableStateOf(hasPermission()) }
-  var status by remember { mutableStateOf(LocPermStatus.GIVEN_TEMP) }
+  var granted by
+      remember(permissionsResult, testHooks.forceLocationPermission) {
+        mutableStateOf(
+            testHooks.forceLocationPermission ?: (permissionsResult is PermissionResult.Granted))
+      }
 
-  fun recomputeStatus(): LocPermStatus {
-    if (granted) return LocPermStatus.GRANTED
-    val showRationaleFine =
-        activity?.let {
-          ActivityCompat.shouldShowRequestPermissionRationale(
-              it, Manifest.permission.ACCESS_FINE_LOCATION)
-        } ?: false
-    val showRationaleCoarse =
-        activity?.let {
-          ActivityCompat.shouldShowRequestPermissionRationale(
-              it, Manifest.permission.ACCESS_COARSE_LOCATION)
-        } ?: false
-    val showRationale = showRationaleFine || showRationaleCoarse
-    return if (!showRationale && askedOnce) LocPermStatus.DENIED_PERMANENT
-    else LocPermStatus.GIVEN_TEMP
-  }
-
-  LaunchedEffect(Unit) {
-    granted = testHooks.forceLocationPermission ?: hasPermission()
-    status = recomputeStatus()
-  }
+  //    LaunchedEffect(Unit) {
+  //        granted = testHooks.forceLocationPermission ?: (permissions is PermissionResult.Granted)
+  //    }
 
   fun applyPermissionsResult(res: Map<String, Boolean>) {
     granted = res.values.any { it }
-    if (!askedOnce) {
-      askedOnce = true
-      prefs.edit { putBoolean("loc_asked_once", true) }
-    }
-    status = recomputeStatus()
+    permissionsManager.markPermissionsAsAsked(locationPermissions)
   }
+
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res
         ->
@@ -141,32 +114,38 @@ fun MapScreen(
         applyPermissionsResult(res)
       }
 
-  LaunchedEffect(testHooks.mockPermissionsResult) {
-    testHooks.mockPermissionsResult?.let {
-      if (testHooks.forceLocationPermission != null) return@LaunchedEffect
-      applyPermissionsResult(it)
-    }
-  }
+  //    LaunchedEffect(testHooks.mockPermissionsResult) {
+  //        testHooks.mockPermissionsResult?.let {
+  //            if (testHooks.forceLocationPermission != null) return@LaunchedEffect
+  //            applyPermissionsResult(it)
+  //        }
+  //    }
 
-  LaunchedEffect(Unit) {
-    if (testHooks.forceLocationPermission != null || testHooks.mockPermissionsResult != null)
-        return@LaunchedEffect
-
-    if (!firstLaunchDone) {
-      launcher.launch(
-          arrayOf(
-              Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-      firstLaunchDone = true
-      prefs.edit().putBoolean("first_launch_done", true).apply()
-    } else {
-      if (!granted && status == LocPermStatus.GIVEN_TEMP) {
-        launcher.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION))
-      }
-    }
-  }
+  //    LaunchedEffect(Unit) {
+  //        if (testHooks.forceLocationPermission != null || testHooks.mockPermissionsResult !=
+  // null)
+  //            return@LaunchedEffect
+  //
+  //        if (!firstLaunchDone) {
+  //            launcher.launch(
+  //                arrayOf(
+  //                    Manifest.permission.ACCESS_FINE_LOCATION,
+  //                    Manifest.permission.ACCESS_COARSE_LOCATION
+  //                )
+  //            )
+  //            firstLaunchDone = true
+  //            prefs.edit().putBoolean("first_launch_done", true).apply()
+  //        } else {
+  //            if (!granted && status == LocPermStatus.GIVEN_TEMP) {
+  //                launcher.launch(
+  //                    arrayOf(
+  //                        Manifest.permission.ACCESS_FINE_LOCATION,
+  //                        Manifest.permission.ACCESS_COARSE_LOCATION
+  //                    )
+  //                )
+  //            }
+  //        }
+  //    }
 
   val requestPermissions: () -> Unit = {
     val mock = testHooks.mockPermissionsResult
@@ -176,9 +155,7 @@ fun MapScreen(
     } else {
       // real OS dialog path
       isOsRequestInFlight = true
-      launcher.launch(
-          arrayOf(
-              Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+      launcher.launch(locationPermissions.permissions)
     }
   }
 
@@ -234,17 +211,19 @@ fun MapScreen(
             modifier = Modifier.testTag(PermissionUiTags.OS_PERMISSION_TEXT))
       } else {
         val (title, msg, showAllow) =
-            when (status) {
-              LocPermStatus.GIVEN_TEMP ->
-                  Triple(
-                      "Location disabled",
-                      "Limited functionality: we can’t center the map or show nearby hazards. You can allow location now or later in Android Settings.",
-                      true)
-              LocPermStatus.DENIED_PERMANENT ->
+            when (permissionsResult) {
+              is PermissionResult.PermanentlyDenied ->
                   Triple(
                       "Location blocked",
-                      "You selected “Don’t ask again”. To enable location, open Android Settings and grant permission.",
+                      "You selected “Don’t ask again”. To enable location, " +
+                          "open Android Settings and grant permission.",
                       false)
+              is PermissionResult.Denied ->
+                  Triple(
+                      "Location disabled",
+                      "Map require fine location permissions. " +
+                          "You can allow location now or later in Android Settings.",
+                      true)
               else -> Triple("", "", false)
             }
         if (title.isNotEmpty()) {
@@ -256,9 +235,11 @@ fun MapScreen(
               onOpenSettingsClick = {
                 val intent =
                     Intent(
-                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        "package:${context.packageName}".toUri())
-                context.startActivity(intent)
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            "package:${activity.packageName}".toUri())
+                        .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                // Use the activity to start the new activity.
+                activity.startActivity(intent)
               },
               modifier =
                   Modifier.align(Alignment.BottomCenter)
@@ -271,15 +252,6 @@ fun MapScreen(
   }
 }
 
-private fun Context.findActivity(): Activity? =
-    when (this) {
-      is Activity -> this
-      is ContextWrapper -> baseContext.findActivity()
-      else -> null
-    }
-
-@JvmSynthetic // keeps it out of Java API, no-op for Kotlin
-@kotlin.jvm.JvmName("markerHueForType")
 internal fun markerHueFor(type: String?): Float =
     when (type) {
       "FL" -> BitmapDescriptorFactory.HUE_GREEN

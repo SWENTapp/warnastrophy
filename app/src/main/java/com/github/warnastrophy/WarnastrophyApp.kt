@@ -29,6 +29,8 @@ import com.google.android.gms.location.LocationServices
 
 @Composable
 fun WarnastrophyApp() {
+  val context = LocalContext.current
+
   val navController = rememberNavController()
 
   val backStackEntry by navController.currentBackStackEntryAsState()
