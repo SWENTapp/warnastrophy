@@ -46,6 +46,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
   const val USER_LOCATION = "userLocation" // tiny probe to check if shown
+  const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
 }
 
 data class MapScreenTestHooks(
@@ -65,9 +66,11 @@ fun MapScreen(
 
   if (activity == null) {
     // safe fallback UI. It prevents a crash and informs the developer.
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      Text("Error: Map screen cannot function without an Activity context.")
-    }
+    Box(
+        modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR),
+        contentAlignment = Alignment.Center) {
+          Text("Error: Map screen cannot function without an Activity context.")
+        }
     // Stop executing the rest of the composable.
     return
   }

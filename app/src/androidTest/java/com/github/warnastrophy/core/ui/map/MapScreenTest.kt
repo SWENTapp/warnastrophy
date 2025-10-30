@@ -6,10 +6,12 @@ import android.os.Build
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
@@ -81,6 +83,26 @@ class MapScreenTest : BaseAndroidComposeTest() {
           }
       relaunchKey?.let { key(it.value) { content() } } ?: content()
     }
+  }
+
+  @Test
+  fun showsFallbackError_whenNoActivityContextAvailable() {
+    // Arrange: create a fake LocalContext that is NOT an Activity or ContextWrapper of one
+    val applicationContext =
+        InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
+
+    composeTestRule.setContent {
+      // Temporarily override LocalContext
+      androidx.compose.runtime.CompositionLocalProvider(LocalContext provides applicationContext) {
+        MapScreen(
+            gpsService = gpsService,
+            hazardsService = hazardService,
+            testHooks = MapScreenTestHooks())
+      }
+    }
+
+    // Assert: the fallback box should be displayed
+    composeTestRule.onNodeWithTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
   }
 
   /**
