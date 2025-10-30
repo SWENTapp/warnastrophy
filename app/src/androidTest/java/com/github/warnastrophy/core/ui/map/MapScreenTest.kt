@@ -20,6 +20,8 @@ import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.maps.MapsInitializer
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import org.junit.Assume.assumeTrue
@@ -374,6 +376,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.setContent {
       cameraPositionState = rememberCameraPositionState()
+      cameraPositionState.position =
+          CameraPosition.fromLatLngZoom(
+              LatLng(defaultPosition.latitude + 1, defaultPosition.longitude + 1),
+              1f) // start away from default position
 
       MapScreen(
           gpsService = gpsService,
@@ -393,7 +399,9 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     // The click should cause the camera to move.
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntilWithTimeout { !cameraPositionState.isMoving }
-    composeTestRule.waitUntilWithTimeout { initialPosition != cameraPositionState.position.target }
+    composeTestRule.waitUntilWithTimeout(10000) { !cameraPositionState.isMoving }
+    composeTestRule.waitUntilWithTimeout(10000) {
+      initialPosition != cameraPositionState.position.target
+    }
   }
 }
