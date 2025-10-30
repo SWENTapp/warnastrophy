@@ -8,9 +8,9 @@ import androidx.annotation.ChecksSdkIntAtLeast
  * A sealed class to define and manage different sets of permissions required by the app. This
  * structure is scalable and allows for easy addition of new permission groups.
  *
- * The constructor uses 'vararg' to allow passing permissions as a comma-separated list, improving
- * readability at the call site. The permissions are stored as an Array<String> to avoid later
- * conversions, as Android's permission APIs expect an array.
+ * The constructor uses 'vararg' to allow passing permissions as a comma-separated list. The
+ * permissions are stored as an Array<String> to avoid later conversions, as Android's permission
+ * APIs expect an array.
  */
 sealed class AppPermissions(vararg permissionsWithNulls: String?) {
   // Filter out nulls from the incoming vararg and convert to an array.
