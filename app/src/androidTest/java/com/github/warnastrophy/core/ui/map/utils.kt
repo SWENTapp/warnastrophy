@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
+import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.FetcherState
 import com.github.warnastrophy.core.model.GpsPositionState
 import com.github.warnastrophy.core.model.Hazard
@@ -19,6 +20,8 @@ class GpsServiceMock(initial: LatLng) : PositionService {
 
   override val locationClient: FusedLocationProviderClient =
       Mockito.mock<FusedLocationProviderClient>()
+
+  override val errorHandler = ErrorHandler()
 
   override fun requestCurrentLocation() {
     // No-op for mock
@@ -40,5 +43,6 @@ class HazardServiceMock(val hazards: List<Hazard>, val position: LatLng) : Hazar
 
   override val fetcherState: StateFlow<FetcherState> = MutableStateFlow(FetcherState(hazards))
   override val gpsService: PositionService = GpsServiceMock(position)
+  override val errorHandler: ErrorHandler = ErrorHandler()
   override val repository = HazardsRepositoryMock(hazards)
 }

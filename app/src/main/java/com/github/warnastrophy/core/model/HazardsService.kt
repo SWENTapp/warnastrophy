@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.model
 
+import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -31,7 +32,7 @@ interface HazardsDataService {
 class HazardsService(
     override val repository: HazardsDataSource,
     override val gpsService: PositionService,
-    override val errorHandler: ErrorHandler,
+    override val errorHandler: ErrorHandler = ErrorHandler(),
 ) : HazardsDataService {
   /** Coroutine scope used for background hazard fetching. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
@@ -64,6 +65,7 @@ class HazardsService(
           val hazards = fetchHazards(HazardRepositoryProvider.locationPolygon)
           _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
         } catch (e: Exception) {
+          Log.e("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.MAP)
         }

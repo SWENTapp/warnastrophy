@@ -45,7 +45,7 @@ val TAG = "GpsService"
  */
 class GpsService(
     override val locationClient: FusedLocationProviderClient,
-    override val errorHandler: ErrorHandler,
+    override val errorHandler: ErrorHandler = ErrorHandler(),
 ) : PositionService {
 
   /** Coroutine scope for background operations. */

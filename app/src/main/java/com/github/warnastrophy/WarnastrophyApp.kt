@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,7 +15,6 @@ import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.HazardsService
-import com.github.warnastrophy.core.ui.error.ErrorScreen
 import com.github.warnastrophy.core.ui.home.HomeScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
@@ -46,21 +42,10 @@ fun WarnastrophyApp() {
   val hazardsRepository = HazardRepositoryProvider.repository
   val hazardsService = HazardsService(hazardsRepository, gpsService, errorHandler)
 
-  var showErrors by remember { mutableStateOf(false) }
-  var errorsMsg by remember { mutableStateOf("") }
-
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
-      topBar = {
-        TopBar(
-            currentScreen = currentScreen,
-            errorHandler = errorHandler,
-            onErrorClick = {
-              val errors = errorHandler.getScreenErrors(currentScreen)
-              errorsMsg = errors.ifBlank { "No errors" }
-              showErrors = true
-            })
-      }) { innerPadding ->
+      topBar = { TopBar(currentScreen = currentScreen, errorHandler = errorHandler) }) {
+          innerPadding ->
         NavHost(navController, HOME.name, modifier = Modifier.padding(innerPadding)) {
           composable(HOME.name) { HomeScreen() }
           composable(MAP.name) {
@@ -69,13 +54,6 @@ fun WarnastrophyApp() {
           composable(PROFILE.name) { ProfileScreen() }
         }
       }
-
-  if (showErrors) {
-    ErrorScreen(message = errorsMsg) {
-      showErrors = false
-      errorHandler.clear()
-    }
-  }
 }
 
 @Preview(showBackground = true)

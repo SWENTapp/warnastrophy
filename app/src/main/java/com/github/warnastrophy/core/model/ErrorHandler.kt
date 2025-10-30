@@ -6,25 +6,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class ErrorHandler : ViewModel() {
-  private val _errors = MutableStateFlow(ErrorState())
-  val errors: StateFlow<ErrorState> = _errors
+  private val _state = MutableStateFlow(ErrorState())
+  val state: StateFlow<ErrorState> = _state
 
   fun addError(message: String, screen: Screen) {
     if (message.isBlank()) return
-    _errors.value = _errors.value.copy(errors = _errors.value.errors + Error(message, screen))
+    if (_state.value.errors.any { it.screenType == screen && it.message == message }) return
+    _state.value = _state.value.copy(errors = _state.value.errors + Error(message, screen))
   }
 
-  fun getScreenErrors(screen: Screen): String {
-    return errors.value.errors
-        .filter { it.screenType == screen }
-        .joinToString(separator = "\n") { it.message }
-  }
-
-  fun clear() {
-    _errors.value = ErrorState()
+  fun clearAll() {
+    _state.value = ErrorState()
   }
 }
 
 data class ErrorState(val errors: List<Error> = emptyList())
+
+fun ErrorState.getScreenErrors(screen: Screen): String {
+  return errors.filter { it.screenType == screen }.joinToString(separator = "\n") { it.message }
+}
 
 data class Error(val message: String, val screenType: Screen)
