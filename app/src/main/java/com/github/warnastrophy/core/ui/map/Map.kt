@@ -1,5 +1,8 @@
 package com.github.warnastrophy.core.ui.map
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
