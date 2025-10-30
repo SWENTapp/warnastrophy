@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.model
 import android.annotation.SuppressLint
 import android.os.Looper
 import android.util.Log
+import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
@@ -28,6 +29,8 @@ interface PositionService {
 
   val locationClient: FusedLocationProviderClient
 
+  val errorHandler: ErrorHandler
+
   fun requestCurrentLocation(): Unit
 
   fun startLocationUpdates(): Unit
@@ -40,7 +43,10 @@ val TAG = "GpsService"
  *
  * @property applicationContext Application context for accessing location services.
  */
-class GpsService(override val locationClient: FusedLocationProviderClient) : PositionService {
+class GpsService(
+    override val locationClient: FusedLocationProviderClient,
+    override val errorHandler: ErrorHandler,
+) : PositionService {
 
   /** Coroutine scope for background operations. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
@@ -158,6 +164,7 @@ class GpsService(override val locationClient: FusedLocationProviderClient) : Pos
     _positionState.update { currentState ->
       currentState.copy(result = GpsResult.Failed, errorMessage = message)
     }
+    errorHandler.addError("GPS Error: $message", Screen.MAP)
   }
 
   /**

@@ -32,6 +32,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
@@ -39,6 +41,7 @@ import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.ui.navigation.Screen
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
@@ -69,12 +72,20 @@ data class MapScreenTestHooks(
 fun MapScreen(
     gpsService: PositionService,
     hazardsService: HazardsDataService,
-    testHooks: MapScreenTestHooks = MapScreenTestHooks()
+    testHooks: MapScreenTestHooks = MapScreenTestHooks(),
+    errorHandler: ErrorHandler = viewModel()
 ) {
   val context = LocalContext.current
   val cameraPositionState = rememberCameraPositionState()
-  val hazardState by hazardsService.currentHazardsState.collectAsState()
+  val fetcherState by hazardsService.fetcherState.collectAsState()
+  val hazardsState = fetcherState.hazards
   val positionState by gpsService.positionState.collectAsState()
+
+  val errorMsg = errorHandler.getScreenErrors(Screen.MAP)
+
+  if (errorMsg.isNotEmpty()) {
+    errorHandler.clear()
+  }
 
   val activity = remember { context.findActivity() }
 
@@ -199,7 +210,7 @@ fun MapScreen(
     }
   }
 
-  LaunchedEffect(hazardState) { hazardsList = hazardState }
+  LaunchedEffect(hazardsState) { hazardsList = hazardsState }
 
   Box(Modifier.fillMaxSize()) {
     if (granted && positionState.isLoading) {

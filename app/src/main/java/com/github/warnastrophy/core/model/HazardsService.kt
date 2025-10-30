@@ -1,10 +1,12 @@
 package com.github.warnastrophy.core.model
 
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
+import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.fetchDelayMs
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
@@ -18,23 +20,26 @@ interface HazardsDataService {
   val repository: HazardsDataSource
   val gpsService: PositionService
 
-  val currentHazardsState: kotlinx.coroutines.flow.StateFlow<List<Hazard>>
+  val errorHandler: ErrorHandler
+
+  val fetcherState: StateFlow<FetcherState>
 
   suspend fun fetchHazards(polygon: String, days: String = AppConfig.priorDaysFetch): List<Hazard>
 }
 
 class HazardsService(
     override val repository: HazardsDataSource,
-    override val gpsService: PositionService
+    override val gpsService: PositionService,
+    override val errorHandler: ErrorHandler,
 ) : HazardsDataService {
   /** Coroutine scope used for background hazard fetching. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
 
   /** Internal state flow holding the current list of hazards. */
-  private val _currentHazardsState = MutableStateFlow<List<Hazard>>(emptyList())
+  private val _fetcherState = MutableStateFlow(FetcherState())
 
   /** Public state flow exposing the current list of hazards. */
-  override val currentHazardsState = _currentHazardsState.asStateFlow()
+  override val fetcherState = _fetcherState.asStateFlow()
 
   /** Initializes the service and starts periodic hazard fetching based on the user's position. */
   init {
@@ -51,8 +56,13 @@ class HazardsService(
                 AppConfig.rectangleHazardZone.second)
 
         val wktPolygon = Location.locationsToWktPolygon(polygon)
-        val hazards = fetchHazards(wktPolygon)
-        _currentHazardsState.value = hazards
+        try {
+          val hazards = fetchHazards(wktPolygon)
+          _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
+        } catch (e: Exception) {
+          errorHandler.addError(
+              "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.MAP)
+        }
         delay(fetchDelayMs)
       }
     }
@@ -74,3 +84,9 @@ class HazardsService(
     serviceScope.cancel()
   }
 }
+
+data class FetcherState(
+    val hazards: List<Hazard> = emptyList(),
+    val isLoading: Boolean = false,
+    val errorMsg: String? = null
+)

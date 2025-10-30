@@ -38,14 +38,10 @@ class HazardsRepository : HazardsDataSource {
         try {
           val code = conn.responseCode
           val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-          message = BufferedReader(InputStreamReader(stream)).use { it.readText() }
-        } catch (e: Exception) {
-          Log.d("TAGrep", "$e")
+          BufferedReader(InputStreamReader(stream)).use { it.readText() }
         } finally {
           conn.disconnect()
         }
-        Log.d(TAGrep, "HTTP GET $urlStr \nResponse: $message")
-        return message
       }
 
   override suspend fun getAreaHazards(geometry: String, days: String): List<Hazard> {
@@ -57,17 +53,12 @@ class HazardsRepository : HazardsDataSource {
     }
     val hazards = mutableListOf<Hazard>()
 
-    try {
-      val jsonObject = JSONObject(response)
-      val jsonHazards = jsonObject.getJSONArray("features")
-      for (i in 0 until jsonHazards.length()) {
-        val hazardJson = jsonHazards.getJSONObject(i)
-        val hazard = parseHazard(hazardJson)
-        if (hazard != null) hazards.add(hazard)
-      }
-    } catch (e: Exception) {
-      Log.d(TAGrep, "No hazards found: $e")
-      return emptyList()
+    val jsonObject = JSONObject(response)
+    val jsonHazards = jsonObject.getJSONArray("features")
+    for (i in 0 until jsonHazards.length()) {
+      val hazardJson = jsonHazards.getJSONObject(i)
+      val hazard = parseHazard(hazardJson)
+      if (hazard != null) hazards.add(hazard)
     }
     return hazards
   }

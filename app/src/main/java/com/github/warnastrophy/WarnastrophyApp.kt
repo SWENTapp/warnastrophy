@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -12,8 +15,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.HazardsRepository
+import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.ui.error.ErrorScreen
 import com.github.warnastrophy.core.ui.home.HomeScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
@@ -28,31 +33,52 @@ import com.google.android.gms.location.LocationServices
 
 @Composable
 fun WarnastrophyApp() {
-  val ctx = LocalContext.current
-
   val navController = rememberNavController()
 
   val backStackEntry by navController.currentBackStackEntryAsState()
   val currentScreen = Screen.valueOf(backStackEntry?.destination?.route ?: HOME.name)
 
+  val errorHandler = ErrorHandler()
+
   val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
-  val gpsService = GpsService(locationClient)
+  val gpsService = GpsService(locationClient, errorHandler)
 
   val hazardsRepository = HazardsRepository()
-  val hazardsService: HazardsService = HazardsService(hazardsRepository, gpsService)
+  val hazardsService = HazardsService(hazardsRepository, gpsService, errorHandler)
+
+  var showErrors by remember { mutableStateOf(false) }
+  var errorsMsg by remember { mutableStateOf("") }
+
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
-      topBar = { TopBar(currentScreen) }) { innerPadding ->
+      topBar = {
+        TopBar(
+            currentScreen = currentScreen,
+            errorHandler = errorHandler,
+            onErrorClick = {
+              val errors = errorHandler.getScreenErrors(currentScreen)
+              errorsMsg = errors.ifBlank { "No errors" }
+              showErrors = true
+            })
+      }) { innerPadding ->
         NavHost(navController, HOME.name, modifier = Modifier.padding(innerPadding)) {
-          // TODO: Replace with actual screens
-          // TODO: Use string resources for your titles
           composable(HOME.name) { HomeScreen() }
           composable(MAP.name) {
-            MapScreen(hazardsService = hazardsService, gpsService = gpsService)
+            MapScreen(
+                hazardsService = hazardsService,
+                gpsService = gpsService,
+                errorHandler = errorHandler)
           }
           composable(PROFILE.name) { ProfileScreen() }
         }
       }
+
+  if (showErrors) {
+    ErrorScreen(message = errorsMsg) {
+      showErrors = false
+      errorHandler.clear()
+    }
+  }
 }
 
 @Preview(showBackground = true)
