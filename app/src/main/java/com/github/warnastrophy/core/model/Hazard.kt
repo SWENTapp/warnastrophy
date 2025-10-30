@@ -5,9 +5,11 @@ data class Hazard(
     val type: String?,
     val country: String?,
     val date: String?,
-    val severity: Double?,
+    val bbox: List<Double>? = null,
+    val severity: Double?, // Maybe no need because we have already alertLevel
     val severityUnit: String?,
     val reportUrl: String?,
     val alertLevel: Int?,
-    val coordinates: List<Location>?
+    val coordinates: List<Location>?,
+    val affectedZoneWkt: String? = null
 )

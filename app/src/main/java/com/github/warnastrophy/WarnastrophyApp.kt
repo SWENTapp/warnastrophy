@@ -34,7 +34,7 @@ import com.google.android.gms.location.LocationServices
 
 @Composable
 fun WarnastrophyApp() {
-  val ctx = LocalContext.current
+  val context = LocalContext.current
 
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
@@ -50,6 +50,7 @@ fun WarnastrophyApp() {
         Screen.ContactList.route -> Screen.ContactList
         Screen.HealthCard.route -> Screen.HealthCard
 
+
         // For screens with arguments, use the route pattern that matches the base route.
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
@@ -60,7 +61,8 @@ fun WarnastrophyApp() {
       }
 
   val startDestination = Home.route
-  val locationClient = LocationServices.getFusedLocationProviderClient(LocalContext.current)
+  val locationClient = LocationServices.getFusedLocationProviderClient(context)
+
   val gpsService = GpsService(locationClient)
 
   val hazardsRepository = HazardRepositoryProvider.repository
