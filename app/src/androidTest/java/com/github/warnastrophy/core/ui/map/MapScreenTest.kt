@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.ui.map
 import android.Manifest
 import android.content.Context
 import android.os.Build
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -10,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
@@ -21,6 +23,10 @@ import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.maps.MapsInitializer
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.rememberCameraPositionState
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -313,5 +319,55 @@ class MapScreenTest : BaseAndroidComposeTest() {
         .putBoolean("first_launch_done", firstLaunchDone)
         .putBoolean("loc_asked_once", askedOnce)
         .apply()
+  }
+
+  @Test
+  fun trackLocationButtonSwitches() {
+    val isTracking = mutableStateOf(false)
+
+    composeTestRule.setContent { Box { TrackLocationButton(isTracking) } }
+
+    // Click the track location button
+    composeTestRule
+        .onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    assert(isTracking.value)
+  }
+
+  @Test
+  fun trackLocationButtonAnimatesOnClick() {
+    lateinit var cameraPositionState: CameraPositionState
+
+    composeTestRule.setContent {
+      cameraPositionState = rememberCameraPositionState()
+      cameraPositionState.position =
+          CameraPosition.fromLatLngZoom(
+              LatLng(defaultPosition.latitude + 1, defaultPosition.longitude + 1),
+              1f) // start away from default position
+
+      MapScreen(
+          gpsService = gpsService,
+          hazardsService = hazardService,
+          cameraPositionState = cameraPositionState)
+    }
+
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntilWithTimeout { !cameraPositionState.isMoving }
+
+    val initialPosition = cameraPositionState.position.target
+    // Click the track location button to start tracking and trigger the animation
+    composeTestRule
+        .onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)
+        .assertIsDisplayed()
+        .performClick()
+
+    // The click should cause the camera to move.
+    composeTestRule.waitForIdle()
+    composeTestRule.waitUntilWithTimeout(10000) { !cameraPositionState.isMoving }
+    composeTestRule.waitUntilWithTimeout(10000) {
+      initialPosition != cameraPositionState.position.target
+    }
   }
 }
