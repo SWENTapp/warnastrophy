@@ -51,6 +51,7 @@ import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
@@ -89,9 +90,8 @@ fun MapScreen(
 
   val locationPermissions = AppPermissions.LocationFine
 
-  val cameraPositionState = rememberCameraPositionState()
-  val fetcherState by hazardsService.fetcherState.collectAsState()
-  val hazards = fetcherState.hazards
+  val hazardState by hazardsService.fetcherState.collectAsState()
+  val hazards = hazardState.hazards
   val positionState by gpsService.positionState.collectAsState()
   val trackingLocation = rememberSaveable { mutableStateOf(false) }
 
@@ -195,23 +195,30 @@ fun MapScreen(
   Box(Modifier.fillMaxSize()) {
     if (granted && positionState.isLoading) {
       Loading()
-    } else
-        GoogleMap(
-            modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-            cameraPositionState = cameraPositionState,
-            properties = MapProperties(isMyLocationEnabled = granted)) {
-              val severities =
-                  hazards
-                      .filter { it.type != null && it.severity != null }
-                      .groupBy { it.type }
-                      .map {
-                        val minSev = it.value.minOf { hazard -> hazard.severity ?: 0.0 }
-                        val maxSev = it.value.maxOf { hazard -> hazard.severity ?: 0.0 }
-                        (it.key ?: "Unknown") to (Pair(minSev, maxSev))
-                      }
-                      .toMap()
-              hazards.forEach { hazard -> HazardMarker(hazard, severities) }
-            }
+    } else {
+      GoogleMap(
+          modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+          cameraPositionState = cameraPositionState,
+          uiSettings =
+              MapUiSettings(
+                  myLocationButtonEnabled = false,
+                  zoomControlsEnabled = false,
+                  mapToolbarEnabled = false),
+          properties = MapProperties(isMyLocationEnabled = granted)) {
+            val severities =
+                hazards
+                    .filter { it.type != null && it.severity != null }
+                    .groupBy { it.type }
+                    .map {
+                      val minSev = it.value.minOf { hazard -> hazard.severity ?: 0.0 }
+                      val maxSev = it.value.maxOf { hazard -> hazard.severity ?: 0.0 }
+                      (it.key ?: "Unknown") to (Pair(minSev, maxSev))
+                    }
+                    .toMap()
+            hazards.forEach { hazard -> HazardMarker(hazard, severities) }
+          }
+      TrackLocationButton(trackingLocation)
+    }
 
     if (granted && !positionState.isLoading) {
       Box(
