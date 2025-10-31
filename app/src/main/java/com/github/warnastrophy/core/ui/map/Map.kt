@@ -51,7 +51,6 @@ import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
