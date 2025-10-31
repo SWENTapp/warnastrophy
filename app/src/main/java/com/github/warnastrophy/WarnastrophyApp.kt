@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.HazardsService
 import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
@@ -49,7 +50,6 @@ fun WarnastrophyApp() {
         Screen.AddContact.route -> Screen.AddContact
         Screen.ContactList.route -> Screen.ContactList
         Screen.HealthCard.route -> Screen.HealthCard
-
         // For screens with arguments, use the route pattern that matches the base route.
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
@@ -62,17 +62,21 @@ fun WarnastrophyApp() {
   val startDestination = Home.route
   val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
-  val gpsService = GpsService(locationClient)
+  val errorHandler = ErrorHandler()
+
+  val gpsService = GpsService(locationClient, errorHandler)
 
   val hazardsRepository = HazardRepositoryProvider.repository
-  val hazardsService = HazardsService(hazardsRepository, gpsService)
+  val hazardsService = HazardsService(hazardsRepository, gpsService, errorHandler)
+
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
       topBar = {
         TopBar(
             currentScreen,
             canNavigateBack = !currentScreen.isTopLevelDestination,
-            navigateUp = { navigationActions.goBack() })
+            navigateUp = { navigationActions.goBack() },
+            errorHandler = errorHandler)
       }) { innerPadding ->
         NavHost(
             navController,

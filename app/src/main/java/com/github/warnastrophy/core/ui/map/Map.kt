@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -91,7 +90,8 @@ fun MapScreen(
 
   val locationPermissions = AppPermissions.LocationFine
 
-  val hazardState by hazardsService.currentHazardsState.collectAsState()
+  val hazardState by hazardsService.fetcherState.collectAsState()
+  val hazards = hazardState.hazards
   val positionState by gpsService.positionState.collectAsState()
   val trackingLocation = rememberSaveable { mutableStateOf(false) }
 
@@ -205,9 +205,8 @@ fun MapScreen(
                   zoomControlsEnabled = false,
                   mapToolbarEnabled = false),
           properties = MapProperties(isMyLocationEnabled = granted)) {
-            Log.d("Log", "Rendering ${hazardState.size} hazards on the map")
             val severities =
-                hazardState
+                hazards
                     .filter { it.type != null && it.severity != null }
                     .groupBy { it.type }
                     .map {
@@ -216,7 +215,7 @@ fun MapScreen(
                       (it.key ?: "Unknown") to (Pair(minSev, maxSev))
                     }
                     .toMap()
-            hazardState.forEach { hazard -> HazardMarker(hazard, severities) }
+            hazards.forEach { hazard -> HazardMarker(hazard, severities) }
           }
       TrackLocationButton(trackingLocation)
     }

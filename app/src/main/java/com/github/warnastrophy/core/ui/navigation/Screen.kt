@@ -12,6 +12,7 @@ import com.github.warnastrophy.R
 
 object NavigationTestTags {
   const val TOP_BAR_TITLE = "topBarTitle"
+  const val TOP_BAR_ERROR_ICON = "TopBar_ErrorIcon"
   const val BOTTOM_NAV = "bottomNav"
   const val TAB_MAP = "tabMap"
   const val TAB_PROFILE = "tabProfile"
