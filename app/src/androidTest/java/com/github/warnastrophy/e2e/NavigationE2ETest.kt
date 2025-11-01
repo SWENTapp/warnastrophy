@@ -31,7 +31,7 @@ class NavigationE2ETest : UITest() {
   fun testTagsAreCorrectlySet() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).assertIsDisplayed()
   }
@@ -54,7 +54,7 @@ class NavigationE2ETest : UITest() {
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Map", ignoreCase = true)
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Home", ignoreCase = true)
@@ -67,7 +67,7 @@ class NavigationE2ETest : UITest() {
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Profile", ignoreCase = true)
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Home", ignoreCase = true)
@@ -77,7 +77,7 @@ class NavigationE2ETest : UITest() {
   fun can_visit_all_tabs_in_sequence() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
 
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
@@ -103,7 +103,7 @@ class NavigationE2ETest : UITest() {
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Profile", ignoreCase = true)
     // Go to Home
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Home", ignoreCase = true)
