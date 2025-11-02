@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.dangerModeCard
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -43,7 +43,7 @@ object DangerModeTestTags {
 }
 
 @Composable
-fun DangerModeCard() {
+fun DangerModeCard(modifier: Modifier = Modifier) {
   var dangerEnabled by remember { mutableStateOf(false) }
 
   StandardDashboardCard(

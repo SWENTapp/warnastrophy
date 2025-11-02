@@ -16,9 +16,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCard
+import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+
+object DashboardScreenTestTags {
+  const val ROOT_SCROLL = "dashboard_rootScroll"
+  const val TOP_BAR = "dashboard_topBar"
+  const val LATEST_NEWS_SECTION = "dashboard_latestNewsSection"
+  const val MAP_PREVIEW_SECTION = "dashboard_mapPreviewSection"
+  const val ROW_TWO_SMALL_CARDS = "dashboard_twoSmallCardsRow"
+  const val DANGER_MODE_SECTION = "dashboard_dangerModeSection"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,28 +41,44 @@ fun DashboardScreen() {
             Modifier.padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF5F5F5))) {
-          SafeZoneTopBar()
+                .background(Color(0xFFF5F5F5))
+                .testTag(DashboardScreenTestTags.ROOT_SCROLL)) {
+          SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            LatestNewsCard()
+            LatestNewsCard(
+                modifier =
+                    Modifier.testTag(
+                        DashboardScreenTestTags
+                            .LATEST_NEWS_SECTION)) // not yet implemented in final form, but
+            // composable exists
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            MapPreviewCard()
+            MapPreviewCard(
+                modifier =
+                    Modifier.testTag(
+                        DashboardScreenTestTags.MAP_PREVIEW_SECTION)) // not yet implemented
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                  EmergencyContactsCard(modifier = Modifier.weight(1f))
-                  HealthCardPreview(modifier = Modifier.weight(1f))
-                }
+                  EmergencyContactsCard(
+                      modifier =
+                          Modifier.weight(1f)
+                              .testTag(EmergencyContactsTestTags.CARD)) // not yet implemented
+                  HealthCardPreview(
+                      modifier =
+                          Modifier.testTag(HealthCardPreviewTestTags.CARD)
+                              .weight(1f)) // not yet implemented
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            DangerModeCard()
+            DangerModeCard(modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION))
 
             Spacer(modifier = Modifier.height(80.dp))
           }
