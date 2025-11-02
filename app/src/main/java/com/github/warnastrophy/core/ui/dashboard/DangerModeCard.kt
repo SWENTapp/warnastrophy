@@ -25,22 +25,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 
+object DangerModeTestTags {
+  const val CARD = "dangerModeCard"
+  const val SWITCH = "dangerModeSwitch"
+  const val TITLE = "dangerModeTitle"
+  const val MODE_LABEL = "dangerModeCurrentMode"
+  const val SENDS_ROW = "dangerModeSendsRow"
+  const val COLOR_ROW = "dangerModeColorRow"
+  const val OPEN_BUTTON = "dangerModeOpenBtn"
+}
+
 @Composable
 fun DangerModeCard() {
   var dangerEnabled by remember { mutableStateOf(false) }
 
   StandardDashboardCard(
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().testTag(DangerModeTestTags.CARD),
       backgroundColor = Color(0xFFFFEBEE),
       borderColor = Color(0xFFE57373)) {
         Column(modifier = Modifier.padding(16.dp)) {
           Text(
+              modifier = Modifier.testTag(DangerModeTestTags.TITLE),
               text = "Danger Mode",
               color = Color(0xFF424242),
               fontWeight = FontWeight.Bold,
@@ -49,7 +61,10 @@ fun DangerModeCard() {
               modifier = Modifier.fillMaxWidth().offset(y = (-10).dp),
               horizontalArrangement = Arrangement.End,
               verticalAlignment = Alignment.CenterVertically) {
-                Switch(checked = dangerEnabled, onCheckedChange = { dangerEnabled = it })
+                Switch(
+                    checked = dangerEnabled,
+                    onCheckedChange = { dangerEnabled = it },
+                    modifier = Modifier.testTag(DangerModeTestTags.SWITCH))
               }
           Column() {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -59,27 +74,32 @@ fun DangerModeCard() {
                   text = "Climbing mode",
                   color = Color.Black,
                   fontSize = 15.sp,
-                  fontWeight = FontWeight.Medium)
+                  fontWeight = FontWeight.Medium,
+                  modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL))
             }
             Spacer(modifier = Modifier.width(24.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(text = "Sends", color = Color(0xFF757575), fontSize = 13.sp)
-              Spacer(modifier = Modifier.width(20.dp))
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StandardDashboardButton(color = Color(0xFFC6E3C6), "Call")
-                StandardDashboardButton(color = Color(0xFFC6E3C6), "SMS")
-                StandardDashboardButton(color = Color(0xFFC6E3C6), "Location")
-              }
-            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.testTag(DangerModeTestTags.SENDS_ROW)) {
+                  Text(text = "Sends", color = Color(0xFF757575), fontSize = 13.sp)
+                  Spacer(modifier = Modifier.width(20.dp))
+                  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StandardDashboardButton(color = Color(0xFFC6E3C6), "Call")
+                    StandardDashboardButton(color = Color(0xFFC6E3C6), "SMS")
+                    StandardDashboardButton(color = Color(0xFFC6E3C6), "Location")
+                  }
+                }
           }
 
           Spacer(modifier = Modifier.height(12.dp))
           // Color squares row (danger level presets)
-          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DangerColorBox(Color(0xFF4CAF50)) // green
-            DangerColorBox(Color(0xFFFFEB3B)) // yellow
-            DangerColorBox(Color(0xFFFFC107)) // amber-ish
-            DangerColorBox(Color(0xFFD32F2F)) // red
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              modifier = Modifier.testTag(DangerModeTestTags.COLOR_ROW)) {
+                DangerColorBox(Color(0xFF4CAF50)) // green
+                DangerColorBox(Color(0xFFFFEB3B)) // yellow
+                DangerColorBox(Color(0xFFFFC107)) // amber-ish
+                DangerColorBox(Color(0xFFD32F2F)) // red
           }
 
           Spacer(modifier = Modifier.height(24.dp))
@@ -89,7 +109,10 @@ fun DangerModeCard() {
                 shape = RoundedCornerShape(40.dp),
                 color = Color(0xFFE0E0E0),
                 tonalElevation = 0.dp,
-                modifier = Modifier.fillMaxWidth(0.9f).height(36.dp),
+                modifier =
+                    Modifier.fillMaxWidth(0.9f)
+                        .height(36.dp)
+                        .testTag(DangerModeTestTags.OPEN_BUTTON),
             ) {
               Box(
                   modifier =

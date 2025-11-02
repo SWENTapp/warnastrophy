@@ -23,41 +23,39 @@ import com.github.warnastrophy.core.ui.theme.MainAppTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
-  Scaffold(
-      containerColor = Color(0xFFF5F5F5) // light neutral behind cards
-      ) { innerPadding ->
-        Column(
-            modifier =
-                Modifier.padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .background(Color(0xFFF5F5F5))) {
-              SafeZoneTopBar()
+  Scaffold(containerColor = Color(0xFFF5F5F5)) { innerPadding ->
+    Column(
+        modifier =
+            Modifier.padding(innerPadding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .background(Color(0xFFF5F5F5))) {
+          SafeZoneTopBar()
 
-              Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                LatestNewsCard()
+          Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            LatestNewsCard()
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                MapPreviewCard()
+            MapPreviewCard()
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                      EmergencyContactsCard(modifier = Modifier.weight(1f))
-                      HealthCardPreview(modifier = Modifier.weight(1f))
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                  EmergencyContactsCard(modifier = Modifier.weight(1f))
+                  HealthCardPreview(modifier = Modifier.weight(1f))
+                }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-                DangerModeCard()
+            DangerModeCard()
 
-                Spacer(modifier = Modifier.height(80.dp)) // breathing room above bottom bar
-              }
-            }
-      }
+            Spacer(modifier = Modifier.height(80.dp))
+          }
+        }
+  }
 }
 
 @Preview
