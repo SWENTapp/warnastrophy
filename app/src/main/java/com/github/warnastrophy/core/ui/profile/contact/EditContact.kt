@@ -29,8 +29,8 @@ object EditContactTestTags {
   const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
   const val ERROR_MESSAGE = "errorMessage"
   const val INPUT_RELATIONSHIP = "inputRelationship"
-  const val CONTACT_SAVE = "contactSave"
-  const val CONTACT_DELETE = "contactDelete"
+  const val SAVE_BUTTON = "contactSave"
+  const val DELETE_BUTTON = "contactDelete"
 }
 
 /**
@@ -136,7 +136,7 @@ fun EditContactScreen(
             onClick = { editContactViewModel.editContact(contactID) },
             enabled = isSaveButtonValid,
             modifier =
-                Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.CONTACT_SAVE)) {
+                Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.SAVE_BUTTON)) {
               Text("Save Contact")
             }
 
@@ -151,7 +151,7 @@ fun EditContactScreen(
                     disabledContainerColor = Color.Gray,
                     disabledContentColor = Color.DarkGray),
             modifier =
-                Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.CONTACT_DELETE)) {
+                Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.DELETE_BUTTON)) {
               Text("Delete", color = Color.White)
             }
       }

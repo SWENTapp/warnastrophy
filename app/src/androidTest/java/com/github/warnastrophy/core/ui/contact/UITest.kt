@@ -8,7 +8,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
@@ -16,8 +15,8 @@ import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 
-abstract class ContactScreenTest : BaseAndroidComposeTest() {
-  val repository: ContactsRepository = MockContactRepository()
+abstract class UITest : BaseAndroidComposeTest() {
+  lateinit var repository: ContactsRepository
 
   /**
    * Enters the provided full name into the Full Name input field on the Edit Contact screen,
@@ -85,11 +84,16 @@ abstract class ContactScreenTest : BaseAndroidComposeTest() {
    * @param waitForRedirection If true, the function waits until the save button is gone from the
    *   hierarchy.
    */
-  fun ComposeTestRule.clickOnSaveForAddContact(waitForRedirection: Boolean = false) {
-    onNodeWithTag(AddContactTestTags.CONTACT_SAVE).assertIsDisplayed().performClick()
+  fun ComposeTestRule.clickOnSaveContact(waitForRedirection: Boolean = false, testTag: String) {
+    onNodeWithTag(testTag).assertIsDisplayed().performClick()
     waitUntil(defaultTimeout) {
       !waitForRedirection ||
-          onAllNodesWithTag(AddContactTestTags.CONTACT_SAVE).fetchSemanticsNodes().isEmpty()
+          onAllNodesWithTag(
+                  testTag =
+                      if (testTag == AddContactTestTags.SAVE_BUTTON) AddContactTestTags.SAVE_BUTTON
+                      else EditContactTestTags.SAVE_BUTTON)
+              .fetchSemanticsNodes()
+              .isEmpty()
     }
   }
 

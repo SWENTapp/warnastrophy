@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.model
 import android.annotation.SuppressLint
 import android.os.Looper
 import android.util.Log
+import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
@@ -20,7 +21,9 @@ import kotlinx.coroutines.tasks.await
  * Service managing the user's GPS position. Maintains an observable state representing the current
  * position and possible errors.
  *
- * @param applicationContext Application context to access location services.
+ * @property positionState Observable state of the current GPS position and metadata.
+ * @property locationClient Location provider client for accessing fused location services.
+ * @property errorHandler Handler for managing errors related to GPS operations.
  */
 interface PositionService {
   /** Observable state representing the current GPS position and metadata. */
@@ -28,8 +31,18 @@ interface PositionService {
 
   val locationClient: FusedLocationProviderClient
 
+  val errorHandler: ErrorHandler
+
+  /**
+   * Requests the user's current location and updates [positionState] with the new position or the
+   * corresponding error.
+   */
   fun requestCurrentLocation(): Unit
 
+  /**
+   * Starts automatic location updates. Updates are received via a callback that updates
+   * [positionState].
+   */
   fun startLocationUpdates(): Unit
 }
 
@@ -40,7 +53,10 @@ val TAG = "GpsService"
  *
  * @property applicationContext Application context for accessing location services.
  */
-class GpsService(override val locationClient: FusedLocationProviderClient) : PositionService {
+class GpsService(
+    override val locationClient: FusedLocationProviderClient,
+    override val errorHandler: ErrorHandler = ErrorHandler(),
+) : PositionService {
 
   /** Coroutine scope for background operations. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
@@ -158,6 +174,7 @@ class GpsService(override val locationClient: FusedLocationProviderClient) : Pos
     _positionState.update { currentState ->
       currentState.copy(result = GpsResult.Failed, errorMessage = message)
     }
+    errorHandler.addError("GPS Error: $message", Screen.Map)
   }
 
   /**

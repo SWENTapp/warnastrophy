@@ -22,6 +22,7 @@ class HazardsServiceTests {
           Hazard(
               id = 1,
               type = null,
+              description = null,
               country = null,
               date = null,
               severity = null,
@@ -32,6 +33,7 @@ class HazardsServiceTests {
           Hazard(
               id = 2,
               type = null,
+              description = null,
               country = null,
               date = null,
               severity = null,
@@ -55,10 +57,10 @@ class HazardsServiceTests {
   fun testHazardsLoadedIntoService() = runBlocking {
     val service = HazardsService(hazardProvider, gps)
     delay(500)
-    val hazards = service.currentHazardsState.value
+    val hazards = service.fetcherState.value.hazards
     Assert.assertNotNull(hazards)
     Assert.assertTrue(hazards.isNotEmpty())
-    Assert.assertEquals(service.currentHazardsState.value, hazards)
+    Assert.assertEquals(service.fetcherState.value.hazards, hazards)
     service.close()
   }
 }

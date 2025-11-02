@@ -4,8 +4,8 @@ import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.profile.contact.EditContactViewModel
-import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,7 +22,7 @@ import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class EditContactViewModeTest {
+class EditContactViewModelTest {
   private lateinit var repository: ContactsRepository
   private lateinit var viewModel: EditContactViewModel
 
@@ -90,7 +90,7 @@ class EditContactViewModeTest {
     assertEquals("+11111111111", updated.phoneNumber)
     assertEquals("Colleague", updated.relationship)
 
-    TestCase.assertNotNull(navigateBackEvent.await())
+    assertNotNull(navigateBackEvent.await())
   }
 
   @Test
@@ -111,6 +111,6 @@ class EditContactViewModeTest {
     val result = repository.getContact("2")
     assertEquals(true, result.isFailure)
 
-    TestCase.assertNotNull(navigateBackEvent.await())
+    assertNotNull(navigateBackEvent.await())
   }
 }
