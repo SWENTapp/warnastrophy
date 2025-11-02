@@ -14,8 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-public fun SafeZoneTopBar() {
-  // green banner "You are in a safe zone"
+fun SafeZoneTopBar() {
   Box(
       modifier =
           Modifier.fillMaxWidth()

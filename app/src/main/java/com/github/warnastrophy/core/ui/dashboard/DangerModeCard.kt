@@ -1,14 +1,15 @@
 package com.github.warnastrophy.core.ui.dashboard
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,69 +28,52 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.warnastrophy.core.ui.components.StandardDashboardButton
+import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 
 @Composable
 fun DangerModeCard() {
   var dangerEnabled by remember { mutableStateOf(false) }
 
-  Surface(
-      shape = RoundedCornerShape(12.dp),
-      color = Color(0xFFFFEBEE), // pale pink/red background
-      border = BorderStroke(1.dp, Color(0xFFE57373)),
-      tonalElevation = 0.dp,
-      modifier = Modifier.fillMaxWidth()) {
+  StandardDashboardCard(
+      modifier = Modifier.fillMaxWidth(),
+      backgroundColor = Color(0xFFFFEBEE),
+      borderColor = Color(0xFFE57373)) {
         Column(modifier = Modifier.padding(16.dp)) {
-
-          // Header row with title + switch
+          Text(
+              text = "Danger Mode",
+              color = Color(0xFF424242),
+              fontWeight = FontWeight.Bold,
+              fontSize = 16.sp)
           Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
+              modifier = Modifier.fillMaxWidth().offset(y = (-10).dp),
+              horizontalArrangement = Arrangement.End,
               verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Danger Mode",
-                    color = Color(0xFF424242),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp)
-
                 Switch(checked = dangerEnabled, onCheckedChange = { dangerEnabled = it })
               }
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          // Mode label (e.g. "Climbing mode")
-          Column {
+          Column() {
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(text = "Mode", color = Color(0xFF757575), fontSize = 13.sp)
-
-              Spacer(modifier = Modifier.width(4.dp))
-
+              Spacer(modifier = Modifier.width(25.dp))
               Text(
                   text = "Climbing mode",
                   color = Color.Black,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Medium)
             }
-          }
-
-          Spacer(modifier = Modifier.height(12.dp))
-
-          // "Sends" row (chips: Call / SMS / Location)
-          Column {
+            Spacer(modifier = Modifier.width(24.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(text = "Sends", color = Color(0xFF757575), fontSize = 13.sp)
-
-              Spacer(modifier = Modifier.width(8.dp))
-
+              Spacer(modifier = Modifier.width(20.dp))
               Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniTagChip("Call")
-                MiniTagChip("SMS")
-                MiniTagChip("Location")
+                StandardDashboardButton(color = Color(0xFFC6E3C6), "Call")
+                StandardDashboardButton(color = Color(0xFFC6E3C6), "SMS")
+                StandardDashboardButton(color = Color(0xFFC6E3C6), "Location")
               }
             }
           }
 
-          Spacer(modifier = Modifier.height(16.dp))
-
+          Spacer(modifier = Modifier.height(12.dp))
           // Color squares row (danger level presets)
           Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DangerColorBox(Color(0xFF4CAF50)) // green
@@ -98,21 +82,27 @@ fun DangerModeCard() {
             DangerColorBox(Color(0xFFD32F2F)) // red
           }
 
-          Spacer(modifier = Modifier.height(16.dp))
-
+          Spacer(modifier = Modifier.height(24.dp))
           // "Open" big button placeholder
-          Surface(
-              shape = RoundedCornerShape(20.dp),
-              color = Color(0xFFE0E0E0),
-              tonalElevation = 0.dp,
-              modifier = Modifier.fillMaxWidth().height(36.dp),
-          ) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-              Text(
-                  text = "Open",
-                  color = Color(0xFF757575),
-                  fontWeight = FontWeight.Medium,
-                  fontSize = 14.sp)
+          Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Surface(
+                shape = RoundedCornerShape(40.dp),
+                color = Color(0xFFE0E0E0),
+                tonalElevation = 0.dp,
+                modifier = Modifier.fillMaxWidth(0.9f).height(36.dp),
+            ) {
+              Box(
+                  modifier =
+                      Modifier.width(20.dp).clickable {
+                        // TODO: handle click
+                      },
+                  contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "Open",
+                        color = Color(0xFF757575),
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp)
+                  }
             }
           }
         }
@@ -120,25 +110,12 @@ fun DangerModeCard() {
 }
 
 @Composable
-private fun MiniTagChip(text: String) {
-  Surface(
-      shape = RoundedCornerShape(20.dp),
-      color = Color.White,
-      border = BorderStroke(1.dp, Color(0xFFBDBDBD)),
-      tonalElevation = 0.dp) {
-        Text(
-            text = text,
-            fontSize = 13.sp,
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
-      }
-}
-
-@Composable
-private fun DangerColorBox(color: Color) {
+private fun DangerColorBox(color: Color, onClick: () -> Unit = {}) {
   Surface(
       shape = RoundedCornerShape(6.dp),
       color = color,
+      onClick = onClick,
       modifier = Modifier.size(width = 28.dp, height = 28.dp),
-      border = BorderStroke(width = 2.dp, color = Color(0xFF424242).copy(alpha = 0.2f))) {}
+      border = BorderStroke(width = 2.dp, color = Color(0xFF424242).copy(alpha = 0.2f)),
+  ) {}
 }
