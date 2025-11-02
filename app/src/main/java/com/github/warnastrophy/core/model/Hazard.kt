@@ -1,5 +1,7 @@
 package com.github.warnastrophy.core.model
 
+import org.locationtech.jts.geom.Geometry
+
 data class Hazard(
     val id: Int?,
     val type: String?,
@@ -9,8 +11,9 @@ data class Hazard(
     val bbox: List<Double>? = null,
     val severity: Double?, // Maybe no need because we have already alertLevel
     val severityUnit: String?,
-    val reportUrl: String?,
+    val articleUrl: String?,
     val alertLevel: Int?,
-    val coordinates: List<Location>?,
-    val affectedZoneWkt: String? = null
+    val centroid: List<Location>?,
+    val affectedZoneWkt: String? = null,
+    val geometry: Geometry? = null,
 )

@@ -27,9 +27,9 @@ class HazardsServiceTests {
               date = null,
               severity = null,
               severityUnit = null,
-              reportUrl = null,
+              articleUrl = null,
               alertLevel = null,
-              coordinates = null),
+              centroid = null),
           Hazard(
               id = 2,
               type = null,
@@ -38,9 +38,9 @@ class HazardsServiceTests {
               date = null,
               severity = null,
               severityUnit = null,
-              reportUrl = null,
+              articleUrl = null,
               alertLevel = null,
-              coordinates = null))
+              centroid = null))
 
   @Before
   fun setUp() {

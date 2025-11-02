@@ -34,9 +34,9 @@ class HazardCheckerTest {
             date = "2025-01-01",
             severity = 2.0,
             severityUnit = "unit",
-            reportUrl = "http://example.test/A",
+            articleUrl = "http://example.test/A",
             alertLevel = 3, // HIGHER priority
-            coordinates = listOf(Location(latitude = 10.0, longitude = 10.0)),
+            centroid = listOf(Location(latitude = 10.0, longitude = 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZoneWkt = wktA)
 
@@ -49,9 +49,9 @@ class HazardCheckerTest {
             date = "2025-01-01",
             severity = 1.0,
             severityUnit = "unit",
-            reportUrl = "http://example.test/B",
+            articleUrl = "http://example.test/B",
             alertLevel = 2, // LOWER priority
-            coordinates = listOf(Location(latitude = 10.0, longitude = 10.0)),
+            centroid = listOf(Location(latitude = 10.0, longitude = 10.0)),
             bbox = listOf(9.8, 9.8, 10.2, 10.2),
             affectedZoneWkt = wktB // <-- Use WKT string
             )
@@ -88,9 +88,9 @@ class HazardCheckerTest {
             date = "2025-01-01",
             severity = 2.0,
             severityUnit = "unit",
-            reportUrl = "http://example.test/A",
+            articleUrl = "http://example.test/A",
             alertLevel = 3,
-            coordinates = listOf(Location(latitude = 10.0, longitude = 10.0)),
+            centroid = listOf(Location(latitude = 10.0, longitude = 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZoneWkt = wktA)
     val serviceStateManager = ServiceStateManager
@@ -122,8 +122,8 @@ class HazardCheckerTest {
             date = "2025-01-01",
             severity = 2.0,
             severityUnit = "unit",
-            reportUrl = "http://example.test/A",
-            coordinates = listOf(Location(10.0, 10.0)),
+            articleUrl = "http://example.test/A",
+            centroid = listOf(Location(10.0, 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZoneWkt = wktA)
 
@@ -157,8 +157,8 @@ class HazardCheckerTest {
             date = "2025-01-01",
             severity = 2.0,
             severityUnit = "unit",
-            reportUrl = "http://example.test/A",
-            coordinates = listOf(Location(10.0, 10.0)),
+            articleUrl = "http://example.test/A",
+            centroid = listOf(Location(10.0, 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZoneWkt = wktA)
 

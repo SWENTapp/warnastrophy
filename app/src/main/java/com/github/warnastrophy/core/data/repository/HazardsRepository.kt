@@ -73,15 +73,12 @@ class HazardsRepository : HazardsDataSource {
     when (geometry.getString("type")) {
       "Point" -> {
         val arr = geometry.getJSONArray("coordinates")
-        coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
+          coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
       }
-      "Polygon" -> {
+      "Polygon" -> { // we take first point as centroid
         val polygons = geometry.getJSONArray("coordinates").getJSONArray(0).getJSONArray(0)
-        for (i in 0 until polygons.length()) {
-          val polygon = polygons.getJSONArray(i)
-          coordinates.add(
-              Location(latitude = polygon.getDouble(1), longitude = polygon.getDouble(0)))
-        }
+          val polygon = polygons.getJSONArray(0)
+          coordinates.add(Location(latitude = polygon.getDouble(1), longitude = polygon.getDouble(0)))
       }
     }
 
@@ -94,9 +91,10 @@ class HazardsRepository : HazardsDataSource {
             date = properties.getString("fromdate"),
             severity = properties.getJSONObject("severitydata").getDouble("severity"),
             severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
-            reportUrl = properties.getJSONObject("url").getString("report"),
+            articleUrl = properties.getJSONObject("url").getString("report"),
             alertLevel = properties.getInt("alertscore"),
-            coordinates = coordinates)
+            centroid = coordinates,
+            geometry = null)
     return hazard
   }
 }

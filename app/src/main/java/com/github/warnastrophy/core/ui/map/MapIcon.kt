@@ -85,7 +85,7 @@ fun HazardMarker(
         }
 ) {
   var markerLocation = Location(0.0, 0.0)
-  hazard.coordinates?.let {
+  hazard.centroid?.let {
     // The marker location is the average of all coordinates
 
     if (it.size > 1) {
