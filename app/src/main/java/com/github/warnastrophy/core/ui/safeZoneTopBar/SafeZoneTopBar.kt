@@ -13,9 +13,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/*
-This Composable displays a top bar indicating that the user is in a safe zone.
-It features a green background with white text to convey safety.
+/**
+ * This Composable displays a top bar indicating that the user is in a safe zone. It features a
+ * green background with white text to convey safety.
  */
 @Composable
 fun SafeZoneTopBar(modifier: Modifier = Modifier) {
