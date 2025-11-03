@@ -16,6 +16,7 @@ import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
 import com.github.warnastrophy.core.ui.home.HomeScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
@@ -70,6 +71,8 @@ fun WarnastrophyApp() {
   val hazardsRepository = HazardRepositoryProvider.repository
   val hazardsService = HazardsService(hazardsRepository, gpsService, errorHandler)
 
+  val permissionManager = PermissionManager(context)
+
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
       topBar = {
@@ -85,7 +88,7 @@ fun WarnastrophyApp() {
             modifier = Modifier.padding(innerPadding)) {
               composable(Home.route) { HomeScreen() }
               composable(Map.route) {
-                MapScreen(viewModel = MapViewModel(gpsService, hazardsService, context))
+                MapScreen(viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
               }
               composable(Profile.route) {
                 ProfileScreen(

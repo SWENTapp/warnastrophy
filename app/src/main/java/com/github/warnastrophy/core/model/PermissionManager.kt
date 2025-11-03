@@ -40,6 +40,16 @@ private enum class PermissionStatus {
   TEMPORARILY_DENIED
 }
 
+interface PermissionManagerInterface {
+  fun getPermissionResult(permissionType: AppPermissions): PermissionResult
+
+  fun getPermissionResult(permissionType: AppPermissions, activity: Activity): PermissionResult
+
+  fun markPermissionsAsAsked(permissionType: AppPermissions)
+
+  fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean
+}
+
 /**
  * A utility class for managing Android runtime permissions.
  *
@@ -51,7 +61,7 @@ private enum class PermissionStatus {
  * @param context The [Context] used to access SharedPreferences for tracking the "asked" state of
  *   permissions.
  */
-class PermissionManager(private val context: Context) {
+class PermissionManager(private val context: Context) : PermissionManagerInterface {
   private val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
 
   /**
@@ -67,7 +77,7 @@ class PermissionManager(private val context: Context) {
    * @return [PermissionResult.Granted] if all permissions are granted, otherwise
    *   [PermissionResult.Denied].
    */
-  fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
+  override fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
     val permissions = permissionType.permissions
     if (permissions.isEmpty()) return PermissionResult.Granted
 
@@ -91,7 +101,10 @@ class PermissionManager(private val context: Context) {
    * @param activity The [Activity] required to check for rationale.
    * @return A [PermissionResult] sealed class instance describing the collective status.
    */
-  fun getPermissionResult(permissionType: AppPermissions, activity: Activity): PermissionResult {
+  override fun getPermissionResult(
+      permissionType: AppPermissions,
+      activity: Activity
+  ): PermissionResult {
     if (permissionType.permissions.isEmpty()) {
       return PermissionResult.Granted // No permissions to check, so they are considered granted.
     }
@@ -132,7 +145,7 @@ class PermissionManager(private val context: Context) {
    * @param permissionType The permission group to check.
    * @return `true` if the permission group has been requested before, `false` otherwise.
    */
-  fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
+  override fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
     val prefKey = "perm_asked_${permissionType::class.simpleName}"
     return prefs.getBoolean(prefKey, false)
   }
@@ -145,7 +158,7 @@ class PermissionManager(private val context: Context) {
    *
    * @param permissionType The permission group (e.g., location, camera) to mark as asked.
    */
-  fun markPermissionsAsAsked(permissionType: AppPermissions) {
+  override fun markPermissionsAsAsked(permissionType: AppPermissions) {
     val prefKey = "perm_asked_${permissionType::class.simpleName}"
     prefs.edit { putBoolean(prefKey, true) }
   }

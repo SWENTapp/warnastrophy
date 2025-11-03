@@ -1,14 +1,13 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.FetcherState
 import com.github.warnastrophy.core.model.GpsPositionState
 import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.model.PermissionManager
+import com.github.warnastrophy.core.model.PermissionManagerInterface
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,10 +48,9 @@ data class MapUIState(
 class MapViewModel(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
-    context: Context
+    private val permissionManager: PermissionManagerInterface,
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
-  private val permissionManager = PermissionManager(context.applicationContext)
 
   private val _uiState =
       MutableStateFlow(
