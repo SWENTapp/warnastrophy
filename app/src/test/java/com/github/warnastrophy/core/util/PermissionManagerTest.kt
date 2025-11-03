@@ -32,10 +32,10 @@ class PermissionManagerTest {
     activity = Robolectric.buildActivity(Activity::class.java).get()
     context = activity.applicationContext
     prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    prefs.edit().clear().commit()
-    manager = PermissionManager(activity)
+    prefs.edit().clear().apply() // use apply() for async operation in tests
+    // Initialize the manager with the application context, as designed
+    manager = PermissionManager(context)
   }
-
   /**
    * Verifies that `getPermissionResult` returns [PermissionResult.Granted] when the requested
    * permission has already been granted by the user.
@@ -56,6 +56,50 @@ class PermissionManagerTest {
 
       val result = manager.getPermissionResult(AppPermissions.LocationFine)
       assertTrue(result is PermissionResult.Granted)
+    }
+  }
+
+  /**
+   * Tests the overloaded `getPermissionResult(permissionType)` function. Verifies that it returns
+   * [PermissionResult.Granted] when all permissions are granted, without needing an Activity.
+   */
+  @Test
+  fun getPermissionResult_returns_Granted_when_all_permissions_are_granted() {
+    mockStatic(ContextCompat::class.java).use { mocked ->
+      mocked
+          .`when`<Int> {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+          }
+          .thenReturn(PackageManager.PERMISSION_GRANTED)
+
+      // Call the function under test (the one without the Activity)
+      val result = manager.getPermissionResult(AppPermissions.LocationFine)
+
+      assertTrue(result is PermissionResult.Granted)
+    }
+  }
+
+  /**
+   * Tests the overloaded `getPermissionResult(permissionType)` function. Verifies that it returns
+   * [PermissionResult.Denied] when a permission is not granted. This version of the function cannot
+   * distinguish between temporary and permanent denial, so it should always return a simple
+   * `Denied` result.
+   */
+  @Test
+  fun getPermissionResult_returns_Denied_when_a_permission_is_not_granted() {
+    mockStatic(ContextCompat::class.java).use { mocked ->
+      mocked
+          .`when`<Int> {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+          }
+          .thenReturn(PackageManager.PERMISSION_DENIED)
+
+      // Call the function under test (the one without the Activity)
+      val result = manager.getPermissionResult(AppPermissions.LocationFine)
+
+      assertTrue(result is PermissionResult.Denied)
+      val denied = result as PermissionResult.Denied
+      assertTrue(denied.deniedPermissions.contains(Manifest.permission.ACCESS_FINE_LOCATION))
     }
   }
 
@@ -81,16 +125,21 @@ class PermissionManagerTest {
     manager.markPermissionsAsAsked(AppPermissions.LocationFine)
 
     mockStatic(ContextCompat::class.java).use { mocked ->
+      // Mock checkSelfPermission to return DENIED
       mocked
           .`when`<Int> {
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
           }
           .thenReturn(PackageManager.PERMISSION_DENIED)
 
-      // Mock shouldShowRequestPermissionRationale to true (temporarily denied)
       val spyActivity = spy(activity)
+
+      // Mock shouldShowRequestPermissionRationale to return true (simulate show rationale)
       `when`(spyActivity.shouldShowRequestPermissionRationale(anyString())).thenReturn(true)
-      val result = PermissionManager(spyActivity).getPermissionResult(AppPermissions.LocationFine)
+
+      val result =
+          PermissionManager(spyActivity.applicationContext)
+              .getPermissionResult(AppPermissions.LocationFine, spyActivity)
       assertTrue(result is PermissionResult.Denied)
     }
   }
@@ -124,7 +173,9 @@ class PermissionManagerTest {
       // Mock rationale = false (means permanently denied)
       val spyActivity = spy(activity)
       `when`(spyActivity.shouldShowRequestPermissionRationale(anyString())).thenReturn(false)
-      val result = PermissionManager(spyActivity).getPermissionResult(AppPermissions.LocationFine)
+      val result =
+          PermissionManager(spyActivity.applicationContext)
+              .getPermissionResult(AppPermissions.LocationFine, spyActivity)
 
       assertTrue(result is PermissionResult.PermanentlyDenied)
       val denied = result as PermissionResult.PermanentlyDenied
