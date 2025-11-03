@@ -32,16 +32,20 @@ object DashboardScreenTestTags {
   const val DANGER_MODE_SECTION = "dashboard_dangerModeSection"
 }
 
+object DashboardColors {
+  val BACKGROUND_COLOR: Color = Color(0xFFF5F5F5) // Light Grey
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
-  Scaffold(containerColor = Color(0xFFF5F5F5)) { innerPadding ->
+  Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
         modifier =
             Modifier.padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF5F5F5))
+                .background(DashboardColors.BACKGROUND_COLOR)
                 .testTag(DashboardScreenTestTags.ROOT_SCROLL)) {
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 

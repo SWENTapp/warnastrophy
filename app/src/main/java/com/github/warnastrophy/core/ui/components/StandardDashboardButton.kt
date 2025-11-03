@@ -19,12 +19,14 @@ It features rounded corners, a border, and padding for better touch interaction.
 fun StandardDashboardButton(
     color: Color = Color(0xFFF5F5F5), // light gray
     label: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
   Surface(
       onClick = onClick,
       shape = RoundedCornerShape(20.dp),
       color = color,
+      modifier = modifier,
       tonalElevation = 0.dp,
       border = BorderStroke(1.dp, Color(0xFFBDBDBD))) { // shadow grey
         Text(

@@ -40,6 +40,8 @@ object DangerModeTestTags {
   const val SENDS_ROW = "dangerModeSendsRow"
   const val COLOR_ROW = "dangerModeColorRow"
   const val OPEN_BUTTON = "dangerModeOpenBtn"
+
+  const val CONTACT_BUTTON = "dangerModeContactButton"
 }
 
 object DangerModeCardColors {
@@ -114,9 +116,18 @@ fun DangerModeCard(modifier: Modifier = Modifier) {
                   Text(text = "Sends", color = DangerModeCardColors.MODE_COLOR, fontSize = 13.sp)
                   Spacer(modifier = Modifier.width(20.dp))
                   Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StandardDashboardButton(color = DangerModeCardColors.BUTTON_TEXT, "Call")
-                    StandardDashboardButton(color = DangerModeCardColors.BUTTON_TEXT, "SMS")
-                    StandardDashboardButton(color = DangerModeCardColors.BUTTON_TEXT, "Location")
+                    StandardDashboardButton(
+                        color = DangerModeCardColors.BUTTON_TEXT,
+                        "Call",
+                        modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
+                    StandardDashboardButton(
+                        color = DangerModeCardColors.BUTTON_TEXT,
+                        "SMS",
+                        modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
+                    StandardDashboardButton(
+                        color = DangerModeCardColors.BUTTON_TEXT,
+                        "Location",
+                        modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
                   }
                 }
           }

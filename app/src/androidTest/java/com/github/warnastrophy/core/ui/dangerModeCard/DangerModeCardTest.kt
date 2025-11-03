@@ -1,11 +1,12 @@
 package com.github.warnastrophy.core.ui.dangerModeCard
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import org.junit.Test
@@ -70,9 +71,8 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
   @Test
   fun dangerModeCard_showsActionButtons() {
     composeTestRule.setContent { MaterialTheme { DangerModeCard() } }
-
-    composeTestRule.onNodeWithText("Call").assertIsDisplayed()
-    composeTestRule.onNodeWithText("SMS").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Location").assertIsDisplayed()
+    composeTestRule
+        .onAllNodesWithTag(DangerModeTestTags.CONTACT_BUTTON, useUnmergedTree = true)
+        .assertCountEquals(3)
   }
 }
