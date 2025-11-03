@@ -31,22 +31,22 @@ class NavigationE2ETest : UITest() {
   fun testTagsAreCorrectlySet() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).assertIsDisplayed()
   }
 
   @Test
-  fun startsOnHome_bottomNavVisible() {
+  fun startsOnDashboard_bottomNavVisible() {
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertIsDisplayed()
-        .assertTextContains("Home", ignoreCase = true)
+        .assertTextContains("Dashboard", ignoreCase = true)
   }
 
   @Test
-  fun navigate_Home_to_Map_and_back() {
+  fun navigate_Dashboard_to_Map_and_back() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
 
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
@@ -54,39 +54,39 @@ class NavigationE2ETest : UITest() {
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Map", ignoreCase = true)
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Home", ignoreCase = true)
+        .assertTextContains("Dashboard", ignoreCase = true)
   }
 
   @Test
-  fun navigate_to_Profile_then_back_to_Home() {
+  fun navigate_to_Profile_then_back_to_Dashboard() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Profile", ignoreCase = true)
 
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Home", ignoreCase = true)
+        .assertTextContains("Dashboard", ignoreCase = true)
   }
 
   @Test
   fun can_visit_all_tabs_in_sequence() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
 
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Home", ignoreCase = true)
+        .assertTextContains("Dashboard", ignoreCase = true)
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
   }
 
   @Test
-  fun navigate_to_contact_list_and_back_to_Home() {
+  fun navigate_to_contact_list_and_back_to_Dashboard() {
     // Go to Profile
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule
@@ -102,11 +102,11 @@ class NavigationE2ETest : UITest() {
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Profile", ignoreCase = true)
-    // Go to Home
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_HOME).performClick()
+    // Go to Dashboard
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Home", ignoreCase = true)
+        .assertTextContains("Dashboard", ignoreCase = true)
   }
 
   private fun fillContactFormToAdd() {
