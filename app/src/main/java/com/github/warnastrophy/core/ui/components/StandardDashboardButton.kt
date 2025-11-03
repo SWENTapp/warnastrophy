@@ -11,9 +11,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/*
-This Composable represents a standard dashboard button with customizable color and label.
-It features rounded corners, a border, and padding for better touch interaction.
+/**
+ * This Composable represents a standard dashboard button with customizable color and label. It
+ * features rounded corners, a border, and padding for better touch interaction.
  */
 @Composable
 fun StandardDashboardButton(
