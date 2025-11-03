@@ -6,6 +6,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreview
+import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import org.junit.Test
 
