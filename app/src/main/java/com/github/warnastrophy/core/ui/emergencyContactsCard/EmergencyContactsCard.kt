@@ -39,8 +39,8 @@ fun EmergencyContactsCard(modifier: Modifier = Modifier) {
   StandardDashboardCard(
       modifier = modifier.testTag(EmergencyContactsTestTags.CARD),
       backgroundColor = EmergencyContactsCardColors.BACKGROUND_COLOR, // light yellow
-      minHeight = 140.dp,
-      maxHeight = 160.dp) {
+      minHeight = 120.dp,
+      maxHeight = 140.dp) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
           Text(
               text = "Emergency Contacts",
@@ -58,7 +58,7 @@ fun EmergencyContactsCard(modifier: Modifier = Modifier) {
               fontSize = 13.sp,
               lineHeight = 16.sp)
 
-          Spacer(modifier = Modifier.height(24.dp))
+          Spacer(Modifier.weight(1f))
 
           Box(modifier = Modifier.testTag(EmergencyContactsTestTags.OPEN_BUTTON)) {
             StandardDashboardButton(label = "Open")

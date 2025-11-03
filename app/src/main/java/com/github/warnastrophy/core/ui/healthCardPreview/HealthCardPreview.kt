@@ -39,8 +39,8 @@ fun HealthCardPreview(modifier: Modifier = Modifier) {
   StandardDashboardCard(
       modifier = modifier.testTag(HealthCardPreviewTestTags.CARD),
       backgroundColor = HealthCardPreviewColors.BACKGROUND_COLOR,
-      minHeight = 140.dp,
-      maxHeight = 160.dp) {
+      minHeight = 120.dp,
+      maxHeight = 140.dp) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
           Text(
               text = "Health",
@@ -58,7 +58,7 @@ fun HealthCardPreview(modifier: Modifier = Modifier) {
               modifier = Modifier.testTag(HealthCardPreviewTestTags.SUBTITLE),
               lineHeight = 16.sp)
 
-          Spacer(modifier = Modifier.height(12.dp))
+          Spacer(Modifier.weight(1f))
 
           Box(modifier = Modifier.testTag(HealthCardPreviewTestTags.OPEN_BUTTON)) {
             StandardDashboardButton(label = "Open")

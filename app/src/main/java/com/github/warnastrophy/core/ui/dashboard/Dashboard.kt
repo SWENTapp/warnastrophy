@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCard
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
@@ -31,16 +32,20 @@ object DashboardScreenTestTags {
   const val DANGER_MODE_SECTION = "dashboard_dangerModeSection"
 }
 
+object DashboardColors {
+  val BACKGROUND_COLOR: Color = Color(0xFFF5F5F5) // Light Grey
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
-  Scaffold(containerColor = Color.LightGray) { innerPadding ->
+  Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
         modifier =
             Modifier.padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color.LightGray)
+                .background(DashboardColors.BACKGROUND_COLOR)
                 .testTag(DashboardScreenTestTags.ROOT_SCROLL)) {
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
@@ -51,6 +56,8 @@ fun DashboardScreen() {
 
             MapPreviewCard(modifier = Modifier.testTag(DashboardScreenTestTags.MAP_PREVIEW_SECTION))
 
+            Spacer(modifier = Modifier.height(12.dp))
+
             Row(
                 modifier =
                     Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
@@ -60,6 +67,12 @@ fun DashboardScreen() {
                   HealthCardPreview(
                       modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(1f))
                 }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            DangerModeCard(modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION))
+
+            Spacer(modifier = Modifier.height(80.dp))
           }
         }
   }
@@ -67,6 +80,6 @@ fun DashboardScreen() {
 
 @Preview
 @Composable
-private fun DashboardScreenPreview() {
+fun DashboardScreenPreview() {
   MainAppTheme { DashboardScreen() }
 }
