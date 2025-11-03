@@ -11,6 +11,12 @@ import org.junit.Test
 
 class HealthCardPreviewTest : BaseAndroidComposeTest() {
 
+  /* Verify that the HealthCardPreview renders its basic information:
+   * - Card
+   * - Title
+   * - Subtitle
+   * - Open Button
+   */
   @Test
   fun healthCard_rendersBasicInfo() {
     composeTestRule.setContent { MaterialTheme { HealthCardPreview() } }
@@ -35,6 +41,7 @@ class HealthCardPreviewTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithText("Open", useUnmergedTree = true).assertIsDisplayed()
   }
 
+  /* Verify that the HealthCardPreview respects the minimum height of 140.dp */
   @Test
   fun healthCard_respectsMinHeight() {
     composeTestRule.setContent { MaterialTheme { HealthCardPreview() } }
