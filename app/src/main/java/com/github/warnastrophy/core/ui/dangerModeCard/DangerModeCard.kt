@@ -133,7 +133,7 @@ fun DangerModeCard(modifier: Modifier = Modifier) {
                 }
           }
 
-          Spacer(modifier = Modifier.height(12.dp))
+          Spacer(modifier = Modifier.height(4.dp))
           Row(
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               modifier = Modifier.testTag(DangerModeTestTags.COLOR_ROW)) {
@@ -142,8 +142,7 @@ fun DangerModeCard(modifier: Modifier = Modifier) {
                 DangerColorBox(DangerModeCardColors.DANGER_COLOR_AMBER)
                 DangerColorBox(DangerModeCardColors.DANGER_COLOR_RED)
               }
-
-          Spacer(Modifier.weight(1f))
+          Spacer(Modifier.height(8.dp))
 
           Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Surface(
