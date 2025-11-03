@@ -83,16 +83,17 @@ fun DangerModeCard(modifier: Modifier = Modifier) {
       backgroundColor = DangerModeCardColors.BACKGROUND_COLOR,
       borderColor = DangerModeCardColors.BORDER_COLOR) {
         Column(modifier = Modifier.padding(16.dp)) {
-          Text(
-              modifier = Modifier.testTag(DangerModeTestTags.TITLE),
-              text = "Danger Mode",
-              color = DangerModeCardColors.TITLE_COLOR,
-              fontWeight = FontWeight.Bold,
-              fontSize = 16.sp)
           Row(
               modifier = Modifier.fillMaxWidth().offset(y = (-10).dp),
-              horizontalArrangement = Arrangement.End,
+              horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.testTag(DangerModeTestTags.TITLE),
+                    text = "Danger Mode",
+                    color = DangerModeCardColors.TITLE_COLOR,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp)
+
                 Switch(
                     checked = dangerEnabled,
                     onCheckedChange = { dangerEnabled = it },
@@ -142,7 +143,8 @@ fun DangerModeCard(modifier: Modifier = Modifier) {
                 DangerColorBox(DangerModeCardColors.DANGER_COLOR_RED)
               }
 
-          Spacer(modifier = Modifier.height(24.dp))
+          Spacer(Modifier.weight(1f))
+
           Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Surface(
                 shape = RoundedCornerShape(40.dp),

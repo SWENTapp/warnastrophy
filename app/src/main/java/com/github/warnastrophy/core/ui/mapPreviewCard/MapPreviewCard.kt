@@ -30,7 +30,7 @@ It features a placeholder background and a marker indicating the user's location
  */
 @Composable
 fun MapPreviewCard(modifier: Modifier = Modifier) {
-  StandardDashboardCard(backgroundColor = Color.White, minHeight = 140.dp, maxHeight = 160.dp) {
+  StandardDashboardCard(backgroundColor = Color.White, minHeight = 50.dp, maxHeight = 100.dp) {
     Box(modifier = Modifier.fillMaxSize()) {
       Box(modifier = Modifier.matchParentSize().background(MapPreviewCardColors.BACKGROUND_COLOR))
 

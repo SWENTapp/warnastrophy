@@ -64,7 +64,7 @@ fun LatestNewsCard(modifier: Modifier = Modifier) {
                 Modifier.fillMaxWidth()
                     .testTag(LatestNewsTestTags.HEADER_ROW)
                     .background(LatestNewsCardColors.HEADER_BACKGROUND_COLOR)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Text(
