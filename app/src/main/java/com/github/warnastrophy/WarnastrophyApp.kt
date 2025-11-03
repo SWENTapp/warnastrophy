@@ -19,6 +19,7 @@ import com.github.warnastrophy.core.model.HazardsService
 import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
 import com.github.warnastrophy.core.ui.home.HomeScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
+import com.github.warnastrophy.core.ui.map.MapViewModel
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -84,7 +85,7 @@ fun WarnastrophyApp() {
             modifier = Modifier.padding(innerPadding)) {
               composable(Home.route) { HomeScreen() }
               composable(Map.route) {
-                MapScreen(hazardsService = hazardsService, gpsService = gpsService)
+                MapScreen(viewModel = MapViewModel(gpsService, hazardsService, context))
               }
               composable(Profile.route) {
                 ProfileScreen(

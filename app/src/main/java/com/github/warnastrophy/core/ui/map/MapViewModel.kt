@@ -1,32 +1,130 @@
 package com.github.warnastrophy.core.ui.map
 
+import android.app.Activity
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.maps.model.LatLng
-import kotlinx.coroutines.Dispatchers
+import com.github.warnastrophy.core.model.AppPermissions
+import com.github.warnastrophy.core.model.FetcherState
+import com.github.warnastrophy.core.model.GpsPositionState
+import com.github.warnastrophy.core.model.HazardsDataService
+import com.github.warnastrophy.core.model.PermissionManager
+import com.github.warnastrophy.core.model.PermissionResult
+import com.github.warnastrophy.core.model.PositionService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class MapUIState(
-    val isLoading: Boolean = true,
-    val userLocation: LatLng? = null,
-    val permissionGranted: Boolean = false,
-)
-
 /**
- * ViewModel for [MapScreen].
+ * Represents the UI state for the map screen.
  *
- * Currently uses static data. Will be updated to use data from a repository in the future.
+ * @property permissionResult The current state of the location permission. See [PermissionResult].
+ * @property isTrackingLocation True if the app is actively tracking the user's location, false
+ *   otherwise.
+ * @property isOsRequestInFlight True if a system permission dialog is currently being shown to the
+ *   user.
+ * @property positionState The state of the GPS position data fetching. See [GpsPositionState].
+ * @property hazardState The state of the hazard data fetching. See [FetcherState].
  */
-class MapViewModel() : ViewModel() {
-  private val _uiState = MutableStateFlow(MapUIState())
+data class MapUIState(
+    val permissionResult: PermissionResult,
+    val isTrackingLocation: Boolean = false,
+    val isOsRequestInFlight: Boolean = false,
+    val positionState: GpsPositionState = GpsPositionState(isLoading = true),
+    val hazardState: FetcherState = FetcherState(isLoading = true)
+) {
+  /** A computed property that is true if the permission is granted. */
+  val isGranted: Boolean
+    get() = permissionResult is PermissionResult.Granted
 
-  /** The UI state as a read-only [StateFlow]. */
+  /** A computed property that is true if any of the sub-states are loading. */
+  val isLoading: Boolean
+    get() = positionState.isLoading || hazardState.isLoading
+}
+
+class MapViewModel(
+    private val gpsService: PositionService,
+    private val hazardsService: HazardsDataService,
+    context: Context
+) : ViewModel() {
+  val locationPermissions = AppPermissions.LocationFine
+  private val permissionManager = PermissionManager(context.applicationContext)
+
+  private val _uiState =
+      MutableStateFlow(
+          MapUIState(permissionResult = permissionManager.getPermissionResult(locationPermissions)))
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
   init {
-    viewModelScope.launch(Dispatchers.IO) {}
+    observeDataSources()
+  }
+
+  /**
+   * Observes the data sources for position and hazard information.
+   *
+   * This function uses `combine` to listen to the latest emissions from both the
+   * `gpsService.positionState` and `hazardsService.fetcherState` flows. Whenever either of these
+   * data sources emits a new state, the lambda is executed. Inside the lambda, it updates the
+   * `_uiState` with the new position and hazard states, ensuring the UI is always in sync with the
+   * underlying data. The resulting combined flow is launched in the `viewModelScope` to manage its
+   * lifecycle automatically.
+   */
+  private fun observeDataSources() {
+    combine(gpsService.positionState, hazardsService.fetcherState) {
+            newPositionState,
+            newHazardState ->
+          _uiState.update {
+            it.copy(positionState = newPositionState, hazardState = newHazardState)
+          }
+        }
+        .launchIn(viewModelScope)
+  }
+
+  /**
+   * Called when the UI is about to ask the user for permissions. This is used to prevent multiple
+   * permission requests from being launched at the same time.
+   */
+  fun onPermissionsRequestStart() {
+    _uiState.update { it.copy(isOsRequestInFlight = true) }
+  }
+
+  /**
+   * Updates the UI state with the latest permission status. This function should be called after a
+   * permission request has been completed (e.g., in onResume or after the system permission dialog
+   * is dismissed). It checks the current permission status, marks that the permission has been
+   * requested at least once, and updates the UI state accordingly.
+   *
+   * @param activity The current activity, used as context to check for rationales.
+   */
+  fun applyPermissionsResult(activity: Activity) {
+    val result = permissionManager.getPermissionResult(locationPermissions, activity)
+    permissionManager.markPermissionsAsAsked(locationPermissions)
+    _uiState.update { it.copy(permissionResult = result, isOsRequestInFlight = false) }
+  }
+
+  /** Request a single location update and start location updates. */
+  fun startLocationUpdate() {
+    viewModelScope.launch {
+      gpsService.requestCurrentLocation()
+      gpsService.startLocationUpdates()
+    }
+  }
+
+  /** Stop location updates. */
+  fun stopLocationUpdate() {
+    viewModelScope.launch { gpsService.stopLocationUpdates() }
+  }
+
+  /**
+   * Sets the location tracking state for the UI.
+   *
+   * @param enabled True to enable UI tracking, false to disable it.
+   */
+  fun setTracking(enabled: Boolean) {
+    _uiState.update { it.copy(isTrackingLocation = enabled) }
   }
 }
