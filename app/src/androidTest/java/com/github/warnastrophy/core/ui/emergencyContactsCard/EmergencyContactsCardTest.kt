@@ -15,28 +15,23 @@ class EmergencyContactsCardTest : BaseAndroidComposeTest() {
   fun emergencyContactsCard_rendersBasicInfo() {
     composeTestRule.setContent { MaterialTheme { EmergencyContactsCard() } }
 
-    // The card itself should be on screen
     composeTestRule
         .onNodeWithTag(EmergencyContactsTestTags.CARD, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
 
-    // Title text exists and is displayed
     composeTestRule
         .onNodeWithTag(EmergencyContactsTestTags.TITLE, useUnmergedTree = true)
         .assertIsDisplayed()
 
-    // Subtitle text exists and is displayed
     composeTestRule
         .onNodeWithTag(EmergencyContactsTestTags.SUBTITLE, useUnmergedTree = true)
         .assertIsDisplayed()
 
-    // Button wrapper exists and is displayed
     composeTestRule
         .onNodeWithTag(EmergencyContactsTestTags.OPEN_BUTTON, useUnmergedTree = true)
         .assertIsDisplayed()
 
-    // And because the button inside says "Open", we can also assert its label
     composeTestRule.onNodeWithText("Open", useUnmergedTree = true).assertIsDisplayed()
   }
 
@@ -44,7 +39,6 @@ class EmergencyContactsCardTest : BaseAndroidComposeTest() {
   fun emergencyContactsCard_respectsMinHeight() {
     composeTestRule.setContent { MaterialTheme { EmergencyContactsCard() } }
 
-    // The card should be at least 140.dp tall (the minHeight we passed to StandardDashboardCard)
     composeTestRule
         .onNodeWithTag(EmergencyContactsTestTags.CARD, useUnmergedTree = true)
         .assertHeightIsAtLeast(140.dp)

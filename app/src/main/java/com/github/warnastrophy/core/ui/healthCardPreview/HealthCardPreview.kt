@@ -24,18 +24,28 @@ object HealthCardPreviewTestTags {
   const val OPEN_BUTTON = "healthCardOpenButton"
 }
 
+object HealthCardPreviewColors {
+  val BACKGROUND_COLOR: Color = Color(0xFFE8F5E9) // light green
+  val TEXT_COLOR: Color = Color(0xFF1B5E20) // dark green
+}
+
+/*
+This Composable displays a dashboard card for Health information.
+It uses a light green background color and dark green text to indicate health and wellness.
+The card includes a title, subtitle, and an "Open" button for accessing health details.
+ */
 @Composable
 fun HealthCardPreview(modifier: Modifier = Modifier) {
   StandardDashboardCard(
       modifier = modifier.testTag(HealthCardPreviewTestTags.CARD),
-      backgroundColor = Color(0xFFE8F5E9),
+      backgroundColor = HealthCardPreviewColors.BACKGROUND_COLOR,
       minHeight = 140.dp,
       maxHeight = 160.dp) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
           Text(
               text = "Health",
               modifier = Modifier.testTag(HealthCardPreviewTestTags.TITLE),
-              color = Color(0xFF1B5E20),
+              color = HealthCardPreviewColors.TEXT_COLOR,
               fontWeight = FontWeight.SemiBold,
               fontSize = 15.sp)
 
@@ -43,7 +53,7 @@ fun HealthCardPreview(modifier: Modifier = Modifier) {
 
           Text(
               text = "Medical info,\nallergies, meds",
-              color = Color(0xFF1B5E20),
+              color = HealthCardPreviewColors.TEXT_COLOR,
               fontSize = 13.sp,
               modifier = Modifier.testTag(HealthCardPreviewTestTags.SUBTITLE),
               lineHeight = 16.sp)

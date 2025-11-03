@@ -15,28 +15,23 @@ class HealthCardPreviewTest : BaseAndroidComposeTest() {
   fun healthCard_rendersBasicInfo() {
     composeTestRule.setContent { MaterialTheme { HealthCardPreview() } }
 
-    // Card container exists and is visible
     composeTestRule
         .onNodeWithTag(HealthCardPreviewTestTags.CARD, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
 
-    // Title "Health" is shown
     composeTestRule
         .onNodeWithTag(HealthCardPreviewTestTags.TITLE, useUnmergedTree = true)
         .assertIsDisplayed()
 
-    // Subtitle / description is shown
     composeTestRule
         .onNodeWithTag(HealthCardPreviewTestTags.SUBTITLE, useUnmergedTree = true)
         .assertIsDisplayed()
 
-    // The Open button container is present
     composeTestRule
         .onNodeWithTag(HealthCardPreviewTestTags.OPEN_BUTTON, useUnmergedTree = true)
         .assertIsDisplayed()
 
-    // And we also assert the "Open" text itself for safety
     composeTestRule.onNodeWithText("Open", useUnmergedTree = true).assertIsDisplayed()
   }
 
@@ -44,7 +39,6 @@ class HealthCardPreviewTest : BaseAndroidComposeTest() {
   fun healthCard_respectsMinHeight() {
     composeTestRule.setContent { MaterialTheme { HealthCardPreview() } }
 
-    // The card should be at least 140.dp tall because we pass minHeight = 140.dp
     composeTestRule
         .onNodeWithTag(HealthCardPreviewTestTags.CARD, useUnmergedTree = true)
         .assertHeightIsAtLeast(140.dp)

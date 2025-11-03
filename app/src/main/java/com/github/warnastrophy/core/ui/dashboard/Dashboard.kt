@@ -34,13 +34,13 @@ object DashboardScreenTestTags {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
-  Scaffold(containerColor = Color(0xFFF5F5F5)) { innerPadding ->
+  Scaffold(containerColor = Color.LightGray) { innerPadding ->
     Column(
         modifier =
             Modifier.padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF5F5F5))
+                .background(Color.LightGray)
                 .testTag(DashboardScreenTestTags.ROOT_SCROLL)) {
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
@@ -49,24 +49,17 @@ fun DashboardScreen() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            MapPreviewCard(
-                modifier =
-                    Modifier.testTag(
-                        DashboardScreenTestTags.MAP_PREVIEW_SECTION)) // not yet implemented
+            MapPreviewCard(modifier = Modifier.testTag(DashboardScreenTestTags.MAP_PREVIEW_SECTION))
 
             Row(
                 modifier =
                     Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                   EmergencyContactsCard(
-                      modifier =
-                          Modifier.weight(1f)
-                              .testTag(EmergencyContactsTestTags.CARD)) // not yet implemented
+                      modifier = Modifier.weight(1f).testTag(EmergencyContactsTestTags.CARD))
                   HealthCardPreview(
-                      modifier =
-                          Modifier.testTag(HealthCardPreviewTestTags.CARD)
-                              .weight(1f)) // not yet implemented
-            }
+                      modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(1f))
+                }
           }
         }
   }
@@ -74,6 +67,6 @@ fun DashboardScreen() {
 
 @Preview
 @Composable
-fun DashboardScreenPreview() {
+private fun DashboardScreenPreview() {
   MainAppTheme { DashboardScreen() }
 }

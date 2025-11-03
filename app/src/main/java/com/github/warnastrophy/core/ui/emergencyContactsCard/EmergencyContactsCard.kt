@@ -24,17 +24,27 @@ object EmergencyContactsTestTags {
   const val OPEN_BUTTON = "emergencyContactsOpenButton"
 }
 
+object EmergencyContactsCardColors {
+  val BACKGROUND_COLOR: Color = Color(0xFFFFFDE7) // light yellow
+  val TEXT_COLOR: Color = Color(0xFF5D4037) // light brown
+}
+
+/*
+This Composable displays a dashboard card for Emergency Contacts.
+It uses a light yellow background color and brown text to indicate urgency.
+The card includes a title, subtitle, and an "Open" button for managing emergency contacts.
+ */
 @Composable
 fun EmergencyContactsCard(modifier: Modifier = Modifier) {
   StandardDashboardCard(
       modifier = modifier.testTag(EmergencyContactsTestTags.CARD),
-      backgroundColor = Color(0xFFFFFDE7),
+      backgroundColor = EmergencyContactsCardColors.BACKGROUND_COLOR, // light yellow
       minHeight = 140.dp,
       maxHeight = 160.dp) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.SpaceBetween) {
           Text(
               text = "Emergency Contacts",
-              color = Color(0xFF5D4037),
+              color = EmergencyContactsCardColors.TEXT_COLOR, // light brown
               fontWeight = FontWeight.SemiBold,
               modifier = Modifier.testTag(EmergencyContactsTestTags.TITLE),
               fontSize = 15.sp)
@@ -44,7 +54,7 @@ fun EmergencyContactsCard(modifier: Modifier = Modifier) {
           Text(
               text = "Manage who to notify",
               modifier = Modifier.testTag(EmergencyContactsTestTags.SUBTITLE),
-              color = Color(0xFF5D4037),
+              color = Color(0xFF5D4037), // light brown
               fontSize = 13.sp,
               lineHeight = 16.sp)
 
