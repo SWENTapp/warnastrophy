@@ -75,6 +75,10 @@ fun MapScreen(
     launcher.launch(viewModel.locationPermissions.permissions)
   }
 
+  /**
+   * This effect starts or stops location updates based on whether the location permission has been
+   * granted.
+   */
   LaunchedEffect(uiState.isGranted) {
     if (uiState.isGranted) {
       viewModel.startLocationUpdate()
@@ -83,12 +87,20 @@ fun MapScreen(
     }
   }
 
+  /**
+   * When tracking is enabled, this effect is triggered by changes in the user's location. It
+   * animates the camera to center on the new position.
+   */
   LaunchedEffect(uiState.isTrackingLocation, uiState.positionState.position, uiState.isGranted) {
     if (uiState.isGranted && !uiState.isLoading && uiState.isTrackingLocation) {
       defaultAnimate(cameraPositionState, uiState.positionState)
     }
   }
 
+  /**
+   * Triggered when the user starts moving the map, which stops tracking the user's location. This
+   * allows the user to freely explore the map.
+   */
   LaunchedEffect(cameraPositionState.isMoving, cameraPositionState.cameraMoveStartedReason) {
     if (cameraPositionState.isMoving &&
         cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) {
