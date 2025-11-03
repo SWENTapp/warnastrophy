@@ -224,36 +224,3 @@ private fun DashboardEmergencyContactsCardPreview() {
         onManageContactsClick = {})
   }
 }
-
-@Preview(showBackground = true, name = "No Contacts")
-@Composable
-private fun DashboardEmergencyContactsCardEmptyPreview() {
-  MainAppTheme {
-    DashboardEmergencyContactsCard(contacts = emptyList(), onManageContactsClick = {})
-  }
-}
-
-@Preview(showBackground = true, name = "Loading")
-@Composable
-private fun DashboardEmergencyContactsCardLoadingPreview() {
-  MainAppTheme {
-    DashboardEmergencyContactsCard(
-        contacts = emptyList(), onManageContactsClick = {}, isLoading = true)
-  }
-}
-
-@Preview(showBackground = true, name = "Single Contact")
-@Composable
-private fun DashboardEmergencyContactsCardSinglePreview() {
-  MainAppTheme {
-    DashboardEmergencyContactsCard(
-        contacts =
-            listOf(
-                Contact(
-                    id = "1",
-                    fullName = "Emergency Contact",
-                    phoneNumber = "+1 555-000-0000",
-                    relationship = "Guardian")),
-        onManageContactsClick = {})
-  }
-}
