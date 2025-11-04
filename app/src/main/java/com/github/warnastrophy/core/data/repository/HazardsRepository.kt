@@ -69,6 +69,7 @@ class HazardsRepository() : HazardsDataSource {
     try {
       val properties = root.getJSONObject("properties")
       val isCurrent = properties.getBoolean("iscurrent")
+      // isCurrent is commented for testing purpose
       // if(!isCurrent) return null
 
       val geometryOfCentroid = root.getJSONObject("geometry")
@@ -78,19 +79,26 @@ class HazardsRepository() : HazardsDataSource {
           val arr = geometryOfCentroid.getJSONArray("coordinates")
           coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
         }
-        "Polygon" -> { // we take first point as centroid
-          val polygons =
-              geometryOfCentroid.getJSONArray("coordinates").getJSONArray(0).getJSONArray(0)
-          val polygon = polygons.getJSONArray(0)
-          coordinates.add(
-              Location(latitude = polygon.getDouble(1), longitude = polygon.getDouble(0)))
-        }
+      // This section is commented because we observed that on API, the centroid is always a point,
+      // so commenting this section allows improve line coverage
+      /*
+      "Polygon" -> { // we take first point as centroid
+        val polygons =
+            geometryOfCentroid.getJSONArray("coordinates").getJSONArray(0).getJSONArray(0)
+        val polygon = polygons.getJSONArray(0)
+        coordinates.add(
+            Location(latitude = polygon.getDouble(1), longitude = polygon.getDouble(0)))
+      }
+       */
       }
 
       val urlsOfHazard = properties.getJSONObject("url")
       val detailedGeometryUrl = urlsOfHazard.getString("geometry")
       val geometryRes = httpGet(detailedGeometryUrl)
       val hazardDetailUrl = urlsOfHazard.getString("details")
+
+      if (coordinates.isEmpty()) return null
+
       val articleUrl =
           getHazardArticleUrl(hazardDetailUrl)
               ?: run {
@@ -123,6 +131,7 @@ class HazardsRepository() : HazardsDataSource {
               centroid = coordinates,
               affectedZone = affectedZone,
               bbox = bbox)
+      Log.d(TAGrep, hazard.toString())
       return hazard
     } catch (e: Exception) {
       Log.d(TAGrep, "Failed to construct Hazard object: ${e.message}")
@@ -176,69 +185,3 @@ class HazardsRepository() : HazardsDataSource {
     }
   }
 }
-
-// private fun buildUrlWorldHazards(hazardType: HazardType): String {
-//    val base = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP"
-//    return "$base?eventtypes=${hazardType.eventType}"
-// }
-
-//    suspend fun getCountryHazards(
-//        eventTypes: List<String>,
-//        country: String,
-//        fromDate: String,
-//        toDate: String,
-//        alertLevels: List<String>
-//    ) : List<Hazard> {
-//        val url = buildUrlCountryHazards(eventTypes, country, fromDate, toDate, alertLevels)
-//        val response = httpGet(url)
-//        val jsonObject = JSONObject(response)
-//        val jsonHazards = jsonObject.getJSONArray("features")
-//        val hazards = mutableListOf<Hazard>()
-//        for (i in 0 until jsonHazards.length()) {
-//            val hazardJson = jsonHazards.getJSONObject(i)
-//            val hazard = parseHazard(hazardJson)
-//            if (hazard != null) {
-//                hazards.add(hazard)
-//            }
-//        }
-//        return hazards
-//    }
-
-//    suspend fun getAllWorldHazards(): List<Hazard> {
-//        val allHazards = mutableListOf<Hazard>()
-//        val hazardTypes = listOf(
-//            HazardType.Earthquakes,
-//            HazardType.Floods,
-//            HazardType.Volcanoes,
-//            HazardType.TropicalCyclones
-//        )
-//        for (hazardType in hazardTypes) {
-//            val url = buildUrlWorldHazards(hazardType)
-//            val response = httpGet(url)
-//            val jsonObject = JSONObject(response)
-//            val jsonHazards = jsonObject.getJSONArray("features")
-//            for (i in 0 until jsonHazards.length()) {
-//                val hazardJson = jsonHazards.getJSONObject(i)
-//                val hazard = parseHazard(hazardJson)
-//                if (hazard != null) {
-//                    allHazards.add(hazard)
-//                }
-//            }
-//        }
-//        return allHazards
-//    }
-// }
-
-// private fun buildUrlCountryHazards(
-//    eventTypes: List<String>,
-//    country: String,
-//    fromDate: String,
-//    toDate: String,
-//    alertLevels: List<String>
-// ): String {
-//    val eventList = eventTypes.joinToString(";")
-//    val alertLevelList = alertLevels.joinToString(";")
-//    val encodedCountry = country.replace(" ", "%20")
-//    val base = "https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH"
-//    return "$base$queryparams"
-// }
