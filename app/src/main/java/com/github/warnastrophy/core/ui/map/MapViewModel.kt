@@ -75,10 +75,10 @@ class MapViewModel(
    *
    * This function uses `combine` to listen to the latest emissions from both the
    * `gpsService.positionState` and `hazardsService.fetcherState` flows. Whenever either of these
-   * data sources emits a new state, the lambda is executed. Inside the lambda, it updates the
-   * `_uiState` with the new position and hazard states, ensuring the UI is always in sync with the
-   * underlying data. The resulting combined flow is launched in the `viewModelScope` to manage its
-   * lifecycle automatically.
+   * data sources emits a new state, the lambda is executed. Inside the lambda, it computes hazard
+   * severity ranges and then updates the `_uiState` with the new position and hazard states,
+   * ensuring the UI is always in sync with the underlying data. The resulting combined flow is
+   * launched in the `viewModelScope` to manage its lifecycle automatically.
    */
   private fun observeDataSources() {
     combine(gpsService.positionState, hazardsService.fetcherState) {
