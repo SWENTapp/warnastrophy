@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.semantics
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.util.GeometryParser
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polygon
@@ -85,7 +86,12 @@ fun HazardMarker(
         }
 ) {
   var markerLocation = Location(0.0, 0.0)
-  hazard.centroid?.let {
+  val centroidLatLngs: List<Location>? =
+      hazard.centroid?.let { nonNullGeometry ->
+        // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
+        GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
+      }
+  centroidLatLngs?.let {
     // The marker location is the average of all coordinates
 
     if (it.size > 1) {

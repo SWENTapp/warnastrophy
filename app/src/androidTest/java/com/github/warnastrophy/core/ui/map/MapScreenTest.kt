@@ -17,7 +17,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
@@ -31,6 +30,8 @@ import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.GeometryFactory
 
 class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var gpsService: PositionService
@@ -41,6 +42,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
       GrantPermissionRule.grant(
           Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
+  val geometryFactory = GeometryFactory()
   private val hazards =
       listOf(
           Hazard(
@@ -55,7 +57,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
               bbox = null,
               affectedZone = null,
               alertLevel = null,
-              centroid = listOf(Location(18.55, -72.34))),
+              centroid = geometryFactory.createPoint(Coordinate(-72.34, 18.55))),
           Hazard(
               id = 2,
               type = "EQ", // will map to HUE_RED
@@ -68,7 +70,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
               affectedZone = null,
               bbox = null,
               alertLevel = null,
-              centroid = listOf(Location(18.61, -72.22), Location(18.64, -72.10))))
+              centroid = geometryFactory.createPoint(Coordinate(-72.22, 18.61))))
 
   private val defaultPosition = AppConfig.defaultPosition
 

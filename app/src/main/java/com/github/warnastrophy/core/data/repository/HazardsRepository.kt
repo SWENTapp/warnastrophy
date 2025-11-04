@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.data.repository
 
 import android.util.Log
 import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.util.GeometryParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -72,32 +71,17 @@ class HazardsRepository() : HazardsDataSource {
       // isCurrent is commented for testing purpose
       // if(!isCurrent) return null
 
-      val geometryOfCentroid = root.getJSONObject("geometry")
-      val coordinates = mutableListOf<Location>()
-      when (geometryOfCentroid.getString("type")) {
-        "Point" -> {
-          val arr = geometryOfCentroid.getJSONArray("coordinates")
-          coordinates.add(Location(latitude = arr.getDouble(1), longitude = arr.getDouble(0)))
-        }
-      // This section is commented because we observed that on API, the centroid is always a point,
-      // so commenting this section allows improve line coverage
-      /*
-      "Polygon" -> { // we take first point as centroid
-        val polygons =
-            geometryOfCentroid.getJSONArray("coordinates").getJSONArray(0).getJSONArray(0)
-        val polygon = polygons.getJSONArray(0)
-        coordinates.add(
-            Location(latitude = polygon.getDouble(1), longitude = polygon.getDouble(0)))
-      }
-       */
-      }
+      val centroid =
+          GeometryParser.convertRawGeoJsonGeometryToJTS(root.getJSONObject("geometry").toString())
+              ?: run {
+                Log.d(TAGrep, "Skipping hazard due to missing centroid.")
+                return null
+              }
 
       val urlsOfHazard = properties.getJSONObject("url")
       val detailedGeometryUrl = urlsOfHazard.getString("geometry")
       val geometryRes = httpGet(detailedGeometryUrl)
       val hazardDetailUrl = urlsOfHazard.getString("details")
-
-      if (coordinates.isEmpty()) return null
 
       val articleUrl =
           getHazardArticleUrl(hazardDetailUrl)
@@ -114,7 +98,7 @@ class HazardsRepository() : HazardsDataSource {
       val affectedZone =
           getAffectedZone(geometryRes)
               ?: run {
-                Log.d(TAGrep, "Skipping hazard due to missing affected zone.")
+                Log.e(TAGrep, "Skipping hazard due to missing affected zone.")
                 return null
               }
       val hazard =
@@ -128,13 +112,13 @@ class HazardsRepository() : HazardsDataSource {
               severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
               articleUrl = articleUrl,
               alertLevel = properties.getDouble("alertscore"),
-              centroid = coordinates,
+              centroid = centroid,
               affectedZone = affectedZone,
               bbox = bbox)
       Log.d(TAGrep, hazard.toString())
       return hazard
     } catch (e: Exception) {
-      Log.d(TAGrep, "Failed to construct Hazard object: ${e.message}")
+      Log.e(TAGrep, "Failed to construct Hazard object: ${e.message}")
       return null
     }
   }
