@@ -17,35 +17,44 @@ import com.github.warnastrophy.core.model.PositionService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import org.mockito.Mockito
 
 val hazardList =
     listOf(
-        Hazard(
+        createHazard(
             id = 1,
             type = "FL", // will map to HUE_GREEN
-            description = null,
-            country = null,
-            date = null,
-            severity = null,
-            severityUnit = null,
-            reportUrl = null,
-            alertLevel = null,
             coordinates = listOf(Location(18.55, -72.34))),
-        Hazard(
+        createHazard(
             id = 2,
             type = "EQ", // will map to HUE_RED
-            description = null,
-            country = null,
-            date = null,
-            severity = null,
-            severityUnit = null,
-            reportUrl = null,
-            alertLevel = null,
             coordinates = listOf(Location(18.61, -72.22), Location(18.64, -72.10))))
 
 val pos: LatLng = LatLng(18.61, -72.22)
+
+fun createHazard(
+    id: Int? = null,
+    type: String? = null,
+    description: String? = null,
+    country: String? = null,
+    date: String? = null,
+    severity: Double? = null,
+    severityUnit: String? = null,
+    reportUrl: String? = null,
+    alertLevel: Int? = null,
+    coordinates: List<Location>? = null
+) =
+    Hazard(
+        id = id,
+        type = type,
+        description = description,
+        country = country,
+        date = date,
+        severity = severity,
+        severityUnit = severityUnit,
+        reportUrl = reportUrl,
+        alertLevel = alertLevel,
+        coordinates = coordinates)
 
 class GpsServiceMock(initial: LatLng = pos) : PositionService {
 
@@ -87,10 +96,14 @@ class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = p
     HazardsDataService {
   override suspend fun fetchHazards(geometry: String, days: String) = hazardList
 
-  override val fetcherState: StateFlow<FetcherState> = MutableStateFlow(FetcherState(hazards))
+  override val fetcherState = MutableStateFlow(FetcherState(hazards))
   override val gpsService: PositionService = GpsServiceMock(position)
   override val errorHandler: ErrorHandler = ErrorHandler()
   override val repository = HazardsRepositoryMock(hazards)
+
+  fun setHazards(hazards: List<Hazard>) {
+    fetcherState.value = FetcherState(hazards = hazards)
+  }
 }
 
 /**

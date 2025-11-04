@@ -38,6 +38,7 @@ class MapViewModelTest {
     permissionManager = MockPermissionManager()
 
     viewModel = MapViewModel(gpsService, hazardsService, permissionManager)
+    println(viewModel.uiState.value.hazardState.hazards)
   }
 
   @After
@@ -98,5 +99,71 @@ class MapViewModelTest {
   fun stopLocationUpdate_calls_gpsService_methods() = runTest {
     gpsService.stopLocationUpdates()
     assertFalse(gpsService.isLocationUpdated)
+  }
+
+  @Test
+  fun uiState_correctly_combines_updates_from_both_gpsService_and_hazardsService() = runTest {
+    val initialHazards =
+        listOf(
+            createHazard(type = "Flood", severity = 0.8),
+            createHazard(type = "Flood", severity = 0.3))
+    val newHazards =
+        listOf(
+            createHazard(type = "Water", severity = 0.5),
+            createHazard(type = "Water", severity = 1.0),
+            createHazard(type = "Fire", severity = 2.0),
+            createHazard(type = "Fire", severity = 3.5),
+        )
+    val newPosition = LatLng(10.0, 20.0)
+
+    // Set initial state for hazards
+    hazardsService.setHazards(initialHazards)
+    // Advance the dispatcher to process the initial hazard state from combine
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    // --- Assert initial state before acting ---
+    val initialState = viewModel.uiState.value
+    assertEquals("Initial hazard count should be correct", 2, initialState.hazardState.hazards.size)
+    assertEquals(
+        "Initial severities for Flood should be calculated",
+        Pair(0.3, 0.8),
+        initialState.severitiesByType["Flood"])
+
+    // Emit new values from services. This will trigger the combine logic again.
+    gpsService.setPosition(position = newPosition)
+    hazardsService.setHazards(newHazards)
+
+    // Advance the dispatcher
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val finalState = viewModel.uiState.value
+
+    // Verify position state was updated
+    assertFalse("Position should no longer be loading", finalState.positionState.isLoading)
+    assertEquals(
+        "Position should be updated to the new value",
+        newPosition,
+        finalState.positionState.position)
+
+    // Verify hazard state was updated
+    assertEquals(
+        "Hazard list should be updated to the new list",
+        newHazards.size,
+        finalState.hazardState.hazards.size)
+    assertEquals(
+        "Hazard data should match the new hazards", newHazards, finalState.hazardState.hazards)
+
+    // Verify the derived 'severities' state was re-calculated and updated
+    assertEquals(
+        "Severities for Flood should be updated",
+        Pair(0.5, 1.0),
+        finalState.severitiesByType["Water"])
+    assertEquals(
+        "Severities for Fire should be updated",
+        Pair(2.0, 3.5),
+        finalState.severitiesByType["Fire"])
+    assertFalse(
+        "Old severity key 'Flood' should no longer exist",
+        finalState.severitiesByType.containsKey("Flood"))
   }
 }

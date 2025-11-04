@@ -64,6 +64,7 @@ fun MapScreen(
   }
 
   val uiState by viewModel.uiState.collectAsState()
+  val hazards = uiState.hazardState.hazards
 
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
@@ -121,17 +122,7 @@ fun MapScreen(
                   zoomControlsEnabled = false,
                   mapToolbarEnabled = false),
           properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
-            val severities =
-                uiState.hazardState.hazards
-                    .filter { it.type != null && it.severity != null }
-                    .groupBy { it.type }
-                    .map {
-                      val minSev = it.value.minOf { hazard -> hazard.severity ?: 0.0 }
-                      val maxSev = it.value.maxOf { hazard -> hazard.severity ?: 0.0 }
-                      (it.key ?: "Unknown") to (Pair(minSev, maxSev))
-                    }
-                    .toMap()
-            uiState.hazardState.hazards.forEach { hazard -> HazardMarker(hazard, severities) }
+            hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
           }
       TrackLocationButton(uiState.isTrackingLocation) { viewModel.setTracking(true) }
     }

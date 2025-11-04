@@ -6,10 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.FetcherState
 import com.github.warnastrophy.core.model.GpsPositionState
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.PermissionManagerInterface
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
+import kotlin.collections.filter
+import kotlin.collections.groupBy
+import kotlin.collections.map
+import kotlin.collections.maxOf
+import kotlin.collections.minOf
+import kotlin.collections.toMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +33,7 @@ import kotlinx.coroutines.launch
  *   otherwise.
  * @property isOsRequestInFlight True if a system permission dialog is currently being shown to the
  *   user.
+ * @property severitiesByType A map of hazard types to their corresponding severity ranges.
  * @property positionState The state of the GPS position data fetching. See [GpsPositionState].
  * @property hazardState The state of the hazard data fetching. See [FetcherState].
  */
@@ -33,6 +41,7 @@ data class MapUIState(
     val permissionResult: PermissionResult,
     val isTrackingLocation: Boolean = false,
     val isOsRequestInFlight: Boolean = false,
+    val severitiesByType: Map<String, Pair<Double, Double>> = emptyMap(),
     val positionState: GpsPositionState = GpsPositionState(isLoading = true),
     val hazardState: FetcherState = FetcherState(isLoading = true)
 ) {
@@ -75,8 +84,13 @@ class MapViewModel(
     combine(gpsService.positionState, hazardsService.fetcherState) {
             newPositionState,
             newHazardState ->
+          val severities = computeSeverities(newHazardState.hazards)
+
           _uiState.update {
-            it.copy(positionState = newPositionState, hazardState = newHazardState)
+            it.copy(
+                positionState = newPositionState,
+                hazardState = newHazardState,
+                severitiesByType = severities)
           }
         }
         .launchIn(viewModelScope)
@@ -124,5 +138,30 @@ class MapViewModel(
    */
   fun setTracking(enabled: Boolean) {
     _uiState.update { it.copy(isTrackingLocation = enabled) }
+  }
+
+  /**
+   * Computes a map of severities from a list of hazards.
+   *
+   * This function processes a list of `Hazard` objects and groups them by their `severity` level.
+   * It returns a map where each key is a `Severity` enum and the corresponding value is a list of
+   * all hazards that have that severity.
+   *
+   * Example: If the input list contains two "High" severity hazards and one "Medium" severity
+   * hazard, the output map will be: ` { HIGH: [hazard1, hazard2], MEDIUM: [\hazard3] } `
+   *
+   * @param hazards A list of `Hazard` objects to be processed.
+   * @return A `Map<Severity, List<Hazard>>` grouping hazards by their severity.
+   */
+  private fun computeSeverities(hazards: List<Hazard>): Map<String, Pair<Double, Double>> {
+    return hazards
+        .filter { it.type != null && it.severity != null }
+        .groupBy { it.type }
+        .map { group ->
+          val minSev = group.value.minOf { hazard -> hazard.severity ?: 0.0 }
+          val maxSev = group.value.maxOf { hazard -> hazard.severity ?: 0.0 }
+          (group.key ?: "Unknown") to Pair(minSev, maxSev)
+        }
+        .toMap()
   }
 }
