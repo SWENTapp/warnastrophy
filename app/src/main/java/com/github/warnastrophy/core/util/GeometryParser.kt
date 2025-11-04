@@ -39,16 +39,14 @@ object GeometryParser {
   fun convertRawGeoJsonGeometryToJTS(geoJsonGeometryString: String): Geometry? {
     return try {
       val jtsReader = GeoJsonReader()
-      val jtsGeometry = jtsReader.read(geoJsonGeometryString)
-      return jtsGeometry
+      jtsReader.read(geoJsonGeometryString)
     } catch (e: ParseException) {
-      // Handle parsing errors, e.g., malformed GeoJSON syntax
       System.err.println("JTS Parsing Error: ${e.message}")
-      return null
+      null
     } catch (e: Exception) {
       // Handle other exceptions
       System.err.println("Unexpected Error: ${e.message}")
-      return null
+      null
     }
   }
 }
