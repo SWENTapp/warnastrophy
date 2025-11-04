@@ -36,7 +36,7 @@ import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
 
 @Composable
-fun WarnastrophyApp() {
+fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
   val context = LocalContext.current
 
   val navController = rememberNavController()
@@ -88,7 +88,9 @@ fun WarnastrophyApp() {
             modifier = Modifier.padding(innerPadding)) {
               composable(Dashboard.route) { DashboardScreen() }
               composable(Map.route) {
-                MapScreen(viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
+                mockMapScreen?.invoke()
+                    ?: MapScreen(
+                        viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
               }
               composable(Profile.route) {
                 ProfileScreen(
