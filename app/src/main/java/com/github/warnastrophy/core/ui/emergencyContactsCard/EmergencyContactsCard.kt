@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.emergencyContactsCard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,10 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
+import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 object EmergencyContactsTestTags {
   const val CARD = "emergencyContactsCard"
@@ -29,10 +31,10 @@ object EmergencyContactsCardColors {
   val TEXT_COLOR: Color = Color(0xFF5D4037) // light brown
 }
 
-/*
-This Composable displays a dashboard card for Emergency Contacts.
-It uses a light yellow background color and brown text to indicate urgency.
-The card includes a title, subtitle, and an "Open" button for managing emergency contacts.
+/**
+ * This Composable displays a dashboard card for Emergency Contacts. It uses a light yellow
+ * background color and brown text to indicate urgency. The card includes a title, subtitle, and an
+ * "Open" button for managing emergency contacts.
  */
 @Composable
 fun EmergencyContactsCard(modifier: Modifier = Modifier) {
@@ -65,4 +67,10 @@ fun EmergencyContactsCard(modifier: Modifier = Modifier) {
           }
         }
       }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EmergencyContactsCardPreview() {
+  MainAppTheme { EmergencyContactsCard() }
 }

@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.healthCardPreview
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,10 +29,10 @@ object HealthCardPreviewColors {
   val TEXT_COLOR: Color = Color(0xFF1B5E20) // dark green
 }
 
-/*
-This Composable displays a dashboard card for Health information.
-It uses a light green background color and dark green text to indicate health and wellness.
-The card includes a title, subtitle, and an "Open" button for accessing health details.
+/**
+ * This Composable displays a dashboard card for Health information. It uses a light green
+ * background color and dark green text to indicate health and wellness. The card includes a title,
+ * subtitle, and an "Open" button for accessing health details.
  */
 @Composable
 fun HealthCardPreview(modifier: Modifier = Modifier) {
