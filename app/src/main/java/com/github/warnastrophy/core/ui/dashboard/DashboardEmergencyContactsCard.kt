@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,10 +54,17 @@ object DashboardEmergencyContactsTestTags {
  * Defines the visual appearance with a light yellow background and gray text variants.
  */
 object DashboardEmergencyContactsCardColors {
-  val BACKGROUND_COLOR = Color(0xFFFFFDE7) // light yellow
-  val TEXT_COLOR = Color(0xFF424242) // Dark Gray
-  val SUBTITLE_COLOR = Color(0xFF757575) // Medium Gray
+  fun getColors(colorScheme: ColorScheme): Colors {
+    return Colors(
+        backgroundColor =
+            colorScheme.surface.copy(red = 1f, green = 1f, blue = 0.8f), // light yellow
+        textColor = colorScheme.onSurface, // Dark Gray text
+        subtitleColor = colorScheme.onSurfaceVariant // Medium Gray subtitle
+        )
+  }
 }
+
+data class Colors(val backgroundColor: Color, val textColor: Color, val subtitleColor: Color)
 
 /**
  * Displays a dashboard card showing emergency contacts with management controls.
@@ -70,18 +79,20 @@ object DashboardEmergencyContactsCardColors {
  * @param modifier Modifier to be applied to the card container.
  * @param isLoading Whether the contacts are currently being loaded. When true, displays a loading
  *   indicator.
- * @see DashboardEmergencyContactsCard Stateful version that automatically fetches contacts
+ * @see DashboardEmergencyContactsCardStateful Stateful version that automatically fetches contacts
  */
 @Composable
-fun DashboardEmergencyContactsCard(
+fun DashboardEmergencyContactsCardStateless(
     contacts: List<Contact>,
     onManageContactsClick: () -> Unit,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
+  val colorScheme = MaterialTheme.colorScheme
+  val colors = DashboardEmergencyContactsCardColors.getColors(colorScheme)
   StandardDashboardCard(
       modifier = modifier.testTag(DashboardEmergencyContactsTestTags.CARD),
-      backgroundColor = DashboardEmergencyContactsCardColors.BACKGROUND_COLOR,
+      backgroundColor = colors.backgroundColor,
       minHeight = 140.dp,
       maxHeight = 200.dp) {
         Column(
@@ -94,7 +105,7 @@ fun DashboardEmergencyContactsCard(
                   verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Emergency Contacts",
-                        color = DashboardEmergencyContactsCardColors.TEXT_COLOR,
+                        color = colors.textColor,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.testTag(DashboardEmergencyContactsTestTags.TITLE),
                         fontSize = 16.sp)
@@ -120,7 +131,7 @@ fun DashboardEmergencyContactsCard(
                 contacts.isEmpty() -> {
                   Text(
                       text = "No emergency contacts added",
-                      color = DashboardEmergencyContactsCardColors.SUBTITLE_COLOR,
+                      color = colors.subtitleColor,
                       fontSize = 14.sp,
                       modifier =
                           Modifier.testTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT))
@@ -153,7 +164,7 @@ fun DashboardEmergencyContactsCard(
 private fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
   Text(
       text = "${contact.fullName} • ${contact.phoneNumber}",
-      color = DashboardEmergencyContactsCardColors.TEXT_COLOR,
+      color = DashboardEmergencyContactsCardColors.getColors(MaterialTheme.colorScheme).textColor,
       fontSize = 14.sp,
       fontWeight = FontWeight.Medium,
       modifier = modifier)
@@ -171,10 +182,11 @@ private fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
  *
  * @param onManageContactsClick Callback invoked when the user clicks the "Manage" button.
  * @param modifier Modifier to be applied to the card container.
- * @see DashboardEmergencyContactsCard Stateless version that accepts contacts as a parameter
+ * @see DashboardEmergencyContactsCardStateful Stateless version that accepts contacts as a
+ *   parameter
  */
 @Composable
-fun DashboardEmergencyContactsCard(
+fun DashboardEmergencyContactsCardStateful(
     onManageContactsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -197,7 +209,7 @@ fun DashboardEmergencyContactsCard(
     }
   }
 
-  DashboardEmergencyContactsCard(
+  DashboardEmergencyContactsCardStateless(
       contacts = contacts,
       onManageContactsClick = onManageContactsClick,
       modifier = modifier,
@@ -208,7 +220,7 @@ fun DashboardEmergencyContactsCard(
 @Composable
 private fun DashboardEmergencyContactsCardPreview() {
   MainAppTheme {
-    DashboardEmergencyContactsCard(
+    DashboardEmergencyContactsCardStateless(
         contacts =
             listOf(
                 Contact(

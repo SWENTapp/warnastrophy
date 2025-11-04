@@ -15,7 +15,6 @@ import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -58,12 +57,6 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     ContactRepositoryProvider.repository = mockRepository
   }
 
-  @After
-  override fun tearDown() {
-    super.tearDown()
-    originalRepository?.let { ContactRepositoryProvider.repository = it }
-  }
-
   @Test
   fun dashboardEmergencyContactsCard_statefulVersion_displaysContactsFromRepository() {
     runBlocking {
@@ -72,7 +65,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
@@ -93,7 +86,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   @Test
   fun dashboardEmergencyContactsCard_statefulVersion_displaysLoadingInitially() {
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
@@ -108,7 +101,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   fun dashboardEmergencyContactsCard_statefulVersion_displaysEmptyStateWhenNoContacts() {
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
@@ -129,7 +122,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
@@ -156,7 +149,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
 
     composeTestRule.setContent {
       MainAppTheme {
-        DashboardEmergencyContactsCard(onManageContactsClick = { callbackTriggered = true })
+        DashboardEmergencyContactsCardStateful(onManageContactsClick = { callbackTriggered = true })
       }
     }
 
@@ -181,7 +174,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
@@ -202,7 +195,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     runBlocking { mockRepository.addContact(sampleContact1) }
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
@@ -219,7 +212,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
 
     composeTestRule.setContent {
       MainAppTheme {
-        DashboardEmergencyContactsCard(
+        DashboardEmergencyContactsCardStateless(
             contacts = contacts, onManageContactsClick = {}, isLoading = false)
       }
     }
@@ -241,7 +234,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   fun dashboardEmergencyContactsCard_statelessVersion_displaysLoadingState() {
     composeTestRule.setContent {
       MainAppTheme {
-        DashboardEmergencyContactsCard(
+        DashboardEmergencyContactsCardStateless(
             contacts = emptyList(), onManageContactsClick = {}, isLoading = true)
       }
     }
@@ -257,7 +250,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   fun dashboardEmergencyContactsCard_statelessVersion_displaysEmptyState() {
     composeTestRule.setContent {
       MainAppTheme {
-        DashboardEmergencyContactsCard(
+        DashboardEmergencyContactsCardStateless(
             contacts = emptyList(), onManageContactsClick = {}, isLoading = false)
       }
     }
@@ -274,7 +267,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     runBlocking { mockRepository.addContact(sampleContact1) }
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
@@ -293,7 +286,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   fun dashboardEmergencyContactsCard_titleIsAlwaysVisible() {
     composeTestRule.setContent {
       MainAppTheme {
-        DashboardEmergencyContactsCard(
+        DashboardEmergencyContactsCardStateless(
             contacts = emptyList(), onManageContactsClick = {}, isLoading = false)
       }
     }
@@ -312,7 +305,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     // Empty state
     composeTestRule.setContent {
       MainAppTheme {
-        DashboardEmergencyContactsCard(
+        DashboardEmergencyContactsCardStateless(
             contacts = emptyList(), onManageContactsClick = {}, isLoading = false)
       }
     }
@@ -351,7 +344,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     ContactRepositoryProvider.repository = failingRepository
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCard(onManageContactsClick = {}) }
+      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
     }
 
     composeTestRule.waitForIdle()
