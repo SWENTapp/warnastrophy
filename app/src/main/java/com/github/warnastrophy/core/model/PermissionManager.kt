@@ -40,45 +40,82 @@ private enum class PermissionStatus {
   TEMPORARILY_DENIED
 }
 
+interface PermissionManagerInterface {
+  fun getPermissionResult(permissionType: AppPermissions): PermissionResult
+
+  fun getPermissionResult(permissionType: AppPermissions, activity: Activity): PermissionResult
+
+  fun markPermissionsAsAsked(permissionType: AppPermissions)
+
+  fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean
+}
+
 /**
- * A utility class for managing Android runtime permissions within a specific [Activity].
+ * A utility class for managing Android runtime permissions.
  *
  * This class simplifies the process of checking the status of one or more permissions, handling the
  * nuances of permanently denied permissions (the "Don't ask again" scenario), and tracking whether
  * a permission group has been requested previously. It uses [android.content.SharedPreferences] to
  * persist the "asked" state across app sessions.
  *
- * It is designed to be instantiated with a reference to the current `Activity`, which is necessary
- * for checking rationales (`shouldShowRequestPermissionRationale`).
- *
- * @param activity The [Activity] context from which permissions are being checked or requested.
- *   This is crucial for correctly determining the rationale status.
+ * @param context The [Context] used to access SharedPreferences for tracking the "asked" state of
+ *   permissions.
  */
-class PermissionManager(private val activity: Activity) {
-  private val context: Context = activity.applicationContext
+class PermissionManager(private val context: Context) : PermissionManagerInterface {
   private val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+
+  /**
+   * Gets the permission result without checking the rationale. This is safe to call during
+   * ViewModel initialization as it doesn't require an `Activity` context.
+   *
+   * This method can distinguish between [PermissionResult.Granted] and [PermissionResult.Denied],
+   * but it **cannot** detect the [PermissionResult.PermanentlyDenied] state because that requires
+   * checking the rationale with an `Activity`. For that, use the overloaded version of
+   * [getPermissionResult] that takes an `Activity`.
+   *
+   * @param permissionType The group of permissions to check.
+   * @return [PermissionResult.Granted] if all permissions are granted, otherwise
+   *   [PermissionResult.Denied].
+   */
+  override fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
+    val permissions = permissionType.permissions
+    if (permissions.isEmpty()) return PermissionResult.Granted
+
+    val deniedPermissions =
+        permissions.filter {
+          ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+    return if (deniedPermissions.isEmpty()) {
+      PermissionResult.Granted
+    } else {
+      PermissionResult.Denied(deniedPermissions)
+    }
+  }
 
   /**
    * Analyzes the state of a group of permissions and returns a detailed PermissionResult. This
    * correctly handles mixed states (some granted, some denied, some permanently denied).
    *
-   * @param permissionType The group of permissions to analyze.
+   * @param permissionType The [AppPermissions] group to analyze.
+   * @param activity The [Activity] required to check for rationale.
    * @return A [PermissionResult] sealed class instance describing the collective status.
    */
-  fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
+  override fun getPermissionResult(
+      permissionType: AppPermissions,
+      activity: Activity
+  ): PermissionResult {
     if (permissionType.permissions.isEmpty()) {
       return PermissionResult.Granted // No permissions to check, so they are considered granted.
     }
-
-    val prefKey = "perm_asked_${permissionType::class.simpleName}"
-    val hasBeenAsked = prefs.getBoolean(prefKey, false)
 
     val permissionsState =
         permissionType.permissions.groupBy { permission ->
           when {
             ContextCompat.checkSelfPermission(context, permission) ==
                 PackageManager.PERMISSION_GRANTED -> PermissionStatus.GRANTED
-            hasBeenAsked && !activity.shouldShowRequestPermissionRationale(permission) ->
+            isPermissionAskedBefore(permissionType) &&
+                !activity.shouldShowRequestPermissionRationale(permission) ->
                 PermissionStatus.PERMANENTLY_DENIED
             else -> PermissionStatus.TEMPORARILY_DENIED
           }
@@ -108,7 +145,7 @@ class PermissionManager(private val activity: Activity) {
    * @param permissionType The permission group to check.
    * @return `true` if the permission group has been requested before, `false` otherwise.
    */
-  fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
+  override fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
     val prefKey = "perm_asked_${permissionType::class.simpleName}"
     return prefs.getBoolean(prefKey, false)
   }
@@ -121,7 +158,7 @@ class PermissionManager(private val activity: Activity) {
    *
    * @param permissionType The permission group (e.g., location, camera) to mark as asked.
    */
-  fun markPermissionsAsAsked(permissionType: AppPermissions) {
+  override fun markPermissionsAsAsked(permissionType: AppPermissions) {
     val prefKey = "perm_asked_${permissionType::class.simpleName}"
     prefs.edit { putBoolean(prefKey, true) }
   }

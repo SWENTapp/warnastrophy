@@ -1,7 +1,17 @@
 package com.github.warnastrophy.e2e
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -9,6 +19,7 @@ import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.WarnastrophyApp
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.ui.contact.UITest
+import com.github.warnastrophy.core.ui.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.profile.contact.ContactListScreenTestTags
@@ -24,11 +35,11 @@ class NavigationE2ETest : UITest() {
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.init(context)
     repository = ContactRepositoryProvider.repository
-    composeTestRule.setContent { WarnastrophyApp() }
   }
 
   @Test
   fun testTagsAreCorrectlySet() {
+    setContent()
     composeTestRule.onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).assertIsDisplayed()
@@ -38,6 +49,7 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun startsOnDashboard_bottomNavVisible() {
+    setContent()
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
@@ -47,7 +59,13 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun navigate_Dashboard_to_Map_and_back() {
-    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
+    setContent(useFakeMap = true)
+    composeTestRule
+        .onNode(
+            hasClickAction().and(hasTestTag(NavigationTestTags.TAB_MAP)), useUnmergedTree = true)
+        .assertExists()
+        .assertIsEnabled()
+        .performClick()
 
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule
@@ -62,6 +80,7 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun navigate_to_Profile_then_back_to_Dashboard() {
+    setContent()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
@@ -75,6 +94,7 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun can_visit_all_tabs_in_sequence() {
+    setContent(useFakeMap = true)
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
@@ -87,6 +107,7 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun navigate_to_contact_list_and_back_to_Dashboard() {
+    setContent()
     // Go to Profile
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule
@@ -123,6 +144,7 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun create_edit_and_delete_contact() {
+    setContent()
     // Add a new contact
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.CONTACT_LIST).performClick()
@@ -162,5 +184,20 @@ class NavigationE2ETest : UITest() {
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Contact List", ignoreCase = true)
+  }
+
+  private fun setContent(useFakeMap: Boolean = false) {
+    if (useFakeMap) {
+      composeTestRule.setContent { WarnastrophyApp(mockMapScreen = { FakeMapComponent() }) }
+    } else {
+      composeTestRule.setContent { WarnastrophyApp() }
+    }
+  }
+
+  @Composable
+  fun FakeMapComponent() {
+    Box(Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN)) {
+      Text("Fake map for testing", Modifier.align(Alignment.Center))
+    }
   }
 }
