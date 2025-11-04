@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -45,26 +46,31 @@ object DangerModeTestTags {
 }
 
 object DangerModeCardColors {
-  val BACKGROUND_COLOR: Color = Color(0xFFFFEBEE) // light red
-  val BORDER_COLOR: Color = Color(0xFFE57373) // darker red
+  val BACKGROUND_COLOR: Color
+    @Composable get() = MaterialTheme.colorScheme.error
 
-  val TITLE_COLOR: Color = Color(0xFF424242) // dark grey
+  val BORDER_COLOR: Color
+    @Composable get() = MaterialTheme.colorScheme.errorContainer
 
-  val MODE_COLOR: Color = Color(0xFF757575) // medium grey
+  val TITLE_COLOR: Color
+    @Composable get() = MaterialTheme.colorScheme.onError
+
+  val MODE_COLOR: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
   val BUTTON_TEXT: Color = Color(0xFFC6E3C6) // light green
-
   val DANGER_COLOR_GREEN: Color = Color(0xFF4CAF50) // green
-
   val DANGER_COLOR_YELLOW: Color = Color(0xFFFFEB3B) // yellow
   val DANGER_COLOR_AMBER: Color = Color(0xFFFFC107) // amber-ish
   val DANGER_COLOR_RED: Color = Color(0xFFD32F2F) // red
+  val OPEN_BUTTON_BORDER: Color
+    @Composable get() = MaterialTheme.colorScheme.surfaceVariant
 
-  val OPEN_BUTTON_BORDER: Color = Color(0xFFE0E0E0) // light grey
+  val OPEN_BUTTON_COLOR: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
-  val OPEN_BUTTON_COLOR: Color = Color(0xFF757575) // medium grey
-
-  val DANGER_BUTTON_BORDER: Color = Color(0xFF424242) // dark grey
+  val DANGER_BUTTON_BORDER: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurface
 }
 
 /*
@@ -104,7 +110,7 @@ fun DangerModeCard(modifier: Modifier = Modifier) {
               Text(text = "Mode", color = DangerModeCardColors.MODE_COLOR, fontSize = 13.sp)
               Spacer(modifier = Modifier.width(25.dp))
               Text(
-                  text = "Climbing mode",
+                  text = "Climbing mode", // This color seems to be an exception
                   color = Color.Black,
                   fontSize = 15.sp,
                   fontWeight = FontWeight.Medium,
