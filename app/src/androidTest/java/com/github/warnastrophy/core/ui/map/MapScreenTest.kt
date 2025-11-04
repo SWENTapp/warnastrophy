@@ -1,9 +1,9 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.os.Build
+import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
@@ -14,12 +14,11 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.AppPermissions
-import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.PermissionResult
-import com.github.warnastrophy.core.model.PositionService
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AppConfig.defaultPosition
@@ -28,16 +27,16 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
-import io.mockk.mockk
 import junit.framework.TestCase.assertTrue
+import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class MapScreenTest : BaseAndroidComposeTest() {
-  private lateinit var gpsService: PositionService
-  private lateinit var hazardService: HazardsDataService
+  private lateinit var gpsService: GpsServiceMock
+  private lateinit var hazardService: HazardServiceMock
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
 
@@ -60,17 +59,17 @@ class MapScreenTest : BaseAndroidComposeTest() {
     viewModel = MapViewModel(gpsService, hazardService, permissionManager)
   }
 
-  private fun setContent(relaunchKey: MutableState<Int>? = null) {
-    composeTestRule.setContent {
-      val content = @androidx.compose.runtime.Composable { MapScreen(viewModel = viewModel) }
-      relaunchKey?.let { key(it.value) { content() } } ?: content()
-    }
-  }
+  @After
+  override fun tearDown() {
+    super.tearDown()
 
-  private fun applyPerm(PermissionResult: PermissionResult) {
-    val activity = mockk<Activity>(relaxed = true)
-    permissionManager.setPermissionResult(PermissionResult)
-    viewModel.applyPermissionsResult(activity)
+    // Clear shared preferences
+    val ctx = ApplicationProvider.getApplicationContext<Context>()
+    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    prefs.edit().clear().apply()
+
+    // Unregister idling resources
+    IdlingRegistry.getInstance().resources.forEach { IdlingRegistry.getInstance().unregister(it) }
   }
 
   @Test
@@ -94,32 +93,12 @@ class MapScreenTest : BaseAndroidComposeTest() {
    * Given MapScreen is composed, When the initial loading is finished, Then the map is displayed.
    */
   @Test
-  fun testMapScreenIsDisplayed_WithoutPermissionOverload() {
+  fun testMapScreenIsDisplayed() {
     setPref(firstLaunchDone = false, askedOnce = false)
 
     setContent()
 
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-  }
-
-  /**
-   * Given MapScreen is composed and location permission is null (by default), When the initial
-   * loading is finished, Then the map is displayed.
-   */
-  @Test
-  fun testMapScreenIsDisplayed_WithPermissionOverload() {
-    setContent()
-    applyPerm(PermissionResult.Granted)
-
-    // Wait until the initial loading is finished and the map is displayed
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true)
-        .assertIsNotDisplayed()
+    waitForMapReadyAndAssertVisibility()
   }
 
   /**
@@ -136,10 +115,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
     setContent()
     applyPerm(PermissionResult.Denied(mockPerm.permissions.toList()))
 
-    composeTestRule.waitUntilWithTimeout(5_000L) { !gpsService.positionState.value.isLoading }
+    waitForMapReady()
 
     // Card is visible
-    composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
+    assertCardDisplayed(true)
   }
 
   /**
@@ -156,10 +135,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
     applyPerm(PermissionResult.Granted)
 
     // Wait until the initial loading is finished
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
+    waitForMapReady()
 
     // Check that the permission request card is not displayed
-    composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
+    assertCardDisplayed(false)
   }
 
   /**
@@ -180,9 +159,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     applyPerm(PermissionResult.Granted)
 
     // Assert first composition
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
+    waitForMapReadyAndAssertVisibility(permissionCardVisible = false)
 
     // 2) "Second launch": update prefs and bump the key
     setPref(firstLaunchDone = true, askedOnce = true)
@@ -191,9 +168,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     // Assert second composition
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
+    waitForMapReadyAndAssertVisibility(permissionCardVisible = false)
   }
 
   /**
@@ -212,14 +187,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     setContent(relaunchKey)
     applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
 
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-
-    // Card shown, but PERMANENT denial hides the "Allow" button
-    composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(PermissionUiTags.BTN_ALLOW, useUnmergedTree = true)
-        .assertDoesNotExist()
+    waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
 
     // Recompose to simulate subsequent launch; still permanent denial
     setPref(firstLaunchDone = true, askedOnce = true)
@@ -227,12 +195,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(PermissionUiTags.BTN_ALLOW, useUnmergedTree = true)
-        .assertDoesNotExist()
+    waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
   }
 
   /**
@@ -254,8 +217,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     applyPerm(PermissionResult.Granted)
 
     // Assert first composition
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+    waitForMapReadyAndAssertVisibility()
 
     // 2) "Second launch": update prefs and bump the key
     setPref(firstLaunchDone = true, askedOnce = true)
@@ -267,19 +229,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     // Assert second composition -- now becomes denied
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    composeTestRule.onNodeWithTag(PermissionUiTags.CARD, useUnmergedTree = true).assertIsDisplayed()
-  }
-
-  private fun setPref(firstLaunchDone: Boolean, askedOnce: Boolean) {
-    val ctx = ApplicationProvider.getApplicationContext<Context>()
-    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    prefs
-        .edit()
-        .putBoolean("first_launch_done", firstLaunchDone)
-        .putBoolean("loc_asked_once", askedOnce)
-        .apply()
+    waitForMapReadyAndAssertVisibility(permissionCardVisible = true)
   }
 
   @Test
@@ -287,7 +237,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     setContent()
     applyPerm(PermissionResult.Granted)
 
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
+    waitForMapReady()
 
     // Click the track location button
     composeTestRule
@@ -333,5 +283,59 @@ class MapScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitUntilWithTimeout(10000) {
       initialPosition != cameraPositionState.position.target
     }
+  }
+
+  private fun waitForMapReady(timeout: Long = 5_000L) {
+    composeTestRule.waitUntilWithTimeout(timeout) { !gpsService.positionState.value.isLoading }
+  }
+
+  private fun assertCardDisplayed(isVisible: Boolean) {
+    if (isVisible) composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsDisplayed()
+    else composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
+  }
+
+  private fun waitForMapReadyAndAssertVisibility(
+      mapVisible: Boolean = true,
+      permissionCardVisible: Boolean? = null,
+      allowButtonVisible: Boolean? = null,
+      timeout: Long = 5_000L
+  ) {
+    waitForMapReady(timeout)
+
+    if (mapVisible) {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+    } else {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertDoesNotExist()
+    }
+
+    permissionCardVisible?.let { assertCardDisplayed(it) }
+    allowButtonVisible?.let {
+      if (it) composeTestRule.onNodeWithTag(PermissionUiTags.BTN_ALLOW).assertIsDisplayed()
+      else composeTestRule.onNodeWithTag(PermissionUiTags.BTN_ALLOW).assertIsNotDisplayed()
+    }
+  }
+
+  private fun setPref(firstLaunchDone: Boolean, askedOnce: Boolean) {
+    val ctx = ApplicationProvider.getApplicationContext<Context>()
+    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    prefs
+        .edit()
+        .putBoolean("first_launch_done", firstLaunchDone)
+        .putBoolean("loc_asked_once", askedOnce)
+        .apply()
+  }
+
+  private fun setContent(
+      relaunchKey: MutableState<Int>? = null,
+  ) {
+    composeTestRule.setContent {
+      val content = @androidx.compose.runtime.Composable { MapScreen(viewModel = viewModel) }
+      relaunchKey?.let { key(it.value) { content() } } ?: content()
+    }
+  }
+
+  private fun applyPerm(permissionResult: PermissionResult) {
+    permissionManager.setPermissionResult(permissionResult)
+    viewModel.applyPermissionsResult(composeTestRule.activity)
   }
 }

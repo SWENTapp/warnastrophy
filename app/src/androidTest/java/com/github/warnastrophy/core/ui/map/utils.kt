@@ -6,6 +6,7 @@ import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.FetcherState
 import com.github.warnastrophy.core.model.GpsPositionState
+import com.github.warnastrophy.core.model.GpsResult
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
@@ -54,10 +55,13 @@ class GpsServiceMock(initial: LatLng = pos) : PositionService {
 
   override val errorHandler = ErrorHandler()
 
+  /** Whether updates are "started" (just for test verification) */
   var isLocationUpdated = false
+    private set
 
   fun setPosition(position: LatLng) {
-    positionState.value = GpsPositionState(position)
+    positionState.value =
+        GpsPositionState(position, result = GpsResult.Success("Fake position emitted"))
   }
 
   override fun requestCurrentLocation() {
@@ -81,7 +85,7 @@ class HazardsRepositoryMock(private val hazards: List<Hazard>) : HazardsDataSour
 
 class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = pos) :
     HazardsDataService {
-  override suspend fun fetchHazards(geometry: String, days: String) = emptyList<Hazard>()
+  override suspend fun fetchHazards(geometry: String, days: String) = hazardList
 
   override val fetcherState: StateFlow<FetcherState> = MutableStateFlow(FetcherState(hazards))
   override val gpsService: PositionService = GpsServiceMock(position)

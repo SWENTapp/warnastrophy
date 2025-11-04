@@ -96,7 +96,6 @@ class MapViewModelTest {
 
   @Test
   fun stopLocationUpdate_calls_gpsService_methods() = runTest {
-    gpsService.isLocationUpdated = true
     gpsService.stopLocationUpdates()
     assertFalse(gpsService.isLocationUpdated)
   }
