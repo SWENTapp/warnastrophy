@@ -186,7 +186,7 @@ fun MapScreen(
 }
 
 @Composable
-fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit) {
+fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) {
   val tint =
       if (isTracking) {
         MaterialTheme.colorScheme.primary
