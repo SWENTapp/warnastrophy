@@ -3,7 +3,7 @@ package com.github.warnastrophy.core.ui.map
 import android.Manifest
 import android.content.Context
 import android.os.Build
-import androidx.activity.compose.setContent
+import android.provider.Settings
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
@@ -13,8 +13,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
+import androidx.test.espresso.intent.Intents
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.AppPermissions
@@ -28,6 +33,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.test.runTest
+import org.hamcrest.Matchers.allOf
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -196,6 +203,37 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
+  }
+
+  @Test
+  fun location_denied_permanently_move_to_settings_onClick() = runTest {
+    // Arrange: Permanent denial path
+    setPref(firstLaunchDone = true, askedOnce = true)
+
+    setContent()
+    applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
+
+    waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
+
+    // Setup Espresso to intercept intents
+    Intents.init()
+    try {
+      // Act: click the settings button
+      composeTestRule
+          .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
+          .assertIsDisplayed()
+          .performClick()
+
+      // Assert: verify an intent was launched with ACTION_APPLICATION_DETAILS_SETTINGS
+      intended(
+          allOf(
+              hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
+              hasData(
+                  "package:${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"
+                      .toUri())))
+    } finally {
+      Intents.release()
+    }
   }
 
   /**

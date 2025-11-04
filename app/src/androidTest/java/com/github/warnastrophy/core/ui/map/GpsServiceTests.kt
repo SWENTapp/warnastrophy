@@ -15,8 +15,10 @@ import java.lang.Thread.sleep
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -185,5 +187,21 @@ class GpsServiceTests {
   fun testSetAndClearErrorMsg() {
     gpsService.clearErrorMsg()
     assertNull(gpsService.positionState.value.errorMessage)
+  }
+
+  @Test
+  fun testStopLocationUpdate() {
+    gpsService.startLocationUpdates()
+
+    val field = GpsService::class.java.getDeclaredField("serviceScope")
+    field.isAccessible = true
+    val callback = field.get(gpsService) as CoroutineScope
+
+    gpsService.stopLocationUpdates()
+
+    assertFalse("serviceScope should be active before cancellation", callback.isActive)
+
+    val state = gpsService.positionState.value
+    assertFalse(state.isLoading)
   }
 }
