@@ -10,9 +10,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/*
-This Composable represents a standard dashboard card with customizable background and border colors.
-It features rounded corners and optional height constraints.
+/**
+ * This Composable represents a standard dashboard card with customizable background and border
+ * colors. It features rounded corners and optional height constraints.
  */
 @Composable
 fun StandardDashboardCard(
