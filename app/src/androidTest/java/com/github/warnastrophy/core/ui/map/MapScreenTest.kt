@@ -51,9 +51,11 @@ class MapScreenTest : BaseAndroidComposeTest() {
               date = null,
               severity = null,
               severityUnit = null,
-              reportUrl = null,
+              articleUrl = null,
+              bbox = null,
+              affectedZone = null,
               alertLevel = null,
-              coordinates = listOf(Location(18.55, -72.34))),
+              centroid = listOf(Location(18.55, -72.34))),
           Hazard(
               id = 2,
               type = "EQ", // will map to HUE_RED
@@ -62,9 +64,11 @@ class MapScreenTest : BaseAndroidComposeTest() {
               date = null,
               severity = null,
               severityUnit = null,
-              reportUrl = null,
+              articleUrl = null,
+              affectedZone = null,
+              bbox = null,
               alertLevel = null,
-              coordinates = listOf(Location(18.61, -72.22), Location(18.64, -72.10))))
+              centroid = listOf(Location(18.61, -72.22), Location(18.64, -72.10))))
 
   private val defaultPosition = AppConfig.defaultPosition
 

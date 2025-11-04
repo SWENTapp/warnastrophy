@@ -4,7 +4,7 @@ import com.github.warnastrophy.core.data.service.HazardChecker
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
-import com.github.warnastrophy.core.util.WktParser
+import com.github.warnastrophy.core.util.GeometryParser
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
@@ -40,7 +40,7 @@ class HazardCheckerTest {
             alertLevel = 3.0, // HIGHER priority
             centroid = listOf(Location(latitude = 10.0, longitude = 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = WktParser.parseWktToJtsGeometry(wktA))
+            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
 
     val testHazardB =
         Hazard(
@@ -55,7 +55,7 @@ class HazardCheckerTest {
             alertLevel = 2.0, // LOWER priority
             centroid = listOf(Location(latitude = 10.0, longitude = 10.0)),
             bbox = listOf(9.8, 9.8, 10.2, 10.2),
-            affectedZone = WktParser.parseWktToJtsGeometry(wktB) // <-- Use WKT string
+            affectedZone = GeometryParser.parseWktToJtsGeometry(wktB) // <-- Use WKT string
             )
 
     val serviceStateManager = ServiceStateManager
@@ -94,7 +94,7 @@ class HazardCheckerTest {
             alertLevel = 3.0,
             centroid = listOf(Location(latitude = 10.0, longitude = 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = WktParser.parseWktToJtsGeometry(wktA))
+            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
     val serviceStateManager = ServiceStateManager
     serviceStateManager.clearActiveAlert()
 
@@ -127,7 +127,7 @@ class HazardCheckerTest {
             articleUrl = "http://example.test/A",
             centroid = listOf(Location(10.0, 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = WktParser.parseWktToJtsGeometry(wktA))
+            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
 
     val hazardChecker =
         HazardChecker(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
@@ -162,7 +162,7 @@ class HazardCheckerTest {
             articleUrl = "http://example.test/A",
             centroid = listOf(Location(10.0, 10.0)),
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = WktParser.parseWktToJtsGeometry(wktA))
+            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
 
     val hazardChecker =
         HazardChecker(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)

@@ -6,7 +6,7 @@ import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.io.WKTReader
 import org.locationtech.jts.io.geojson.GeoJsonReader
 
-object WktParser {
+object GeometryParser {
   private const val TAG = "WKTParserUtil"
 
   /**
@@ -38,12 +38,8 @@ object WktParser {
    */
   fun convertRawGeoJsonGeometryToJTS(geoJsonGeometryString: String): Geometry? {
     return try {
-      // 1. Initialize the JTS reader
       val jtsReader = GeoJsonReader()
-
-      // 2. Feed the raw geometry JSON string directly to the reader
       val jtsGeometry = jtsReader.read(geoJsonGeometryString)
-
       return jtsGeometry
     } catch (e: ParseException) {
       // Handle parsing errors, e.g., malformed GeoJSON syntax

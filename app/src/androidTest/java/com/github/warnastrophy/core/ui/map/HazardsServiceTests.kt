@@ -29,7 +29,9 @@ class HazardsServiceTests {
               severityUnit = null,
               articleUrl = null,
               alertLevel = null,
-              centroid = null),
+              centroid = null,
+              bbox = null,
+              affectedZone = null),
           Hazard(
               id = 2,
               type = null,
@@ -39,7 +41,9 @@ class HazardsServiceTests {
               severity = null,
               severityUnit = null,
               articleUrl = null,
+              bbox = null,
               alertLevel = null,
+              affectedZone = null,
               centroid = null))
 
   @Before

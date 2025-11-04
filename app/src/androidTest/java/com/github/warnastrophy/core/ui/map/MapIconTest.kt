@@ -66,6 +66,8 @@ class MapIconTest : BaseAndroidComposeTest() {
             severityUnit = "unit",
             articleUrl = null,
             alertLevel = null,
+            bbox = null,
+            affectedZone = null,
             centroid = null)
 
     val highHazard = lowHazard.copy(severity = 10.0)
@@ -128,6 +130,8 @@ class MapIconTest : BaseAndroidComposeTest() {
         severity = null,
         severityUnit = null,
         articleUrl = null,
+        bbox = null,
+        affectedZone = null,
         alertLevel = null,
         centroid = null)
   }

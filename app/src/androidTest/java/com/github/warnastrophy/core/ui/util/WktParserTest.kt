@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.ui.util
 
-import com.github.warnastrophy.core.util.WktParser
+import com.github.warnastrophy.core.util.GeometryParser
 import junit.framework.TestCase.*
 import org.junit.Test
 import org.locationtech.jts.geom.Geometry
@@ -13,7 +13,7 @@ class WktParserTest {
     // A simple polygon for a square zone
     val wkt = "POLYGON ((10 10, 10 30, 30 30, 30 10, 10 10))"
 
-    val result: Geometry? = WktParser.parseWktToJtsGeometry(wkt)
+    val result: Geometry? = GeometryParser.parseWktToJtsGeometry(wkt)
 
     assertNotNull("The result should not be null for a valid POLYGON WKT.", result)
     // Assert the exact type
@@ -28,7 +28,7 @@ class WktParserTest {
     // A simple point coordinate
     val wkt = "POINT (50 60)"
 
-    val result: Geometry? = WktParser.parseWktToJtsGeometry(wkt)
+    val result: Geometry? = GeometryParser.parseWktToJtsGeometry(wkt)
 
     assertNotNull("The result should not be null for a valid POINT WKT.", result)
     assertTrue("The resulting geometry should be a Point.", result is Point)
@@ -44,7 +44,7 @@ class WktParserTest {
     // Typo in the geometry type (POLIGON instead of POLYGON)
     val invalidTypeWkt = "POLIGON ((10 10, 10 30, 30 30, 30 10, 10 10))"
 
-    val result: Geometry? = WktParser.parseWktToJtsGeometry(invalidTypeWkt)
+    val result: Geometry? = GeometryParser.parseWktToJtsGeometry(invalidTypeWkt)
 
     assertNull("WKT with an invalid geometry type should return null.", result)
   }

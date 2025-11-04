@@ -3,7 +3,7 @@ package com.github.warnastrophy.core.data.repository
 import android.util.Log
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
-import com.github.warnastrophy.core.util.WktParser
+import com.github.warnastrophy.core.util.GeometryParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -155,7 +155,7 @@ class HazardsRepository() : HazardsDataSource {
   private fun getAffectedZone(geometryRes: String): Geometry? {
     return try {
       val rawGeoJsonAffectedZone = getRawGeoJsonGeometry(geometryRes).getString("geometry")
-      WktParser.convertRawGeoJsonGeometryToJTS(rawGeoJsonAffectedZone)
+      GeometryParser.convertRawGeoJsonGeometryToJTS(rawGeoJsonAffectedZone)
     } catch (e: Exception) {
       Log.e(TAGrep, "Failed to get affected zone: ${e.message}")
       null
