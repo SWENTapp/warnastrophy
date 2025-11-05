@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,10 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCard
-import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsCard
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
-import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreview
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
@@ -40,7 +39,6 @@ object DashboardColors {
   val BACKGROUND_COLOR: Color = Color(0xFFF5F5F5) // Light Grey
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
@@ -66,10 +64,12 @@ fun DashboardScreen() {
                 modifier =
                     Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                  EmergencyContactsCard(
+                  DashboardEmergencyContactsCardStateful(
+                      onManageContactsClick = {},
                       modifier = Modifier.weight(1f).testTag(EmergencyContactsTestTags.CARD))
-                  HealthCardPreview(
-                      modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(1f))
+                  DashboardHealthCardStateful(
+                      onHealthCardClick = {},
+                      modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(0.78f))
                 }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -82,8 +82,66 @@ fun DashboardScreen() {
   }
 }
 
-@Preview
+@Preview(showBackground = true, name = "Dashboard with Sample Data")
 @Composable
-fun DashboardScreenPreview() {
-  MainAppTheme { DashboardScreen() }
+private fun DashboardScreenWithDataPreview() {
+  MainAppTheme {
+    Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
+      Column(
+          modifier =
+              Modifier.padding(innerPadding)
+                  .fillMaxSize()
+                  .verticalScroll(rememberScrollState())
+                  .background(DashboardColors.BACKGROUND_COLOR)) {
+            SafeZoneTopBar()
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+              LatestNewsCard()
+              Spacer(modifier = Modifier.height(12.dp))
+              MapPreviewCard()
+              Spacer(modifier = Modifier.height(12.dp))
+
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    DashboardEmergencyContactsCardStateless(
+                        contacts =
+                            listOf(
+                                Contact(
+                                    id = "1",
+                                    fullName = "Jane Doe",
+                                    phoneNumber = "+1 555-123-4567",
+                                    relationship = "Mom"),
+                                Contact(
+                                    id = "2",
+                                    fullName = "John Smith",
+                                    phoneNumber = "+1 555-987-6543",
+                                    relationship = "Dad")),
+                        onManageContactsClick = {},
+                        modifier = Modifier.weight(1f))
+                    DashboardHealthCardStateless(
+                        healthCard =
+                            HealthCard(
+                                fullName = "Jane Doe",
+                                birthDate = "1990-05-15",
+                                socialSecurityNumber = "123-45-6789",
+                                chronicConditions = listOf("Asthma", "Diabetes", "Stroke"),
+                                sex = "Female",
+                                bloodType = "A+",
+                                heightCm = 165,
+                                weightKg = 60.0,
+                                allergies = listOf("Peanuts", "Penicillin"),
+                                medications = listOf("Aspirin"),
+                                organDonor = true),
+                        onHealthCardClick = {},
+                        modifier = Modifier.weight(0.78f))
+                  }
+
+              Spacer(modifier = Modifier.height(12.dp))
+              DangerModeCard()
+              Spacer(modifier = Modifier.height(80.dp))
+            }
+          }
+    }
+  }
 }
