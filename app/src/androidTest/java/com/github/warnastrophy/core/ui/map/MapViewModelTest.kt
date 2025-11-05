@@ -98,6 +98,7 @@ class MapViewModelTest {
   @Test
   fun stopLocationUpdate_calls_gpsService_methods() = runTest {
     gpsService.stopLocationUpdates()
+    testDispatcher.scheduler.advanceUntilIdle()
     assertFalse(gpsService.isLocationUpdated)
   }
 
@@ -165,5 +166,44 @@ class MapViewModelTest {
     assertFalse(
         "Old severity key 'Flood' should no longer exist",
         finalState.severitiesByType.containsKey("Flood"))
+  }
+
+  @Test
+  fun uiState_correctly_combines_severities() = runTest {
+    val hazards =
+        listOf(
+            createHazard(type = "Flood", severity = 0.8),
+            createHazard(type = "Flood", severity = 0.3), // Same type, different severity
+            createHazard(type = "Fire", severity = 2.0),
+            createHazard(type = "Fire", severity = 3.5), // Same type, different severity
+            createHazard(type = null, severity = 1.0), // Null type, should be ignored
+            createHazard(type = "EQ", severity = null), // Null severity, should be ignored
+            createHazard(type = "Storm", severity = 1.2) // Single hazard type
+            )
+
+    val expectedResult =
+        mapOf(
+            "Flood" to (0.3 to 0.8), // min and max severity for Flood
+            "Fire" to (2.0 to 3.5),
+            "Storm" to (1.2 to 1.2) // Only one severity, min=max=1.2
+            )
+
+    // Set initial state for hazards
+    hazardsService.setHazards(hazards)
+    // Advance the dispatcher to process the initial hazard state from combine
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+
+    assertEquals("Hazard count should be correct", hazards.size, state.hazardState.hazards.size)
+    assertEquals("Severities should be correct", expectedResult, state.severitiesByType)
+  }
+
+  @Test
+  fun onPermissionsRequestStart_works_as_expected() = runTest {
+    assertFalse(
+        "The OS pop-up should not be displayed", viewModel.uiState.value.isOsRequestInFlight)
+    viewModel.onPermissionsRequestStart()
+    assertTrue("The OS pop-up should be displayed", viewModel.uiState.value.isOsRequestInFlight)
   }
 }
