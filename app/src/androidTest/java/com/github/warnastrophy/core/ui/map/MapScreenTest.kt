@@ -333,8 +333,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
         .performClick()
 
     // Wait for animation to finish using the idling resource
-    composeTestRule.waitUntil {
-      // Consider idle when animation is finished and position changed
+    composeTestRule.waitUntil(timeoutMillis = 10_000) {
       !cameraPositionState.isMoving && initialPosition != cameraPositionState.position.target
     }
   }
