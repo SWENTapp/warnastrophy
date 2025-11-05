@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.data.local.HealthCardStorage
@@ -34,7 +33,6 @@ import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import kotlinx.coroutines.launch
 
 /** Object holding test tag constants for the Health Card UI. */
@@ -226,26 +224,4 @@ fun DashboardHealthCardStateful(
       onHealthCardClick = onHealthCardClick,
       modifier = modifier,
       isLoading = isLoading)
-}
-
-@Preview(showBackground = true, name = "With Health Card")
-@Composable
-private fun DashboardHealthCardWithDataPreview() {
-  MainAppTheme {
-    DashboardHealthCardStateless(
-        healthCard =
-            HealthCard(
-                fullName = "Jane Doe",
-                birthDate = "1990-05-15",
-                socialSecurityNumber = "123-45-6789",
-                chronicConditions = listOf("Asthma", "Diabetes", "Stroke"),
-                sex = "Female",
-                bloodType = "A+",
-                heightCm = 165,
-                weightKg = 60.0,
-                allergies = listOf("Peanuts", "Penicillin"),
-                medications = listOf("Aspirin"),
-                organDonor = true),
-        onHealthCardClick = {})
-  }
 }
