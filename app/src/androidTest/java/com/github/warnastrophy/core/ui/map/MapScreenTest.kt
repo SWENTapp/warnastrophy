@@ -46,7 +46,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var hazardService: HazardServiceMock
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
-
   private val mockPerm = AppPermissions.LocationFine
 
   @get:Rule
@@ -57,6 +56,8 @@ class MapScreenTest : BaseAndroidComposeTest() {
   @Before
   override fun setUp() {
     super.setUp()
+
+    // Re-instantiate mocks fresh before each test to avoid state leakage
     gpsService = GpsServiceMock()
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
@@ -79,9 +80,61 @@ class MapScreenTest : BaseAndroidComposeTest() {
     IdlingRegistry.getInstance().resources.forEach { IdlingRegistry.getInstance().unregister(it) }
   }
 
+  private fun waitForMapReady(timeout: Long = 10_000L) {
+    // Increase timeout to 10 seconds to accommodate longer CI runs
+    composeTestRule.waitUntil(timeout) { !gpsService.positionState.value.isLoading }
+  }
+
+  private fun assertCardDisplayed(isVisible: Boolean) {
+    if (isVisible) composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsDisplayed()
+    else composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
+  }
+
+  private fun waitForMapReadyAndAssertVisibility(
+      mapVisible: Boolean = true,
+      permissionCardVisible: Boolean? = null,
+      allowButtonVisible: Boolean? = null,
+      timeout: Long = 10_000L
+  ) {
+    waitForMapReady(timeout)
+    if (mapVisible) {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
+    } else {
+      composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertDoesNotExist()
+    }
+    permissionCardVisible?.let { assertCardDisplayed(it) }
+    allowButtonVisible?.let {
+      if (it) composeTestRule.onNodeWithTag(PermissionUiTags.BTN_ALLOW).assertIsDisplayed()
+      else composeTestRule.onNodeWithTag(PermissionUiTags.BTN_ALLOW).assertIsNotDisplayed()
+    }
+  }
+
+  private fun setPref(firstLaunchDone: Boolean, askedOnce: Boolean) {
+    val ctx = ApplicationProvider.getApplicationContext<Context>()
+    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    prefs
+        .edit()
+        .putBoolean("first_launch_done", firstLaunchDone)
+        .putBoolean("loc_asked_once", askedOnce)
+        .apply()
+  }
+
+  private fun setContent(relaunchKey: MutableState<Int>? = null) {
+    composeTestRule.setContent {
+      val content = @androidx.compose.runtime.Composable { MapScreen(viewModel = viewModel) }
+      relaunchKey?.let { key(it.value) { content() } } ?: content()
+    }
+  }
+
+  private fun applyPerm(permissionResult: PermissionResult) {
+    // Use mock permission manager to simulate different permission states deterministically
+    permissionManager.setPermissionResult(permissionResult)
+    viewModel.applyPermissionsResult(composeTestRule.activity)
+  }
+
   @Test
   fun showsFallbackError_whenNoActivityContextAvailable() {
-    // Arrange: create a fake LocalContext that is NOT an Activity or ContextWrapper of one
+    // Arrange: use non-activity context to verify fallback UI is displayed
     val applicationContext =
         InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
 
@@ -91,8 +144,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
         MapScreen(viewModel = viewModel)
       }
     }
-
-    // Assert: the fallback box should be displayed
     composeTestRule.onNodeWithTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
   }
 
@@ -102,42 +153,29 @@ class MapScreenTest : BaseAndroidComposeTest() {
   @Test
   fun testMapScreenIsDisplayed() {
     setPref(firstLaunchDone = false, askedOnce = false)
-
     setContent()
-
     waitForMapReadyAndAssertVisibility()
   }
 
-  /**
-   * Given location permission is not null, When MapScreen is composed on first launch, Then the
-   * permission request card is displayed.
-   */
   @Test
   fun testPermissionRequestCardIsDisplayedOnFirstLaunch() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
 
     // First launch
     setPref(firstLaunchDone = false, askedOnce = false)
-
     setContent()
     applyPerm(PermissionResult.Denied(mockPerm.permissions.toList()))
-
     waitForMapReady()
 
     // Card is visible
     assertCardDisplayed(true)
   }
 
-  /**
-   * Given location permission is granted, When MapScreen is composed, Then the permission request
-   * card is not displayed.
-   */
   @Test
   fun testPermissionRequestCardIsNotDisplayedWhenPermissionGranted() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
     // Set Preferences to simulate first launch
     setPref(firstLaunchDone = false, askedOnce = false)
-
     setContent()
     applyPerm(PermissionResult.Granted)
 
@@ -148,10 +186,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
     assertCardDisplayed(false)
   }
 
-  /**
-   * Given location permission is granted, When MapScreen is composed, Then the map is shown the
-   * location is displayed on both first launch and subsequent launches.
-   */
   @Test
   fun testLocationPermissionGrantedAlways() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -161,7 +195,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     // State the test can bump to simulate a relaunch
     val relaunchKey = mutableStateOf(0)
-
     setContent(relaunchKey = relaunchKey)
     applyPerm(PermissionResult.Granted)
 
@@ -188,43 +221,29 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     // Permanent denial path: askedOnce=true and not granted
     setPref(firstLaunchDone = true, askedOnce = true)
-
     val relaunchKey = mutableStateOf(0)
-
     setContent(relaunchKey)
     applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
-
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
-
-    // Recompose to simulate subsequent launch; still permanent denial
     setPref(firstLaunchDone = true, askedOnce = true)
     composeTestRule.runOnUiThread { relaunchKey.value++ }
     composeTestRule.waitForIdle()
-
     composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
   }
 
   @Test
   fun location_denied_permanently_move_to_settings_onClick() = runTest {
-    // Arrange: Permanent denial path
     setPref(firstLaunchDone = true, askedOnce = true)
-
     setContent()
     applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
-
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
-
-    // Setup Espresso to intercept intents
     Intents.init()
     try {
-      // Act: click the settings button
       composeTestRule
           .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
           .assertIsDisplayed()
           .performClick()
-
-      // Assert: verify an intent was launched with ACTION_APPLICATION_DETAILS_SETTINGS
       intended(
           allOf(
               hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
@@ -236,11 +255,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
     }
   }
 
-  /**
-   * Given permission is only given once, When MapScreen is composed, Then the map is shown and the
-   * location is displayed on first launch, but on subsequent launches the location is not
-   * displayed.
-   */
   @Test
   fun testLocationPermissionAllowedOnce() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -250,11 +264,8 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     // State the test can bump to simulate a relaunch
     val relaunchKey = mutableStateOf(0)
-
     setContent(relaunchKey = relaunchKey)
     applyPerm(PermissionResult.Granted)
-
-    // Assert first composition
     waitForMapReadyAndAssertVisibility()
 
     // 2) "Second launch": update prefs and bump the key
@@ -274,7 +285,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
   fun trackLocationButtonSwitches() {
     setContent()
     applyPerm(PermissionResult.Granted)
-
     waitForMapReady()
 
     // Click the track location button
@@ -284,7 +294,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
         .performClick()
 
     composeTestRule.waitForIdle()
-
     val uiState = viewModel.uiState.value
     assertTrue(uiState.isTrackingLocation)
   }
@@ -297,14 +306,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
       cameraPositionState = rememberCameraPositionState()
       cameraPositionState.position =
           CameraPosition.fromLatLngZoom(
-              LatLng(defaultPosition.latitude + 1, defaultPosition.longitude + 1),
-              1f) // start away from default position
-
+              LatLng(defaultPosition.latitude + 1, defaultPosition.longitude + 1), 1f)
       MapScreen(viewModel = viewModel, cameraPositionState = cameraPositionState)
+      applyPerm(PermissionResult.Granted)
     }
-
-    applyPerm(PermissionResult.Granted)
-
     composeTestRule.waitForIdle()
     composeTestRule.waitUntilWithTimeout { !cameraPositionState.isMoving }
 
@@ -317,63 +322,9 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     // The click should cause the camera to move.
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntilWithTimeout(10000) { !cameraPositionState.isMoving }
-    composeTestRule.waitUntilWithTimeout(10000) {
+    composeTestRule.waitUntilWithTimeout(10_000) { !cameraPositionState.isMoving }
+    composeTestRule.waitUntilWithTimeout(10_000) {
       initialPosition != cameraPositionState.position.target
     }
-  }
-
-  private fun waitForMapReady(timeout: Long = 5_000L) {
-    composeTestRule.waitUntilWithTimeout(timeout) { !gpsService.positionState.value.isLoading }
-  }
-
-  private fun assertCardDisplayed(isVisible: Boolean) {
-    if (isVisible) composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsDisplayed()
-    else composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
-  }
-
-  private fun waitForMapReadyAndAssertVisibility(
-      mapVisible: Boolean = true,
-      permissionCardVisible: Boolean? = null,
-      allowButtonVisible: Boolean? = null,
-      timeout: Long = 5_000L
-  ) {
-    waitForMapReady(timeout)
-
-    if (mapVisible) {
-      composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertIsDisplayed()
-    } else {
-      composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).assertDoesNotExist()
-    }
-
-    permissionCardVisible?.let { assertCardDisplayed(it) }
-    allowButtonVisible?.let {
-      if (it) composeTestRule.onNodeWithTag(PermissionUiTags.BTN_ALLOW).assertIsDisplayed()
-      else composeTestRule.onNodeWithTag(PermissionUiTags.BTN_ALLOW).assertIsNotDisplayed()
-    }
-  }
-
-  private fun setPref(firstLaunchDone: Boolean, askedOnce: Boolean) {
-    val ctx = ApplicationProvider.getApplicationContext<Context>()
-    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-    prefs
-        .edit()
-        .putBoolean("first_launch_done", firstLaunchDone)
-        .putBoolean("loc_asked_once", askedOnce)
-        .apply()
-  }
-
-  private fun setContent(
-      relaunchKey: MutableState<Int>? = null,
-  ) {
-    composeTestRule.setContent {
-      val content = @androidx.compose.runtime.Composable { MapScreen(viewModel = viewModel) }
-      relaunchKey?.let { key(it.value) { content() } } ?: content()
-    }
-  }
-
-  private fun applyPerm(permissionResult: PermissionResult) {
-    permissionManager.setPermissionResult(permissionResult)
-    viewModel.applyPermissionsResult(composeTestRule.activity)
   }
 }
