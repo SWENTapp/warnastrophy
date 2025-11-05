@@ -24,7 +24,7 @@ class DangerModeCardViewModel : ViewModel() {
   var isDangerModeEnabled by mutableStateOf(false)
     private set
 
-  var currentModeName by mutableStateOf(DangerModePreset.CLIMBING_MODE)
+  var currentMode by mutableStateOf(DangerModePreset.CLIMBING_MODE)
     private set
 
   private val _capabilities = MutableStateFlow<Set<DangerModeCapability>>(emptySet())
@@ -35,7 +35,7 @@ class DangerModeCardViewModel : ViewModel() {
   }
 
   fun onModeSelected(mode: DangerModePreset) {
-    currentModeName = mode
+    currentMode = mode
   }
 
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {

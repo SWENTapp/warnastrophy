@@ -35,16 +35,16 @@ class DangerModeCardViewModelTest {
 
   @Test
   fun `currentModeName initial state is CLIMBING_MODE`() = runTest {
-    assertEquals(DangerModePreset.CLIMBING_MODE, viewModel.currentModeName)
+    assertEquals(DangerModePreset.CLIMBING_MODE, viewModel.currentMode)
   }
 
   @Test
   fun `onModeSelected updates currentModeName`() = runTest {
     viewModel.onModeSelected(DangerModePreset.HIKING_MODE)
-    assertEquals(DangerModePreset.HIKING_MODE, viewModel.currentModeName)
+    assertEquals(DangerModePreset.HIKING_MODE, viewModel.currentMode)
 
     viewModel.onModeSelected(DangerModePreset.DEFAULT_MODE)
-    assertEquals(DangerModePreset.DEFAULT_MODE, viewModel.currentModeName)
+    assertEquals(DangerModePreset.DEFAULT_MODE, viewModel.currentMode)
   }
 
   @Test

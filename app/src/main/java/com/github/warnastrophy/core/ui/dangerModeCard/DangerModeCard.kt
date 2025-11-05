@@ -34,14 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 object DangerModeTestTags {
   const val CARD = "dangerModeCard"
@@ -53,7 +53,12 @@ object DangerModeTestTags {
   const val OPEN_BUTTON = "dangerModeOpenBtn"
   const val MODE_DROPDOWN_ITEM = "dangerModeDropdownItem"
 
-  const val CONTACT_BUTTON = "dangerModeContactButton"
+  const val CAPABILITY_PREFIX = "dangerModeContactButton"
+  const val MODE_PREFIX = "dangerModePresetButton"
+
+  fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
+
+  fun modeTag(mode: DangerModePreset) = CAPABILITY_PREFIX + mode.label
 }
 
 /*
@@ -66,15 +71,16 @@ options for what to send in danger mode, color presets for danger levels, and an
 @Composable
 fun DangerModeCard(
     modifier: Modifier = Modifier,
-    viewModel: DangerModeCardViewModel = viewModel()
+    viewModel: DangerModeCardViewModel = viewModel(),
+    onOpenClick: () -> Unit = {}
 ) {
   val isDangerModeEnabled = viewModel.isDangerModeEnabled
-  val currentModeName = viewModel.currentModeName
+  val currentModeName = viewModel.currentMode
   val capabilities by viewModel.capabilities.collectAsState()
   val colorScheme = MaterialTheme.colorScheme
 
   StandardDashboardCard(
-      modifier = Modifier.fillMaxWidth().testTag(DangerModeTestTags.CARD),
+      modifier = modifier.fillMaxWidth().testTag(DangerModeTestTags.CARD),
       backgroundColor = colorScheme.error,
       borderColor = colorScheme.errorContainer,
   ) {
@@ -128,9 +134,7 @@ fun DangerModeCard(
                           viewModel.onModeSelected(mode)
                           expanded = false
                         },
-                        modifier =
-                            Modifier.testTag(
-                                "${DangerModeTestTags.MODE_DROPDOWN_ITEM}_${mode.label}"))
+                        modifier = Modifier.testTag(DangerModeTestTags.modeTag(mode)))
                   }
                 }
           }
@@ -143,8 +147,9 @@ fun DangerModeCard(
               Spacer(modifier = Modifier.width(20.dp))
               Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 DangerModeCapability.entries.forEach { capability ->
+                  val selected = capabilities.contains(capability)
                   val (color, textColor) =
-                      if (capabilities.contains(capability)) {
+                      if (selected) {
                         Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
                       } else {
                         Pair(colorScheme.error, colorScheme.onError)
@@ -155,7 +160,10 @@ fun DangerModeCard(
                       textColor = textColor,
                       label = capability.label,
                       onClick = { viewModel.onCapabilityToggled(capability) },
-                      modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
+                      modifier =
+                          Modifier.testTag(DangerModeTestTags.capabilityTag(capability)).semantics {
+                            this.selected = selected
+                          })
                 }
               }
             }
@@ -181,10 +189,7 @@ fun DangerModeCard(
                 Modifier.fillMaxWidth(0.9f).height(36.dp).testTag(DangerModeTestTags.OPEN_BUTTON),
         ) {
           Box(
-              modifier =
-                  Modifier.width(20.dp).clickable {
-                    // TODO: handle click
-                  },
+              modifier = Modifier.width(20.dp).clickable(onClick = onOpenClick),
               contentAlignment = Alignment.Center) {
                 Text(
                     text = "Open",
@@ -209,16 +214,4 @@ private fun DangerColorBox(color: Color, onClick: () -> Unit = {}) {
           BorderStroke(
               width = 2.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
   ) {}
-}
-
-@Preview
-@Composable
-fun DangerModeCardLightPreview() {
-  MainAppTheme(darkTheme = false) { DangerModeCard() }
-}
-
-@Preview
-@Composable
-fun DangerModeCardDarkPreview() {
-  MainAppTheme(darkTheme = true) { DangerModeCard() }
 }
