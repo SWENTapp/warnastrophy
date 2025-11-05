@@ -57,7 +57,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
   override fun setUp() {
     super.setUp()
 
-    // Re-instantiate mocks fresh before each test to avoid state leakage
     gpsService = GpsServiceMock()
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
