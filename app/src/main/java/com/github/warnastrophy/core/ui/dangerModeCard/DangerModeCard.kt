@@ -105,12 +105,17 @@ fun DangerModeCard(
                 modifier =
                     Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable { expanded = true },
                 verticalAlignment = Alignment.CenterVertically) {
-                  Text(
-                      text = currentModeName.label, // Use ViewModel's currentModeName
-                      color = Color.Black,
-                      fontSize = 15.sp,
-                      fontWeight = FontWeight.Medium)
-                  Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown indicator")
+                  StandardDashboardButton(
+                      color = colorScheme.error,
+                      label = currentModeName.label,
+                      onClick = { expanded = true },
+                      textColor = colorScheme.onError,
+                      icon = {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDropDown,
+                            contentDescription = "Dropdown Arrow",
+                            tint = colorScheme.onError)
+                      })
                 }
             DropdownMenu(
                 expanded = expanded,
