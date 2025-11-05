@@ -124,7 +124,9 @@ fun MapScreen(
           properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
             hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
           }
-      TrackLocationButton(uiState.isTrackingLocation) { viewModel.setTracking(true) }
+      TrackLocationButton(uiState.isTrackingLocation) {
+        viewModel.onTrackLocationClicked(cameraPositionState)
+      }
     }
 
     // Permission request card

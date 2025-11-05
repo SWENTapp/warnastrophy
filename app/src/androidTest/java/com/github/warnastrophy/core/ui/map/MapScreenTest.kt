@@ -26,6 +26,7 @@ import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.github.warnastrophy.core.util.AppConfig.defaultPosition
 import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.CameraPosition
@@ -47,6 +48,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
+  private val animationIdlingResource = AnimationIdlingResource()
 
   @get:Rule
   val permissionRule: GrantPermissionRule =
@@ -64,6 +66,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     MapsInitializer.initialize(context)
 
     viewModel = MapViewModel(gpsService, hazardService, permissionManager)
+    IdlingRegistry.getInstance().register(animationIdlingResource)
   }
 
   @After
@@ -224,10 +227,16 @@ class MapScreenTest : BaseAndroidComposeTest() {
     setContent(relaunchKey)
     applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
+
     setPref(firstLaunchDone = true, askedOnce = true)
     composeTestRule.runOnUiThread { relaunchKey.value++ }
+
+    // waitForIdle is managed by the test rule and is generally more reliable
+    // than waitUntil with a timeout for UI recomposition.
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntilWithTimeout { !gpsService.positionState.value.isLoading }
+
+    // The waitForMapReadyAndAssertVisibility function already waits for the loading to finish.
+    // This makes the explicit waitUntilWithTimeout redundant and safer.
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
   }
 
@@ -309,21 +318,24 @@ class MapScreenTest : BaseAndroidComposeTest() {
       MapScreen(viewModel = viewModel, cameraPositionState = cameraPositionState)
       applyPerm(PermissionResult.Granted)
     }
+
     composeTestRule.waitForIdle()
-    composeTestRule.waitUntilWithTimeout { !cameraPositionState.isMoving }
+
+    // It's good practice to wait until the camera is not moving from its initial setup
+    composeTestRule.waitUntil { !cameraPositionState.isMoving }
 
     val initialPosition = cameraPositionState.position.target
+
     // Click the track location button to start tracking and trigger the animation
     composeTestRule
         .onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)
         .assertIsDisplayed()
         .performClick()
 
-    // The click should cause the camera to move.
-    composeTestRule.waitForIdle()
-    composeTestRule.waitUntilWithTimeout(10_000) { !cameraPositionState.isMoving }
-    composeTestRule.waitUntilWithTimeout(10_000) {
-      initialPosition != cameraPositionState.position.target
+    // Wait for animation to finish using the idling resource
+    composeTestRule.waitUntil {
+      // Consider idle when animation is finished and position changed
+      !cameraPositionState.isMoving && initialPosition != cameraPositionState.position.target
     }
   }
 }
