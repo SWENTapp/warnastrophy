@@ -51,14 +51,12 @@ object DangerModeTestTags {
   const val SENDS_ROW = "dangerModeSendsRow"
   const val COLOR_ROW = "dangerModeColorRow"
   const val OPEN_BUTTON = "dangerModeOpenBtn"
-  const val MODE_DROPDOWN_ITEM = "dangerModeDropdownItem"
-
   const val CAPABILITY_PREFIX = "dangerModeContactButton"
   const val MODE_PREFIX = "dangerModePresetButton"
 
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
 
-  fun modeTag(mode: DangerModePreset) = CAPABILITY_PREFIX + mode.label
+  fun modeTag(mode: DangerModePreset) = MODE_PREFIX + mode.label
 }
 
 /*
