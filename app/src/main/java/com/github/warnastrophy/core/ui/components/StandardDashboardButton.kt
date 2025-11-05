@@ -20,7 +20,8 @@ fun StandardDashboardButton(
     color: Color = Color(0xFFF5F5F5), // light gray
     label: String,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    textColor: Color = Color.Black
 ) {
   Surface(
       onClick = onClick,
@@ -31,7 +32,7 @@ fun StandardDashboardButton(
       border = BorderStroke(1.dp, Color(0xFFBDBDBD))) { // shadow grey
         Text(
             text = label,
-            color = Color.Black,
+            color = textColor,
             fontSize = 13.sp,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
       }

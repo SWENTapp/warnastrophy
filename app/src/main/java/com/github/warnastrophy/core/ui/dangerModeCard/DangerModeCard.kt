@@ -19,19 +19,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
+import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 object DangerModeTestTags {
   const val CARD = "dangerModeCard"
@@ -45,34 +47,6 @@ object DangerModeTestTags {
   const val CONTACT_BUTTON = "dangerModeContactButton"
 }
 
-object DangerModeCardColors {
-  val BACKGROUND_COLOR: Color
-    @Composable get() = MaterialTheme.colorScheme.error
-
-  val BORDER_COLOR: Color
-    @Composable get() = MaterialTheme.colorScheme.errorContainer
-
-  val TITLE_COLOR: Color
-    @Composable get() = MaterialTheme.colorScheme.onError
-
-  val MODE_COLOR: Color
-    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
-
-  val BUTTON_TEXT: Color = Color(0xFFC6E3C6) // light green
-  val DANGER_COLOR_GREEN: Color = Color(0xFF4CAF50) // green
-  val DANGER_COLOR_YELLOW: Color = Color(0xFFFFEB3B) // yellow
-  val DANGER_COLOR_AMBER: Color = Color(0xFFFFC107) // amber-ish
-  val DANGER_COLOR_RED: Color = Color(0xFFD32F2F) // red
-  val OPEN_BUTTON_BORDER: Color
-    @Composable get() = MaterialTheme.colorScheme.surfaceVariant
-
-  val OPEN_BUTTON_COLOR: Color
-    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
-
-  val DANGER_BUTTON_BORDER: Color
-    @Composable get() = MaterialTheme.colorScheme.onSurface
-}
-
 /*
 This Composable displays a dashboard card for Danger Mode settings.
 It uses a light red background color and darker red accents to indicate caution.
@@ -81,101 +55,109 @@ options for what to send in danger mode, color presets for danger levels, and an
 " button.
  */
 @Composable
-fun DangerModeCard(modifier: Modifier = Modifier) {
-  var dangerEnabled by remember { mutableStateOf(false) }
+fun DangerModeCard(
+    modifier: Modifier = Modifier,
+    viewModel: DangerModeCardViewModel = viewModel()
+) {
+  val isDangerModeEnabled = viewModel.isDangerModeEnabled
+  val currentModeName = viewModel.currentModeName
+  val capabilities by viewModel.capabilities.collectAsState()
+  val colorScheme = MaterialTheme.colorScheme
 
   StandardDashboardCard(
       modifier = Modifier.fillMaxWidth().testTag(DangerModeTestTags.CARD),
-      backgroundColor = DangerModeCardColors.BACKGROUND_COLOR,
-      borderColor = DangerModeCardColors.BORDER_COLOR) {
-        Column(modifier = Modifier.padding(16.dp)) {
-          Row(
-              modifier = Modifier.fillMaxWidth().offset(y = (-10).dp),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    modifier = Modifier.testTag(DangerModeTestTags.TITLE),
-                    text = "Danger Mode",
-                    color = DangerModeCardColors.TITLE_COLOR,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp)
+      backgroundColor = colorScheme.error,
+      borderColor = colorScheme.errorContainer,
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      Row(
+          modifier = Modifier.fillMaxWidth().offset(y = (-10).dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                modifier = Modifier.testTag(DangerModeTestTags.TITLE),
+                text = "Danger Mode",
+                color = colorScheme.onError,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp)
 
-                Switch(
-                    checked = dangerEnabled,
-                    onCheckedChange = { dangerEnabled = it },
-                    modifier = Modifier.testTag(DangerModeTestTags.SWITCH))
-              }
-          Column() {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(text = "Mode", color = DangerModeCardColors.MODE_COLOR, fontSize = 13.sp)
-              Spacer(modifier = Modifier.width(25.dp))
-              Text(
-                  text = "Climbing mode", // This color seems to be an exception
-                  color = Color.Black,
-                  fontSize = 15.sp,
-                  fontWeight = FontWeight.Medium,
-                  modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL))
-            }
-            Spacer(modifier = Modifier.width(24.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.testTag(DangerModeTestTags.SENDS_ROW)) {
-                  Text(text = "Sends", color = DangerModeCardColors.MODE_COLOR, fontSize = 13.sp)
-                  Spacer(modifier = Modifier.width(20.dp))
-                  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StandardDashboardButton(
-                        color = DangerModeCardColors.BUTTON_TEXT,
-                        "Call",
-                        modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
-                    StandardDashboardButton(
-                        color = DangerModeCardColors.BUTTON_TEXT,
-                        "SMS",
-                        modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
-                    StandardDashboardButton(
-                        color = DangerModeCardColors.BUTTON_TEXT,
-                        "Location",
-                        modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
-                  }
+            Switch(
+                checked = isDangerModeEnabled,
+                onCheckedChange = { viewModel.onDangerModeToggled(it) },
+                modifier = Modifier.testTag(DangerModeTestTags.SWITCH))
+          }
+      Column() {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(text = "Mode", color = colorScheme.onError, fontSize = 13.sp)
+          Spacer(modifier = Modifier.width(25.dp))
+          Text(
+              text = currentModeName.label, // Use ViewModel's currentModeName
+              color = Color.Black,
+              fontSize = 15.sp,
+              fontWeight = FontWeight.Medium,
+              modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL))
+        }
+        Spacer(modifier = Modifier.width(24.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.testTag(DangerModeTestTags.SENDS_ROW)) {
+              Text(text = "Sends", color = colorScheme.onError, fontSize = 13.sp)
+              Spacer(modifier = Modifier.width(20.dp))
+              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                DangerModeCapability.entries.forEach { capability ->
+                  val (color, textColor) =
+                      if (capabilities.contains(capability)) {
+                        Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
+                      } else {
+                        Pair(colorScheme.error, colorScheme.onError)
+                      }
+
+                  StandardDashboardButton(
+                      color = color,
+                      textColor = textColor,
+                      label = capability.label,
+                      onClick = { viewModel.onCapabilityToggled(capability) },
+                      modifier = Modifier.testTag(DangerModeTestTags.CONTACT_BUTTON))
                 }
-          }
-
-          Spacer(modifier = Modifier.height(4.dp))
-          Row(
-              horizontalArrangement = Arrangement.spacedBy(8.dp),
-              modifier = Modifier.testTag(DangerModeTestTags.COLOR_ROW)) {
-                DangerColorBox(DangerModeCardColors.DANGER_COLOR_GREEN)
-                DangerColorBox(DangerModeCardColors.DANGER_COLOR_YELLOW)
-                DangerColorBox(DangerModeCardColors.DANGER_COLOR_AMBER)
-                DangerColorBox(DangerModeCardColors.DANGER_COLOR_RED)
               }
-          Spacer(Modifier.height(8.dp))
-
-          Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Surface(
-                shape = RoundedCornerShape(40.dp),
-                color = DangerModeCardColors.OPEN_BUTTON_BORDER,
-                tonalElevation = 0.dp,
-                modifier =
-                    Modifier.fillMaxWidth(0.9f)
-                        .height(36.dp)
-                        .testTag(DangerModeTestTags.OPEN_BUTTON),
-            ) {
-              Box(
-                  modifier =
-                      Modifier.width(20.dp).clickable {
-                        // TODO: handle click
-                      },
-                  contentAlignment = Alignment.Center) {
-                    Text(
-                        text = "Open",
-                        color = DangerModeCardColors.OPEN_BUTTON_COLOR,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp)
-                  }
             }
-          }
+      }
+
+      Spacer(modifier = Modifier.height(4.dp))
+      Row(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          modifier = Modifier.testTag(DangerModeTestTags.COLOR_ROW)) {
+            DangerColorBox(Color(0xFF4CAF50)) // green
+            DangerColorBox(Color(0xFFFFEB3B)) // yellow
+            DangerColorBox(Color(0xFFFFC107)) // amber-ish
+            DangerColorBox(Color(0xFFD32F2F)) // red
+      }
+      Spacer(Modifier.height(8.dp))
+
+      Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Surface(
+            shape = RoundedCornerShape(40.dp), // TODO: Why 40?
+            color = colorScheme.surfaceVariant,
+            tonalElevation = 0.dp,
+            modifier =
+                Modifier.fillMaxWidth(0.9f).height(36.dp).testTag(DangerModeTestTags.OPEN_BUTTON),
+        ) {
+          Box(
+              modifier =
+                  Modifier.width(20.dp).clickable {
+                    // TODO: handle click
+                  },
+              contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Open",
+                    color = colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp)
+              }
         }
       }
+    }
+  }
 }
 
 @Composable
@@ -187,6 +169,18 @@ private fun DangerColorBox(color: Color, onClick: () -> Unit = {}) {
       modifier = Modifier.size(width = 28.dp, height = 28.dp),
       border =
           BorderStroke(
-              width = 2.dp, color = DangerModeCardColors.DANGER_BUTTON_BORDER.copy(alpha = 0.2f)),
+              width = 2.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
   ) {}
+}
+
+@Preview
+@Composable
+fun DangerModeCardLightPreview() {
+  MainAppTheme(darkTheme = false) { DangerModeCard() }
+}
+
+@Preview
+@Composable
+fun DangerModeCardDarkPreview() {
+  MainAppTheme(darkTheme = true) { DangerModeCard() }
 }
