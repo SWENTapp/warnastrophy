@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.model.AppPermissions
@@ -11,6 +12,9 @@ import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.PermissionManagerInterface
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
+import com.github.warnastrophy.core.util.AnimationIdlingResource
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.maps.android.compose.CameraPositionState
 import kotlin.collections.filter
 import kotlin.collections.groupBy
 import kotlin.collections.map
@@ -21,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -129,6 +134,31 @@ class MapViewModel(
   /** Stop location updates. */
   fun stopLocationUpdate() {
     viewModelScope.launch { gpsService.stopLocationUpdates() }
+  }
+
+  fun onTrackLocationClicked(cameraPositionState: CameraPositionState) {
+    setTracking(true)
+
+    // Create or access the AnimationIdlingResource instance
+    val animationIdlingResource = AnimationIdlingResource()
+
+    viewModelScope.launch {
+      val userPosition = gpsService.positionState.value.position
+
+      // Signal that animation started
+      animationIdlingResource.setBusy()
+
+      cameraPositionState.animate(
+          update = CameraUpdateFactory.newLatLngZoom(userPosition, 15f), durationMs = 1000)
+
+      // Wait for animation to finish by monitoring `isMoving`
+      viewModelScope.launch {
+        snapshotFlow { cameraPositionState.isMoving }.first { isMoving -> !isMoving }
+
+        // Signal that animation ended
+        animationIdlingResource.setIdle()
+      }
+    }
   }
 
   /**
