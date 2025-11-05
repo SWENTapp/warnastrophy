@@ -48,7 +48,10 @@ object MapScreenTestTags {
 @Composable
 fun MapScreen(
     viewModel: MapViewModel,
-    cameraPositionState: CameraPositionState = rememberCameraPositionState()
+    cameraPositionState: CameraPositionState = rememberCameraPositionState(),
+    googleMap: @Composable (CameraPositionState, MapUIState) -> Unit = { cameraState, uiState ->
+      HazardsGoogleMap(cameraState, uiState)
+    } // Used for testing purpose
 ) {
   val activity = LocalContext.current.findActivity()
 
@@ -64,7 +67,6 @@ fun MapScreen(
   }
 
   val uiState by viewModel.uiState.collectAsState()
-  val hazards = uiState.hazardState.hazards
 
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
@@ -113,17 +115,7 @@ fun MapScreen(
     if (uiState.isLoading) {
       Loading()
     } else {
-      GoogleMap(
-          modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-          cameraPositionState = cameraPositionState,
-          uiSettings =
-              MapUiSettings(
-                  myLocationButtonEnabled = false,
-                  zoomControlsEnabled = false,
-                  mapToolbarEnabled = false),
-          properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
-            hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
-          }
+      googleMap(cameraPositionState, uiState)
       TrackLocationButton(uiState.isTrackingLocation) {
         viewModel.onTrackLocationClicked(cameraPositionState)
       }
@@ -196,6 +188,26 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
               .padding(16.dp)
               .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
         Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
+      }
+}
+
+@Composable
+fun HazardsGoogleMap(
+    cameraPositionState: CameraPositionState,
+    uiState: MapUIState,
+) {
+  val hazards = uiState.hazardState.hazards
+
+  GoogleMap(
+      modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+      cameraPositionState = cameraPositionState,
+      uiSettings =
+          MapUiSettings(
+              myLocationButtonEnabled = false,
+              zoomControlsEnabled = false,
+              mapToolbarEnabled = false),
+      properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
+        hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
       }
 }
 

@@ -1,16 +1,24 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.Manifest
+import android.app.Activity
+import android.app.Instrumentation
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.core.net.toUri
@@ -84,7 +92,12 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
   private fun waitForMapReady(timeout: Long = 10_000L) {
     // Increase timeout to 10 seconds to accommodate longer CI runs
-    composeTestRule.waitUntil(timeout) { !gpsService.positionState.value.isLoading }
+    composeTestRule.waitUntil(timeout) {
+      composeTestRule
+          .onAllNodesWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN)
+          .fetchSemanticsNodes()
+          .isNotEmpty() && !gpsService.positionState.value.isLoading
+    }
   }
 
   private fun assertCardDisplayed(isVisible: Boolean) {
@@ -121,9 +134,16 @@ class MapScreenTest : BaseAndroidComposeTest() {
         .apply()
   }
 
-  private fun setContent(relaunchKey: MutableState<Int>? = null) {
+  private fun setContent(relaunchKey: MutableState<Int>? = null, useRealMap: Boolean = false) {
     composeTestRule.setContent {
-      val content = @androidx.compose.runtime.Composable { MapScreen(viewModel = viewModel) }
+      val content =
+          @Composable {
+            if (useRealMap) {
+              MapScreen(viewModel = viewModel) // Keeps original behavior
+            } else {
+              MapScreen(viewModel = viewModel, googleMap = { _, _ -> FakeMapForTest() })
+            }
+          }
       relaunchKey?.let { key(it.value) { content() } } ?: content()
     }
   }
@@ -132,6 +152,11 @@ class MapScreenTest : BaseAndroidComposeTest() {
     // Use mock permission manager to simulate different permission states deterministically
     permissionManager.setPermissionResult(permissionResult)
     viewModel.applyPermissionsResult(composeTestRule.activity)
+  }
+
+  @Composable
+  private fun FakeMapForTest() {
+    Box(modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN))
   }
 
   @Test
@@ -243,21 +268,39 @@ class MapScreenTest : BaseAndroidComposeTest() {
   @Test
   fun location_denied_permanently_move_to_settings_onClick() = runTest {
     setPref(firstLaunchDone = true, askedOnce = true)
-    setContent()
+    // Use the fake map for speed, which you are already doing.
+    setContent(useRealMap = false) // Explicitly use the fake map
     applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
+
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
+
+    // Initialize Espresso-Intents
     Intents.init()
     try {
+      // Define the Intent
+      val expectedIntent =
+          allOf(
+              hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
+              hasData(
+                  "package:${
+                        InstrumentationRegistry
+                        .getInstrumentation()
+                        .targetContext.packageName}"
+                      .toUri()))
+
+      // STUB THE INTENT: Intercept the outgoing Intent and return an OK result immediately.
+      // This PREVENTS the real Settings screen from opening.
+      Intents.intending(expectedIntent)
+          .respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, null))
+
+      // Perform the click that triggers the Intent
       composeTestRule
           .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
           .assertIsDisplayed()
           .performClick()
-      intended(
-          allOf(
-              hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
-              hasData(
-                  "package:${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"
-                      .toUri())))
+
+      // ASSERT: Verify that the stubbed Intent was actually sent.
+      intended(expectedIntent)
     } finally {
       Intents.release()
     }
