@@ -42,6 +42,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.hamcrest.Matchers.allOf
 import org.junit.After
@@ -50,6 +52,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var gpsService: GpsServiceMock
   private lateinit var hazardService: HazardServiceMock
@@ -266,45 +269,44 @@ class MapScreenTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun location_denied_permanently_move_to_settings_onClick() = runTest {
-    setPref(firstLaunchDone = true, askedOnce = true)
-    // Use the fake map for speed, which you are already doing.
-    setContent(useRealMap = false) // Explicitly use the fake map
-    applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
+  fun location_denied_permanently_move_to_settings_onClick() =
+      runTest(UnconfinedTestDispatcher()) {
+        setPref(firstLaunchDone = true, askedOnce = true)
 
-    waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
+        // Use the fake map for faster tests
+        setContent()
+        applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
 
-    // Initialize Espresso-Intents
-    Intents.init()
-    try {
-      // Define the Intent
-      val expectedIntent =
-          allOf(
-              hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
-              hasData(
-                  "package:${
-                        InstrumentationRegistry
-                        .getInstrumentation()
-                        .targetContext.packageName}"
-                      .toUri()))
+        waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
 
-      // STUB THE INTENT: Intercept the outgoing Intent and return an OK result immediately.
-      // This PREVENTS the real Settings screen from opening.
-      Intents.intending(expectedIntent)
-          .respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, null))
+        Intents.init()
+        try {
+          val expectedIntent =
+              allOf(
+                  hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
+                  hasData(
+                      "package:${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"
+                          .toUri()))
 
-      // Perform the click that triggers the Intent
-      composeTestRule
-          .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
-          .assertIsDisplayed()
-          .performClick()
+          // Stub the intent so no actual Settings screen opens
+          Intents.intending(expectedIntent)
+              .respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, null))
 
-      // ASSERT: Verify that the stubbed Intent was actually sent.
-      intended(expectedIntent)
-    } finally {
-      Intents.release()
-    }
-  }
+          // Wait for Compose UI to settle after permission change
+          composeTestRule.waitForIdle()
+
+          // Perform click on the settings button
+          composeTestRule
+              .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
+              .assertIsDisplayed()
+              .performClick()
+
+          // Verify the stubbed intent was sent
+          intended(expectedIntent)
+        } finally {
+          Intents.release()
+        }
+      }
 
   @Test
   fun testLocationPermissionAllowedOnce() {
