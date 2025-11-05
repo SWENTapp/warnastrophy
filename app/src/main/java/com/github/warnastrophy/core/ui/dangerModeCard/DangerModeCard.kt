@@ -13,7 +13,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -21,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +51,7 @@ object DangerModeTestTags {
   const val SENDS_ROW = "dangerModeSendsRow"
   const val COLOR_ROW = "dangerModeColorRow"
   const val OPEN_BUTTON = "dangerModeOpenBtn"
+  const val MODE_DROPDOWN_ITEM = "dangerModeDropdownItem"
 
   const val CONTACT_BUTTON = "dangerModeContactButton"
 }
@@ -89,13 +98,37 @@ fun DangerModeCard(
       Column() {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(text = "Mode", color = colorScheme.onError, fontSize = 13.sp)
-          Spacer(modifier = Modifier.width(25.dp))
-          Text(
-              text = currentModeName.label, // Use ViewModel's currentModeName
-              color = Color.Black,
-              fontSize = 15.sp,
-              fontWeight = FontWeight.Medium,
-              modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL))
+          var expanded by remember { mutableStateOf(false) }
+          Spacer(modifier = Modifier.width(20.dp))
+          Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
+            Row(
+                modifier =
+                    Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable { expanded = true },
+                verticalAlignment = Alignment.CenterVertically) {
+                  Text(
+                      text = currentModeName.label, // Use ViewModel's currentModeName
+                      color = Color.Black,
+                      fontSize = 15.sp,
+                      fontWeight = FontWeight.Medium)
+                  Icon(Icons.Filled.ArrowDropDown, contentDescription = "Dropdown indicator")
+                }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL)) {
+                  DangerModePreset.entries.forEach { mode ->
+                    DropdownMenuItem(
+                        text = { Text(mode.label) },
+                        onClick = {
+                          viewModel.onModeSelected(mode)
+                          expanded = false
+                        },
+                        modifier =
+                            Modifier.testTag(
+                                "${DangerModeTestTags.MODE_DROPDOWN_ITEM}_${mode.label}"))
+                  }
+                }
+          }
         }
         Spacer(modifier = Modifier.width(24.dp))
         Row(

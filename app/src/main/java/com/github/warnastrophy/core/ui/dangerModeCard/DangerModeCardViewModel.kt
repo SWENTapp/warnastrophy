@@ -34,7 +34,7 @@ class DangerModeCardViewModel : ViewModel() {
     isDangerModeEnabled = enabled
   }
 
-  fun onModeChanged(mode: DangerModePreset) {
+  fun onModeSelected(mode: DangerModePreset) {
     currentModeName = mode
   }
 

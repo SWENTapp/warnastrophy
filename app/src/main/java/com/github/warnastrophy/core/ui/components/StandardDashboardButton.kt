@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +22,8 @@ fun StandardDashboardButton(
     label: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
-    textColor: Color = Color.Black
+    textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    borderColor: Color = MaterialTheme.colorScheme.onError
 ) {
   Surface(
       onClick = onClick,
@@ -29,7 +31,7 @@ fun StandardDashboardButton(
       color = color,
       modifier = modifier,
       tonalElevation = 0.dp,
-      border = BorderStroke(1.dp, Color(0xFFBDBDBD))) { // shadow grey
+      border = BorderStroke(1.dp, borderColor)) { // shadow grey
         Text(
             text = label,
             color = textColor,
