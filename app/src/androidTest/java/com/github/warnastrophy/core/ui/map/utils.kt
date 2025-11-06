@@ -17,18 +17,26 @@ import com.github.warnastrophy.core.model.PositionService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.GeometryFactory
 import org.mockito.Mockito
 
+val factory = GeometryFactory()
+val location_a = Location(18.55, -72.34)
+val location_b = Location(18.64, -72.10)
 val hazardList =
     listOf(
         createHazard(
             id = 1,
             type = "FL", // will map to HUE_GREEN
-            coordinates = listOf(Location(18.55, -72.34))),
+            // coordinates = listOf(Location(18.55, -72.34))).,
+            centroid = factory.createPoint(Coordinate(location_a.longitude, location_a.latitude))),
         createHazard(
             id = 2,
             type = "EQ", // will map to HUE_RED
-            coordinates = listOf(Location(18.61, -72.22), Location(18.64, -72.10))))
+            // coordinates = listOf(Location(18.61, -72.22), Location(18.64, -72.10))
+            centroid = factory.createPoint(Coordinate(location_b.longitude, location_b.latitude))))
 
 val pos: LatLng = LatLng(18.61, -72.22)
 
@@ -40,9 +48,11 @@ fun createHazard(
     date: String? = null,
     severity: Double? = null,
     severityUnit: String? = null,
-    reportUrl: String? = null,
-    alertLevel: Int? = null,
-    coordinates: List<Location>? = null
+    articleUrl: String? = null,
+    alertLevel: Double? = null,
+    centroid: Geometry? = null,
+    bbox: List<Double>? = null,
+    affectedZone: Geometry? = null
 ) =
     Hazard(
         id = id,
@@ -52,9 +62,11 @@ fun createHazard(
         date = date,
         severity = severity,
         severityUnit = severityUnit,
-        reportUrl = reportUrl,
+        articleUrl = articleUrl,
         alertLevel = alertLevel,
-        coordinates = coordinates)
+        centroid = centroid,
+        bbox = bbox,
+        affectedZone = affectedZone)
 
 class GpsServiceMock(initial: LatLng = pos) : PositionService {
 

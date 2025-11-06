@@ -110,7 +110,9 @@ class HazardsRepository() : HazardsDataSource {
     try {
       val properties = root.getJSONObject("properties")
       val isCurrent = properties.getBoolean("iscurrent")
-      if (!isCurrent) return null
+      if (!isCurrent) {
+        return null
+      }
 
       val centroid =
           GeometryParser.convertRawGeoJsonGeometryToJTS(root.getJSONObject("geometry").toString())

@@ -31,7 +31,7 @@ class HazardsRepositoryIntegrationTest {
   }
 
   @Test
-  fun `parseHazard retourne un Hazard valide pour deux JSON hazards`() {
+  fun `parseHazard retourne deux JSON hazards`() {
     // val testLogger = TestLogger()
     val repo = spyk(HazardsRepository())
 
@@ -71,7 +71,7 @@ class HazardsRepositoryIntegrationTest {
                 },
                 "alertlevel": "Green",
                 "alertscore": 1,
-                "iscurrent": "false",
+                "iscurrent": "true",
                 "fromdate": "2025-10-06T16:53:27",
                 "country": "Mexico",
                 "severitydata": {
@@ -120,7 +120,7 @@ class HazardsRepositoryIntegrationTest {
                     "alertlevel": "Green",
                     "country": "Bermuda, Bahamas, Cuba",
                     "alertscore": 1,
-                    "iscurrent": "false",
+                    "iscurrent": "true",
                     "fromdate": "2025-09-26T21:00:00",
                     "severitydata": {
                       "severity": 157.4064,
