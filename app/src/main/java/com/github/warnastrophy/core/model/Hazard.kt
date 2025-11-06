@@ -1,16 +1,17 @@
 package com.github.warnastrophy.core.model
 
 data class Hazard(
-    val id: Int?,
-    val type: String?,
-    val description: String?,
-    val country: String?,
-    val date: String?,
+    val id: Int? = null,
+    val type: String? = null,
+    val description: String? = null,
+    val severityText: String? = null,
+    val country: String? = null,
+    val date: String? = null,
     val bbox: List<Double>? = null,
-    val severity: Double?, // Maybe no need because we have already alertLevel
-    val severityUnit: String?,
-    val reportUrl: String?,
-    val alertLevel: Int?,
-    val coordinates: List<Location>?,
+    val severity: Double? = null, // Maybe no need because we have already alertLevel
+    val severityUnit: String? = null,
+    val reportUrl: String? = null,
+    val alertLevel: Int? = null,
+    val coordinates: List<Location>? = null,
     val affectedZoneWkt: String? = null
 )

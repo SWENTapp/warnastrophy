@@ -17,15 +17,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCard
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsCard
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreview
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 object DashboardScreenTestTags {
   const val ROOT_SCROLL = "dashboard_rootScroll"
@@ -42,7 +41,9 @@ object DashboardColors {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(
+    hazardsService: HazardsDataService,
+) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
         modifier =
@@ -54,7 +55,7 @@ fun DashboardScreen() {
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            LatestNewsCard(modifier = Modifier.testTag(DashboardScreenTestTags.LATEST_NEWS_SECTION))
+            LatestNewsCard(hazardsService)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -80,10 +81,4 @@ fun DashboardScreen() {
           }
         }
   }
-}
-
-@Preview
-@Composable
-fun DashboardScreenPreview() {
-  MainAppTheme { DashboardScreen() }
 }

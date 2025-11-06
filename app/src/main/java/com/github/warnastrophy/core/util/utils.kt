@@ -4,6 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Locale
+import kotlin.text.format
 
 fun debugPrint(msg: String) {
   val file = File("debug.txt")
@@ -23,4 +26,15 @@ fun Context.findActivity(): Activity? {
     context = context.baseContext
   }
   return null
+}
+
+fun formatDate(date: String): String {
+  val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+  val outputFormat = SimpleDateFormat("dd MMMM", Locale.getDefault())
+  return try {
+    val parsedDate = inputFormat.parse(date.substring(0, 10))
+    outputFormat.format(parsedDate ?: "")
+  } catch (e: Exception) {
+    ""
+  }
 }

@@ -90,6 +90,7 @@ class HazardsRepository : HazardsDataSource {
             id = properties.getInt("eventid"),
             type = properties.getString("eventtype"),
             description = properties.optString("description"),
+            severityText = properties.getJSONObject("severitydata").getString("severitytext"),
             country = properties.getString("country"),
             date = properties.getString("fromdate"),
             severity = properties.getJSONObject("severitydata").getDouble("severity"),

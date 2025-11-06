@@ -70,6 +70,7 @@ class HazardsService(
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
         }
+        Log.d("HazardsService", "Fetched hazards: ${_fetcherState.value.hazards}")
         delay(fetchDelayMs)
       }
     }

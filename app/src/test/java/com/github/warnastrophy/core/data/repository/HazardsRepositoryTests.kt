@@ -35,7 +35,8 @@ class HazardsRepositoryIntegrationTest {
                     "eventtype":"TC",
                     "country":"Mexico",
                     "fromdate":"2025-10-04T21:00:00",
-                    "severitydata":{"severity":175.9248,"severityunit":"km/h"},
+                    "severitydata":{"severity":175.9248,"severityunit":"km/h", "severitytext":"very bad"},
+                    
                     "url":{"report":"https://www.gdacs.org/report.aspx?eventid=1001222&episodeid=24&eventtype=TC"},
                     "alertscore":1,
                     "iscurrent":true
@@ -66,7 +67,7 @@ class HazardsRepositoryIntegrationTest {
                     "eventtype":"TC",
                     "country":"Mexico",
                     "fromdate":"2025-10-09T15:00:00",
-                    "severitydata":{"severity":92.592,"severityunit":"km/h"},
+                    "severitydata":{"severity":92.592,"severityunit":"km/h", "severitytext":"very bad"},
                     "url":{"report":"https://www.gdacs.org/report.aspx?eventid=1001225&episodeid=5&eventtype=TC"},
                     "alertscore":1,
                     "iscurrent":true
