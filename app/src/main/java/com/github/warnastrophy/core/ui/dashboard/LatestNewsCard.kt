@@ -2,10 +2,12 @@ package com.github.warnastrophy.core.ui.dashboard
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,8 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.util.formatDate
+import kotlin.collections.get
 import kotlin.rem
 
 object LatestNewsTestTags {
@@ -41,6 +45,8 @@ object LatestNewsTestTags {
   const val LEFT_BUTTON = "latestNewsCardLeftButton"
 
   const val LINK = "latestNewsLink"
+
+  const val LATEST_NEWS_CARD = "latestNewsCard"
 }
 
 object LatestNewsCardColors {
@@ -54,17 +60,34 @@ object LatestNewsCardColors {
   val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
 }
 
+/**
+ * Affiche une carte des dernières nouvelles liées aux dangers.
+ *
+ * @param hazardsService Une instance de `HazardsDataService` utilisée pour récupérer les données
+ *   des dangers et gérer leur état.
+ *
+ * Fonctionnalités :
+ * - Affiche les informations sur le danger actuel, y compris la description, la gravité et la date.
+ * - Permet de naviguer entre les dangers à l'aide de boutons gauche et droit.
+ * - Inclut un lien cliquable pour lire plus d'informations sur le danger.
+ * - Affiche une image associée au type de danger.
+ *
+ * @see HazardsDataService
+ */
 @Composable
 fun LatestNewsCard(hazardsService: HazardsDataService) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
   val hazards = fetcherState.value.hazards
   var currentIndex by remember { mutableStateOf(0) }
   val context = LocalContext.current
+  Log.d("LatestNewsCard", "curr idnex : $currentIndex, ${hazards.size}")
 
-  if (hazards.isEmpty()) return
-
-  val currentHazard = hazards[currentIndex]
-
+  val currentHazard =
+      if (hazards.isEmpty()) {
+        Hazard(severityText = "No news yet")
+      } else {
+        hazards[currentIndex]
+      }
   Column(
       modifier =
           Modifier.fillMaxWidth()
@@ -72,7 +95,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService) {
               .border(
                   width = 1.dp,
                   color = LatestNewsCardColors.BORDER_COLOR.copy(alpha = 0.4f),
-                  shape = RoundedCornerShape(12.dp))) {
+                  shape = RoundedCornerShape(12.dp))
+              .testTag(LatestNewsTestTags.LATEST_NEWS_CARD)) {
         Row(
             modifier =
                 Modifier.fillMaxWidth()
@@ -104,21 +128,23 @@ fun LatestNewsCard(hazardsService: HazardsDataService) {
                   modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.spacedBy(12.dp),
                   verticalAlignment = Alignment.CenterVertically) {
-                    Button(
-                        onClick = {
-                          currentIndex = (currentIndex - 1 + hazards.size) % hazards.size
-                        },
-                        modifier =
-                            Modifier.fillMaxHeight()
-                                .width(10.dp)
-                                .testTag(LatestNewsTestTags.LEFT_BUTTON)
-                                .clip(RoundedCornerShape(12.dp)),
-                        contentPadding = PaddingValues(0.dp),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
-                          Text("<", fontSize = 14.sp, color = Color.Black)
-                        }
+                    if (hazards.isNotEmpty()) {
+                      Button(
+                          onClick = {
+                            currentIndex = (currentIndex - 1 + hazards.size) % hazards.size
+                          },
+                          modifier =
+                              Modifier.fillMaxHeight()
+                                  .width(10.dp)
+                                  .testTag(LatestNewsTestTags.LEFT_BUTTON)
+                                  .clip(RoundedCornerShape(12.dp)),
+                          contentPadding = PaddingValues(0.dp),
+                          colors =
+                              ButtonDefaults.buttonColors(
+                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                            Text("<", fontSize = 14.sp, color = Color.Black)
+                          }
+                    }
 
                     Column(modifier = Modifier.weight(1f)) {
                       Text(
@@ -142,20 +168,22 @@ fun LatestNewsCard(hazardsService: HazardsDataService) {
                           overflow = TextOverflow.Ellipsis)
 
                       Spacer(modifier = Modifier.height(8.dp))
-
-                      Text(
-                          text = "read",
-                          color = LatestNewsCardColors.READ_ARTICLE_TEXT_COLOR,
-                          fontSize = 16.sp,
-                          textDecoration = TextDecoration.Underline,
-                          modifier =
-                              Modifier.clickable {
-                                    val intent =
-                                        Intent(
-                                            Intent.ACTION_VIEW, Uri.parse(currentHazard.reportUrl))
-                                    ContextCompat.startActivity(context, intent, null)
-                                  }
-                                  .testTag(LatestNewsTestTags.LINK))
+                      if (hazards.isNotEmpty()) {
+                        Text(
+                            text = "read",
+                            color = LatestNewsCardColors.READ_ARTICLE_TEXT_COLOR,
+                            fontSize = 16.sp,
+                            textDecoration = TextDecoration.Underline,
+                            modifier =
+                                Modifier.clickable {
+                                      val intent =
+                                          Intent(
+                                              Intent.ACTION_VIEW,
+                                              Uri.parse(currentHazard.reportUrl))
+                                      ContextCompat.startActivity(context, intent, null)
+                                    }
+                                    .testTag(LatestNewsTestTags.LINK))
+                      }
                     }
 
                     Box(
@@ -175,28 +203,37 @@ fun LatestNewsCard(hazardsService: HazardsDataService) {
                               contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                               modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)))
                         }
+                    if (hazards.isNotEmpty()) {
 
-                    Button(
-                        onClick = {
-                          currentIndex = (currentIndex + 1 + hazards.size) % hazards.size
-                        },
-                        modifier =
-                            Modifier.fillMaxHeight()
-                                .width(10.dp)
-                                .testTag(LatestNewsTestTags.RIGHT_BUTTON)
-                                .clip(RoundedCornerShape(12.dp)),
-                        contentPadding = PaddingValues(0.dp),
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
-                          Text(">", fontSize = 14.sp, color = Color.Black)
-                        }
+                      Button(
+                          onClick = {
+                            currentIndex = (currentIndex + 1 + hazards.size) % hazards.size
+                          },
+                          modifier =
+                              Modifier.fillMaxHeight()
+                                  .width(10.dp)
+                                  .testTag(LatestNewsTestTags.RIGHT_BUTTON)
+                                  .clip(RoundedCornerShape(12.dp)),
+                          contentPadding = PaddingValues(0.dp),
+                          colors =
+                              ButtonDefaults.buttonColors(
+                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                            Text(">", fontSize = 14.sp, color = Color.Black)
+                          }
+                    }
                   }
               Spacer(modifier = Modifier.height(12.dp))
             }
       }
 }
 
+/**
+ * Retourne l'identifiant de ressource d'image correspondant au type d'événement.
+ *
+ * @param eventType Le type d'événement sous forme de chaîne (par exemple, "EQ", "TC", etc.).
+ * @return L'identifiant de ressource de l'image associée à ce type d'événement. Si le type n'est
+ *   pas reconnu, une image par défaut est retournée.
+ */
 fun getImageForEvent(eventType: String): Int {
   return when (eventType) {
     "EQ" -> R.drawable.eq
