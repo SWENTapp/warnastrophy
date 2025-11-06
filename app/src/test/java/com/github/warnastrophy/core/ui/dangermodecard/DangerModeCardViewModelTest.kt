@@ -71,4 +71,14 @@ class DangerModeCardViewModelTest {
     viewModel.onCapabilityToggled(DangerModeCapability.CALL)
     assertEquals(emptySet<DangerModeCapability>(), viewModel.capabilities.first())
   }
+
+  @Test
+  fun `setCurrentModeDangerLevel sets level within bounds`() = runTest {
+    viewModel.onDangerLevelChanged(2)
+    assertEquals(2, viewModel.dangerLevel)
+    viewModel.onDangerLevelChanged(-1)
+    assertEquals(0, viewModel.dangerLevel)
+    viewModel.onDangerLevelChanged(5)
+    assertEquals(3, viewModel.dangerLevel)
+  }
 }

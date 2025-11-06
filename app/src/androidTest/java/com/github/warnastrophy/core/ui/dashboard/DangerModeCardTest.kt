@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dangerModeCard
+package com.github.warnastrophy.core.ui.dashboard
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertCountEquals
@@ -11,11 +11,6 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.warnastrophy.core.ui.dashboard.DangerModeCapability
-import com.github.warnastrophy.core.ui.dashboard.DangerModeCard
-import com.github.warnastrophy.core.ui.dashboard.DangerModeCardViewModel
-import com.github.warnastrophy.core.ui.dashboard.DangerModePreset
-import com.github.warnastrophy.core.ui.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import org.junit.Test
 
@@ -141,5 +136,23 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
     assert(viewModel.capabilities.value.contains(capability))
     assert(viewModel.capabilities.value.size == 1)
+  }
+
+  /* Verify that the DangerModeCard danger level changes as capabilities are toggled */
+  @Test
+  fun dangerModeCard_dangerLevel_changes() {
+    lateinit var viewModel: DangerModeCardViewModel
+    composeTestRule.setContent {
+      viewModel = viewModel()
+      MaterialTheme { DangerModeCard(viewModel = viewModel) }
+    }
+
+    assert(viewModel.dangerLevel == 0)
+
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.dangerLevelTag(1), useUnmergedTree = true)
+        .performClick()
+
+    assert(viewModel.dangerLevel > 0)
   }
 }

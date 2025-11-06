@@ -53,10 +53,13 @@ object DangerModeTestTags {
   const val OPEN_BUTTON = "dangerModeOpenBtn"
   const val CAPABILITY_PREFIX = "dangerModeContactButton"
   const val MODE_PREFIX = "dangerModePresetButton"
+  const val COLOR_BOX_PREFIX = "dangerModeColorBox"
 
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
 
   fun modeTag(mode: DangerModePreset) = MODE_PREFIX + mode.label
+
+  fun dangerLevelTag(level: Int) = COLOR_BOX_PREFIX + level
 }
 
 /*
@@ -139,43 +142,55 @@ fun DangerModeCard(
         }
         Spacer(modifier = Modifier.width(24.dp))
         Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.testTag(DangerModeTestTags.SENDS_ROW)) {
-              Text(text = "Sends", color = colorScheme.onError, fontSize = 13.sp)
-              Spacer(modifier = Modifier.width(20.dp))
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                DangerModeCapability.entries.forEach { capability ->
-                  val selected = capabilities.contains(capability)
-                  val (color, textColor) =
-                      if (selected) {
-                        Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
-                      } else {
-                        Pair(colorScheme.error, colorScheme.onError)
-                      }
-
-                  StandardDashboardButton(
-                      color = color,
-                      textColor = textColor,
-                      label = capability.label,
-                      onClick = { viewModel.onCapabilityToggled(capability) },
-                      modifier =
-                          Modifier.testTag(DangerModeTestTags.capabilityTag(capability)).semantics {
-                            this.selected = selected
-                          })
-                }
-              }
+            modifier = Modifier.testTag(DangerModeTestTags.COLOR_ROW)) {
+              Text(text = "Danger Level", color = colorScheme.onError, fontSize = 13.sp)
+              listOf(
+                      Color(0xFF4CAF50), // green
+                      Color(0xFFFFEB3B), // yellow
+                      Color(0xFFFFC107), // amber-ish
+                      Color(0xFFD32F2F) // red
+                      )
+                  .forEachIndexed { index, it ->
+                    val alpha = if (index == viewModel.dangerLevel) 1f else 0.1f
+                    DangerColorBox(
+                        it,
+                        modifier = Modifier.testTag(DangerModeTestTags.dangerLevelTag(index)),
+                        onClick = { viewModel.onDangerLevelChanged(index) },
+                        borderColor = colorScheme.onError.copy(alpha = alpha))
+                  }
             }
       }
 
       Spacer(modifier = Modifier.height(4.dp))
       Row(
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-          modifier = Modifier.testTag(DangerModeTestTags.COLOR_ROW)) {
-            DangerColorBox(Color(0xFF4CAF50)) // green
-            DangerColorBox(Color(0xFFFFEB3B)) // yellow
-            DangerColorBox(Color(0xFFFFC107)) // amber-ish
-            DangerColorBox(Color(0xFFD32F2F)) // red
-      }
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.testTag(DangerModeTestTags.SENDS_ROW)) {
+            Text(text = "Sends", color = colorScheme.onError, fontSize = 13.sp)
+            Spacer(modifier = Modifier.width(20.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+              DangerModeCapability.entries.forEach { capability ->
+                val selected = capabilities.contains(capability)
+                val (color, textColor) =
+                    if (selected) {
+                      Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
+                    } else {
+                      Pair(colorScheme.error, colorScheme.onError)
+                    }
+
+                StandardDashboardButton(
+                    color = color,
+                    textColor = textColor,
+                    label = capability.label,
+                    onClick = { viewModel.onCapabilityToggled(capability) },
+                    modifier =
+                        Modifier.testTag(DangerModeTestTags.capabilityTag(capability)).semantics {
+                          this.selected = selected
+                        })
+              }
+            }
+          }
       Spacer(Modifier.height(8.dp))
 
       Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -202,14 +217,17 @@ fun DangerModeCard(
 }
 
 @Composable
-private fun DangerColorBox(color: Color, onClick: () -> Unit = {}) {
+private fun DangerColorBox(
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
+    borderColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+) {
   Surface(
       shape = RoundedCornerShape(6.dp),
       color = color,
       onClick = onClick,
-      modifier = Modifier.size(width = 28.dp, height = 28.dp),
-      border =
-          BorderStroke(
-              width = 2.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
+      modifier = modifier.size(width = 28.dp, height = 28.dp),
+      border = BorderStroke(width = 2.dp, color = borderColor),
   ) {}
 }

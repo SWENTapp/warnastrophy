@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.dashboard
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -27,6 +28,9 @@ class DangerModeCardViewModel : ViewModel() {
   var currentMode by mutableStateOf(DangerModePreset.CLIMBING_MODE)
     private set
 
+  var dangerLevel by mutableIntStateOf(0)
+    private set
+
   private val _capabilities = MutableStateFlow<Set<DangerModeCapability>>(emptySet())
   val capabilities = _capabilities.asStateFlow()
 
@@ -49,5 +53,9 @@ class DangerModeCardViewModel : ViewModel() {
         } else {
           capabilities.value + capability
         }
+  }
+
+  fun onDangerLevelChanged(level: Int) {
+    dangerLevel = level.coerceIn(0, 3)
   }
 }
