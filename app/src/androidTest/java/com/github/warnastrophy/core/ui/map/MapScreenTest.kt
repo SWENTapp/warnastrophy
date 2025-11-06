@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
@@ -40,8 +41,9 @@ import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.geom.GeometryFactory
+import kotlin.collections.forEach
+import kotlin.collections.toList
+import kotlin.let
 
 class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var gpsService: GpsServiceMock
@@ -89,9 +91,9 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.setContent {
       // Temporarily override LocalContext
-      CompositionLocalProvider(LocalContext provides applicationContext) {
-        MapScreen(viewModel = viewModel)
-      }
+        CompositionLocalProvider(LocalContext provides applicationContext) {
+            MapScreen(viewModel = viewModel)
+        }
     }
 
     // Assert: the fallback box should be displayed
@@ -209,33 +211,36 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
   @Test
   fun location_denied_permanently_move_to_settings_onClick() = runTest {
-    // Arrange: Permanent denial path
-    setPref(firstLaunchDone = true, askedOnce = true)
+      // Arrange: Permanent denial path
+      setPref(firstLaunchDone = true, askedOnce = true)
 
-    setContent()
-    applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
+      setContent()
+      applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
 
-    waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
+      waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
 
-    // Setup Espresso to intercept intents
-    Intents.init()
-    try {
-      // Act: click the settings button
-      composeTestRule
-          .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
-          .assertIsDisplayed()
-          .performClick()
+      // Setup Espresso to intercept intents
+      Intents.init()
+      try {
+          // Act: click the settings button
+          composeTestRule
+              .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
+              .assertIsDisplayed()
+              .performClick()
 
-      // Assert: verify an intent was launched with ACTION_APPLICATION_DETAILS_SETTINGS
-      intended(
-          allOf(
-              hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
-              hasData(
-                  "package:${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"
-                      .toUri())))
-    } finally {
-      Intents.release()
-    }
+          // Assert: verify an intent was launched with ACTION_APPLICATION_DETAILS_SETTINGS
+          intended(
+              allOf(
+                  hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
+                  hasData(
+                      "package:${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"
+                          .toUri()
+                  )
+              )
+          )
+      } finally {
+          Intents.release()
+      }
   }
 
   /**
@@ -369,7 +374,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
       relaunchKey: MutableState<Int>? = null,
   ) {
     composeTestRule.setContent {
-      val content = @androidx.compose.runtime.Composable { MapScreen(viewModel = viewModel) }
+      val content = @Composable { MapScreen(viewModel = viewModel) }
       relaunchKey?.let { key(it.value) { content() } } ?: content()
     }
   }
