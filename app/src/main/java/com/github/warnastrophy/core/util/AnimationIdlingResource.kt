@@ -35,6 +35,13 @@ import androidx.test.espresso.IdlingResource
  * resource in tests._
  */
 class AnimationIdlingResource : IdlingResource {
+  /**
+   * A flag to indicate the idle state of the resource.
+   *
+   * It is marked as `@Volatile` to ensure that changes made by one thread are immediately visible
+   * to other threads, which is crucial for synchronization between the application thread and the
+   * test thread.
+   */
   @Volatile private var isIdle = true
   private var resourceCallback: IdlingResource.ResourceCallback? = null
 
