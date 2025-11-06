@@ -3,7 +3,6 @@ package com.github.warnastrophy.core.ui.map
 import com.github.warnastrophy.core.data.service.HazardChecker
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.util.GeometryParser
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
@@ -13,19 +12,42 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.geom.LinearRing
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HazardCheckerTest {
   private val HAZARD_TIME_THRESHOLD_MS = 5000L
+  val factory = GeometryFactory()
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun testHazardCheckerDetectsHighestPriorityHazard() = runTest {
-    // --- 1. Define WKT Strings ---
-    // WKT for a simple square polygon (9.9, 9.9) to (10.1, 10.1)
-    // User (10.0, 10.0) is INSIDE.
-    val wktA = "POLYGON((9.9 9.9, 9.9 10.1, 10.1 10.1, 10.1 9.9, 9.9 9.9))"
-    val wktB = "POLYGON((9.8 9.8, 9.8 10.2, 10.2 10.2, 10.2 9.8, 9.8 9.8))"
+    val coordsA =
+        arrayOf(
+            Coordinate(9.9, 9.9),
+            Coordinate(9.9, 10.1),
+            Coordinate(10.1, 10.1),
+            Coordinate(10.1, 9.9),
+            Coordinate(9.9, 9.9) // Must close the ring!
+            )
+    // A LinearRing is the boundary of a Polygon
+    val shellA: LinearRing = factory.createLinearRing(coordsA)
+    val geometryA: Geometry = factory.createPolygon(shellA)
+
+    val coordsB =
+        arrayOf(
+            Coordinate(9.8, 9.8),
+            Coordinate(9.8, 10.2),
+            Coordinate(10.2, 10.2),
+            Coordinate(10.2, 9.8),
+            Coordinate(9.8, 9.8) // Must close the ring!
+            )
+    val shellB: LinearRing = factory.createLinearRing(coordsB)
+    val geometryB: Geometry = factory.createPolygon(shellB)
+
     val testHazardA =
         Hazard(
             id = 1001, // Unique ID
@@ -39,7 +61,7 @@ class HazardCheckerTest {
             alertLevel = 3.0, // HIGHER priority
             centroid = null,
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
+            affectedZone = geometryA)
 
     val testHazardB =
         Hazard(
@@ -54,7 +76,7 @@ class HazardCheckerTest {
             alertLevel = 2.0, // LOWER priority
             centroid = null,
             bbox = listOf(9.8, 9.8, 10.2, 10.2),
-            affectedZone = GeometryParser.parseWktToJtsGeometry(wktB) // <-- Use WKT string
+            affectedZone = geometryB // <-- Use WKT string
             )
 
     val serviceStateManager = ServiceStateManager
@@ -78,7 +100,15 @@ class HazardCheckerTest {
 
   @Test
   fun testHazardCheckerDetectsNoHazardWhenOutside() = runTest {
-    val wktA = "POLYGON((9.9 9.9, 9.9 10.1, 10.1 10.1, 10.1 9.9, 9.9 9.9))"
+    val coordsA =
+        arrayOf(
+            Coordinate(9.9, 9.9),
+            Coordinate(9.9, 10.1),
+            Coordinate(10.1, 10.1),
+            Coordinate(10.1, 9.9),
+            Coordinate(9.9, 9.9) // Must close the ring!
+            )
+    val geometryA: Geometry = factory.createPolygon(factory.createLinearRing(coordsA))
 
     val testHazardA =
         Hazard(
@@ -93,7 +123,7 @@ class HazardCheckerTest {
             alertLevel = 3.0,
             centroid = null,
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
+            affectedZone = geometryA)
     val serviceStateManager = ServiceStateManager
     serviceStateManager.clearActiveAlert()
 
@@ -111,7 +141,15 @@ class HazardCheckerTest {
 
   @Test
   fun testHazardCheckerClearsHazardOnExit() = runTest {
-    val wktA = "POLYGON((9.9 9.9, 9.9 10.1, 10.1 10.1, 10.1 9.9, 9.9 9.9))"
+    val coordsA =
+        arrayOf(
+            Coordinate(9.9, 9.9),
+            Coordinate(9.9, 10.1),
+            Coordinate(10.1, 10.1),
+            Coordinate(10.1, 9.9),
+            Coordinate(9.9, 9.9) // Must close the ring!
+            )
+    val geometryA: Geometry = factory.createPolygon(factory.createLinearRing(coordsA))
 
     val hazardA =
         Hazard(
@@ -126,7 +164,7 @@ class HazardCheckerTest {
             articleUrl = "http://example.test/A",
             centroid = null,
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
+            affectedZone = geometryA)
 
     val hazardChecker =
         HazardChecker(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
@@ -146,7 +184,15 @@ class HazardCheckerTest {
 
   @Test
   fun testHazardCheckerDoesNotTriggerAlertIfUserLeavesEarly() = runTest {
-    val wktA = "POLYGON((9.9 9.9, 9.9 10.1, 10.1 10.1, 10.1 9.9, 9.9 9.9))"
+    val coordsA =
+        arrayOf(
+            Coordinate(9.9, 9.9),
+            Coordinate(9.9, 10.1),
+            Coordinate(10.1, 10.1),
+            Coordinate(10.1, 9.9),
+            Coordinate(9.9, 9.9) // Must close the ring!
+            )
+    val geometryA: Geometry = factory.createPolygon(factory.createLinearRing(coordsA))
 
     val hazardA =
         Hazard(
@@ -161,7 +207,7 @@ class HazardCheckerTest {
             articleUrl = "http://example.test/A",
             centroid = null,
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = GeometryParser.parseWktToJtsGeometry(wktA))
+            affectedZone = geometryA)
 
     val hazardChecker =
         HazardChecker(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)

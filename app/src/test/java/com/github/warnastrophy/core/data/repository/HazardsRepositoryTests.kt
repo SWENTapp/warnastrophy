@@ -20,13 +20,13 @@ class HazardsRepositoryIntegrationTest {
   }
 
   @Test
-  fun `getAreaHazards with US polygon returns non empty list`() = runBlocking {
+  fun `getAreaHazards with world polygon returns non empty list`() = runBlocking {
     val repo = HazardsRepository()
-    val locationPolygon: String =
-        "POLYGON((-124.848974 49.384358,-124.848974 24.396308,-66.93457 24.396308," +
-            "-66.93457 49.384358,-124.848974 49.384358))"
+    val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
+    // "POLYGON((-124.848974 49.384358,-124.848974 24.396308,-66.93457 24.396308," +
+    //  "-66.93457 49.384358,-124.848974 49.384358))"
     // Polygone simplifié des USA (format WKT ou GeoJSON selon l'API attendue)
-    val hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "30")
+    val hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "3")
     assertTrue(hazards.isNotEmpty())
   }
 
