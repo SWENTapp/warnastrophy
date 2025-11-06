@@ -23,12 +23,14 @@ import org.junit.Test
 
 class DashboardHealthCardTest : BaseSimpleComposeTest() {
   private lateinit var mockContext: Context
+  private lateinit var viewModel: DashboardHealthCardViewModel
 
   @Before
   override fun setUp() {
     super.setUp()
     mockContext = mockk(relaxed = true)
     mockkObject(HealthCardStorage)
+    viewModel = DashboardHealthCardViewModel()
   }
 
   @After
@@ -37,14 +39,62 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
     unmockkAll()
   }
 
-  // ==== STATELESS TESTS ====
-  @Test
-  fun stateless_displaysLoading_whenIsLoadingIsTrue() {
+  // ==== HELPER METHODS ====
+
+  private fun setStatelessContent(
+      healthCard: HealthCard? = null,
+      onHealthCardClick: () -> Unit = {},
+      isLoading: Boolean = false,
+      summaryText: String? = null
+  ) {
     composeTestRule.setContent {
       MainAppTheme {
-        DashboardHealthCardStateless(healthCard = null, onHealthCardClick = {}, isLoading = true)
+        DashboardHealthCardStateless(
+            healthCard = healthCard,
+            onHealthCardClick = onHealthCardClick,
+            isLoading = isLoading,
+            summaryText = summaryText)
       }
     }
+  }
+
+  private fun setStatefulContent(onHealthCardClick: () -> Unit = {}, userId: String = "user") {
+    composeTestRule.setContent {
+      MainAppTheme {
+        DashboardHealthCardStateful(
+            onHealthCardClick = onHealthCardClick,
+            userId = userId,
+            context = mockContext,
+            viewModel = viewModel)
+      }
+    }
+  }
+
+  private fun createHealthCard(
+      fullName: String = "Test User",
+      birthDate: String = "1990-01-01",
+      socialSecurityNumber: String = "123456789",
+      bloodType: String? = "A+",
+      allergies: List<String> = emptyList(),
+      medications: List<String> = emptyList(),
+      chronicConditions: List<String> = emptyList(),
+      organDonor: Boolean = false
+  ) =
+      HealthCard(
+          fullName = fullName,
+          birthDate = birthDate,
+          socialSecurityNumber = socialSecurityNumber,
+          bloodType = bloodType,
+          allergies = allergies,
+          medications = medications,
+          chronicConditions = chronicConditions,
+          organDonor = organDonor)
+
+  // ==== STATELESS TESTS ====
+
+  @Test
+  fun stateless_displaysLoading_whenIsLoadingIsTrue() {
+    setStatelessContent(isLoading = true)
 
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).assertIsDisplayed()
     composeTestRule
@@ -57,9 +107,7 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
 
   @Test
   fun stateless_displaysEmptyState_whenNoHealthCard() {
-    composeTestRule.setContent {
-      DashboardHealthCardStateless(healthCard = null, onHealthCardClick = {}, isLoading = false)
-    }
+    setStatelessContent()
 
     composeTestRule
         .onNodeWithTag(DashboardHealthCardTestTags.SUBTITLE, useUnmergedTree = true)
@@ -69,19 +117,17 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   @Test
   fun stateless_displaysHealthData_withAllInformation() {
     val healthCard =
-        HealthCard(
+        createHealthCard(
             fullName = "John Doe",
             birthDate = "1990-05-15",
-            socialSecurityNumber = "123456789",
             bloodType = "A+",
             allergies = listOf("Peanuts", "Penicillin"),
             medications = listOf("Aspirin", "Ibuprofen"),
             chronicConditions = listOf("Asthma", "Diabetes"),
             organDonor = true)
+    val summaryText = viewModel.getEmergencyHealthSummary(healthCard)
 
-    composeTestRule.setContent {
-      MainAppTheme { DashboardHealthCardStateless(healthCard = healthCard, onHealthCardClick = {}) }
-    }
+    setStatelessContent(healthCard = healthCard, summaryText = summaryText)
 
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).assertIsDisplayed()
     composeTestRule
@@ -92,16 +138,11 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   @Test
   fun stateless_displaysAllergies_withMoreThanTwo() {
     val healthCard =
-        HealthCard(
-            fullName = "John Doe",
-            birthDate = "1990-05-15",
-            socialSecurityNumber = "123456789",
-            bloodType = "O-",
-            allergies = listOf("Peanuts", "Penicillin", "Shellfish", "Latex"))
+        createHealthCard(
+            bloodType = "O-", allergies = listOf("Peanuts", "Penicillin", "Shellfish", "Latex"))
+    val summaryText = viewModel.getEmergencyHealthSummary(healthCard)
 
-    composeTestRule.setContent {
-      MainAppTheme { DashboardHealthCardStateless(healthCard = healthCard, onHealthCardClick = {}) }
-    }
+    setStatelessContent(healthCard = healthCard, summaryText = summaryText)
 
     composeTestRule
         .onNodeWithTag(DashboardHealthCardTestTags.SUBTITLE, useUnmergedTree = true)
@@ -111,16 +152,12 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   @Test
   fun stateless_displaysChronicConditions_withMoreThanTwo() {
     val healthCard =
-        HealthCard(
-            fullName = "User",
-            birthDate = "1985-03-20",
-            socialSecurityNumber = "123456779",
+        createHealthCard(
             bloodType = "AB+",
             chronicConditions = listOf("Diabetes", "Asthma", "Hypertension", "Arthritis"))
+    val summaryText = viewModel.getEmergencyHealthSummary(healthCard)
 
-    composeTestRule.setContent {
-      MainAppTheme { DashboardHealthCardStateless(healthCard = healthCard, onHealthCardClick = {}) }
-    }
+    setStatelessContent(healthCard = healthCard, summaryText = summaryText)
 
     composeTestRule
         .onNodeWithTag(DashboardHealthCardTestTags.SUBTITLE, useUnmergedTree = true)
@@ -129,20 +166,10 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
 
   @Test
   fun stateless_displaysMedications_singular() {
-    val healthCard =
-        HealthCard(
-            fullName = "User",
-            birthDate = "1980-12-05",
-            socialSecurityNumber = "123456789",
-            bloodType = "B-",
-            medications = listOf("Aspirin"),
-            allergies = emptyList(),
-            chronicConditions = emptyList(),
-            organDonor = false)
+    val healthCard = createHealthCard(bloodType = "B-", medications = listOf("Aspirin"))
+    val summaryText = viewModel.getEmergencyHealthSummary(healthCard)
 
-    composeTestRule.setContent {
-      MainAppTheme { DashboardHealthCardStateless(healthCard = healthCard, onHealthCardClick = {}) }
-    }
+    setStatelessContent(healthCard = healthCard, summaryText = summaryText)
 
     composeTestRule
         .onNodeWithTag(DashboardHealthCardTestTags.SUBTITLE, useUnmergedTree = true)
@@ -151,20 +178,10 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
 
   @Test
   fun stateless_displaysNoCriticalInfo_whenOnlyBloodTypeMissing() {
-    val healthCard =
-        HealthCard(
-            fullName = "User",
-            birthDate = "1988-11-30",
-            socialSecurityNumber = "123456789",
-            bloodType = null,
-            allergies = emptyList(),
-            medications = emptyList(),
-            chronicConditions = emptyList(),
-            organDonor = false)
+    val healthCard = createHealthCard(bloodType = null)
+    val summaryText = viewModel.getEmergencyHealthSummary(healthCard)
 
-    composeTestRule.setContent {
-      MainAppTheme { DashboardHealthCardStateless(healthCard = healthCard, onHealthCardClick = {}) }
-    }
+    setStatelessContent(healthCard = healthCard, summaryText = summaryText)
 
     composeTestRule
         .onNodeWithTag(DashboardHealthCardTestTags.SUBTITLE, useUnmergedTree = true)
@@ -175,11 +192,7 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   fun stateless_triggersCallback_whenCardClicked() {
     var clicked = false
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardHealthCardStateless(healthCard = null, onHealthCardClick = { clicked = true })
-      }
-    }
+    setStatelessContent(onHealthCardClick = { clicked = true })
 
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).performClick()
     assert(clicked) { "onHealthCardClick callback was not triggered" }
@@ -195,11 +208,7 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
           StorageResult.Success(null)
         }
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardHealthCardStateful(onHealthCardClick = {}, userId = "user", context = mockContext)
-      }
-    }
+    setStatefulContent()
 
     composeTestRule
         .onNodeWithTag(LoadingTestTags.LOADING_INDICATOR, useUnmergedTree = true)
@@ -209,24 +218,15 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   @Test
   fun stateful_displaysHealthCard_whenLoadSucceeds() {
     val healthCard =
-        HealthCard(
+        createHealthCard(
             fullName = "John Doe",
-            birthDate = "1990-01-01",
-            socialSecurityNumber = "123456789",
-            bloodType = "A+",
             allergies = listOf("Peanuts"),
             medications = listOf("Aspirin"),
-            chronicConditions = emptyList(),
             organDonor = true)
-
     coEvery { HealthCardStorage.loadHealthCard(mockContext, "user") } returns
         StorageResult.Success(healthCard)
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardHealthCardStateful(onHealthCardClick = {}, userId = "user", context = mockContext)
-      }
-    }
+    setStatefulContent()
 
     composeTestRule.waitForIdleWithTimeout()
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).assertIsDisplayed()
@@ -241,11 +241,7 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
     coEvery { HealthCardStorage.loadHealthCard(mockContext, "user") } returns
         StorageResult.Success(null)
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardHealthCardStateful(onHealthCardClick = {}, userId = "user", context = mockContext)
-      }
-    }
+    setStatefulContent()
 
     composeTestRule.waitForIdleWithTimeout()
     composeTestRule
@@ -259,11 +255,7 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
     coEvery { HealthCardStorage.loadHealthCard(mockContext, "user") } returns
         StorageResult.Error(StorageException.DataStoreError(Exception("DB error")))
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardHealthCardStateful(onHealthCardClick = {}, userId = "user", context = mockContext)
-      }
-    }
+    setStatefulContent()
 
     composeTestRule.waitForIdleWithTimeout()
     composeTestRule
@@ -276,11 +268,7 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
     coEvery { HealthCardStorage.loadHealthCard(mockContext, "user") } returns
         StorageResult.Error(StorageException.DecryptionError(Exception("Decryption failed")))
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardHealthCardStateful(onHealthCardClick = {}, userId = "user", context = mockContext)
-      }
-    }
+    setStatefulContent()
 
     composeTestRule.waitForIdleWithTimeout()
     composeTestRule
@@ -291,24 +279,11 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   @Test
   fun stateful_triggersCallback_whenCardClicked() {
     var clicked = false
+    val healthCard = createHealthCard(bloodType = "B+")
     coEvery { HealthCardStorage.loadHealthCard(mockContext, "user") } returns
-        StorageResult.Success(
-            HealthCard(
-                fullName = "Jane",
-                birthDate = "1990-01-01",
-                socialSecurityNumber = "123456789",
-                bloodType = "B+",
-                allergies = emptyList(),
-                medications = emptyList(),
-                chronicConditions = emptyList(),
-                organDonor = false))
+        StorageResult.Success(healthCard)
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardHealthCardStateful(
-            onHealthCardClick = { clicked = true }, userId = "user", context = mockContext)
-      }
-    }
+    setStatefulContent(onHealthCardClick = { clicked = true })
 
     composeTestRule.waitForIdleWithTimeout()
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).performClick()
@@ -321,7 +296,10 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
         StorageResult.Success(null)
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardHealthCardStateful(onHealthCardClick = {}, context = mockContext) }
+      MainAppTheme {
+        DashboardHealthCardStateful(
+            onHealthCardClick = {}, context = mockContext, viewModel = viewModel)
+      }
     }
 
     composeTestRule.waitForIdleWithTimeout()
