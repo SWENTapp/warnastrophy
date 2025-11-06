@@ -59,6 +59,11 @@ class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
+  /**
+   * An idling resource to wait for camera animations to complete during tests. This is crucial for
+   * Espresso tests involving map camera movements, as it prevents test actions from executing
+   * prematurely while the map is still animating.
+   */
   private val animationIdlingResource = AnimationIdlingResource()
 
   @get:Rule
@@ -93,6 +98,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     IdlingRegistry.getInstance().resources.forEach { IdlingRegistry.getInstance().unregister(it) }
   }
 
+  /** Waits for the map to be ready and loaded. */
   private fun waitForMapReady(timeout: Long = 10_000L) {
     // Increase timeout to 10 seconds to accommodate longer CI runs
     composeTestRule.waitUntil(timeout) {
@@ -103,11 +109,13 @@ class MapScreenTest : BaseAndroidComposeTest() {
     }
   }
 
+  /** Asserts that the permission card's visibility matches the expected state. */
   private fun assertCardDisplayed(isVisible: Boolean) {
     if (isVisible) composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsDisplayed()
     else composeTestRule.onNodeWithTag(PermissionUiTags.CARD).assertIsNotDisplayed()
   }
 
+  /** Waits for the map to be ready and asserts visibility of map and permission UI elements. */
   private fun waitForMapReadyAndAssertVisibility(
       mapVisible: Boolean = true,
       permissionCardVisible: Boolean? = null,
@@ -127,6 +135,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     }
   }
 
+  /** Sets shared preferences to simulate different app launch states. */
   private fun setPref(firstLaunchDone: Boolean, askedOnce: Boolean) {
     val ctx = ApplicationProvider.getApplicationContext<Context>()
     val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
@@ -137,6 +146,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
         .apply()
   }
 
+  /** Sets the Compose content for the test, allowing for a fake map or a real one. */
   private fun setContent(relaunchKey: MutableState<Int>? = null, useRealMap: Boolean = false) {
     composeTestRule.setContent {
       val content =
@@ -151,17 +161,22 @@ class MapScreenTest : BaseAndroidComposeTest() {
     }
   }
 
+  /** Applies a given [PermissionResult] to the view model. */
   private fun applyPerm(permissionResult: PermissionResult) {
     // Use mock permission manager to simulate different permission states deterministically
     permissionManager.setPermissionResult(permissionResult)
     viewModel.applyPermissionsResult(composeTestRule.activity)
   }
 
+  /**
+   * A fake composable used in place of the real GoogleMap for testing UI without the map overhead.
+   */
   @Composable
   private fun FakeMapForTest() {
     Box(modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN))
   }
 
+  /** Verifies that a fallback error message is shown when the context is not an Activity. */
   @Test
   fun showsFallbackError_whenNoActivityContextAvailable() {
     // Arrange: use non-activity context to verify fallback UI is displayed
@@ -187,6 +202,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
     waitForMapReadyAndAssertVisibility()
   }
 
+  /**
+   * Tests that the permission request card is displayed on the first launch when permission is
+   * denied.
+   */
   @Test
   fun testPermissionRequestCardIsDisplayedOnFirstLaunch() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -201,6 +220,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     assertCardDisplayed(true)
   }
 
+  /** Tests that the permission card is not shown when permission has been granted. */
   @Test
   fun testPermissionRequestCardIsNotDisplayedWhenPermissionGranted() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -216,6 +236,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     assertCardDisplayed(false)
   }
 
+  /** Tests that if permission is granted, it remains granted across app relaunches. */
   @Test
   fun testLocationPermissionGrantedAlways() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -268,6 +289,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
   }
 
+  /**
+   * Tests that clicking the settings button navigates to app settings when permission is
+   * permanently denied.
+   */
   @Test
   fun location_denied_permanently_move_to_settings_onClick() =
       runTest(UnconfinedTestDispatcher()) {
@@ -308,6 +333,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
         }
       }
 
+  /**
+   * Tests the "allow once" permission flow, where permission is granted but then denied on a
+   * subsequent launch.
+   */
   @Test
   fun testLocationPermissionAllowedOnce() {
     assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -334,6 +363,9 @@ class MapScreenTest : BaseAndroidComposeTest() {
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true)
   }
 
+  /**
+   * Verifies that the track location button correctly updates the tracking state in the ViewModel.
+   */
   @Test
   fun trackLocationButtonSwitches() {
     setContent()
@@ -351,6 +383,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     assertTrue(uiState.isTrackingLocation)
   }
 
+  /** Verifies that clicking the track location button triggers a camera animation. */
   @Test
   fun trackLocationButtonAnimatesOnClick() {
     lateinit var cameraPositionState: CameraPositionState

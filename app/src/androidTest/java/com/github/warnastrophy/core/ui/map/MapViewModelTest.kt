@@ -46,13 +46,17 @@ class MapViewModelTest {
     Dispatchers.resetMain()
   }
 
+  /**
+   * Verifies that the initial state of the ViewModel's UI state has denied permissions and is in a
+   * loading state.
+   */
   @Test
   fun initial_state_has_denied_permission_and_loading_true() = runTest {
     val uiState = viewModel.uiState.value
     assertTrue(uiState.permissionResult is PermissionResult.Denied)
     assertTrue(uiState.isLoading)
   }
-
+  /** Tests if applying a permission result correctly updates the UI state. */
   @Test
   fun applyPermissionsResult_updates_permission_state() = runTest {
     val activity = mockk<Activity>(relaxed = true)
@@ -65,6 +69,7 @@ class MapViewModelTest {
     assertFalse(newState.isOsRequestInFlight)
   }
 
+  /** Checks if the tracking state in the UI is correctly updated when `setTracking` is called. */
   @Test
   fun setTracking_updates_tracking_state() = runTest {
     viewModel.setTracking(true)
@@ -74,6 +79,10 @@ class MapViewModelTest {
     assertFalse(viewModel.uiState.value.isTrackingLocation)
   }
 
+  /**
+   * Ensures that starting location updates triggers the GPS service and updates the position in the
+   * UI state.
+   */
   @Test
   fun startLocationUpdate_starts_gps_service_methods() = runTest {
     gpsService.setPosition(position = mockPos)
@@ -86,6 +95,7 @@ class MapViewModelTest {
     assertEquals(mockPos, uiState.positionState.position)
   }
 
+  /** Verifies that the UI state is updated when the GPS service emits new location data. */
   @Test
   fun uiState_updates_when_gpsService_emits_new_data() = runTest {
     gpsService.setPosition(position = mockPos)
@@ -95,6 +105,9 @@ class MapViewModelTest {
     assertEquals(mockPos, uiState.positionState.position)
   }
 
+  /**
+   * Tests if stopping location updates correctly calls the corresponding method in the GPS service.
+   */
   @Test
   fun stopLocationUpdate_calls_gpsService_methods() = runTest {
     gpsService.stopLocationUpdates()
@@ -102,6 +115,10 @@ class MapViewModelTest {
     assertFalse(gpsService.isLocationUpdated)
   }
 
+  /**
+   * Verifies that the UI state correctly combines and reflects updates from both the GPS and
+   * hazards services.
+   */
   @Test
   fun uiState_correctly_combines_updates_from_both_gpsService_and_hazardsService() = runTest {
     val initialHazards =
@@ -168,6 +185,7 @@ class MapViewModelTest {
         finalState.severitiesByType.containsKey("Flood"))
   }
 
+  /** Ensures that severities from hazards are correctly combined and calculated in the UI state. */
   @Test
   fun uiState_correctly_combines_severities() = runTest {
     val hazards =
@@ -199,6 +217,10 @@ class MapViewModelTest {
     assertEquals("Severities should be correct", expectedResult, state.severitiesByType)
   }
 
+  /**
+   * Checks if the `isOsRequestInFlight` flag is correctly set when a permission request is
+   * initiated.
+   */
   @Test
   fun onPermissionsRequestStart_works_as_expected() = runTest {
     assertFalse(
