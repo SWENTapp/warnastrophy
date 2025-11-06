@@ -16,13 +16,15 @@ import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.model.PermissionManager
+import com.github.warnastrophy.core.ui.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
-import com.github.warnastrophy.core.ui.home.HomeScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
+import com.github.warnastrophy.core.ui.map.MapViewModel
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
-import com.github.warnastrophy.core.ui.navigation.Screen.Home
+import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.TopBar
@@ -34,7 +36,7 @@ import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
 
 @Composable
-fun WarnastrophyApp() {
+fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
   val context = LocalContext.current
 
   val navController = rememberNavController()
@@ -44,7 +46,7 @@ fun WarnastrophyApp() {
   val currentRoute = backStackEntry?.destination?.route
   val currentScreen =
       when (currentRoute) {
-        Home.route -> Home
+        Dashboard.route -> Dashboard
         Map.route -> Map
         Profile.route -> Profile
         Screen.AddContact.route -> Screen.AddContact
@@ -55,11 +57,11 @@ fun WarnastrophyApp() {
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
 
-        // Default/Fallback: If no match, fallback to the Home screen object.
-        else -> Home
+        // Default/Fallback: If no match, fallback to the Dashboard screen object.
+        else -> Dashboard
       }
 
-  val startDestination = Home.route
+  val startDestination = Dashboard.route
   val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
   val errorHandler = ErrorHandler()
@@ -68,6 +70,8 @@ fun WarnastrophyApp() {
 
   val hazardsRepository = HazardRepositoryProvider.repository
   val hazardsService = HazardsService(hazardsRepository, gpsService, errorHandler)
+
+  val permissionManager = PermissionManager(context)
 
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
@@ -82,9 +86,11 @@ fun WarnastrophyApp() {
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
-              composable(Home.route) { HomeScreen() }
+              composable(Dashboard.route) { DashboardScreen() }
               composable(Map.route) {
-                MapScreen(hazardsService = hazardsService, gpsService = gpsService)
+                mockMapScreen?.invoke()
+                    ?: MapScreen(
+                        viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
               }
               composable(Profile.route) {
                 ProfileScreen(

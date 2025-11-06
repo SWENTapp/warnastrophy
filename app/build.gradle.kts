@@ -266,6 +266,9 @@ dependencies {
     implementation("org.locationtech.jts:jts-core:1.20.0")
     implementation("org.locationtech.jts.io:jts-io-common:1.20.0")
 
+    // Espresso-Intents
+    testImplementation("androidx.test.espresso:espresso-intents:3.5.0")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.0")
 }
 
 tasks.withType<Test> {

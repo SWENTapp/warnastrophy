@@ -37,21 +37,25 @@ interface PositionService {
    * Requests the user's current location and updates [positionState] with the new position or the
    * corresponding error.
    */
-  fun requestCurrentLocation(): Unit
+  fun requestCurrentLocation()
 
   /**
    * Starts automatic location updates. Updates are received via a callback that updates
    * [positionState].
    */
-  fun startLocationUpdates(): Unit
+  fun startLocationUpdates()
+
+  /** Releases resources used by this service. Call when the service is no longer needed. */
+  fun stopLocationUpdates()
 }
 
-val TAG = "GpsService"
+const val TAG = "GpsService"
 
 /**
  * Implementation of the PositionService interface, handling GPS position updates and state.
  *
- * @property applicationContext Application context for accessing location services.
+ * @property locationClient Location provider client for accessing fused location services.
+ * @property errorHandler Handler for managing errors related to GPS operations.
  */
 class GpsService(
     override val locationClient: FusedLocationProviderClient,
@@ -105,6 +109,7 @@ class GpsService(
     Log.e("GpsService", "Requesting current location")
     serviceScope.launch {
       try {
+        setLoading(true)
         val request =
             CurrentLocationRequest.Builder()
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
@@ -119,7 +124,7 @@ class GpsService(
         } else {
           setError("Position not available")
         }
-      } catch (e: SecurityException) {
+      } catch (_: SecurityException) {
         setError("Location permission not granted")
       } catch (e: Exception) {
         setError("Location error: ${e.message}")
@@ -139,18 +144,23 @@ class GpsService(
   override fun startLocationUpdates() {
     Log.e(TAG, "launching startLocationUpdates")
     try {
+      setLoading(true)
       val request =
           LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, AppConfig.positionUpdateDelayMs)
               .build()
 
       locationClient.requestLocationUpdates(request, locationCallBack, Looper.getMainLooper())
-    } catch (e: SecurityException) {
+    } catch (_: SecurityException) {
       setError("Location permission not granted!")
     } catch (e: Exception) {
       setError("Location update failed: ${e.message}")
     } finally {
       setLoading(false)
     }
+  }
+
+  override fun stopLocationUpdates() {
+    close()
   }
 
   /**

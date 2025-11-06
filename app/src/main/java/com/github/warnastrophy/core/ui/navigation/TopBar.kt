@@ -79,6 +79,6 @@ fun TopBar(
 fun TopBarPreview() {
   androidx.compose.foundation.layout.Box(
       modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_PREVIEW)) {
-        TopBar(Screen.Home)
+        TopBar(Screen.Dashboard)
       }
 }

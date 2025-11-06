@@ -14,7 +14,7 @@ import androidx.navigation.compose.rememberNavController
 
 private fun tagFor(screen: Screen): String =
     when (screen) {
-      Screen.Home -> NavigationTestTags.TAB_HOME
+      Screen.Dashboard -> NavigationTestTags.TAB_DASHBOARD
       Screen.Map -> NavigationTestTags.TAB_MAP
       Screen.Profile -> NavigationTestTags.TAB_PROFILE
       else -> ""
@@ -59,6 +59,6 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
 fun BottomNavigationBarPreview() {
   androidx.compose.foundation.layout.Box(
       modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAV_PREVIEW)) {
-        BottomNavigationBar(Screen.Home, rememberNavController())
+        BottomNavigationBar(Screen.Dashboard, rememberNavController())
       }
 }

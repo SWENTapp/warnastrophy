@@ -24,12 +24,14 @@ class BottomNavBarComponentTest : BaseAndroidComposeTest() {
   @Test
   fun bottomBar_showsTitle_whenHasBottomBarTrue() {
     composeTestRule.setContent {
-      MaterialTheme { BottomNavigationBar(Screen.Home, navController = rememberNavController()) }
+      MaterialTheme {
+        BottomNavigationBar(Screen.Dashboard, navController = rememberNavController())
+      }
     }
 
-    val expected = composeTestRule.activity.getString(Screen.Home.title)
+    val expected = composeTestRule.activity.getString(Screen.Dashboard.title)
     composeTestRule
-        .onNodeWithTag(NavigationTestTags.TAB_HOME)
+        .onNodeWithTag(NavigationTestTags.TAB_DASHBOARD)
         .assertIsDisplayed()
         .assertTextEquals(expected)
   }

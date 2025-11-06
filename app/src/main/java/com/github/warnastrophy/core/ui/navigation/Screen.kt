@@ -16,7 +16,7 @@ object NavigationTestTags {
   const val BOTTOM_NAV = "bottomNav"
   const val TAB_MAP = "tabMap"
   const val TAB_PROFILE = "tabProfile"
-  const val TAB_HOME = "tabHome"
+  const val TAB_DASHBOARD = "tabDashboard"
 
   const val TOP_BAR_PREVIEW = "topBarPreview"
 
@@ -35,11 +35,11 @@ sealed class Screen(
     val icon: ImageVector? = null,
     val isTopLevelDestination: Boolean = false
 ) {
-  object Home :
+  object Dashboard :
       Screen(
-          R.string.home_screen_title,
+          R.string.dashboard_screen_title,
           icon = Icons.Filled.Home,
-          route = "home",
+          route = "dashboard",
           isTopLevelDestination = true)
 
   object Map :
@@ -71,7 +71,7 @@ sealed class Screen(
   }
 }
 
-val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Home, Screen.Map, Screen.Profile)
+val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Dashboard, Screen.Map, Screen.Profile)
 
 open class NavigationActions(private val navController: NavHostController) {
   /**
