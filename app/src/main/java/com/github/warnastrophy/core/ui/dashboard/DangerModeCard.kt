@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dangerModeCard
+package com.github.warnastrophy.core.ui.dashboard
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable

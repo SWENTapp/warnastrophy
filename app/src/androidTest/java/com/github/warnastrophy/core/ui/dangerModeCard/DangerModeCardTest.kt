@@ -11,6 +11,11 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.ui.dashboard.DangerModeCapability
+import com.github.warnastrophy.core.ui.dashboard.DangerModeCard
+import com.github.warnastrophy.core.ui.dashboard.DangerModeCardViewModel
+import com.github.warnastrophy.core.ui.dashboard.DangerModePreset
+import com.github.warnastrophy.core.ui.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import org.junit.Test
 

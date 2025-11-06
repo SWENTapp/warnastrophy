@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.ui.dangermodecard
 
-import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCapability
-import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCardViewModel
-import com.github.warnastrophy.core.ui.dangerModeCard.DangerModePreset
+import com.github.warnastrophy.core.ui.dashboard.DangerModeCapability
+import com.github.warnastrophy.core.ui.dashboard.DangerModeCardViewModel
+import com.github.warnastrophy.core.ui.dashboard.DangerModePreset
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

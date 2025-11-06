@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dangerModeCard
+package com.github.warnastrophy.core.ui.dashboard
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
