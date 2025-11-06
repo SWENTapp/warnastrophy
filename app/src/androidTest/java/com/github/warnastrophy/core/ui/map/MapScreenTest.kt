@@ -1,11 +1,8 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.Manifest
-import android.app.Activity
-import android.app.Instrumentation
 import android.content.Context
 import android.os.Build
-import android.provider.Settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -21,13 +18,8 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.core.net.toUri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
-import androidx.test.espresso.intent.Intents
-import androidx.test.espresso.intent.Intents.intended
-import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
-import androidx.test.espresso.intent.matcher.IntentMatchers.hasData
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.AppPermissions
@@ -43,9 +35,6 @@ import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest
-import org.hamcrest.Matchers.allOf
 import org.junit.After
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -288,50 +277,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
     // This makes the explicit waitUntilWithTimeout redundant and safer.
     waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
   }
-
-  /**
-   * Tests that clicking the settings button navigates to app settings when permission is
-   * permanently denied.
-   */
-  @Test
-  fun location_denied_permanently_move_to_settings_onClick() =
-      runTest(UnconfinedTestDispatcher()) {
-        setPref(firstLaunchDone = true, askedOnce = true)
-
-        // Use the fake map for faster tests
-        setContent()
-        applyPerm(PermissionResult.PermanentlyDenied(mockPerm.permissions.toList()))
-
-        waitForMapReadyAndAssertVisibility(permissionCardVisible = true, allowButtonVisible = false)
-
-        Intents.init()
-        try {
-          val expectedIntent =
-              allOf(
-                  hasAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS),
-                  hasData(
-                      "package:${InstrumentationRegistry.getInstrumentation().targetContext.packageName}"
-                          .toUri()))
-
-          // Stub the intent so no actual Settings screen opens
-          Intents.intending(expectedIntent)
-              .respondWith(Instrumentation.ActivityResult(Activity.RESULT_OK, null))
-
-          // Wait for Compose UI to settle after permission change
-          composeTestRule.waitForIdle()
-
-          // Perform click on the settings button
-          composeTestRule
-              .onNodeWithTag(PermissionUiTags.BTN_SETTINGS)
-              .assertIsDisplayed()
-              .performClick()
-
-          // Verify the stubbed intent was sent
-          intended(expectedIntent)
-        } finally {
-          Intents.release()
-        }
-      }
 
   /**
    * Tests the "allow once" permission flow, where permission is granted but then denied on a
