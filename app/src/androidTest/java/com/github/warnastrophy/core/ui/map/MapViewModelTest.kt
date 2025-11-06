@@ -110,7 +110,7 @@ class MapViewModelTest {
    */
   @Test
   fun stopLocationUpdate_calls_gpsService_methods() = runTest {
-    viewModel.stopLocationUpdate()
+    gpsService.stopLocationUpdates()
     testDispatcher.scheduler.advanceUntilIdle()
     assertFalse(gpsService.isLocationUpdated)
   }

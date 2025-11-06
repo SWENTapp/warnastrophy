@@ -25,11 +25,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.github.warnastrophy.core.model.GpsPositionState
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.util.findActivity
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
@@ -85,6 +87,16 @@ fun MapScreen(
       viewModel.startLocationUpdate()
     } else {
       viewModel.stopLocationUpdate()
+    }
+  }
+
+  /**
+   * When tracking is enabled, this effect is triggered by changes in the user's location. It
+   * animates the camera to center on the new position.
+   */
+  LaunchedEffect(uiState.isTrackingLocation, uiState.positionState.position, uiState.isGranted) {
+    if (uiState.isGranted && !uiState.isLoading && uiState.isTrackingLocation) {
+      defaultAnimate(cameraPositionState, uiState.positionState)
     }
   }
 
@@ -197,4 +209,11 @@ fun HazardsGoogleMap(
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
         hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
       }
+}
+
+private suspend fun defaultAnimate(
+    cameraPositionState: CameraPositionState,
+    positionState: GpsPositionState
+) {
+  cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(positionState.position, 12f), 1000)
 }
