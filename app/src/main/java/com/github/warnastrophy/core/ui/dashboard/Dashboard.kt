@@ -19,11 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCard
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsCard
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreview
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
+import com.github.warnastrophy.core.ui.mapPreviewCard.MapPreviewCard
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
@@ -42,7 +44,7 @@ object DashboardColors {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(mapScreen: (@Composable () -> Unit)? = null, gpsService: GpsService? = null) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
         modifier =
@@ -58,7 +60,9 @@ fun DashboardScreen() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            MapPreviewCard(modifier = Modifier.testTag(DashboardScreenTestTags.MAP_PREVIEW_SECTION))
+            MapPreviewCard(
+                modifier = Modifier.testTag(DashboardScreenTestTags.MAP_PREVIEW_SECTION),
+                mapContent = mapScreen)
 
             Spacer(modifier = Modifier.height(12.dp))
 

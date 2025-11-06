@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,7 +51,10 @@ object MapScreenTestTags {
 @Composable
 fun MapScreen(
     viewModel: MapViewModel,
-    cameraPositionState: CameraPositionState = rememberCameraPositionState()
+    cameraPositionState: CameraPositionState = rememberCameraPositionState(),
+    MapUiSettings: MapUiSettings =
+        MapUiSettings(
+            myLocationButtonEnabled = false, zoomControlsEnabled = true, mapToolbarEnabled = false)
 ) {
   val activity = LocalContext.current.findActivity()
 
@@ -65,6 +71,9 @@ fun MapScreen(
 
   val uiState by viewModel.uiState.collectAsState()
   val hazards = uiState.hazardState.hazards
+
+  var mapLoaded by remember { mutableStateOf(false) }
+  var hasCenteredOnUser by remember { mutableStateOf(false) }
 
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
@@ -109,6 +118,15 @@ fun MapScreen(
     }
   }
 
+  // add a LaunchedEffect that centers once when ready
+  LaunchedEffect(mapLoaded, uiState.isGranted, uiState.positionState.position, uiState.isLoading) {
+    if (mapLoaded && uiState.isGranted && !uiState.isLoading && !hasCenteredOnUser) {
+      // guard: ensure position is valid (adjust check if your position can be null)
+      defaultAnimate(cameraPositionState, uiState.positionState)
+      hasCenteredOnUser = true
+    }
+  }
+
   Box(Modifier.fillMaxSize()) {
     if (uiState.isLoading) {
       Loading()
@@ -116,12 +134,9 @@ fun MapScreen(
       GoogleMap(
           modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
           cameraPositionState = cameraPositionState,
-          uiSettings =
-              MapUiSettings(
-                  myLocationButtonEnabled = false,
-                  zoomControlsEnabled = false,
-                  mapToolbarEnabled = false),
-          properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
+          uiSettings = MapUiSettings,
+          properties = MapProperties(isMyLocationEnabled = uiState.isGranted),
+          onMapLoaded = { mapLoaded = true }) {
             hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
           }
       TrackLocationButton(uiState.isTrackingLocation) { viewModel.setTracking(true) }
@@ -190,7 +205,7 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
       shape = MaterialTheme.shapes.extraLarge,
       containerColor = tint,
       modifier =
-          Modifier.align(Alignment.BottomEnd)
+          Modifier.align(Alignment.TopStart)
               .padding(16.dp)
               .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
         Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
