@@ -59,7 +59,7 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun navigate_Dashboard_to_Map_and_back() {
-    setContent(useFakeMap = true)
+    setContent()
     composeTestRule
         .onNode(
             hasClickAction().and(hasTestTag(NavigationTestTags.TAB_MAP)), useUnmergedTree = true)
@@ -94,7 +94,7 @@ class NavigationE2ETest : UITest() {
 
   @Test
   fun can_visit_all_tabs_in_sequence() {
-    setContent(useFakeMap = true)
+    setContent()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
@@ -186,7 +186,7 @@ class NavigationE2ETest : UITest() {
         .assertTextContains("Contact List", ignoreCase = true)
   }
 
-  private fun setContent(useFakeMap: Boolean = false) {
+  private fun setContent(useFakeMap: Boolean = true) {
     if (useFakeMap) {
       composeTestRule.setContent { WarnastrophyApp(mockMapScreen = { FakeMapComponent() }) }
     } else {

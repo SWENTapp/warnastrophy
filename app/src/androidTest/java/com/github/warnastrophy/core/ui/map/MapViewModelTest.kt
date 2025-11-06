@@ -46,13 +46,17 @@ class MapViewModelTest {
     Dispatchers.resetMain()
   }
 
+  /**
+   * Verifies that the initial state of the ViewModel's UI state has denied permissions and is in a
+   * loading state.
+   */
   @Test
   fun initial_state_has_denied_permission_and_loading_true() = runTest {
     val uiState = viewModel.uiState.value
     assertTrue(uiState.permissionResult is PermissionResult.Denied)
     assertTrue(uiState.isLoading)
   }
-
+  /** Tests if applying a permission result correctly updates the UI state. */
   @Test
   fun applyPermissionsResult_updates_permission_state() = runTest {
     val activity = mockk<Activity>(relaxed = true)
@@ -65,6 +69,7 @@ class MapViewModelTest {
     assertFalse(newState.isOsRequestInFlight)
   }
 
+  /** Checks if the tracking state in the UI is correctly updated when `setTracking` is called. */
   @Test
   fun setTracking_updates_tracking_state() = runTest {
     viewModel.setTracking(true)
@@ -74,6 +79,10 @@ class MapViewModelTest {
     assertFalse(viewModel.uiState.value.isTrackingLocation)
   }
 
+  /**
+   * Ensures that starting location updates triggers the GPS service and updates the position in the
+   * UI state.
+   */
   @Test
   fun startLocationUpdate_starts_gps_service_methods() = runTest {
     gpsService.setPosition(position = mockPos)
@@ -86,6 +95,7 @@ class MapViewModelTest {
     assertEquals(mockPos, uiState.positionState.position)
   }
 
+  /** Verifies that the UI state is updated when the GPS service emits new location data. */
   @Test
   fun uiState_updates_when_gpsService_emits_new_data() = runTest {
     gpsService.setPosition(position = mockPos)
@@ -95,12 +105,20 @@ class MapViewModelTest {
     assertEquals(mockPos, uiState.positionState.position)
   }
 
+  /**
+   * Tests if stopping location updates correctly calls the corresponding method in the GPS service.
+   */
   @Test
   fun stopLocationUpdate_calls_gpsService_methods() = runTest {
     gpsService.stopLocationUpdates()
+    testDispatcher.scheduler.advanceUntilIdle()
     assertFalse(gpsService.isLocationUpdated)
   }
 
+  /**
+   * Verifies that the UI state correctly combines and reflects updates from both the GPS and
+   * hazards services.
+   */
   @Test
   fun uiState_correctly_combines_updates_from_both_gpsService_and_hazardsService() = runTest {
     val initialHazards =
@@ -165,5 +183,49 @@ class MapViewModelTest {
     assertFalse(
         "Old severity key 'Flood' should no longer exist",
         finalState.severitiesByType.containsKey("Flood"))
+  }
+
+  /** Ensures that severities from hazards are correctly combined and calculated in the UI state. */
+  @Test
+  fun uiState_correctly_combines_severities() = runTest {
+    val hazards =
+        listOf(
+            createHazard(type = "Flood", severity = 0.8),
+            createHazard(type = "Flood", severity = 0.3), // Same type, different severity
+            createHazard(type = "Fire", severity = 2.0),
+            createHazard(type = "Fire", severity = 3.5), // Same type, different severity
+            createHazard(type = null, severity = 1.0), // Null type, should be ignored
+            createHazard(type = "EQ", severity = null), // Null severity, should be ignored
+            createHazard(type = "Storm", severity = 1.2) // Single hazard type
+            )
+
+    val expectedResult =
+        mapOf(
+            "Flood" to (0.3 to 0.8), // min and max severity for Flood
+            "Fire" to (2.0 to 3.5),
+            "Storm" to (1.2 to 1.2) // Only one severity, min=max=1.2
+            )
+
+    // Set initial state for hazards
+    hazardsService.setHazards(hazards)
+    // Advance the dispatcher to process the initial hazard state from combine
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    val state = viewModel.uiState.value
+
+    assertEquals("Hazard count should be correct", hazards.size, state.hazardState.hazards.size)
+    assertEquals("Severities should be correct", expectedResult, state.severitiesByType)
+  }
+
+  /**
+   * Checks if the `isOsRequestInFlight` flag is correctly set when a permission request is
+   * initiated.
+   */
+  @Test
+  fun onPermissionsRequestStart_works_as_expected() = runTest {
+    assertFalse(
+        "The OS pop-up should not be displayed", viewModel.uiState.value.isOsRequestInFlight)
+    viewModel.onPermissionsRequestStart()
+    assertTrue("The OS pop-up should be displayed", viewModel.uiState.value.isOsRequestInFlight)
   }
 }
