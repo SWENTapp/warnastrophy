@@ -118,15 +118,6 @@ fun MapScreen(
     }
   }
 
-  // add a LaunchedEffect that centers once when ready
-  LaunchedEffect(mapLoaded, uiState.isGranted, uiState.positionState.position, uiState.isLoading) {
-    if (mapLoaded && uiState.isGranted && !uiState.isLoading && !hasCenteredOnUser) {
-      // guard: ensure position is valid (adjust check if your position can be null)
-      defaultAnimate(cameraPositionState, uiState.positionState)
-      hasCenteredOnUser = true
-    }
-  }
-
   Box(Modifier.fillMaxSize()) {
     if (uiState.isLoading) {
       Loading()
