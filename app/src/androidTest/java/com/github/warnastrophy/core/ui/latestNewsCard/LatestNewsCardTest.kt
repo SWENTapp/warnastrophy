@@ -33,19 +33,19 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
               description = "Tropical cyclone just hit Jamaica",
               severityText =
                   "A tropical cyclone has made landfall in Jamaica causing significant damage.",
-              reportUrl = "https://example.com/cyclone.jpg",
+              articleUrl = "https://example.com/cyclone.jpg",
               date = "2024-06-15T10:00:00Z"),
           Hazard(
               id = 2,
               description = "Floods in Bangladesh",
               severityText = "Severe floods have affected thousands of people in Bangladesh.",
-              reportUrl = "https://example.com/floods.jpg",
+              articleUrl = "https://example.com/floods.jpg",
               date = "2024-06-15T10:00:00Z"),
           Hazard(
               id = 2,
               description = "Floods in Bangladesh",
               severityText = "Severe floods have affected thousands of people in Bangladesh.",
-              reportUrl = "https://example.com/floods.jpg",
+              articleUrl = "https://example.com/floods.jpg",
               date = "2024-06-15T10:00:00Z"))
 
   @Before

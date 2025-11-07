@@ -11,8 +11,10 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   // Verify that the root of the DashboardScreen is scrollable
   @Test
   fun dashboardScreen_rootIsScrollable() {
-    val hazardsService = HazardServiceMock()
-    composeTestRule.setContent { MaterialTheme { DashboardScreen(hazardsService) } }
+    val mockHazardService = HazardServiceMock()
+    composeTestRule.setContent {
+      MaterialTheme { DashboardScreen(hazardsService = mockHazardService) }
+    }
 
     composeTestRule
         .onNode(

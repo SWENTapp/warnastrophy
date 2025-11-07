@@ -39,19 +39,47 @@ class HazardsRepositoryIntegrationTest {
         JSONObject(
             """
             {
-                "type":"Feature",
-                "geometry":{"type":"Point","coordinates":[-115.2,25.9]},
-                "properties":{
-                    "eventid":1001222,
-                    "eventtype":"TC",
-                    "country":"Mexico",
-                    "fromdate":"2025-10-04T21:00:00",
-                    "severitydata":{"severity":175.9248,"severityunit":"km/h", "severitytext":"very bad"},
-                    
-                    "url":{"report":"https://www.gdacs.org/report.aspx?eventid=1001222&episodeid=24&eventtype=TC"},
-                    "alertscore":1,
-                    "iscurrent":true
-                }
+              "type": "Feature",
+              "bbox": [
+                -116.076,
+                31.325,
+                -116.076,
+                31.325
+              ],
+              "geometry": {
+                "type": "Point",
+                "coordinates": [
+                  -116.076,
+                  31.325
+                ]
+              },
+              "properties": {
+                "eventtype": "EQ",
+                "eventid": 1503804,
+                "episodeid": 1664543,
+                "eventname": "",
+                "glide": "",
+                "name": "Earthquake in Mexico",
+                "description": "Earthquake in Mexico",
+                "htmldescription": "Green M 4.6 Earthquake in Mexico at: 06 Oct 2025 16:53:27.",
+                "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
+                "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Green/EQ.png",
+                "url": {
+                  "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=EQ&eventid=1503804&episodeid=1664543",
+                  "report": "https://www.gdacs.org/report.aspx?eventid=1503804&episodeid=1664543&eventtype=EQ",
+                  "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=EQ&eventid=1503804"
+                },
+                "alertlevel": "Green",
+                "alertscore": 1,
+                "iscurrent": "true",
+                "fromdate": "2025-10-06T16:53:27",
+                "country": "Mexico",
+                "severitydata": {
+                  "severity": 4.6,
+                  "severitytext": "Magnitude 4.6M, Depth:1km",
+                  "severityunit": "M"
+                 }
+              }
             }
         """)
 
@@ -72,16 +100,34 @@ class HazardsRepositoryIntegrationTest {
                       -59.5,
                       33.2
                     ]
-                },
-                "properties":{
-                    "eventid":1001225,
-                    "eventtype":"TC",
-                    "country":"Mexico",
-                    "fromdate":"2025-10-09T15:00:00",
-                    "severitydata":{"severity":92.592,"severityunit":"km/h", "severitytext":"very bad"},
-                    "url":{"report":"https://www.gdacs.org/report.aspx?eventid=1001225&episodeid=5&eventtype=TC"},
-                    "alertscore":1,
-                    "iscurrent":true
+                  },
+                  "properties": {
+                    "eventtype": "TC",
+                    "eventid": 1001216,
+                    "episodeid": 24,
+                    "eventname": "IMELDA-25",
+                    "glide": "",
+                    "name": "Tropical Cyclone IMELDA-25",
+                    "description": "Tropical Cyclone IMELDA-25",
+                    "htmldescription": "Green Tropical Cyclone IMELDA-25 in Bermuda, Bahamas, Cuba from: 26 Sep 2025  to: 02 Oct 2025 .",
+                    "icon": "https://www.gdacs.org/images/gdacs_icons/maps/Green/TC.png",
+                    "iconoverall": "https://www.gdacs.org/images/gdacs_icons/maps/Green/TC.png",
+                    "url": {
+                      "geometry": "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry?eventtype=TC&eventid=1001216&episodeid=24",
+                      "report": "https://www.gdacs.org/report.aspx?eventid=1001216&episodeid=24&eventtype=TC",
+                      "details": "https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=TC&eventid=1001216"
+                    },
+                    "alertlevel": "Green",
+                    "country": "Bermuda, Bahamas, Cuba",
+                    "alertscore": 1,
+                    "iscurrent": "true",
+                    "fromdate": "2025-09-26T21:00:00",
+                    "severitydata": {
+                      "severity": 157.4064,
+                      "severitytext": "Hurricane/Typhoon > 74 mph (maximum wind speed of 157 km/h)",
+                      "severityunit": "km/h"
+                    }
+                  }
                 }
         """)
 

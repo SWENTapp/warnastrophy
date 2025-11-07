@@ -156,7 +156,7 @@ class HazardsRepository() : HazardsDataSource {
               affectedZone = affectedZone,
               bbox = bbox)
       return hazard
-    } catch (_: Exception) {
+    } catch (e: Exception) {
       return null
     }
   }
