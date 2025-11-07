@@ -36,7 +36,7 @@ object DashboardColors {
 }
 
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(onHealthCardClick: () -> Unit, OnEmergencyContactsClick: () -> Unit) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
         modifier =
@@ -61,10 +61,10 @@ fun DashboardScreen() {
                     Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                   DashboardEmergencyContactsCardStateful(
-                      onManageContactsClick = {},
+                      onManageContactsClick = { OnEmergencyContactsClick() },
                       modifier = Modifier.weight(1f).testTag(EmergencyContactsTestTags.CARD))
                   DashboardHealthCardStateful(
-                      onHealthCardClick = {},
+                      onHealthCardClick = { onHealthCardClick() },
                       modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(0.78f))
                 }
 
