@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
+import com.github.warnastrophy.core.ui.mapPreviewCard.MapPreviewCard
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
 
 object DashboardScreenTestTags {
@@ -35,7 +36,7 @@ object DashboardColors {
 }
 
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(mapScreen: (@Composable () -> Unit)? = null) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
         modifier =
@@ -51,7 +52,9 @@ fun DashboardScreen() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            MapPreviewCard(modifier = Modifier.testTag(DashboardScreenTestTags.MAP_PREVIEW_SECTION))
+            MapPreviewCard(
+                modifier = Modifier.testTag(DashboardScreenTestTags.MAP_PREVIEW_SECTION),
+                mapContent = mapScreen)
 
             Spacer(modifier = Modifier.height(12.dp))
 
