@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.ui.dangerModeCard.DangerModeCard
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
