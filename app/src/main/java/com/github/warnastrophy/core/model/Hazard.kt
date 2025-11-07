@@ -1,5 +1,7 @@
 package com.github.warnastrophy.core.model
 
+import org.locationtech.jts.geom.Geometry
+
 /**
  * Represents a single geographical hazard event retrieved from the API, serving as the core domain
  * model for the application.
@@ -20,17 +22,17 @@ package com.github.warnastrophy.core.model
  * @property affectedZone The affected zone of the hazard.
  */
 data class Hazard(
-    val id: Int? = null,
-    val type: String? = null,
-    val description: String? = null,
+    val id: Int?= null,
+    val type: String?= null,
+    val description: String?= null,
+    val country: String?= null,
+    val date: String?= null,
+    val bbox: List<Double>?= null,
+    val severity: Double?= null, // Maybe no need because we have already alertLevel
+    val severityUnit: String?= null,
     val severityText: String? = null,
-    val country: String? = null,
-    val date: String? = null,
-    val bbox: List<Double>? = null,
-    val severity: Double? = null, // Maybe no need because we have already alertLevel
-    val severityUnit: String? = null,
-    val reportUrl: String? = null,
-    val alertLevel: Int? = null,
-    val coordinates: List<Location>? = null,
-    val affectedZoneWkt: String? = null
+    val articleUrl: String?= null,
+    val alertLevel: Double?= null,
+    val centroid: Geometry?= null,
+    val affectedZone: Geometry?= null,
 )

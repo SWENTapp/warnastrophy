@@ -179,7 +179,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService) {
                                       val intent =
                                           Intent(
                                               Intent.ACTION_VIEW,
-                                              Uri.parse(currentHazard.reportUrl))
+                                              Uri.parse(currentHazard.articleUrl))
                                       ContextCompat.startActivity(context, intent, null)
                                     }
                                     .testTag(LatestNewsTestTags.LINK))

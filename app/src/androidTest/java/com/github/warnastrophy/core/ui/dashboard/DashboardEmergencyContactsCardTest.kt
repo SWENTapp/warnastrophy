@@ -354,4 +354,28 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
         .assertExists()
         .assertIsDisplayed()
   }
+
+  @Test
+  fun dashboardEmergencyContactsCard_buttonNavigatesToManageContacts() {
+    var navigateCalled = false
+
+    composeTestRule.setContent {
+      MainAppTheme {
+        DashboardEmergencyContactsCardStateless(
+            contacts = listOf(sampleContact1),
+            onManageContactsClick = { navigateCalled = true },
+            isLoading = false)
+      }
+    }
+
+    composeTestRule
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)
+        .assertExists()
+        .assertIsDisplayed()
+        .onChild()
+        .assertHasClickAction()
+        .performClick()
+
+    assert(navigateCalled) { "Navigation to manage contacts was not triggered." }
+  }
 }
