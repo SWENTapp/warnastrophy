@@ -11,20 +11,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsCard
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
-import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreview
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
 object DashboardScreenTestTags {
   const val ROOT_SCROLL = "dashboard_rootScroll"
@@ -39,7 +34,6 @@ object DashboardColors {
   val BACKGROUND_COLOR: Color = Color(0xFFF5F5F5) // Light Grey
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
@@ -65,10 +59,12 @@ fun DashboardScreen() {
                 modifier =
                     Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                  EmergencyContactsCard(
+                  DashboardEmergencyContactsCardStateful(
+                      onManageContactsClick = {},
                       modifier = Modifier.weight(1f).testTag(EmergencyContactsTestTags.CARD))
-                  HealthCardPreview(
-                      modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(1f))
+                  DashboardHealthCardStateful(
+                      onHealthCardClick = {},
+                      modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(0.78f))
                 }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -79,10 +75,4 @@ fun DashboardScreen() {
           }
         }
   }
-}
-
-@Preview
-@Composable
-fun DashboardScreenPreview() {
-  MainAppTheme { DashboardScreen() }
 }
