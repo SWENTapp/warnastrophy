@@ -62,12 +62,15 @@ object DangerModeTestTags {
   fun dangerLevelTag(level: Int) = COLOR_BOX_PREFIX + level
 }
 
-/*
-This Composable displays a dashboard card for Danger Mode settings.
-It uses a light red background color and darker red accents to indicate caution.
-The card includes a title, a switch to enable/disable danger mode, current mode label,
-options for what to send in danger mode, color presets for danger levels, and an "Open
-" button.
+/**
+ * This Composable displays a dashboard card for Danger Mode settings. It uses a light red
+ * background color and darker red accents to indicate caution. The card includes a title, a switch
+ * to enable/disable danger mode, current mode label, options for what to send in danger mode, color
+ * presets for danger levels, and an "Open" button.
+ *
+ * @param modifier Modifier to be applied to the card.
+ * @param viewModel The ViewModel managing the state of the Danger Mode card.
+ * @param onOpenClick Lambda function to be invoked when the "Open" button is clicked
  */
 @Composable
 fun DangerModeCard(
@@ -216,6 +219,14 @@ fun DangerModeCard(
   }
 }
 
+/**
+ * A small box representing a danger level color option.
+ *
+ * @param color The background color of the box.
+ * @param modifier Modifier to be applied to the box.
+ * @param onClick Lambda function to be invoked when the box is clicked.
+ * @param borderColor The color of the border around the box.
+ */
 @Composable
 private fun DangerColorBox(
     color: Color,

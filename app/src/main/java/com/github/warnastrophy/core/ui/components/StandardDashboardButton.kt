@@ -17,6 +17,16 @@ import androidx.compose.ui.unit.sp
 /**
  * This Composable represents a standard dashboard button with customizable color and label. It
  * features rounded corners, a border, and padding for better touch interaction.
+ *
+ * @param color The background color of the button. Default is light gray.
+ * @param label The text label displayed on the button.
+ * @param modifier Modifier to be applied to the button.
+ * @param onClick Lambda function to be invoked when the button is clicked.
+ * @param textColor The color of the text label. Default is the onSecondaryContainer color from the
+ *   Material theme.
+ * @param borderColor The color of the button border. Default is the onError color from the Material
+ *   theme.
+ * @param icon A Composable function representing an optional icon to be displayed alongside the
  */
 @Composable
 fun StandardDashboardButton(
