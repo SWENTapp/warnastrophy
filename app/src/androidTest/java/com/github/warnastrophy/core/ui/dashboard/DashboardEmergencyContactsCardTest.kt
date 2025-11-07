@@ -74,13 +74,13 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
         .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
         .assertExists()
         .assertIsDisplayed()
-        .assert(hasText("Jane Doe • +1 555-123-4567", substring = true))
+        .assert(hasText("Jane Doe: +1 555-123-4567", substring = true))
 
     composeTestRule
         .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1")
         .assertExists()
         .assertIsDisplayed()
-        .assert(hasText("John Smith • +1 555-987-6543", substring = true))
+        .assert(hasText("John Smith: +1 555-987-6543", substring = true))
   }
 
   @Test
@@ -203,7 +203,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
         .assertExists()
-        .assert(hasText("Jane Doe • +1 555-123-4567", substring = true))
+        .assert(hasText("Jane Doe: +1 555-123-4567", substring = true))
   }
 
   @Test
@@ -295,7 +295,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
         .onNodeWithTag(DashboardEmergencyContactsTestTags.TITLE)
         .assertExists()
         .assertIsDisplayed()
-        .assertTextEquals("Emergency Contacts")
+        .assertTextEquals("Contacts")
   }
 
   @Test

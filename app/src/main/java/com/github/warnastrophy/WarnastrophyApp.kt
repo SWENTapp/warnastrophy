@@ -5,22 +5,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.ErrorHandler
-import com.github.warnastrophy.core.model.GpsService
-import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.model.GpsServiceFactory
+import com.github.warnastrophy.core.model.HazardsServiceFactory
 import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.ui.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
 import com.github.warnastrophy.core.ui.map.MapViewModel
+import com.github.warnastrophy.core.ui.map.MapViewModelFactory
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -66,12 +69,20 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
 
   val errorHandler = ErrorHandler()
 
-  val gpsService = GpsService(locationClient, errorHandler)
+  val gpsServiceFactory = remember { GpsServiceFactory(locationClient, errorHandler) }
+  val gpsService = remember { gpsServiceFactory.create() }
 
   val hazardsRepository = HazardRepositoryProvider.repository
-  val hazardsService = HazardsService(hazardsRepository, gpsService, errorHandler)
+
+  val hazardsServiceFactory = remember {
+    HazardsServiceFactory(hazardsRepository, gpsService, errorHandler)
+  }
+  val hazardsService = remember { hazardsServiceFactory.create() }
 
   val permissionManager = PermissionManager(context)
+  val mapViewModelFactory = remember {
+    MapViewModelFactory(gpsService, hazardsService, permissionManager)
+  }
 
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
@@ -87,10 +98,10 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
               composable(Dashboard.route) { DashboardScreen(hazardsService) }
-              composable(Map.route) {
-                mockMapScreen?.invoke()
-                    ?: MapScreen(
-                        viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
+              composable(Map.route) { backStackEntryForMap ->
+                val mapViewModel: MapViewModel =
+                    viewModel(backStackEntryForMap, factory = mapViewModelFactory)
+                mockMapScreen?.invoke() ?: MapScreen(viewModel = mapViewModel)
               }
               composable(Profile.route) {
                 ProfileScreen(
