@@ -17,6 +17,7 @@ import com.github.warnastrophy.core.model.PositionService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.Assert.assertEquals
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.geom.GeometryFactory
@@ -106,7 +107,7 @@ class HazardsRepositoryMock(private val hazards: List<Hazard>) : HazardsDataSour
 
 class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = pos) :
     HazardsDataService {
-  override suspend fun fetchHazards(geometry: String, days: String) = hazardList
+  override suspend fun fetchHazardsForLocation(geometry: String, days: String) = hazardList
 
   override val fetcherState = MutableStateFlow(FetcherState(hazards))
   override val gpsService: PositionService = GpsServiceMock(position)
@@ -115,6 +116,16 @@ class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = p
 
   fun setHazards(hazards: List<Hazard>) {
     fetcherState.value = FetcherState(hazards = hazards)
+  }
+
+  var fetchCount: Int = 0
+
+  override fun fetchHazardsAroundUser() {
+    fetchCount++
+  }
+
+  fun assertFetchCalled(expectedCount: Int) {
+    assertEquals(expectedCount, fetchCount)
   }
 }
 

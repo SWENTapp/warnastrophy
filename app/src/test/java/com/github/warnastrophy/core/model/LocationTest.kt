@@ -1,11 +1,15 @@
 package com.github.warnastrophy.core.model
 
 import com.github.warnastrophy.core.util.debugPrint
+import kotlin.math.PI
 import kotlin.math.abs
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class LocationTest {
+  private val EPSILON = 0.01
+
   fun varLatToKm(latVar: Double): Double {
     return Math.toRadians(latVar) * Location.earthRadiusKm
   }
@@ -67,7 +71,7 @@ class LocationTest {
 
     for (i in pairs.indices) {
       val lonVar = abs(impairs[i].longitude - pairs[i].longitude)
-      Assert.assertEquals(360.0, lonVar, 1.0)
+      assertEquals(360.0, lonVar, 1.0)
     }
   }
 
@@ -75,8 +79,8 @@ class LocationTest {
   fun testToLatLng() {
     val location = Location(46.8182, 8.2275, "Switzerland")
     val latLng = Location.toLatLng(location)
-    Assert.assertEquals(46.8182, latLng.latitude, 0.0001)
-    Assert.assertEquals(8.2275, latLng.longitude, 0.0001)
+    assertEquals(46.8182, latLng.latitude, 0.0001)
+    assertEquals(8.2275, latLng.longitude, 0.0001)
   }
 
   @Test
@@ -86,7 +90,7 @@ class LocationTest {
     Assert.assertNotNull(polygon)
     // Vérifie l'unicité des points. Au moins un point similaire car polygone fermé
     val uniquePoints = polygon.toSet()
-    Assert.assertEquals("Il y a des doublons dans le polygone", polygon.size, uniquePoints.size)
+    assertEquals("Il y a des doublons dans le polygone", polygon.size, uniquePoints.size)
   }
 
   @Test
@@ -100,6 +104,36 @@ class LocationTest {
         )
     val polygon = Location.locationsToWktPolygon(locations)
     debugPrint(polygon)
+  }
+
+  @Test
+  fun `distanceBetween correctly calculates distance between two points on the Equator`() {
+    // Known Distance: 90 degrees longitude apart on the Equator
+    val equator1 = Location(latitude = 0.0, longitude = 0.0)
+    val equator2 = Location(latitude = 0.0, longitude = 90.0)
+
+    // Expected distance = 1/4 of the circumference (2 * pi * R / 4)
+    val expectedDistance = (2 * PI * Location.earthRadiusKm) / 4.0
+    val distance = Location.distanceBetween(equator1, equator2)
+
+    assertEquals(expectedDistance, distance, EPSILON)
+  }
+
+  @Test
+  fun `distanceBetween correctly calculates a known real-world distance (New York to London)`() {
+    // Coordinates for New York City (approx)
+    val nyc = Location(latitude = 40.7128, longitude = -74.0060)
+    // Coordinates for London (approx)
+    val london = Location(latitude = 51.5074, longitude = 0.1278)
+
+    // Reference distance (Source: Google Maps/Haversine calculator using R=6371.009km): ~5585.0226
+    // km
+    val expectedDistance = 5587.022646618559
+
+    val distance = Location.distanceBetween(nyc, london)
+
+    // We use a slightly larger tolerance here (0.5 km) as the exact radius used can vary slightly.
+    assertEquals(expectedDistance, distance, EPSILON)
   }
 }
 
