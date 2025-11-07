@@ -1,11 +1,8 @@
 package com.github.warnastrophy.core.model
 
 import com.google.android.gms.maps.model.LatLng
-import kotlin.div
 import kotlin.math.ceil
 import kotlin.math.cos
-import kotlin.rem
-import kotlin.times
 
 /**
  * Represents a geographic position in decimal degrees.
@@ -22,7 +19,6 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
 
     /** Nominal step in kilometers between successive generated points. */
     val kmBetweeenPoints = 500
-
     /**
      * Converts a [Location] to a Google Maps LatLng].
      *
