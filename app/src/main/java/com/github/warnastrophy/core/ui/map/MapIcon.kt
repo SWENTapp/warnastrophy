@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.semantics
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.util.GeometryParser
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polygon
@@ -84,29 +85,30 @@ fun HazardMarker(
           MarkerComposable(state = state, title = title, snippet = snippet) { content() }
         }
 ) {
-  var markerLocation = Location(0.0, 0.0)
-  hazard.coordinates?.let {
-    // The marker location is the average of all coordinates
+  // The markerLocation is the centroid of the geometry.
+  val markerLocation =
+      hazard.centroid?.centroid?.let { point -> Location(point.y, point.x) } ?: Location(0.0, 0.0)
 
-    if (it.size > 1) {
-      val polygonCoords =
-          it.map { coord ->
-            markerLocation =
-                Location(
-                    markerLocation.latitude + coord.latitude,
-                    markerLocation.longitude + coord.longitude)
-            Location.Companion.toLatLng(coord)
-          }
+  val centroidLatLngs: List<Location>? =
+      hazard.centroid?.let { nonNullGeometry ->
+        // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
+        GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
+      }
 
-      markerLocation =
-          Location(markerLocation.latitude / it.size, markerLocation.longitude / it.size)
+  // If there are multiple points, draw a polygon.
+  centroidLatLngs?.let { locations ->
+    if (locations.size > 1) {
+      val polygonCoords = locations.map { location -> Location.Companion.toLatLng(location) }
 
+      // Draw a polygon on the map for multi-point geometries.
       Polygon(
           points = polygonCoords,
           strokeWidth = 2f,
       )
-    } else {
-      markerLocation = it[0]
+    } else if (locations.isEmpty()) {
+      // Fallback for empty location list, though markerLocation from centroid should be used.
+      // This branch is unlikely if hazard.centroid exists.
+      // Log or handle this case as an anomaly if necessary.
     }
   }
 

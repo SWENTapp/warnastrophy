@@ -27,7 +27,7 @@ interface HazardsDataService {
 
   val fetcherState: StateFlow<FetcherState>
 
-  suspend fun fetchHazards(polygon: String, days: String = AppConfig.priorDaysFetch): List<Hazard>
+  suspend fun fetchHazards(geometry: String, days: String = AppConfig.priorDaysFetch): List<Hazard>
 }
 
 class HazardsService(
@@ -78,12 +78,12 @@ class HazardsService(
   /**
    * Fetches hazards for the given polygon and number of days.
    *
-   * @param polygon The polygon in WKT format representing the area to search for hazards.
+   * @param geometry The polygon in WKT format representing the area to search for hazards.
    * @param days The number of days to look back for hazards (default: [AppConfig.priorDaysFetch]).
    * @return A list of hazards found in the specified area and time frame.
    */
-  override suspend fun fetchHazards(polygon: String, days: String): List<Hazard> {
-    return repository.getAreaHazards(polygon, days)
+  override suspend fun fetchHazards(geometry: String, days: String): List<Hazard> {
+    return repository.getAreaHazards(geometry, days)
   }
 
   /** Cancels the background hazard fetching and releases resources. */
@@ -105,3 +105,13 @@ data class FetcherState(
     val isLoading: Boolean = false,
     val errorMsg: String? = null
 )
+
+class HazardsServiceFactory(
+    private val repository: HazardsDataSource,
+    private val gpsService: PositionService,
+    private val errorHandler: ErrorHandler
+) {
+  fun create(): HazardsService {
+    return HazardsService(repository, gpsService, errorHandler)
+  }
+}

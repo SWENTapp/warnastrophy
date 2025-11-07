@@ -67,6 +67,7 @@ fun MapScreen(
   }
 
   val uiState by viewModel.uiState.collectAsState()
+  val hazards = uiState.hazardState.hazards
 
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
@@ -184,7 +185,7 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
       shape = MaterialTheme.shapes.extraLarge,
       containerColor = tint,
       modifier =
-          Modifier.align(Alignment.BottomEnd)
+          Modifier.align(Alignment.TopStart)
               .padding(16.dp)
               .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
         Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
@@ -204,7 +205,7 @@ fun HazardsGoogleMap(
       uiSettings =
           MapUiSettings(
               myLocationButtonEnabled = false,
-              zoomControlsEnabled = false,
+              zoomControlsEnabled = true,
               mapToolbarEnabled = false),
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
         hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
