@@ -114,3 +114,13 @@ data class FetcherState(
     val isLoading: Boolean = false,
     val errorMsg: String? = null
 )
+
+class HazardsServiceFactory(
+    private val repository: HazardsDataSource,
+    private val gpsService: PositionService,
+    private val errorHandler: ErrorHandler
+) {
+  fun create(): HazardsService {
+    return HazardsService(repository, gpsService, errorHandler)
+  }
+}

@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.data.service
 
 import android.util.Log
 import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.util.WktParser
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Envelope
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
 
@@ -76,13 +76,13 @@ class HazardChecker(
       Log.d("HazardChecker", "Evaluating hazard ID=${hazard.id}...")
       // Assumes isInsideBBox is already implemented
       if (hazard.bbox != null && isInsideBBox(userLng, userLat, hazard.bbox)) {
-        if (hazard.affectedZoneWkt == null) continue
-        Log.d("HazardChecker", "Checking hazard ID=${hazard.id} with WKT=${hazard.affectedZoneWkt}")
-        if (isInsideMultiPolygon(userLat, userLng, hazard.affectedZoneWkt)) {
+        if (hazard.affectedZone == null) continue
+        Log.d("HazardChecker", "Checking hazard ID=${hazard.id} with WKT=${hazard.affectedZone}")
+        if (isInsideMultiPolygon(userLat, userLng, hazard.affectedZone)) {
           Log.d("HazardChecker", "User is inside hazard ID=${hazard.id}!!!!!!")
 
           if (highestPriorityHazard == null ||
-              (hazard.alertLevel ?: 0) > (highestPriorityHazard.alertLevel ?: 0)) {
+              (hazard.alertLevel ?: 0.0) > (highestPriorityHazard.alertLevel ?: 0.0)) {
             highestPriorityHazard = hazard
           }
         }
@@ -158,21 +158,21 @@ class HazardChecker(
    *
    * @param lat The user's current latitude (Y coordinate).
    * @param lng The user's current longitude (X coordinate).
-   * @param multiPolygonWKT The WKT string representing the hazard area.
+   * @param affectedZone The WKT string representing the hazard area.
    * @return True if the point is contained within the geometry, false otherwise.
    */
-  private fun isInsideMultiPolygon(lat: Double, lng: Double, multiPolygonWKT: String): Boolean {
-    val hazardGeometry = WktParser.parseWktToJtsGeometry(multiPolygonWKT)
+  private fun isInsideMultiPolygon(lat: Double, lng: Double, affectedZone: Geometry): Boolean {
+    // val hazardGeometry = WktParser.parseWktToJtsGeometry(affectedZone)
 
     // Safety check: if parsing failed or the geometry is empty, return false.
-    if (hazardGeometry == null || hazardGeometry.isEmpty) {
+    if (affectedZone.isEmpty) {
       return false
     }
 
     val userCoordinate = Coordinate(lng, lat)
     val userPoint: Point = geometryFactory.createPoint(userCoordinate)
 
-    return hazardGeometry.contains(userPoint)
+    return affectedZone.contains(userPoint)
   }
 
   /**

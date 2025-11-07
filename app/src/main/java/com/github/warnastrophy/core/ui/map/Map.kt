@@ -48,7 +48,10 @@ object MapScreenTestTags {
 @Composable
 fun MapScreen(
     viewModel: MapViewModel,
-    cameraPositionState: CameraPositionState = rememberCameraPositionState()
+    cameraPositionState: CameraPositionState = rememberCameraPositionState(),
+    googleMap: @Composable (CameraPositionState, MapUIState) -> Unit = { cameraState, uiState ->
+      HazardsGoogleMap(cameraState, uiState)
+    } // Used for testing purpose
 ) {
   val activity = LocalContext.current.findActivity()
 
@@ -113,18 +116,10 @@ fun MapScreen(
     if (uiState.isLoading) {
       Loading()
     } else {
-      GoogleMap(
-          modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-          cameraPositionState = cameraPositionState,
-          uiSettings =
-              MapUiSettings(
-                  myLocationButtonEnabled = false,
-                  zoomControlsEnabled = false,
-                  mapToolbarEnabled = false),
-          properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
-            hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
-          }
-      TrackLocationButton(uiState.isTrackingLocation) { viewModel.setTracking(true) }
+      googleMap(cameraPositionState, uiState)
+      TrackLocationButton(uiState.isTrackingLocation) {
+        viewModel.onTrackLocationClicked(cameraPositionState)
+      }
     }
 
     // Permission request card
@@ -190,10 +185,30 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
       shape = MaterialTheme.shapes.extraLarge,
       containerColor = tint,
       modifier =
-          Modifier.align(Alignment.BottomEnd)
+          Modifier.align(Alignment.TopStart)
               .padding(16.dp)
               .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
         Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
+      }
+}
+
+@Composable
+fun HazardsGoogleMap(
+    cameraPositionState: CameraPositionState,
+    uiState: MapUIState,
+) {
+  val hazards = uiState.hazardState.hazards
+
+  GoogleMap(
+      modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+      cameraPositionState = cameraPositionState,
+      uiSettings =
+          MapUiSettings(
+              myLocationButtonEnabled = false,
+              zoomControlsEnabled = true,
+              mapToolbarEnabled = false),
+      properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
+        hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
       }
 }
 
