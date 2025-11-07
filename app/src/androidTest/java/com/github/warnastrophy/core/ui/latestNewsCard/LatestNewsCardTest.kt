@@ -134,10 +134,6 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
         .assertIsDisplayed()
         .assert(hasText("read"))
 
-    composeTestRule
-        .onNodeWithTag(LatestNewsTestTags.RIGHT_BUTTON, useUnmergedTree = true)
-        .performClick()
-
     // Click the right button to go to the next hazard
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.RIGHT_BUTTON, useUnmergedTree = true)
