@@ -1,7 +1,5 @@
 package com.github.warnastrophy.core.model
 
-import org.locationtech.jts.geom.Geometry
-
 /**
  * Represents a single geographical hazard event retrieved from the API, serving as the core domain
  * model for the application.
