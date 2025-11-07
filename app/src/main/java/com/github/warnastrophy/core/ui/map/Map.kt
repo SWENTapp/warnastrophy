@@ -19,9 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -52,9 +49,9 @@ object MapScreenTestTags {
 fun MapScreen(
     viewModel: MapViewModel,
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
-    MapUiSettings: MapUiSettings =
-        MapUiSettings(
-            myLocationButtonEnabled = false, zoomControlsEnabled = true, mapToolbarEnabled = false)
+    googleMap: @Composable (CameraPositionState, MapUIState) -> Unit = { cameraState, uiState ->
+      HazardsGoogleMap(cameraState, uiState)
+    } // Used for testing purpose
 ) {
   val activity = LocalContext.current.findActivity()
 
@@ -71,9 +68,6 @@ fun MapScreen(
 
   val uiState by viewModel.uiState.collectAsState()
   val hazards = uiState.hazardState.hazards
-
-  var mapLoaded by remember { mutableStateOf(false) }
-  var hasCenteredOnUser by remember { mutableStateOf(false) }
 
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
@@ -122,15 +116,10 @@ fun MapScreen(
     if (uiState.isLoading) {
       Loading()
     } else {
-      GoogleMap(
-          modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-          cameraPositionState = cameraPositionState,
-          uiSettings = MapUiSettings,
-          properties = MapProperties(isMyLocationEnabled = uiState.isGranted),
-          onMapLoaded = { mapLoaded = true }) {
-            hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
-          }
-      TrackLocationButton(uiState.isTrackingLocation) { viewModel.setTracking(true) }
+      googleMap(cameraPositionState, uiState)
+      TrackLocationButton(uiState.isTrackingLocation) {
+        viewModel.onTrackLocationClicked(cameraPositionState)
+      }
     }
 
     // Permission request card
@@ -200,6 +189,26 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
               .padding(16.dp)
               .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
         Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
+      }
+}
+
+@Composable
+fun HazardsGoogleMap(
+    cameraPositionState: CameraPositionState,
+    uiState: MapUIState,
+) {
+  val hazards = uiState.hazardState.hazards
+
+  GoogleMap(
+      modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+      cameraPositionState = cameraPositionState,
+      uiSettings =
+          MapUiSettings(
+              myLocationButtonEnabled = false,
+              zoomControlsEnabled = true,
+              mapToolbarEnabled = false),
+      properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
+        hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
       }
 }
 

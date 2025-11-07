@@ -11,8 +11,10 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.WarnastrophyApp
+import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
+import com.github.warnastrophy.core.ui.map.MapScreen
 import com.github.warnastrophy.core.ui.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.map.MapViewModel
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
@@ -72,7 +74,15 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun showsMapContent_when_mapContentProvided() {
-    composeTestRule.setContent { WarnastrophyApp() }
+    // Initialize Contact Repository (really important for first time app launch during tests)
+    ContactRepositoryProvider.init(ApplicationProvider.getApplicationContext())
+    composeTestRule.setContent {
+      WarnastrophyApp(mockMapScreen = { MapScreen(viewModel = viewModel) })
+    }
+
+    composeTestRule.waitUntil(
+        condition = { composeTestRule.onNodeWithTag(MapPreviewTestTags.MAP_CONTENT).isDisplayed() },
+        timeoutMillis = 5_000)
 
     composeTestRule.onNodeWithTag(MapPreviewTestTags.MAP_CONTENT).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
