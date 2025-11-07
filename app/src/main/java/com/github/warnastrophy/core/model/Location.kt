@@ -1,8 +1,12 @@
 package com.github.warnastrophy.core.model
 
 import com.google.android.gms.maps.model.LatLng
+import kotlin.math.atan2
 import kotlin.math.ceil
 import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * Represents a geographic position in decimal degrees.
@@ -140,6 +144,35 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
             }
           }
       return "POLYGON(($coords))"
+    }
+
+    /**
+     * Calculates the distance between this location and another location using the Haversine
+     * formula, which accounts for the Earth's curvature.
+     *
+     * @param target The target Location.
+     * @return The distance in kilometers (Double).
+     */
+    fun distanceBetween(from: Location, target: Location): Double {
+
+      // 1. Convert Lat/Lon from Degrees to Radians
+      val lat1Rad = Math.toRadians(from.latitude)
+      val lon1Rad = Math.toRadians(from.longitude)
+      val lat2Rad = Math.toRadians(target.latitude)
+      val lon2Rad = Math.toRadians(target.longitude)
+
+      // 2. Calculate the difference in coordinates
+      val dLat = lat2Rad - lat1Rad
+      val dLon = lon2Rad - lon1Rad
+
+      // 3. Apply the Haversine formula (Part 1: The central angle 'a')
+      val a = sin(dLat / 2.0).pow(2) + cos(lat1Rad) * cos(lat2Rad) * sin(dLon / 2.0).pow(2)
+
+      // 4. Apply the Haversine formula (Part 2: The central angle 'c')
+      val c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a))
+
+      // 5. Calculate the final distance (Distance = Radius * c)
+      return earthRadiusKm * c
     }
   }
 }
