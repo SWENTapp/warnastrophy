@@ -36,7 +36,7 @@ object DashboardColors {
 }
 
 @Composable
-fun DashboardScreen(onHealthCardClick: () -> Unit, OnEmergencyContactsClick: () -> Unit) {
+fun DashboardScreen(onHealthCardClick: () -> Unit = {}, OnEmergencyContactsClick: () -> Unit = {}) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
         modifier =
