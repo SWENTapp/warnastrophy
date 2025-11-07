@@ -5,23 +5,34 @@ import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.shadows.ShadowLog
 
+@RunWith(RobolectricTestRunner::class)
 class HazardsRepositoryIntegrationTest {
 
+  @Before
+  fun setUp() {
+    ShadowLog.stream = System.out
+  }
+
   @Test
-  fun `getAreaHazards with US polygon returns non empty list`() = runBlocking {
+  fun `getAreaHazards with world polygon returns non empty list`() = runBlocking {
     val repo = HazardsRepository()
-    val locationPolygon: String =
-        "POLYGON((-124.848974 49.384358,-124.848974 24.396308,-66.93457 24.396308," +
-            "-66.93457 49.384358,-124.848974 49.384358))"
+    val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
+    // "POLYGON((-124.848974 49.384358,-124.848974 24.396308,-66.93457 24.396308," +
+    //  "-66.93457 49.384358,-124.848974 49.384358))"
     // Polygone simplifié des USA (format WKT ou GeoJSON selon l'API attendue)
-    val hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "30")
+    val hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "3")
     assertTrue(hazards.isNotEmpty())
   }
 
   @Test
-  fun `parseHazard retourne un Hazard valide pour deux JSON hazards`() {
+  fun `parseHazard retourne deux JSON hazards`() {
+    // val testLogger = TestLogger()
     val repo = spyk(HazardsRepository())
 
     val hazardJson1 =
@@ -47,19 +58,19 @@ class HazardsRepositoryIntegrationTest {
     val hazardJson2 =
         JSONObject(
             """
-            {
-                "type":"Feature",
-                "geometry": {
-            "type": "Polygon",
+                {
+                  "type": "Feature",
+                  "bbox": [
+                    -59.5,
+                    33.2,
+                    -59.5,
+                    33.2
+                  ],
+                  "geometry": {
+                    "type": "Point",
                     "coordinates": [
-                        [
-                            [
-                                [-115.2, 25.9],
-                                [-115.3, 26.0],
-                                [-115.1, 26.1],
-                                [-115.2, 25.9]
-                            ]
-                        ]
+                      -59.5,
+                      33.2
                     ]
                 },
                 "properties":{
@@ -72,7 +83,6 @@ class HazardsRepositoryIntegrationTest {
                     "alertscore":1,
                     "iscurrent":true
                 }
-            }
         """)
 
     val method =
@@ -82,14 +92,24 @@ class HazardsRepositoryIntegrationTest {
     val hazard1 = method.invoke(repo, hazardJson1) as Hazard
     val hazard2 = method.invoke(repo, hazardJson2) as Hazard
 
-    assertEquals(1001222, hazard1.id)
-    assertEquals("TC", hazard1.type)
+    assertEquals(1503804, hazard1.id)
+    assertEquals("EQ", hazard1.type)
     assertEquals("Mexico", hazard1.country)
-    assertEquals(175.9248, hazard1.severity!!, 0.001)
+    assertEquals(4.6, hazard1.severity!!, 0.001)
 
-    assertEquals(1001225, hazard2.id)
+    assertNotNull(hazard1.affectedZone)
+    assertNotNull(hazard1.description)
+    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
+    assertNotNull(hazard1.bbox)
+
+    assertEquals(1001216, hazard2.id)
     assertEquals("TC", hazard2.type)
-    assertEquals("Mexico", hazard2.country)
-    assertEquals(92.592, hazard2.severity!!, 0.001)
+    assertEquals("Bermuda, Bahamas, Cuba", hazard2.country)
+    assertEquals(157.4064, hazard2.severity!!, 0.001)
+
+    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
+    assertNotNull(hazard2.affectedZone)
+    assertNotNull(hazard2.description)
+    assertNotNull(hazard2.bbox)
   }
 }

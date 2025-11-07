@@ -84,6 +84,11 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
     MapViewModelFactory(gpsService, hazardsService, permissionManager)
   }
 
+  val mapScreen =
+      @Composable {
+        MapScreen(viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
+      }
+
   Scaffold(
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
       topBar = {
@@ -97,12 +102,15 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
-              composable(Dashboard.route) { DashboardScreen(hazardsService) }
+              composable(Dashboard.route) {
+                DashboardScreen(mapScreen = { mockMapScreen?.invoke() ?: mapScreen() })
+              }
               composable(Map.route) { backStackEntryForMap ->
                 val mapViewModel: MapViewModel =
                     viewModel(backStackEntryForMap, factory = mapViewModelFactory)
                 mockMapScreen?.invoke() ?: MapScreen(viewModel = mapViewModel)
               }
+              composable(Map.route) { mockMapScreen?.invoke() ?: mapScreen() }
               composable(Profile.route) {
                 ProfileScreen(
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
