@@ -104,6 +104,7 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
             modifier = Modifier.padding(innerPadding)) {
               composable(Dashboard.route) {
                 DashboardScreen(
+                    hazardsService = hazardsService,
                     mapScreen = { mockMapScreen?.invoke() ?: mapScreen() },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
                     OnEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) })

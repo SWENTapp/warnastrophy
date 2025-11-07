@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
 import com.github.warnastrophy.core.ui.mapPreviewCard.MapPreviewCard
@@ -39,7 +40,8 @@ object DashboardColors {
 fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
     onHealthCardClick: () -> Unit = {},
-    OnEmergencyContactsClick: () -> Unit = {}
+    OnEmergencyContactsClick: () -> Unit = {},
+    hazardsService: HazardsDataService
 ) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
@@ -52,7 +54,7 @@ fun DashboardScreen(
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            LatestNewsCard(modifier = Modifier.testTag(DashboardScreenTestTags.LATEST_NEWS_SECTION))
+            LatestNewsCard(hazardsService)
 
             Spacer(modifier = Modifier.height(12.dp))
 
