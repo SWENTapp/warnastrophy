@@ -22,17 +22,17 @@ import org.locationtech.jts.geom.Geometry
  * @property affectedZone The affected zone of the hazard.
  */
 data class Hazard(
-    val id: Int?= null,
-    val type: String?= null,
-    val description: String?= null,
-    val country: String?= null,
-    val date: String?= null,
-    val bbox: List<Double>?= null,
-    val severity: Double?= null, // Maybe no need because we have already alertLevel
-    val severityUnit: String?= null,
+    val id: Int? = null,
+    val type: String? = null,
+    val description: String? = null,
+    val country: String? = null,
+    val date: String? = null,
+    val bbox: List<Double>? = null,
+    val severity: Double? = null, // Maybe no need because we have already alertLevel
+    val severityUnit: String? = null,
     val severityText: String? = null,
-    val articleUrl: String?= null,
-    val alertLevel: Double?= null,
-    val centroid: Geometry?= null,
-    val affectedZone: Geometry?= null,
+    val articleUrl: String? = null,
+    val alertLevel: Double? = null,
+    val centroid: Geometry? = null,
+    val affectedZone: Geometry? = null,
 )
