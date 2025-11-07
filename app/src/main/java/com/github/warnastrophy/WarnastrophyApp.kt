@@ -103,14 +103,16 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
               composable(Dashboard.route) {
-                DashboardScreen(mapScreen = { mockMapScreen?.invoke() ?: mapScreen() })
+                DashboardScreen(
+                    mapScreen = { mockMapScreen?.invoke() ?: mapScreen() },
+                    onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
+                    OnEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) })
               }
-              composable(Map.route) { backStackEntryForMap ->
-                val mapViewModel: MapViewModel =
-                    viewModel(backStackEntryForMap, factory = mapViewModelFactory)
-                mockMapScreen?.invoke() ?: MapScreen(viewModel = mapViewModel)
+              composable(Map.route) {
+                mockMapScreen?.invoke()
+                    ?: MapScreen(
+                        viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
               }
-              composable(Map.route) { mockMapScreen?.invoke() ?: mapScreen() }
               composable(Profile.route) {
                 ProfileScreen(
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
