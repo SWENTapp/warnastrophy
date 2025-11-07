@@ -1,16 +1,24 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.FetcherState
 import com.github.warnastrophy.core.model.GpsPositionState
+import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
+import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.model.PermissionManagerInterface
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
+import com.github.warnastrophy.core.util.AnimationIdlingResource
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.maps.android.compose.CameraPositionState
 import kotlin.collections.filter
 import kotlin.collections.groupBy
 import kotlin.collections.map
@@ -21,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -131,6 +140,31 @@ class MapViewModel(
     viewModelScope.launch { gpsService.stopLocationUpdates() }
   }
 
+  fun onTrackLocationClicked(cameraPositionState: CameraPositionState) {
+    setTracking(true)
+
+    // Create or access the AnimationIdlingResource instance
+    val animationIdlingResource = AnimationIdlingResource()
+
+    viewModelScope.launch {
+      val userPosition = gpsService.positionState.value.position
+
+      // Signal that animation started
+      animationIdlingResource.setBusy()
+
+      cameraPositionState.animate(
+          update = CameraUpdateFactory.newLatLngZoom(userPosition, 15f), durationMs = 1000)
+
+      // Wait for animation to finish by monitoring `isMoving`
+      viewModelScope.launch {
+        snapshotFlow { cameraPositionState.isMoving }.first { isMoving -> !isMoving }
+
+        // Signal that animation ended
+        animationIdlingResource.setIdle()
+      }
+    }
+  }
+
   /**
    * Sets the location tracking state for the UI.
    *
@@ -163,5 +197,33 @@ class MapViewModel(
           (group.key ?: "Unknown") to Pair(minSev, maxSev)
         }
         .toMap()
+  }
+}
+
+/**
+ * Defines a composable for the map route (Map.route).
+ *
+ * @param backStackEntryForMap The navigation back stack entry associated with the current route.
+ *   Used to bind the ViewModel's lifecycle to this destination.
+ *
+ * Features:
+ * - Creates an instance of `MapViewModel` using `viewModel` and a `MapViewModelFactory`.
+ * - Associates the `MapViewModel` with the lifecycle of the `Map.route` destination.
+ * - If `mockMapScreen` is provided (non-null), it is invoked for testing or overrides. Otherwise,
+ *   the `MapScreen` composable is displayed with the `mapViewModel` as a parameter.
+ *
+ * @see viewModel
+ * @see MapViewModelFactory
+ */
+class MapViewModelFactory(
+    private val gpsService: GpsService,
+    private val hazardsService: HazardsService,
+    private val permissionManager: PermissionManager
+) : ViewModelProvider.Factory {
+  override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
+      return MapViewModel(gpsService, hazardsService, permissionManager) as T
+    }
+    throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
   }
 }

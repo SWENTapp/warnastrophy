@@ -247,3 +247,12 @@ sealed class GpsResult {
    */
   data class Success(val message: String = "Success") : GpsResult()
 }
+
+class GpsServiceFactory(
+    private val locationClient: FusedLocationProviderClient,
+    private val errorHandler: ErrorHandler
+) {
+  fun create(): GpsService {
+    return GpsService(locationClient, errorHandler)
+  }
+}
