@@ -6,8 +6,8 @@ import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
 import com.github.warnastrophy.core.model.HealthCard
-import com.github.warnastrophy.core.ui.healthcard.HealthCardUiState
-import com.github.warnastrophy.core.ui.healthcard.HealthCardViewModel
+import com.github.warnastrophy.core.ui.features.health.HealthCardUiState
+import com.github.warnastrophy.core.ui.features.health.HealthCardViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

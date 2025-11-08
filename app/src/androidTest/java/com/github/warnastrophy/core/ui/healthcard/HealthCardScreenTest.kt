@@ -12,6 +12,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
+import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
+import com.github.warnastrophy.core.ui.features.health.HealthCardTestTags
+import com.github.warnastrophy.core.ui.features.health.HealthCardUiState
+import com.github.warnastrophy.core.ui.features.health.HealthCardViewModel
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk

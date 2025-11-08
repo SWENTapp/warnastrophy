@@ -19,7 +19,7 @@ import com.github.warnastrophy.core.model.GpsServiceFactory
 import com.github.warnastrophy.core.model.HazardsServiceFactory
 import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
-import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
+import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
 import com.github.warnastrophy.core.ui.map.MapViewModel
 import com.github.warnastrophy.core.ui.map.MapViewModelFactory

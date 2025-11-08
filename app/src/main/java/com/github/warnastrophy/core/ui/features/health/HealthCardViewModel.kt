@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.healthcard
+package com.github.warnastrophy.core.ui.features.health
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

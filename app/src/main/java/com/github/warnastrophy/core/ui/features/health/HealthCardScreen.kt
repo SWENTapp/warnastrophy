@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.healthcard
+package com.github.warnastrophy.core.ui.features.health
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
