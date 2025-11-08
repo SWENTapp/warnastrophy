@@ -47,7 +47,7 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
               // Avoid multiple copies of the same destination when spamming the same item
               launchSingleTop = true
               // Allow staying on the same screen after activity recreation (rotation, kill ?)
-              restoreState = true
+              restoreState = false
             }
           })
     }
