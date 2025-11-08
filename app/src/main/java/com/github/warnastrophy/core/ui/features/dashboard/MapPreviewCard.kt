@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.mapPreviewCard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

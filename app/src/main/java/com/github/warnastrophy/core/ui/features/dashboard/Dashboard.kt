@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardStateful
 import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardTestTags
-import com.github.warnastrophy.core.ui.mapPreviewCard.MapPreviewCard
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
 
 object DashboardScreenTestTags {
@@ -40,7 +39,7 @@ object DashboardColors {
 fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
     onHealthCardClick: () -> Unit = {},
-    OnEmergencyContactsClick: () -> Unit = {},
+    onEmergencyContactsClick: () -> Unit = {},
     hazardsService: HazardsDataService
 ) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
@@ -69,7 +68,7 @@ fun DashboardScreen(
                     Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                   DashboardEmergencyContactsCardStateful(
-                      onManageContactsClick = { OnEmergencyContactsClick() },
+                      onManageContactsClick = { onEmergencyContactsClick() },
                       modifier =
                           Modifier.weight(1f).testTag(DashboardEmergencyContactsTestTags.CARD))
                   DashboardHealthCardStateful(

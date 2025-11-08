@@ -12,6 +12,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.WarnastrophyApp
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewCard
+import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewTestTags
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.MapScreen
