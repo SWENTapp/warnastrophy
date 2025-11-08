@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.profile.contact
+package com.github.warnastrophy.core.ui.features.profile.contact
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable

@@ -8,8 +8,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
-import com.github.warnastrophy.core.ui.profile.contact.EditContactTestTags
+import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
+import com.github.warnastrophy.core.ui.features.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking

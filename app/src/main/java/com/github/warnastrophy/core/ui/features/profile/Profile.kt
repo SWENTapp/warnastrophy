@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.profile
+package com.github.warnastrophy.core.ui.features.profile
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onHealthCardClick: () -> Unit = {}, // New handler

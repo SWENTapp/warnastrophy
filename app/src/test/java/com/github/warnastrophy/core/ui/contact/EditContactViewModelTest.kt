@@ -3,7 +3,7 @@ package com.github.warnastrophy.core.ui.contact
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
-import com.github.warnastrophy.core.ui.profile.contact.EditContactViewModel
+import com.github.warnastrophy.core.ui.features.profile.contact.EditContactViewModel
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull

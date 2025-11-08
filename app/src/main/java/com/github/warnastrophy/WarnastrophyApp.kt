@@ -23,6 +23,10 @@ import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
+import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -30,10 +34,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.TopBar
-import com.github.warnastrophy.core.ui.profile.ProfileScreen
-import com.github.warnastrophy.core.ui.profile.contact.AddContactScreen
-import com.github.warnastrophy.core.ui.profile.contact.ContactListScreen
-import com.github.warnastrophy.core.ui.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
 
