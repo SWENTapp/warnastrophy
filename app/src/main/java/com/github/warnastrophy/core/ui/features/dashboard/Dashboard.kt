@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardStateful
 import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardTestTags
-import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
+import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 
 object DashboardScreenTestTags {
   const val ROOT_SCROLL = "dashboard_rootScroll"

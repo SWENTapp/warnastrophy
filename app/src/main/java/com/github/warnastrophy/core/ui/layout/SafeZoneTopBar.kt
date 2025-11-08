@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.safeZoneTopBar
+package com.github.warnastrophy.core.ui.layout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
