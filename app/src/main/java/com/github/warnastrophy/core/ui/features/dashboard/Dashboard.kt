@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,8 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.ui.emergencyContactsCard.EmergencyContactsTestTags
-import com.github.warnastrophy.core.ui.healthCardPreview.HealthCardPreviewTestTags
+import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardStateful
+import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardTestTags
 import com.github.warnastrophy.core.ui.mapPreviewCard.MapPreviewCard
 import com.github.warnastrophy.core.ui.safeZoneTopBar.SafeZoneTopBar
 
@@ -70,10 +70,11 @@ fun DashboardScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                   DashboardEmergencyContactsCardStateful(
                       onManageContactsClick = { OnEmergencyContactsClick() },
-                      modifier = Modifier.weight(1f).testTag(EmergencyContactsTestTags.CARD))
+                      modifier =
+                          Modifier.weight(1f).testTag(DashboardEmergencyContactsTestTags.CARD))
                   DashboardHealthCardStateful(
                       onHealthCardClick = { onHealthCardClick() },
-                      modifier = Modifier.testTag(HealthCardPreviewTestTags.CARD).weight(0.78f))
+                      modifier = Modifier.testTag(DashboardHealthCardTestTags.CARD).weight(0.78f))
                 }
 
             Spacer(modifier = Modifier.height(12.dp))

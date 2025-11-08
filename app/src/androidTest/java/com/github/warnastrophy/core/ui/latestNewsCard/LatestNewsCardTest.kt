@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.latestNewsCard
 
 import android.content.Context
 import androidx.compose.material3.MaterialTheme
@@ -9,13 +9,14 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsCard
+import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsTestTags
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.MapsInitializer
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.description
 
 class LatestNewsCardTest : BaseAndroidComposeTest() {
 

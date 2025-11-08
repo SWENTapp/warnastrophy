@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

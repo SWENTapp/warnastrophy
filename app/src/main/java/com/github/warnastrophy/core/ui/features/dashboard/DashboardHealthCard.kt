@@ -31,6 +31,8 @@ import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardUiState
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel
 
 /** Object holding test tag constants for the Health Card UI. */
 object DashboardHealthCardTestTags {

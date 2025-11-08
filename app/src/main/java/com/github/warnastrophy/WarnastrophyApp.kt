@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -19,7 +18,7 @@ import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsServiceFactory
 import com.github.warnastrophy.core.model.HazardsServiceFactory
 import com.github.warnastrophy.core.model.PermissionManager
-import com.github.warnastrophy.core.ui.dashboard.DashboardScreen
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
 import com.github.warnastrophy.core.ui.map.MapScreen
 import com.github.warnastrophy.core.ui.map.MapViewModel

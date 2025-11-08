@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Intent
 import android.net.Uri
@@ -29,8 +29,6 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.util.formatDate
-import kotlin.collections.get
-import kotlin.rem
 
 object LatestNewsTestTags {
   const val HEADER_ROW = "latestNewsHeader"

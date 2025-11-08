@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf

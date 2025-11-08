@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
