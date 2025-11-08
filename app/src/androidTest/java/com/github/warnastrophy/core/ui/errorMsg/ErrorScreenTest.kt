@@ -5,8 +5,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.model.Error
 import com.github.warnastrophy.core.model.ErrorHandler
-import com.github.warnastrophy.core.ui.error.ErrorScreen
-import com.github.warnastrophy.core.ui.error.ErrorScreenTestTags
+import com.github.warnastrophy.core.ui.features.error.ErrorScreen
+import com.github.warnastrophy.core.ui.features.error.ErrorScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.TopBar

@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.error
+package com.github.warnastrophy.core.ui.features.error
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
