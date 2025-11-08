@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -19,11 +18,15 @@ import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.GpsServiceFactory
 import com.github.warnastrophy.core.model.HazardsServiceFactory
 import com.github.warnastrophy.core.model.PermissionManager
-import com.github.warnastrophy.core.ui.dashboard.DashboardScreen
-import com.github.warnastrophy.core.ui.healthcard.HealthCardScreen
-import com.github.warnastrophy.core.ui.map.MapScreen
-import com.github.warnastrophy.core.ui.map.MapViewModel
-import com.github.warnastrophy.core.ui.map.MapViewModelFactory
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
+import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
+import com.github.warnastrophy.core.ui.features.map.MapScreen
+import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
+import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -31,10 +34,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.TopBar
-import com.github.warnastrophy.core.ui.profile.ProfileScreen
-import com.github.warnastrophy.core.ui.profile.contact.AddContactScreen
-import com.github.warnastrophy.core.ui.profile.contact.ContactListScreen
-import com.github.warnastrophy.core.ui.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
 
@@ -107,7 +106,7 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
                     hazardsService = hazardsService,
                     mapScreen = { mockMapScreen?.invoke() ?: mapScreen() },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
-                    OnEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) })
+                    onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) })
               }
               composable(Map.route) {
                 mockMapScreen?.invoke()

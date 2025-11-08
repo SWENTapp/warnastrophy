@@ -25,6 +25,9 @@ import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.ui.features.map.MapScreen
+import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
+import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.github.warnastrophy.core.util.AppConfig.defaultPosition

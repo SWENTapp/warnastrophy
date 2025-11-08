@@ -19,11 +19,11 @@ import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.WarnastrophyApp
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.ui.contact.UITest
-import com.github.warnastrophy.core.ui.map.MapScreenTestTags
+import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
+import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
+import com.github.warnastrophy.core.ui.features.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import com.github.warnastrophy.core.ui.profile.contact.AddContactTestTags
-import com.github.warnastrophy.core.ui.profile.contact.ContactListScreenTestTags
-import com.github.warnastrophy.core.ui.profile.contact.EditContactTestTags
 import org.junit.Before
 import org.junit.Test
 

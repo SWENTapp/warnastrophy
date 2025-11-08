@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.ui.map
 import android.app.Activity
 import com.github.warnastrophy.core.model.AppPermissions
 import com.github.warnastrophy.core.model.PermissionResult
+import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals

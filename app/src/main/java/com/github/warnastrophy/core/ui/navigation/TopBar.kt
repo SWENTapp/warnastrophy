@@ -21,7 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.getScreenErrors
-import com.github.warnastrophy.core.ui.error.ErrorScreen
+import com.github.warnastrophy.core.ui.features.error.ErrorScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

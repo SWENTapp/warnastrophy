@@ -10,6 +10,7 @@ import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.ui.util.BaseSimpleComposeTest
 import io.mockk.coEvery

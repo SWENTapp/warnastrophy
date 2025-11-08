@@ -12,6 +12,9 @@ import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsCardStateful
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsCardStateless
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import kotlinx.coroutines.runBlocking
