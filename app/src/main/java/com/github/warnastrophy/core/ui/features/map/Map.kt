@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.map
+package com.github.warnastrophy.core.ui.features.map
 
 import android.content.Intent
 import android.provider.Settings

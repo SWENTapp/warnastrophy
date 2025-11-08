@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.map
+package com.github.warnastrophy.core.ui.features.map
 
 import android.app.Activity
 import androidx.compose.runtime.snapshotFlow

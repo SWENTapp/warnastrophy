@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.map
+package com.github.warnastrophy.core.ui.features.map
 
 import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons

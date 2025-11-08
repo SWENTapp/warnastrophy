@@ -20,9 +20,9 @@ import com.github.warnastrophy.core.model.HazardsServiceFactory
 import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
-import com.github.warnastrophy.core.ui.map.MapScreen
-import com.github.warnastrophy.core.ui.map.MapViewModel
-import com.github.warnastrophy.core.ui.map.MapViewModelFactory
+import com.github.warnastrophy.core.ui.features.map.MapScreen
+import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
