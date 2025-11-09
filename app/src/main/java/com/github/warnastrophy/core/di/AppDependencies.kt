@@ -27,8 +27,7 @@ object AppDependencies {
   /**
    * Initializes all core application dependencies.
    *
-   * This method should be called once, typically from the app's main entry point
-   * ([MainActivity]).
+   * This method should be called once, typically from the app's main entry point ([MainActivity]).
    *
    * It sets up and wires together:
    * - Hazard Repository
