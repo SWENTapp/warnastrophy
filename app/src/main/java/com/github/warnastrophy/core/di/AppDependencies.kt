@@ -13,16 +13,21 @@ import com.github.warnastrophy.core.model.PermissionManagerInterface
 import com.google.android.gms.location.LocationServices
 
 object AppDependencies {
-  lateinit var errorHandler: ErrorHandler
-    private set
+  private lateinit var _errorHandler: ErrorHandler
+  val errorHandler
+    get() = _errorHandler
 
-  lateinit var gpsService: GpsService
-    private set
+  private lateinit var _gpsService: GpsService
+  val gpsService
+    get() = _gpsService
 
-  lateinit var hazardsService: HazardsService
-    private set
+  private lateinit var _hazardsService: HazardsService
+  val hazardsService
+    get() = _hazardsService
 
-  lateinit var permissionManager: PermissionManagerInterface
+  private lateinit var _permissionManager: PermissionManagerInterface
+  val permissionManager
+    get() = _permissionManager
 
   /**
    * Initializes all core application dependencies.
@@ -52,16 +57,16 @@ object AppDependencies {
     val hazardsRepository = HazardRepositoryProvider.repository
 
     // Core error handler
-    errorHandler = ErrorHandler()
+    _errorHandler = ErrorHandler()
 
     // Location client + GPS service
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
     val gpsServiceFactory = GpsServiceFactory(locationClient, errorHandler)
-    gpsService = gpsServiceFactory.create()
+    _gpsService = gpsServiceFactory.create()
 
     // Hazards service
     val hazardsServiceFactory = HazardsServiceFactory(hazardsRepository, gpsService, errorHandler)
-    hazardsService = hazardsServiceFactory.create()
-    permissionManager = PermissionManager(context)
+    _hazardsService = hazardsServiceFactory.create()
+    _permissionManager = PermissionManager(context)
   }
 }
