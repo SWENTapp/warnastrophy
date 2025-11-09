@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.WarnastrophyApp
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.core.di.AppDependencies
 import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewCard
 import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewTestTags
 import com.github.warnastrophy.core.ui.features.map.MapScreen
@@ -50,7 +51,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     permissionManager = MockPermissionManager()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
-
+    AppDependencies.init(context)
     viewModel = MapViewModel(gpsService, hazardService, permissionManager)
   }
 
