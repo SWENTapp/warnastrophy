@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.permissions
 
 import android.Manifest
 import android.os.Build
