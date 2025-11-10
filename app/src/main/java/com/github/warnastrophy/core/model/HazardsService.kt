@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.model
 import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.fetchDelayMs
