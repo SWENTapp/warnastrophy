@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard

@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.domain.model
 
 import android.annotation.SuppressLint
 import android.os.Looper

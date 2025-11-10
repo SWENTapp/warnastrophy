@@ -14,8 +14,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
-import com.github.warnastrophy.core.model.GpsServiceFactory
-import com.github.warnastrophy.core.model.HazardsServiceFactory
+import com.github.warnastrophy.core.domain.model.GpsServiceFactory
+import com.github.warnastrophy.core.domain.model.HazardsServiceFactory
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen

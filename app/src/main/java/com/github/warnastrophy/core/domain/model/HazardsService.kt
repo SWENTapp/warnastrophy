@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.domain.model
 
 import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
