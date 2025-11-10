@@ -4,30 +4,42 @@ import android.content.Context
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.ErrorHandler
-import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.GpsServiceFactory
-import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.HazardsServiceFactory
 import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.model.PermissionManagerInterface
+import com.github.warnastrophy.core.model.PositionService
 import com.google.android.gms.location.LocationServices
 
 object AppDependencies {
-  private lateinit var _errorHandler: ErrorHandler
+  private var _errorHandler: ErrorHandler? = null
   val errorHandler
-    get() = _errorHandler
+    get() =
+        _errorHandler
+            ?: throw IllegalStateException(
+                "ErrorHandler not initialized. Did you call AppDependencies.init()?")
 
-  private lateinit var _gpsService: GpsService
+  private var _gpsService: PositionService? = null
   val gpsService
-    get() = _gpsService
+    get() =
+        _gpsService
+            ?: throw IllegalStateException(
+                "GpsService not initialized. Did you call AppDependencies.init()?")
 
-  private lateinit var _hazardsService: HazardsService
+  private var _hazardsService: HazardsDataService? = null
   val hazardsService
-    get() = _hazardsService
+    get() =
+        _hazardsService
+            ?: throw IllegalStateException(
+                "HazardsService not initialized. Did you call AppDependencies.init()?")
 
-  private lateinit var _permissionManager: PermissionManagerInterface
+  private var _permissionManager: PermissionManagerInterface? = null
   val permissionManager
-    get() = _permissionManager
+    get() =
+        _permissionManager
+            ?: throw IllegalStateException(
+                "PermissionManager not initialized. Did you call AppDependencies.init()?")
 
   /**
    * Initializes all core application dependencies.
@@ -68,5 +80,17 @@ object AppDependencies {
     val hazardsServiceFactory = HazardsServiceFactory(hazardsRepository, gpsService, errorHandler)
     _hazardsService = hazardsServiceFactory.create()
     _permissionManager = PermissionManager(context)
+  }
+
+  fun initForTest(
+      gpsServiceMock: PositionService,
+      hazardsServiceMock: HazardsDataService,
+      permissionManager: PermissionManagerInterface,
+      errorHandler: ErrorHandler = ErrorHandler()
+  ) {
+    _gpsService = gpsServiceMock
+    _hazardsService = hazardsServiceMock
+    _permissionManager = permissionManager
+    _errorHandler = errorHandler
   }
 }

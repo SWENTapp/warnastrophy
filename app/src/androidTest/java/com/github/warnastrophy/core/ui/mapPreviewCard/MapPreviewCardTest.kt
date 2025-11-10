@@ -51,7 +51,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     permissionManager = MockPermissionManager()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
-    AppDependencies.init(context)
+    AppDependencies.initForTest(gpsService, hazardService, permissionManager)
     viewModel = MapViewModel(gpsService, hazardService, permissionManager)
   }
 
