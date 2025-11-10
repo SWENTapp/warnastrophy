@@ -187,6 +187,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(platform(libs.compose.bom))
     implementation(libs.androidx.espresso.idling.resource)
+
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
@@ -263,6 +264,7 @@ dependencies {
     androidTestImplementation(libs.mockito.kotlin)
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
+    //androidTestImplementation("androidx.test:core-ktx:1.7.0")
 
     implementation("org.locationtech.jts:jts-core:1.20.0")
     implementation("org.locationtech.jts.io:jts-io-common:1.20.0")

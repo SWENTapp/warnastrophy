@@ -3,13 +3,14 @@ package com.github.warnastrophy.core.di
 import android.content.Context
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.usecase.RefreshHazardsIfMovedUseCase
 import com.github.warnastrophy.core.model.ErrorHandler
-import com.github.warnastrophy.core.model.GpsService
 import com.github.warnastrophy.core.model.GpsServiceFactory
-import com.github.warnastrophy.core.model.HazardsService
+import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.HazardsServiceFactory
 import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.model.PermissionManagerInterface
+import com.github.warnastrophy.core.model.PositionService
 import com.google.android.gms.location.LocationServices
 
 object AppDependencies {
@@ -17,17 +18,21 @@ object AppDependencies {
   val errorHandler
     get() = _errorHandler
 
-  private lateinit var _gpsService: GpsService
+  private lateinit var _gpsService: PositionService
   val gpsService
     get() = _gpsService
 
-  private lateinit var _hazardsService: HazardsService
+  private lateinit var _hazardsService: HazardsDataService
   val hazardsService
     get() = _hazardsService
 
   private lateinit var _permissionManager: PermissionManagerInterface
   val permissionManager
     get() = _permissionManager
+
+  private lateinit var _refreshHazardsIfMovedUseCase: RefreshHazardsIfMovedUseCase
+  val refreshHazardsIfMovedUseCase
+    get() = _refreshHazardsIfMovedUseCase
 
   /**
    * Initializes all core application dependencies.
@@ -68,5 +73,19 @@ object AppDependencies {
     val hazardsServiceFactory = HazardsServiceFactory(hazardsRepository, gpsService, errorHandler)
     _hazardsService = hazardsServiceFactory.create()
     _permissionManager = PermissionManager(context)
+  }
+
+  fun initForTest(
+      gpsServiceMock: PositionService,
+      hazardsServiceMock: HazardsDataService,
+      permissionManager: PermissionManagerInterface,
+      mockUseCase: RefreshHazardsIfMovedUseCase,
+      errorHandler: ErrorHandler = ErrorHandler()
+  ) {
+    _gpsService = gpsServiceMock
+    _hazardsService = hazardsServiceMock
+    _permissionManager = permissionManager
+    _errorHandler = errorHandler
+    _refreshHazardsIfMovedUseCase = mockUseCase
   }
 }
