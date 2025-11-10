@@ -63,10 +63,7 @@ object AppDependencies {
    */
   fun init(appContext: Context) {
     val context = appContext.applicationContext
-
-    // Initialize repositories
     ContactRepositoryProvider.init(context)
-    val hazardsRepository = HazardRepositoryProvider.repository
 
     // Core error handler
     _errorHandler = ErrorHandler()
@@ -76,6 +73,7 @@ object AppDependencies {
     val gpsServiceFactory = GpsServiceFactory(locationClient, errorHandler)
     _gpsService = gpsServiceFactory.create()
 
+    val hazardsRepository = HazardRepositoryProvider.repository
     // Hazards service
     val hazardsServiceFactory = HazardsServiceFactory(hazardsRepository, gpsService, errorHandler)
     _hazardsService = hazardsServiceFactory.create()
