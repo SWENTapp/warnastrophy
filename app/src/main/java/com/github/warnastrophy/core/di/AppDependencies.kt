@@ -82,6 +82,26 @@ object AppDependencies {
     _permissionManager = PermissionManager(context)
   }
 
+  /**
+   * Initializes core application dependencies for unit or instrumentation testing.
+   *
+   * This method allows injection of mock or fake services instead. It should be called from test
+   * setup code before any test accesses the app’s dependencies.
+   *
+   * After this function completes, all dependencies in [AppDependencies] are ready for use in
+   * tests.
+   *
+   * @param gpsServiceMock Mock implementation of [PositionService] for testing.
+   * @param hazardsServiceMock Mock implementation of [HazardsDataService] for testing.
+   * @param permissionManager Mock implementation of [PermissionManagerInterface] for testing.
+   * @param errorHandler Optional mock for [ErrorHandler], defaults to a new [ErrorHandler] if not
+   *   provided.
+   * @see init
+   * @see PositionService
+   * @see HazardsDataService
+   * @see PermissionManagerInterface
+   * @see ErrorHandler
+   */
   fun initForTest(
       gpsServiceMock: PositionService,
       hazardsServiceMock: HazardsDataService,
