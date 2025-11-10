@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.warnastrophy.WarnastrophyApp
@@ -139,7 +140,7 @@ abstract class EndToEndUtils : UITest() {
       sex: String = "Female",
       bloodType: String = "O+",
       height: String = "170",
-      weight: String = "65",
+      weight: String = "65.0",
       conditions: String = "Asthma",
       allergies: String = "Pollen, Peanuts",
       medications: String = "Ventolin",
@@ -150,7 +151,7 @@ abstract class EndToEndUtils : UITest() {
   ) {
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Health Card", ignoreCase = true)
+        .assertTextContains("Emergency Card", ignoreCase = true)
 
     // Fill the form
     fillHealthCardForm(
@@ -169,13 +170,31 @@ abstract class EndToEndUtils : UITest() {
         isOrganDonor,
         notes)
 
-    // Save
-    composeTestRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performClick()
+    composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON).assertExists()
-    composeTestRule.onNodeWithTag(HealthCardTestTags.BACK_BUTTON).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.HEALTH_CARD).performClick()
-    composeTestRule.onNodeWithText(fullName, ignoreCase = true).assertIsDisplayed()
+    // Save
+    composeTestRule
+        .onNodeWithTag(HealthCardTestTags.ADD_BUTTON)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .performClick()
+
+    composeTestRule.waitForIdle()
+
+    // Check if content saved
+    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, fullName)
+    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, birthDate)
+    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, ssn)
+    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, sex)
+    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, bloodType)
+    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, height)
+    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, weight)
+    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, conditions)
+    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, allergies)
+    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, medications)
+    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, treatments)
+    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, history)
+    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, notes)
   }
 
   /** Simulates editing and saving a Health Card. */
@@ -197,7 +216,7 @@ abstract class EndToEndUtils : UITest() {
   ) {
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Health Card", ignoreCase = true)
+        .assertTextContains("Emergency Card", ignoreCase = true)
 
     // Edit the form
     fillHealthCardForm(
@@ -216,53 +235,61 @@ abstract class EndToEndUtils : UITest() {
         isOrganDonor,
         notes)
 
+    composeTestRule.waitForIdle()
+
     // Save
-    composeTestRule.onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON).performClick()
+    composeTestRule
+        .onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .performClick()
 
-    composeTestRule.onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON).assertExists()
-    composeTestRule.onNodeWithTag(HealthCardTestTags.BACK_BUTTON).performClick()
-    composeTestRule.onNodeWithTag(NavigationTestTags.HEALTH_CARD).performClick()
+    composeTestRule.waitForIdle()
 
-    // Verify all fields that were updated
-    fullName?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    birthDate?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    ssn?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    sex?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    bloodType?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    height?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    weight?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    conditions?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    allergies?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    medications?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
-    notes?.let { composeTestRule.onNodeWithText(it, ignoreCase = true).assertIsDisplayed() }
+    // Check if content saved
+    composeTestRule
+        .onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON)
+        .performScrollTo()
+        .assertIsDisplayed()
+
+    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, fullName)
+    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, birthDate)
+    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, ssn)
+    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, sex)
+    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, bloodType)
+    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, height)
+    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, weight)
+    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, conditions)
+    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, allergies)
+    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, medications)
+    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, notes)
   }
 
   /** Simulates deleting a Health Card. */
   fun deleteHealthCard() {
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Health Card", ignoreCase = true)
+        .assertTextContains("Emergency Card", ignoreCase = true)
 
     // Delete
-    composeTestRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).assertExists()
-    composeTestRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performScrollTo().performClick()
+
+    composeTestRule.waitForIdle()
 
     // Check all fields empty
-    composeTestRule.onNodeWithTag(HealthCardTestTags.FULL_NAME_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.SSN_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.SEX_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.BLOOD_TYPE_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.HEIGHT_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.WEIGHT_FIELD).assertTextContains("")
-    composeTestRule
-        .onNodeWithTag(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD)
-        .assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.ALLERGIES_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.MEDICATIONS_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.TREATMENTS_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.HISTORY_FIELD).assertTextContains("")
-    composeTestRule.onNodeWithTag(HealthCardTestTags.NOTES_FIELD).assertTextContains("")
+    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, "")
   }
 
   /**
@@ -291,7 +318,7 @@ abstract class EndToEndUtils : UITest() {
       sex: String? = "Female",
       bloodType: String? = "O+",
       height: String? = "170",
-      weight: String? = "65",
+      weight: String? = "65.0",
       conditions: String? = "Asthma",
       allergies: String? = "Pollen, Peanuts",
       medications: String? = "Ventolin",
@@ -329,6 +356,21 @@ abstract class EndToEndUtils : UITest() {
     if (isOrganDonor) {
       // Assume the switch is not checked by default
       composeTestRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).performClick()
+    }
+  }
+
+  /**
+   * Checks that a text field identified by a test tag contains the expected text.
+   *
+   * @param fieldTag The test tag of the OutlinedTextField.
+   * @param expectedText The text that the field is expected to contain.
+   */
+  private fun checkTextFieldValue(fieldTag: String, expectedText: String?) {
+    expectedText?.let {
+      composeTestRule
+          .onNodeWithTag(fieldTag)
+          .performScrollTo() // Scroll the OutlinedTextField into view
+          .assertTextContains(it, ignoreCase = true)
     }
   }
 
