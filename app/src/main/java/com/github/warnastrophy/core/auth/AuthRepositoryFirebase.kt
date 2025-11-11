@@ -33,6 +33,10 @@ class AuthRepositoryFirebase(
     private val helper: SignInHelper = DefaultSignInHelper()
 ) : AuthRepository {
 
+  companion object {
+    const val UNEXPECTED_ERROR_MESSAGE = "Unexpected error."
+  }
+
   /**
    * Builds a [GetSignInWithGoogleOption] for signing in with Google, using the provided server
    * client ID.
@@ -62,14 +66,14 @@ class AuthRepositoryFirebase(
             auth.signInWithCredential(firebaseCred).await().user
                 ?: return Result.failure(
                     IllegalStateException("Login failed: Could not retrieve user information"))
-        return Result.success(user)
+        Result.success(user)
       } else {
         Result.failure(IllegalStateException("Login failed: Credential is not of type Google ID"))
       }
     } catch (e: Exception) {
       Result.failure(
           IllegalStateException(
-              "Google login failed: ${e.localizedMessage ?: "Unexpected error."}"))
+              "Google login failed: ${e.localizedMessage ?: UNEXPECTED_ERROR_MESSAGE}"))
     }
   }
 
@@ -100,7 +104,7 @@ class AuthRepositoryFirebase(
     } catch (e: Exception) {
       Result.failure(
           IllegalStateException(
-              "GitHub login failed: ${e.localizedMessage ?: "Unexpected error."}"))
+              "GitHub login failed: ${e.localizedMessage ?: UNEXPECTED_ERROR_MESSAGE}"))
     }
   }
 
@@ -134,7 +138,7 @@ class AuthRepositoryFirebase(
       Result.success(Unit)
     } catch (e: Exception) {
       Result.failure(
-          IllegalStateException("Logout failed: ${e.localizedMessage ?: "Unexpected error."}"))
+          IllegalStateException("Logout failed: ${e.localizedMessage ?: UNEXPECTED_ERROR_MESSAGE}"))
     }
   }
 }
