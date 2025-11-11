@@ -5,7 +5,6 @@ import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
-import com.github.warnastrophy.core.util.AppConfig.fetchDelayMs
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -76,7 +75,7 @@ class HazardsService(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
         }
         Log.d("HazardsService", "Fetched hazards: ${_fetcherState.value.hazards}")
-        delay(fetchDelayMs)
+        delay(AppConfig.gdacsFetchDelay.inWholeMilliseconds)
       }
     }
   }
