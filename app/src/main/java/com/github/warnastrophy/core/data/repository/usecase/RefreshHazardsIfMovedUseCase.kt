@@ -3,6 +3,19 @@ package com.github.warnastrophy.core.data.repository.usecase
 import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 
+/**
+ * This class contains the logic that controls when to refresh hazard data from the server.
+ *
+ * This acts as a rate limiter/throttle for hazard fetching, ensuring the service is only called if
+ * the user has moved beyond a specific distance threshold (e.g., 5 km) from the location where the
+ * last successful fetch occurred.
+ *
+ * @property hazardsService The service responsible for fetching hazard data.
+ * @property distanceThresholdKm The minimum distance (in kilometers) the user must move before a
+ *   new fetch is allowed. Defaults to 5.0 km.
+ * @property distanceCalculator A lambda function to calculate the distance between two [Location]
+ *   objects.
+ */
 class RefreshHazardsIfMovedUseCase(
     private val hazardsService: HazardsDataService,
     private val distanceThresholdKm: Double = 5.0,
