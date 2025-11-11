@@ -51,7 +51,7 @@ class HazardsRepositoryIntegrationTest {
   }
 
   @Test
-  fun `parseHazard retourne deux JSON hazards`() {
+  fun `partialParseHazard parses correctly`() {
     // val testLogger = TestLogger()
     val repo = spyk(HazardsRepository())
 
@@ -150,33 +150,33 @@ class HazardsRepositoryIntegrationTest {
                   }
                 }
         """)
-    //    val method = HazardsRepository::class.java.getDeclaredMethod("parseHazard",
-    // JSONObject::class.java, kotlin.coroutines.Continuation::class.java)
-    //    method.isAccessible = true
-    //
-    //    val hazard1 = method.invoke(repo, hazardJson1) as Hazard
-    //    val hazard2 = method.invoke(repo, hazardJson2) as Hazard
-    //
-    //    assertEquals(1503804, hazard1.id)
-    //    assertEquals("EQ", hazard1.type)
-    //    assertEquals("Mexico", hazard1.country)
-    //    assertEquals(4.6, hazard1.severity!!, 0.001)
-    //
-    //    assertNotNull(hazard1.affectedZone)
-    //    assertNotNull(hazard1.description)
-    //    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
-    //    assertNotNull(hazard1.bbox)
-    //
-    //    assertEquals(1001216, hazard2.id)
-    //    assertEquals("TC", hazard2.type)
-    //    assertEquals("Bermuda, Bahamas, Cuba", hazard2.country)
-    //    assertEquals(157.4064, hazard2.severity!!, 0.001)
-    //
-    //    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
-    //    assertNotNull(hazard2.affectedZone)
-    //    assertNotNull(hazard2.description)
-    //    assertNotNull(hazard2.bbox)
+    val method =
+        HazardsRepository::class
+            .java
+            .getDeclaredMethod("parsePartialHazard", JSONObject::class.java)
+    method.isAccessible = true
 
-    // TODO: Check using new methods
+    val hazard1 = method.invoke(repo, hazardJson1) as Hazard
+    val hazard2 = method.invoke(repo, hazardJson2) as Hazard
+
+    assertEquals(1503804, hazard1.id)
+    assertEquals("EQ", hazard1.type)
+    assertEquals("Mexico", hazard1.country)
+    assertEquals(4.6, hazard1.severity!!, 0.001)
+
+    assertNotNull(hazard1.description)
+    assertNull(hazard1.affectedZone)
+    assertNull(hazard1.articleUrl)
+    assertNull(hazard1.bbox)
+
+    assertEquals(1001216, hazard2.id)
+    assertEquals("TC", hazard2.type)
+    assertEquals("Bermuda, Bahamas, Cuba", hazard2.country)
+    assertEquals(157.4064, hazard2.severity!!, 0.001)
+
+    assertNotNull(hazard2.description)
+    assertNull(hazard2.articleUrl)
+    assertNull(hazard2.affectedZone)
+    assertNull(hazard2.bbox)
   }
 }
