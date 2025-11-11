@@ -1,92 +1,80 @@
 package com.github.warnastrophy.core.service
 
-import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.ServiceTestRule
 import com.github.warnastrophy.core.data.repository.usecase.RefreshHazardsIfMovedUseCase
 import com.github.warnastrophy.core.data.service.HazardTrackingService
+import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
-import io.mockk.every
+import com.google.android.gms.maps.model.LatLng
+import io.mockk.clearAllMocks
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertNotNull
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class HazardTrackingServiceTest {
-  private lateinit var context: Context
   private val mockGpsService = GpsServiceMock()
   private val mockUseCase = mockk<RefreshHazardsIfMovedUseCase>(relaxed = true)
-  // Mock Android Context and NotificationManager
-  private val mockContext = mockk<Context>(relaxed = true)
-  private val mockNotificationManager = mockk<NotificationManager>(relaxed = true)
+
+  private lateinit var trackingService: HazardTrackingService
+
+  private val testDispatcher = StandardTestDispatcher()
+  private val testScope = TestScope(testDispatcher + SupervisorJob())
   @get:Rule val serviceRule = ServiceTestRule()
 
   @Before
   fun setup() {
-    context = ApplicationProvider.getApplicationContext()
-    every { mockContext.getSystemService(NotificationManager::class.java) } returns
-        mockNotificationManager
+    trackingService = HazardTrackingService(mockGpsService, mockUseCase, testScope)
+  }
+
+  @After
+  fun tearDown() {
+    trackingService.stopTracking()
+    clearAllMocks()
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
   fun serviceCallsExecuteWhenGPSUpdates() = runTest {
-    val testScope = TestScope(StandardTestDispatcher(testScheduler))
+    trackingService.startTracking()
+    testDispatcher.scheduler.runCurrent()
 
-    val service =
-        HazardTrackingService(mockGpsService, mockUseCase, testScope, enableForegroud = false)
-    service.onCreate()
-    advanceUntilIdle()
-    verify { mockUseCase.execute(any()) }
-    service.stopTrackingForTest()
+    coVerify(exactly = 1) { mockUseCase.execute(any()) }
+    mockGpsService.setPosition(LatLng(20.0, 20.0))
+    testDispatcher.scheduler.runCurrent()
+    coVerify(exactly = 1) { mockUseCase.execute(Location(20.0, 20.0)) }
   }
 
-  /*
   @Test
-  fun testStartForegroundService_isCalled_whenEnabled() = runTest (StandardTestDispatcher()){
+  fun stopTracking_cancelsUpdates() = runTest {
+    // ARRANGE
+    val latLng1 = LatLng(10.0, 20.0)
+    val latLng2 = LatLng(30.0, 40.0)
 
-      // 1. Create a Spy of the service: A spy lets us call the real code while monitoring method calls.
-      val serviceSpy = spyk(
-          HazardTrackingService(
-              testGpsService = mockGpsService,
-              testUseCase = mockUseCase,
-              enableForegroud = true // IMPORTANT: Ensure foreground is enabled
-          )
-      )
+    trackingService.startTracking()
+    testDispatcher.scheduler.runCurrent()
 
-      // Mock the final system call startForeground() to prevent RuntimeExceptions
-      // Since startForeground is a final method on Service, we often need to use deep stubbing or a specialized runner.
-      // In a true MockK/Robolectric setup, we would typically mock the Service's protected Context methods,
-      // but for simplicity, we treat startForeground as the observable outcome.
-      // We'll mock the internal call dependencies instead:
-      every { serviceSpy.getSystemService(any()) } returns mockNotificationManager
+    // 1. First update (should execute use case once for initial value, second for latLng1)
+    mockGpsService.setPosition(latLng1)
+    testDispatcher.scheduler.runCurrent()
+    coVerify(exactly = 1) { mockUseCase.execute(Location(latLng1.latitude, latLng1.longitude)) }
 
-      // 2. Start the service. This triggers onCreate() and startForegroundService().
-      serviceSpy.onCreate()
-      testScheduler.advanceUntilIdle()
-      serviceSpy.onStartCommand(Intent(), 0, 1) // Call onStartCommand to complete the lifecycle start
+    // ACT: Stop tracking
+    trackingService.stopTracking()
 
-      // 3. Verification: Verify that the system-level function `startForeground` was called.
-      // The service's protected function 'startForeground' is the actual goal of verification.
-      verify(exactly = 1) { serviceSpy.startForeground(eq(1), any()) }
-      serviceSpy.onDestroy()
-  }
+    // 2. Second update (should NOT execute use case)
+    mockGpsService.setPosition(latLng2)
+    testDispatcher.scheduler.runCurrent()
 
-   */
-  @Test
-  fun start() {
-    val serviceIntent =
-        Intent(ApplicationProvider.getApplicationContext(), HazardTrackingService::class.java)
-    val binder = serviceRule.startService(serviceIntent)
-    assertNotNull(binder)
+    // ASSERT: The use case count remains 2
+    coVerify(exactly = 2) { mockUseCase.execute(any()) }
   }
 }

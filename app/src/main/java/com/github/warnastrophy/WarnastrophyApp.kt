@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -12,14 +13,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.di.AppDependencies.errorHandler
-import com.github.warnastrophy.core.di.AppDependencies.gpsService
-import com.github.warnastrophy.core.di.AppDependencies.hazardsService
-import com.github.warnastrophy.core.di.AppDependencies.permissionManager
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.model.ErrorHandler
+import com.github.warnastrophy.core.model.GpsServiceFactory
+import com.github.warnastrophy.core.model.HazardsServiceFactory
+import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
@@ -32,6 +35,7 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+import com.google.android.gms.location.LocationServices
 
 @Composable
 fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
@@ -60,6 +64,24 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
       }
 
   val startDestination = Dashboard.route
+  val locationClient = LocationServices.getFusedLocationProviderClient(context)
+
+  val errorHandler = ErrorHandler()
+
+  val gpsServiceFactory = remember { GpsServiceFactory(locationClient, errorHandler) }
+  val gpsService = remember { gpsServiceFactory.create() }
+
+  val hazardsRepository = HazardRepositoryProvider.repository
+
+  val hazardsServiceFactory = remember {
+    HazardsServiceFactory(hazardsRepository, gpsService, errorHandler)
+  }
+  val hazardsService = remember { hazardsServiceFactory.create() }
+
+  val permissionManager = PermissionManager(context)
+  val mapViewModelFactory = remember {
+    MapViewModelFactory(gpsService, hazardsService, permissionManager)
+  }
 
   val mapScreen =
       @Composable {
