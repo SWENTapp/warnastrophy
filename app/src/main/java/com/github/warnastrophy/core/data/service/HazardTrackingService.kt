@@ -36,13 +36,11 @@ class HazardTrackingService(
    * flow and executes the use case.
    */
   fun startTracking() {
-    if (isTracking) return // Prevent multiple starts
+    if (isTracking) return
 
     isTracking = true
-    println("HazardTrackingManager started tracking.")
 
     serviceScope.launch {
-      // Collects the latest position and updates hazards
       gpsService?.positionState?.collectLatest { positionState ->
         positionState.position.let { currentLocation ->
           val hazardLocation = Location(currentLocation.latitude, currentLocation.longitude)

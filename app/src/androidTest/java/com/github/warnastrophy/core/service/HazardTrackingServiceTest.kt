@@ -57,15 +57,12 @@ class HazardTrackingServiceTest {
     trackingService.startTracking()
     testDispatcher.scheduler.runCurrent()
 
-    // 1. First update (should execute use case once for initial value, second for latLng1)
     mockGpsService.setPosition(latLng1)
     testDispatcher.scheduler.runCurrent()
     coVerify(exactly = 1) { mockUseCase.execute(Location(latLng1.latitude, latLng1.longitude)) }
 
-    // ACT: Stop tracking
     trackingService.stopTracking()
 
-    // 2. Second update (should NOT execute use case)
     mockGpsService.setPosition(latLng2)
     testDispatcher.scheduler.runCurrent()
 
