@@ -21,13 +21,13 @@ class DefaultSignInHelperTest {
 
   @Test
   fun `toGoogleFirebaseCredential creates valid credential`() {
-    val result = helper.toGoogleFirebaseCredential("google_token")
+    val result = helper.googleToFirebaseCredential("google_token")
     assertNotNull(result)
   }
 
   @Test
   fun `toGithubFirebaseCredential creates valid credential`() {
-    val result = helper.toGithubFirebaseCredential("github_token")
+    val result = helper.githubToFirebaseCredential("github_token")
     assertNotNull(result)
   }
 

@@ -60,7 +60,7 @@ class AuthRepositoryFirebase(
     return try {
       if (credential is CustomCredential && credential.type == CredentialTypes.TYPE_GOOGLE) {
         val idToken = helper.extractGoogleIdTokenCredential(credential.data).idToken
-        val firebaseCred = helper.toGoogleFirebaseCredential(idToken)
+        val firebaseCred = helper.googleToFirebaseCredential(idToken)
 
         val user =
             auth.signInWithCredential(firebaseCred).await().user
@@ -90,7 +90,7 @@ class AuthRepositoryFirebase(
     return try {
       if (credential is CustomCredential && credential.type == CredentialTypes.TYPE_GITHUB) {
         val accessToken = helper.extractAccessToken(credential.data)
-        val firebaseCred = helper.toGithubFirebaseCredential(accessToken)
+        val firebaseCred = helper.githubToFirebaseCredential(accessToken)
 
         val user =
             auth.signInWithCredential(firebaseCred).await().user

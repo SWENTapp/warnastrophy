@@ -59,11 +59,11 @@ class AuthRepositoryFirebaseTest {
       CredentialTypes.TYPE_GOOGLE -> {
         every { mockHelper.extractGoogleIdTokenCredential(mockBundle) } returns mockGoogleToken
         every { mockGoogleToken.idToken } returns token
-        every { mockHelper.toGoogleFirebaseCredential(token) } returns mockFirebaseCred
+        every { mockHelper.googleToFirebaseCredential(token) } returns mockFirebaseCred
       }
       else -> {
         every { mockHelper.extractAccessToken(mockBundle) } returns token
-        every { mockHelper.toGithubFirebaseCredential(token) } returns mockFirebaseCred
+        every { mockHelper.githubToFirebaseCredential(token) } returns mockFirebaseCred
       }
     }
   }
@@ -100,7 +100,7 @@ class AuthRepositoryFirebaseTest {
     every { mockCredential.data } returns mockBundle
     every { mockHelper.extractGoogleIdTokenCredential(mockBundle) } returns mockGoogleToken
     every { mockGoogleToken.idToken } returns "token"
-    every { mockHelper.toGoogleFirebaseCredential(any()) } returns mockFirebaseCred
+    every { mockHelper.googleToFirebaseCredential(any()) } returns mockFirebaseCred
     every { mockAuth.signInWithCredential(any()) } returns Tasks.forException(Exception("error"))
 
     val result = repository.signInWithGoogle(mockCredential)
@@ -137,7 +137,7 @@ class AuthRepositoryFirebaseTest {
     every { mockCredential.type } returns CredentialTypes.TYPE_GITHUB
     every { mockCredential.data } returns mockBundle
     every { mockHelper.extractAccessToken(mockBundle) } returns "token"
-    every { mockHelper.toGithubFirebaseCredential(any()) } returns mockFirebaseCred
+    every { mockHelper.githubToFirebaseCredential(any()) } returns mockFirebaseCred
     every { mockAuth.signInWithCredential(any()) } returns Tasks.forException(Exception("error"))
 
     val result = repository.signInWithGithub(mockCredential)
@@ -151,7 +151,7 @@ class AuthRepositoryFirebaseTest {
     setupSuccessfulAuth(CredentialTypes.TYPE_GOOGLE)
     val result = repository.signIn(mockCredential, AuthProvider.GOOGLE)
     assertTrue(result.isSuccess)
-    verify(exactly = 1) { mockHelper.toGoogleFirebaseCredential(any()) }
+    verify(exactly = 1) { mockHelper.googleToFirebaseCredential(any()) }
   }
 
   @Test
@@ -159,7 +159,7 @@ class AuthRepositoryFirebaseTest {
     setupSuccessfulAuth(CredentialTypes.TYPE_GITHUB)
     val result = repository.signIn(mockCredential, AuthProvider.GITHUB)
     assertTrue(result.isSuccess)
-    verify(exactly = 1) { mockHelper.toGithubFirebaseCredential(any()) }
+    verify(exactly = 1) { mockHelper.githubToFirebaseCredential(any()) }
   }
 
   // ========== Sign Out Tests ==========

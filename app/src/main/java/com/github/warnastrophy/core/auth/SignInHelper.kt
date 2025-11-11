@@ -36,7 +36,7 @@ interface SignInHelper {
    * @param idToken The Google ID token as a [String].
    * @return A [GoogleAuthProvider] Firebase [AuthCredential] for Google sign-in.
    */
-  fun toGoogleFirebaseCredential(idToken: String): AuthCredential
+  fun googleToFirebaseCredential(idToken: String): AuthCredential
 
   /**
    * Converts an access token into a Firebase [AuthCredential] for GitHub sign-in.
@@ -44,7 +44,7 @@ interface SignInHelper {
    * @param accessToken The GitHub access token as a [String].
    * @return A [GithubAuthProvider] Firebase [AuthCredential] for GitHub sign-in.
    */
-  fun toGithubFirebaseCredential(accessToken: String): AuthCredential
+  fun githubToFirebaseCredential(accessToken: String): AuthCredential
 }
 
 /**
@@ -62,11 +62,11 @@ class DefaultSignInHelper : SignInHelper {
         ?: throw IllegalArgumentException("Access token not found in bundle")
   }
 
-  override fun toGoogleFirebaseCredential(idToken: String): AuthCredential {
+  override fun googleToFirebaseCredential(idToken: String): AuthCredential {
     return GoogleAuthProvider.getCredential(idToken, null)
   }
 
-  override fun toGithubFirebaseCredential(accessToken: String): AuthCredential {
+  override fun githubToFirebaseCredential(accessToken: String): AuthCredential {
     return GithubAuthProvider.getCredential(accessToken)
   }
 }
