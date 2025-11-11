@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.service
 
-import androidx.test.rule.ServiceTestRule
 import com.github.warnastrophy.core.data.repository.usecase.RefreshHazardsIfMovedUseCase
 import com.github.warnastrophy.core.data.service.HazardTrackingService
 import com.github.warnastrophy.core.model.Location
@@ -16,7 +15,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 class HazardTrackingServiceTest {
@@ -27,7 +25,6 @@ class HazardTrackingServiceTest {
 
   private val testDispatcher = StandardTestDispatcher()
   private val testScope = TestScope(testDispatcher + SupervisorJob())
-  @get:Rule val serviceRule = ServiceTestRule()
 
   @Before
   fun setup() {
@@ -54,7 +51,6 @@ class HazardTrackingServiceTest {
 
   @Test
   fun stopTracking_cancelsUpdates() = runTest {
-    // ARRANGE
     val latLng1 = LatLng(10.0, 20.0)
     val latLng2 = LatLng(30.0, 40.0)
 
@@ -73,7 +69,6 @@ class HazardTrackingServiceTest {
     mockGpsService.setPosition(latLng2)
     testDispatcher.scheduler.runCurrent()
 
-    // ASSERT: The use case count remains 2
     coVerify(exactly = 2) { mockUseCase.execute(any()) }
   }
 }
