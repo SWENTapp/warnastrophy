@@ -4,7 +4,7 @@ import com.github.warnastrophy.core.model.HazardsDataService
 import com.github.warnastrophy.core.model.Location
 
 /**
- * A use case that controls when to refresh hazard data from the server.
+ * This class contains the logic that controls when to refresh hazard data from the server.
  *
  * This acts as a rate limiter/throttle for hazard fetching, ensuring the service is only called if
  * the user has moved beyond a specific distance threshold (e.g., 5 km) from the location where the

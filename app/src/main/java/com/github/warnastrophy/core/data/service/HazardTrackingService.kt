@@ -10,6 +10,19 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+/**
+ * Monitor the user's location and triggering hazard data updates based on movement.
+ *
+ * This class uses Kotlin Coroutines to subscribe to a continuous stream of GPS position updates
+ * from the [PositionService] and delegates the movement check and network fetch logic to the
+ * [RefreshHazardsIfMovedUseCase].
+ *
+ * @property gpsService The service providing the continuous stream of user position data via Flow.
+ * @property refreshHazardsIfMovedUseCase The use case responsible for checking distance moved and
+ *   executing the hazard data network fetch.
+ * @property serviceScope The [CoroutineScope] used to launch and manage the tracking coroutine. It
+ *   should typically be tied to the application's process lifecycle (e.g., [Application] scope).
+ */
 class HazardTrackingService(
     private val gpsService: PositionService? = null,
     private val refreshHazardsIfMovedUseCase: RefreshHazardsIfMovedUseCase? = null,
