@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.service
 
-import android.content.Context
 import androidx.test.rule.ServiceTestRule
 import com.github.warnastrophy.core.data.repository.usecase.RefreshHazardsIfMovedUseCase
 import com.github.warnastrophy.core.data.service.HazardTrackingService
