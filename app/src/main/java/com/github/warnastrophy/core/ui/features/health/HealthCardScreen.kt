@@ -142,7 +142,6 @@ data class HealthCardFormState(
   fun isValid(): Boolean =
       fullName.isNotBlank() && isDateValid() && socialSecurityNumber.isNotBlank()
 
-
   /**
    * Marks all required fields as touched to trigger validation display. Used when attempting to
    * submit the form.
@@ -183,19 +182,18 @@ fun HealthCardScreen(
   var formState by remember { mutableStateOf(HealthCardFormState()) }
 
   // Update the form when a health card is loaded
-  LaunchedEffect(currentCard) {
-      currentCard?.let { formState = it.toFormState() }
-  }
+  LaunchedEffect(currentCard) { currentCard?.let { formState = it.toFormState() } }
 
-    // Navigate away after a successful save/update (and also after delete if you want)
-    LaunchedEffect(uiState) {
-        val ok = uiState is HealthCardUiState.Success &&
-                (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
-        if (ok) {
-            onDone()
-            viewModel.resetUiState()  // prevent re-trigger on recomposition
-        }
+  // Navigate away after a successful save/update (and also after delete if you want)
+  LaunchedEffect(uiState) {
+    val ok =
+        uiState is HealthCardUiState.Success &&
+            (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
+    if (ok) {
+      onDone()
+      viewModel.resetUiState() // prevent re-trigger on recomposition
     }
+  }
 
   Scaffold() { paddingValues ->
     HealthCardContent(
@@ -207,7 +205,7 @@ fun HealthCardScreen(
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
-              viewModel.save(validatedState.toDomain())
+            viewModel.save(validatedState.toDomain())
           }
         },
         onUpdate = {

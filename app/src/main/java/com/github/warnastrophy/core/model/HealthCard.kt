@@ -30,48 +30,41 @@ import com.google.firebase.firestore.ServerTimestamp
  * @property notes Additional notes or comments about the individual’s health. This property is
  *   optional and nullable.
  */
-
 data class HealthCard(
-    @get:PropertyName("full_name") @set:PropertyName("full_name")
-    var fullName: String = "",
-
-    @get:PropertyName("dob_iso") @set:PropertyName("dob_iso")
-    var dateOfBirthIso: String = "",              // ISO yyyy-MM-dd
-
-    @get:PropertyName("id_number") @set:PropertyName("id_number")
-    var idNumber: String = "",                    // (UI name: socialSecurityNumber)
-
-    @get:PropertyName("sex") @set:PropertyName("sex")
-    var sex: String? = null,
-
-    @get:PropertyName("blood_type") @set:PropertyName("blood_type")
-    var bloodType: String? = null,
-
-    @get:PropertyName("height_cm") @set:PropertyName("height_cm")
-    var heightCm: Int? = null,
-
-    @get:PropertyName("weight_kg") @set:PropertyName("weight_kg")
-    var weightKg: Double? = null,                 // allow decimals
-
-    @get:PropertyName("conditions") @set:PropertyName("conditions")
+    @get:PropertyName("full_name") @set:PropertyName("full_name") var fullName: String = "",
+    @get:PropertyName("dob_iso")
+    @set:PropertyName("dob_iso")
+    var dateOfBirthIso: String = "", // ISO yyyy-MM-dd
+    @get:PropertyName("id_number")
+    @set:PropertyName("id_number")
+    var idNumber: String = "", // (UI name: socialSecurityNumber)
+    @get:PropertyName("sex") @set:PropertyName("sex") var sex: String? = null,
+    @get:PropertyName("blood_type") @set:PropertyName("blood_type") var bloodType: String? = null,
+    @get:PropertyName("height_cm") @set:PropertyName("height_cm") var heightCm: Int? = null,
+    @get:PropertyName("weight_kg")
+    @set:PropertyName("weight_kg")
+    var weightKg: Double? = null, // allow decimals
+    @get:PropertyName("conditions")
+    @set:PropertyName("conditions")
     var chronicConditions: List<String> = emptyList(),
-    @get:PropertyName("allergies") @set:PropertyName("allergies")
+    @get:PropertyName("allergies")
+    @set:PropertyName("allergies")
     var allergies: List<String> = emptyList(),
-    @get:PropertyName("medications") @set:PropertyName("medications")
+    @get:PropertyName("medications")
+    @set:PropertyName("medications")
     var medications: List<String> = emptyList(),
-    @get:PropertyName("treatments") @set:PropertyName("treatments")
+    @get:PropertyName("treatments")
+    @set:PropertyName("treatments")
     var onGoingTreatments: List<String> = emptyList(),
-    @get:PropertyName("history") @set:PropertyName("history")
+    @get:PropertyName("history")
+    @set:PropertyName("history")
     var medicalHistory: List<String> = emptyList(),
-
-    @get:PropertyName("organ_donor") @set:PropertyName("organ_donor")
+    @get:PropertyName("organ_donor")
+    @set:PropertyName("organ_donor")
     var organDonor: Boolean? = null,
-
-    @get:PropertyName("notes") @set:PropertyName("notes")
-    var notes: String? = null,
-
+    @get:PropertyName("notes") @set:PropertyName("notes") var notes: String? = null,
     @ServerTimestamp
-    @get:PropertyName("updated_at") @set:PropertyName("updated_at")
+    @get:PropertyName("updated_at")
+    @set:PropertyName("updated_at")
     var updatedAt: Timestamp? = null
 )
-

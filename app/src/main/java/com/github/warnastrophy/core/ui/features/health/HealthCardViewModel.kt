@@ -1,10 +1,7 @@
 package com.github.warnastrophy.core.ui.features.health
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.local.HealthCardStorage
-import com.github.warnastrophy.core.data.local.StorageResult
 import com.github.warnastrophy.core.data.repository.HealthCardRepository
 import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.model.HealthCard
@@ -26,41 +23,45 @@ import kotlinx.coroutines.launch
  * @param dispatcher Dispatcher attribute for testing purposes
  */
 class HealthCardViewModel(
-  private val repo: HealthCardRepository = HealthCardRepositoryProvider.repository,
-  private val dispatcher: CoroutineDispatcher = Dispatchers.Main) :
-    ViewModel() {
+    private val repo: HealthCardRepository = HealthCardRepositoryProvider.repository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Main
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow<HealthCardUiState>(HealthCardUiState.Idle)
   val uiState: StateFlow<HealthCardUiState> = _uiState.asStateFlow()
 
   // Live, offline-friendly snapshot of the user's HealthCard
   val currentCard: StateFlow<HealthCard?> =
-    repo.observeMyHealthCard()
-      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+      repo
+          .observeMyHealthCard()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
   /** One-shot refresh (optional; cache-first by default) */
-  fun refreshOnce() = viewModelScope.launch(dispatcher) {
-    _uiState.value = HealthCardUiState.Loading
-    runCatching { repo.getMyHealthCardOnce(true) }
-      .onSuccess { _uiState.value = HealthCardUiState.Success("Loaded") }
-      .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Loading error") }
-  }
+  fun refreshOnce() =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.getMyHealthCardOnce(true) }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Loaded") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Loading error") }
+      }
 
   /** Create or update (upsert) the HealthCard */
-  fun save(card: HealthCard) = viewModelScope.launch(dispatcher) {
-    _uiState.value = HealthCardUiState.Loading
-    runCatching { repo.upsertMyHealthCard(card) }
-      .onSuccess { _uiState.value = HealthCardUiState.Success("Saved") }
-      .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Saving error") }
-  }
+  fun save(card: HealthCard) =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.upsertMyHealthCard(card) }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Saved") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Saving error") }
+      }
 
   /** Delete the HealthCard */
-  fun delete() = viewModelScope.launch(dispatcher) {
-    _uiState.value = HealthCardUiState.Loading
-    runCatching { repo.deleteMyHealthCard() }
-      .onSuccess { _uiState.value = HealthCardUiState.Success("Deleted") }
-      .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Deletion error") }
-  }
+  fun delete() =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.deleteMyHealthCard() }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Deleted") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Deletion error") }
+      }
 
   fun resetUiState() {
     _uiState.value = HealthCardUiState.Idle
