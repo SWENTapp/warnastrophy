@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.data.repository
 
-import android.util.Log
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.GeometryParser
@@ -41,15 +40,6 @@ interface HazardsDataSource {
    * @return A complete [Hazard] object with additional fields populated, or null on failure.
    */
   suspend fun completeParsingOf(hazard: Hazard): Hazard?
-
-  /**
-   * Fetches a list of current hazards that are inside the defined geographic area.
-   *
-   * @param geometry A WKT string defining the area to search within.
-   * @param days The number of days back to search for events.
-   * @return A List of successfully parsed [Hazard] objects.
-   */
-  suspend fun getAreaHazards(geometry: String, days: String): List<Hazard>
 }
 
 /**
@@ -92,8 +82,6 @@ class HazardsRepository() : HazardsDataSource {
    * @return The response body as a String, or an empty string if the connection fails.
    */
   private suspend fun httpGet(urlStr: String): String {
-    Log.d("HazardsRepository", "HTTP GET: $urlStr")
-
     // Throttle API calls to avoid rate limiting
     delay(AppConfig.gdacsThrottleDelay - lastApiCall.elapsedNow())
     lastApiCall = TimeSource.Monotonic.markNow()
@@ -113,24 +101,6 @@ class HazardsRepository() : HazardsDataSource {
     } finally {
       conn.disconnect()
     }
-  }
-
-  override suspend fun getAreaHazards(geometry: String, days: String): List<Hazard> {
-    val url = buildUrlAreaHazards(geometry, days)
-    val response = httpGet(url)
-    if (response.isBlank()) {
-      return emptyList()
-    }
-    val hazards = mutableListOf<Hazard>()
-
-    val jsonObject = JSONObject(response)
-    val jsonHazards = jsonObject.getJSONArray("features")
-    for (i in 0 until jsonHazards.length()) {
-      val hazardJson = jsonHazards.getJSONObject(i)
-      val hazard = parseHazard(hazardJson)
-      if (hazard != null) hazards.add(hazard)
-    }
-    return hazards
   }
 
   override suspend fun getPartialAreaHazards(geometry: String, days: String): List<Hazard> {
@@ -202,72 +172,6 @@ class HazardsRepository() : HazardsDataSource {
       return hazard.copy(articleUrl = articleUrl, affectedZone = affectedZone, bbox = bbox)
     } catch (e: Exception) {
       null
-    }
-  }
-
-  // TODO: potentially removable
-  /**
-   * Parses a single GeoJSON Feature object into a full Hazard data class.
-   *
-   * This function performs multiple subsequent network calls to retrieve detailed geometry,
-   * bounding box (bbox), and the article URL for the hazard. It filters out non-current hazards and
-   * skips those with missing fields.
-   *
-   * @param root The JSONObject representing a single GeoJSON Feature (a hazard event).
-   * @return A fully constructed [Hazard] object, or null if parsing fails or fields are missing.
-   */
-  private suspend fun parseHazard(root: JSONObject): Hazard? {
-    try {
-      val properties = root.getJSONObject("properties")
-      val isCurrent = properties.getBoolean("iscurrent")
-      if (!isCurrent) {
-        return null
-      }
-
-      val centroid =
-          GeometryParser.convertRawGeoJsonGeometryToJTS(root.getJSONObject("geometry").toString())
-              ?: run {
-                return null
-              }
-
-      val urlsOfHazard = properties.getJSONObject("url")
-      val detailedGeometryUrl = urlsOfHazard.getString("geometry")
-      val geometryRes = httpGet(detailedGeometryUrl)
-      val hazardDetailUrl = urlsOfHazard.getString("details")
-
-      val articleUrl = null
-      //          getHazardArticleUrl(hazardDetailUrl)
-      //              ?: run {
-      //                return null
-      //              }
-      val bbox =
-          getBbox(geometryRes)
-              ?: run {
-                return null
-              }
-      val affectedZone =
-          getAffectedZone(geometryRes)
-              ?: run {
-                return null
-              }
-      val hazard =
-          Hazard(
-              id = properties.getInt("eventid"),
-              type = properties.getString("eventtype"),
-              description = properties.optString("description"),
-              severityText = properties.getJSONObject("severitydata").getString("severitytext"),
-              country = properties.getString("country"),
-              date = properties.getString("fromdate"),
-              severity = properties.getJSONObject("severitydata").getDouble("severity"),
-              severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
-              articleUrl = articleUrl,
-              alertLevel = properties.getDouble("alertscore"),
-              centroid = centroid,
-              affectedZone = affectedZone,
-              bbox = bbox)
-      return hazard
-    } catch (e: Exception) {
-      return null
     }
   }
 

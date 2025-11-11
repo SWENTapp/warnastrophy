@@ -69,7 +69,6 @@ class HazardsService(
            */
         try {
           val lastFetch = TimeSource.Monotonic.markNow()
-          Log.d("HazardsService", "Partially fetching hazards")
           _fetcherState.value =
               _fetcherState.value.copy(
                   hazards = fetchHazardsForLocation(HazardRepositoryProvider.locationPolygon),
@@ -83,9 +82,8 @@ class HazardsService(
               currentHazards[index] = it // Assign the completed hazard back to the list
               _fetcherState.value = _fetcherState.value.copy(hazards = currentHazards.toList())
             }
-            Log.d("HazardsService", "Completed hazard ${hazard.id}")
           }
-          Log.d("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
+          Log.i("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
           delay(AppConfig.gdacsFetchDelay - lastFetch.elapsedNow())
         } catch (e: Exception) {
           Log.e("HazardsService", "Error fetching hazards", e)
