@@ -41,7 +41,8 @@ class HazardsService(
     override val errorHandler: ErrorHandler = ErrorHandler(),
 ) : HazardsDataService {
   /** Coroutine scope used for background hazard fetching. */
-  private val serviceScope = CoroutineScope(Dispatchers.IO)
+  private val job = SupervisorJob()
+    private val serviceScope = CoroutineScope(job + Dispatchers.IO)
 
   /** Internal state flow holding the current list of hazards. */
   private val _fetcherState = MutableStateFlow(FetcherState())
@@ -69,14 +70,17 @@ class HazardsService(
            */
         try {
           val hazards = fetchHazardsForLocation(HazardRepositoryProvider.locationPolygon)
-          _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
+            // push result to state on Main if your state touches Compose/LiveData
+            withContext(Dispatchers.Main) {
+                _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
+            }
         } catch (e: Exception) {
           Log.e("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
         }
         Log.d("HazardsService", "Fetched hazards: ${_fetcherState.value.hazards}")
-        delay(fetchDelayMs)
+          delay(fetchDelayMs.coerceAtLeast(10_000L)) // avoid hammering; 10–30s is sane
       }
     }
   }

@@ -5,12 +5,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageResult
+import com.github.warnastrophy.core.data.repository.HealthCardRepository
+import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.model.HealthCard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -19,33 +26,16 @@ import kotlinx.coroutines.launch
  * Manages the loading and state of the health card data, separating business logic from the UI
  * layer.
  */
-class DashboardHealthCardViewModel(private val dispatcher: CoroutineDispatcher = Dispatchers.Main) :
+class DashboardHealthCardViewModel(
+  private val repo: HealthCardRepository = HealthCardRepositoryProvider.repository,
+  private val dispatcher: CoroutineDispatcher = Dispatchers.Main) :
     ViewModel() {
-  private val _uiState =
-      MutableStateFlow<DashboardHealthCardUiState>(DashboardHealthCardUiState.Loading)
-  val uiState: StateFlow<DashboardHealthCardUiState> = _uiState.asStateFlow()
-
-  /**
-   * Loads the health card for the specified user.
-   *
-   * @param context Android context to access DataStore.
-   * @param userId Unique identifier for the user.
-   */
-  fun loadHealthCard(context: Context, userId: String) {
-    viewModelScope.launch(dispatcher) {
-      _uiState.value = DashboardHealthCardUiState.Loading
-
-      when (val result = HealthCardStorage.loadHealthCard(context, userId)) {
-        is StorageResult.Success -> {
-          _uiState.value = DashboardHealthCardUiState.Success(result.data)
-        }
-        is StorageResult.Error -> {
-          _uiState.value =
-              DashboardHealthCardUiState.Error(result.exception.message ?: "Unknown error")
-        }
-      }
-    }
-  }
+  val uiState:
+      StateFlow<DashboardHealthCardUiState> = repo.observeMyHealthCard()
+        .map<HealthCard?, DashboardHealthCardUiState> { DashboardHealthCardUiState.Success(it) }
+        .onStart { emit(DashboardHealthCardUiState.Loading) }
+        .catch { emit(DashboardHealthCardUiState.Error(it.message ?: "Error")) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardHealthCardUiState.Loading)
 
   /**
    * Generates a summary of emergency health information for display.
@@ -55,7 +45,6 @@ class DashboardHealthCardViewModel(private val dispatcher: CoroutineDispatcher =
    */
   fun getEmergencyHealthSummary(healthCard: HealthCard): String {
     val lines = mutableListOf<String>()
-
     fun formatList(items: List<String>): String =
         if (items.size <= 2) items.joinToString(", ")
         else "${items.take(2).joinToString(", ")} + ${items.size - 2} more"
@@ -74,7 +63,7 @@ class DashboardHealthCardViewModel(private val dispatcher: CoroutineDispatcher =
       additionalLines.add("${healthCard.medications.size} $medsText")
     }
 
-    if (healthCard.organDonor) {
+    if (healthCard.organDonor == true) {
       additionalLines.add("Organ donor")
     }
 

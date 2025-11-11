@@ -126,7 +126,12 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
               composable(Screen.AddContact.route) {
                 AddContactScreen(onDone = { navigationActions.goBack() })
               }
-              composable(Screen.HealthCard.route) { HealthCardScreen() }
+            composable(Screen.HealthCard.route) {
+                HealthCardScreen(
+                    onDone = { navController.popBackStack()
+                    }
+                )
+            }
               composable(route = Screen.EditContact.route) { navBackStackEntry ->
                 val id = navBackStackEntry.arguments?.getString("id")
 

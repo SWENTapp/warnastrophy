@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.features.health
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,7 +41,6 @@ import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.time.format.ResolverStyle
 
 /**
@@ -144,51 +142,6 @@ data class HealthCardFormState(
   fun isValid(): Boolean =
       fullName.isNotBlank() && isDateValid() && socialSecurityNumber.isNotBlank()
 
-  /**
-   * Converts the birth date from dd/MM/yyyy format to ISO format (yyyy-MM-dd).
-   *
-   * @return The birth date in ISO format
-   */
-  private fun formatDateToIso(): String {
-    if (birthDate.isBlank()) {
-      throw IllegalArgumentException("birthDate cannot be null or blank")
-    }
-
-    val trimmedDate = birthDate.trim()
-    Log.d("formatDateToIso", "birthDate: $birthDate")
-    try {
-      val date = LocalDate.parse(trimmedDate, dateFormatter)
-      val outputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      return date.format(outputFormat)
-    } catch (e: DateTimeParseException) {
-      throw IllegalArgumentException("Invalid birthDate format: ${e.message}")
-    }
-  }
-
-  /**
-   * Converts the form state to a HealthCard domain model.
-   *
-   * This method handles type conversions and transforms comma-separated strings into lists for
-   * multi-value fields.
-   *
-   * @return A HealthCard instance populated with form data
-   */
-  fun toHealthCard(): HealthCard =
-      HealthCard(
-          fullName = fullName,
-          birthDate = formatDateToIso(),
-          socialSecurityNumber = socialSecurityNumber,
-          sex = sex.ifEmpty { null },
-          bloodType = bloodType.ifEmpty { null },
-          heightCm = heightCm.toIntOrNull(),
-          weightKg = weightKg.toDoubleOrNull(),
-          chronicConditions = chronicConditions.splitToList(),
-          allergies = allergies.splitToList(),
-          medications = medications.splitToList(),
-          onGoingTreatments = onGoingTreatments.splitToList(),
-          medicalHistory = medicalHistory.splitToList(),
-          organDonor = organDonor,
-          notes = notes.ifEmpty { null })
 
   /**
    * Marks all required fields as touched to trigger validation display. Used when attempting to
@@ -206,39 +159,6 @@ data class HealthCardFormState(
    */
   private fun String.splitToList(): List<String> =
       split(",").map { it.trim() }.filter { it.isNotEmpty() }
-
-  companion object {
-    /**
-     * Creates a form state from an existing HealthCard model.
-     *
-     * This method converts the ISO date format back to dd/MM/yyyy and transforms lists into
-     * comma-separated strings for display in text fields.
-     *
-     * @param card The HealthCard to convert
-     * @return A HealthCardFormState populated with the card's data
-     */
-    fun fromHealthCard(card: HealthCard): HealthCardFormState {
-      val inputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      val outputFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-      val date = LocalDate.parse(card.birthDate, inputFormat)
-
-      return HealthCardFormState(
-          fullName = card.fullName,
-          birthDate = date.format(outputFormat),
-          socialSecurityNumber = card.socialSecurityNumber,
-          sex = card.sex ?: "",
-          bloodType = card.bloodType ?: "",
-          heightCm = card.heightCm?.toString() ?: "",
-          weightKg = card.weightKg?.toString() ?: "",
-          chronicConditions = card.chronicConditions.joinToString(", "),
-          allergies = card.allergies.joinToString(", "),
-          medications = card.medications.joinToString(", "),
-          onGoingTreatments = card.onGoingTreatments.joinToString(", "),
-          medicalHistory = card.medicalHistory.joinToString(", "),
-          organDonor = card.organDonor,
-          notes = card.notes ?: "")
-    }
-  }
 }
 
 /**
@@ -254,6 +174,7 @@ data class HealthCardFormState(
 fun HealthCardScreen(
     userId: String = "John Doe",
     viewModel: HealthCardViewModel = viewModel(),
+    onDone: () -> Unit = {}
 ) {
   val context = LocalContext.current
   val uiState by viewModel.uiState.collectAsState()
@@ -261,13 +182,20 @@ fun HealthCardScreen(
 
   var formState by remember { mutableStateOf(HealthCardFormState()) }
 
-  // Load the health card when the screen is first displayed
-  LaunchedEffect(userId) { viewModel.loadHealthCard(context, userId) }
-
   // Update the form when a health card is loaded
   LaunchedEffect(currentCard) {
-    currentCard?.let { card -> formState = HealthCardFormState.fromHealthCard(card) }
+      currentCard?.let { formState = it.toFormState() }
   }
+
+    // Navigate away after a successful save/update (and also after delete if you want)
+    LaunchedEffect(uiState) {
+        val ok = uiState is HealthCardUiState.Success &&
+                (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
+        if (ok) {
+            onDone()
+            viewModel.resetUiState()  // prevent re-trigger on recomposition
+        }
+    }
 
   Scaffold() { paddingValues ->
     HealthCardContent(
@@ -279,18 +207,18 @@ fun HealthCardScreen(
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
-            viewModel.saveHealthCard(context, userId, validatedState.toHealthCard())
+              viewModel.save(validatedState.toDomain())
           }
         },
         onUpdate = {
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
-            viewModel.updateHealthCard(context, userId, validatedState.toHealthCard())
+            viewModel.save(validatedState.toDomain())
           }
         },
         onDelete = {
-          viewModel.deleteHealthCard(context, userId)
+          viewModel.delete()
           formState = HealthCardFormState()
         },
         modifier = Modifier.padding(paddingValues))
