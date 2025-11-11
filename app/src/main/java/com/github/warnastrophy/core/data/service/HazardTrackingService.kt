@@ -45,11 +45,8 @@ class HazardTrackingService(
       // Collects the latest position and updates hazards
       gpsService?.positionState?.collectLatest { positionState ->
         positionState.position.let { currentLocation ->
-          // Assuming you have a way to map your position object to your Location object
           val hazardLocation = Location(currentLocation.latitude, currentLocation.longitude)
-
           refreshHazardsIfMovedUseCase?.execute(hazardLocation)
-          println("Executed RefreshHazardsIfMovedUseCase at: $hazardLocation")
         }
       }
     }
