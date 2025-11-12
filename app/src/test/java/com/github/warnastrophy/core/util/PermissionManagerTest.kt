@@ -31,7 +31,7 @@ class PermissionManagerTest {
   fun setup() {
     activity = Robolectric.buildActivity(Activity::class.java).get()
     context = activity.applicationContext
-    prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    prefs = context.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
     prefs.edit().clear().apply() // use apply() for async operation in tests
     // Initialize the manager with the application context, as designed
     manager = PermissionManager(context)

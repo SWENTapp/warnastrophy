@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import com.github.warnastrophy.core.util.AppConfig
 
 /**
  * Represents the possible outcomes of a permission request. A sealed class is used to allow states
@@ -99,7 +100,7 @@ interface PermissionManagerInterface {
  *   permissions.
  */
 class PermissionManager(private val context: Context) : PermissionManagerInterface {
-  private val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+  private val prefs = context.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
 
   override fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
     val permissions = permissionType.permissions
@@ -154,12 +155,12 @@ class PermissionManager(private val context: Context) : PermissionManagerInterfa
   }
 
   override fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
-    val prefKey = "perm_asked_${permissionType::class.simpleName}"
+    val prefKey = "perm_asked_${permissionType.key}"
     return prefs.getBoolean(prefKey, false)
   }
 
   override fun markPermissionsAsAsked(permissionType: AppPermissions) {
-    val prefKey = "perm_asked_${permissionType::class.simpleName}"
+    val prefKey = "perm_asked_${permissionType.key}"
     prefs.edit { putBoolean(prefKey, true) }
   }
 }
