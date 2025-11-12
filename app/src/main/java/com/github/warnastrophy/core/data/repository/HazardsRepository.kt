@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.data.repository
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.Endpoints
+import com.github.warnastrophy.core.util.AppConfig.HTTP_TIMEOUT
 import com.github.warnastrophy.core.util.GeometryParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -85,8 +86,8 @@ class HazardsRepository() : HazardsDataSource {
         (url.openConnection() as HttpURLConnection).apply {
           requestMethod = "GET"
           setRequestProperty("Accept", "application/json")
-          connectTimeout = 15000
-          readTimeout = 15000
+          connectTimeout = HTTP_TIMEOUT
+          readTimeout = HTTP_TIMEOUT
         }
     return try {
       val code = conn.responseCode
