@@ -57,6 +57,7 @@ class HazardsRepository(
     val errorHandler: ErrorHandler = ErrorHandler(),
 ) : HazardsDataSource {
 
+  private val VALID_REPONSE_CODE_RANGE = 200..299
   private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay
 
   /**
@@ -94,7 +95,7 @@ class HazardsRepository(
           readTimeout = HTTP_TIMEOUT
         }
     return try {
-      if (conn.responseCode in 200..299) {
+      if (conn.responseCode in VALID_REPONSE_CODE_RANGE) {
         BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
       } else {
         null
