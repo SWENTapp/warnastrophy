@@ -90,12 +90,11 @@ fun HazardMarker(
       hazard.centroid?.centroid?.let { point -> Location(point.y, point.x) } ?: Location(0.0, 0.0)
 
   val centroidLatLngs: List<Location>? =
-      hazard.centroid?.let { nonNullGeometry ->
+      hazard.affectedZone?.let { nonNullGeometry ->
         // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
         GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
       }
 
-  // If there are multiple points, draw a polygon.
   centroidLatLngs?.let { locations ->
     if (locations.size > 1) {
       val polygonCoords = locations.map { location -> Location.Companion.toLatLng(location) }
@@ -104,10 +103,11 @@ fun HazardMarker(
       Polygon(
           points = polygonCoords,
           strokeWidth = 2f,
-      )
+          strokeColor = Color.Red,
+          fillColor = Color.Red.copy(alpha = 0.18f))
     } else if (locations.isEmpty()) {
-      // Fallback for empty location list, though markerLocation from centroid should be used.
-      // This branch is unlikely if hazard.centroid exists.
+      // Fallback for empty polygon.
+      // This branch is unlikely if hazard.affectedZone exists.
       // Log or handle this case as an anomaly if necessary.
     }
   }
