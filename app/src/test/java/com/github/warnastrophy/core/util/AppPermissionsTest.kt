@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.util
 
 import android.Manifest
 import android.os.Build
-import com.github.warnastrophy.core.model.AppPermissions
+import com.github.warnastrophy.core.permissions.AppPermissions
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith

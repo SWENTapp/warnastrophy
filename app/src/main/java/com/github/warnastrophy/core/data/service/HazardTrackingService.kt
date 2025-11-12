@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.data.repository.usecase.RefreshHazardsIfMovedUseCase
-import com.github.warnastrophy.core.model.Location
-import com.github.warnastrophy.core.model.PositionService
+import com.github.warnastrophy.core.domain.model.Location
+import com.github.warnastrophy.core.domain.model.PositionService
+import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMovedUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

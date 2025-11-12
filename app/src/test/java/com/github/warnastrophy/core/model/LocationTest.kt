@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.model
 
+import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.util.debugPrint
 import kotlin.math.PI
 import kotlin.math.abs

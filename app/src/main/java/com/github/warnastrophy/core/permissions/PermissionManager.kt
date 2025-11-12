@@ -1,10 +1,11 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.permissions
 
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import com.github.warnastrophy.core.util.AppConfig
 
 /**
  * Represents the possible outcomes of a permission request. A sealed class is used to allow states
@@ -41,12 +42,49 @@ private enum class PermissionStatus {
 }
 
 interface PermissionManagerInterface {
+  /**
+   * Gets the permission result without checking the rationale. This is safe to call during
+   * ViewModel initialization as it doesn't require an `Activity` context.
+   *
+   * This method can distinguish between [PermissionResult.Granted] and [PermissionResult.Denied],
+   * but it **cannot** detect the [PermissionResult.PermanentlyDenied] state because that requires
+   * checking the rationale with an `Activity`. For that, use the overloaded version of
+   * [getPermissionResult] that takes an `Activity`.
+   *
+   * @param permissionType The group of permissions to check.
+   * @return [PermissionResult.Granted] if all permissions are granted, otherwise
+   *   [PermissionResult.Denied].
+   */
   fun getPermissionResult(permissionType: AppPermissions): PermissionResult
 
+  /**
+   * Analyzes the state of a group of permissions and returns a detailed PermissionResult. This
+   * correctly handles mixed states (some granted, some denied, some permanently denied).
+   *
+   * @param permissionType The [AppPermissions] group to analyze.
+   * @param activity The [Activity] required to check for rationale.
+   * @return A [PermissionResult] sealed class instance describing the collective status.
+   */
   fun getPermissionResult(permissionType: AppPermissions, activity: Activity): PermissionResult
 
+  /**
+   * Marks a specific permission group as having been asked for at least once.
+   *
+   * This is crucial for differentiating between a simple denial and a "permanently denied" state
+   * (where the user has checked "Don't ask again"). The flag is stored in SharedPreferences.
+   *
+   * @param permissionType The permission group (e.g., location, camera) to mark as asked.
+   */
   fun markPermissionsAsAsked(permissionType: AppPermissions)
 
+  /**
+   * Checks if a permission request for a specific [AppPermissions] group has been made before. This
+   * is determined by checking a flag in SharedPreferences. This flag should be set using
+   * [markPermissionsAsAsked] after the first time the permission dialog is shown.
+   *
+   * @param permissionType The permission group to check.
+   * @return `true` if the permission group has been requested before, `false` otherwise.
+   */
   fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean
 }
 
@@ -62,21 +100,8 @@ interface PermissionManagerInterface {
  *   permissions.
  */
 class PermissionManager(private val context: Context) : PermissionManagerInterface {
-  private val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+  private val prefs = context.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
 
-  /**
-   * Gets the permission result without checking the rationale. This is safe to call during
-   * ViewModel initialization as it doesn't require an `Activity` context.
-   *
-   * This method can distinguish between [PermissionResult.Granted] and [PermissionResult.Denied],
-   * but it **cannot** detect the [PermissionResult.PermanentlyDenied] state because that requires
-   * checking the rationale with an `Activity`. For that, use the overloaded version of
-   * [getPermissionResult] that takes an `Activity`.
-   *
-   * @param permissionType The group of permissions to check.
-   * @return [PermissionResult.Granted] if all permissions are granted, otherwise
-   *   [PermissionResult.Denied].
-   */
   override fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
     val permissions = permissionType.permissions
     if (permissions.isEmpty()) return PermissionResult.Granted
@@ -93,14 +118,6 @@ class PermissionManager(private val context: Context) : PermissionManagerInterfa
     }
   }
 
-  /**
-   * Analyzes the state of a group of permissions and returns a detailed PermissionResult. This
-   * correctly handles mixed states (some granted, some denied, some permanently denied).
-   *
-   * @param permissionType The [AppPermissions] group to analyze.
-   * @param activity The [Activity] required to check for rationale.
-   * @return A [PermissionResult] sealed class instance describing the collective status.
-   */
   override fun getPermissionResult(
       permissionType: AppPermissions,
       activity: Activity
@@ -137,29 +154,13 @@ class PermissionManager(private val context: Context) : PermissionManagerInterfa
     }
   }
 
-  /**
-   * Checks if a permission request for a specific [AppPermissions] group has been made before. This
-   * is determined by checking a flag in SharedPreferences. This flag should be set using
-   * [markPermissionsAsAsked] after the first time the permission dialog is shown.
-   *
-   * @param permissionType The permission group to check.
-   * @return `true` if the permission group has been requested before, `false` otherwise.
-   */
   override fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
-    val prefKey = "perm_asked_${permissionType::class.simpleName}"
+    val prefKey = "perm_asked_${permissionType.key}"
     return prefs.getBoolean(prefKey, false)
   }
 
-  /**
-   * Marks a specific permission group as having been asked for at least once.
-   *
-   * This is crucial for differentiating between a simple denial and a "permanently denied" state
-   * (where the user has checked "Don't ask again"). The flag is stored in SharedPreferences.
-   *
-   * @param permissionType The permission group (e.g., location, camera) to mark as asked.
-   */
   override fun markPermissionsAsAsked(permissionType: AppPermissions) {
-    val prefKey = "perm_asked_${permissionType::class.simpleName}"
+    val prefKey = "perm_asked_${permissionType.key}"
     prefs.edit { putBoolean(prefKey, true) }
   }
 }

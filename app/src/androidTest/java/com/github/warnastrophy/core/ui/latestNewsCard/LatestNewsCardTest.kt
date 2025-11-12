@@ -8,7 +8,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsCard
 import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsTestTags
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
