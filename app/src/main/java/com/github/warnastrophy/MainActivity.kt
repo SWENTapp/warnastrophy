@@ -19,15 +19,27 @@ import com.google.firebase.FirebaseApp
  */
 class MainActivity : ComponentActivity() {
 
+
+  private fun showUI() {
+    setContent {
+      MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyApp() } }
+    }
+  }
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     FirebaseApp.initializeApp(this)
+    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    val db   = com.google.firebase.firestore.FirebaseFirestore.getInstance()
     if (BuildConfig.DEBUG) {
-      HealthCardRepositoryProvider.useEmulator("10.0.2.2", 8080)
+      auth.useEmulator("10.0.2.2", 9099)
+      db.useEmulator("10.0.2.2", 8080)
     }
-    HealthCardRepositoryProvider.init(applicationContext)
+
+    // Route HealthCards to Firestore + app-layer encryption
+    HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
+
+    showUI()
 
     ContactRepositoryProvider.init(applicationContext)
-    setContent { MainAppTheme { Surface(modifier = Modifier.fillMaxSize()) { WarnastrophyApp() } } }
   }
 }

@@ -46,7 +46,7 @@ class HealthCardViewModel(
       }
 
   /** Create or update (upsert) the HealthCard */
-  fun save(card: HealthCard) =
+  fun saveHealthCardDB(card: HealthCard) =
       viewModelScope.launch(dispatcher) {
         _uiState.value = HealthCardUiState.Loading
         runCatching { repo.upsertMyHealthCard(card) }
@@ -55,7 +55,7 @@ class HealthCardViewModel(
       }
 
   /** Delete the HealthCard */
-  fun delete() =
+  fun deleteHealthCardDB() =
       viewModelScope.launch(dispatcher) {
         _uiState.value = HealthCardUiState.Loading
         runCatching { repo.deleteMyHealthCard() }

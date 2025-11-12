@@ -205,18 +205,18 @@ fun HealthCardScreen(
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
-            viewModel.save(validatedState.toDomain())
+            viewModel.saveHealthCardDB(validatedState.toDomain())
           }
         },
         onUpdate = {
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
-            viewModel.save(validatedState.toDomain())
+            viewModel.saveHealthCardDB(validatedState.toDomain())
           }
         },
         onDelete = {
-          viewModel.delete()
+          viewModel.deleteHealthCardDB()
           formState = HealthCardFormState()
         },
         modifier = Modifier.padding(paddingValues))

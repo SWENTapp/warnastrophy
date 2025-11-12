@@ -18,9 +18,9 @@ class HealthCardStorageTest {
   private val sampleCard =
       HealthCard(
           fullName = "John Doe",
-          birthDate = "1990-01-01",
+            dateOfBirthIso = "1990-01-01",
           sex = "M",
-          socialSecurityNumber = "a social security number",
+            idNumber = "ID123456",
           bloodType = "O+",
           heightCm = 180,
           weightKg = 75.0,
