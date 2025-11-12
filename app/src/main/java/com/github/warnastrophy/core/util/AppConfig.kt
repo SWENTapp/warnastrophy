@@ -17,4 +17,10 @@ object AppConfig {
   val positionUpdateDelayMs: Long = 10_000L
   val rectangleHazardZone = Pair(20000.0, 20000.0)
   val priorDaysFetch = "4"
+
+  object Endpoints {
+    const val EVENTS_BY_AREA = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
+    const val EMM_NEWS_BY_KEY = "https://www.gdacs.org/gdacsapi/api/Emm/getemmnewsbykey"
+    const val GET_GEOMETRY = "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry"
+  }
 }

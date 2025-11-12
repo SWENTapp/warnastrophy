@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.data.repository
 
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
+import com.github.warnastrophy.core.util.AppConfig.Endpoints
 import com.github.warnastrophy.core.util.GeometryParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -50,12 +51,6 @@ interface HazardsDataSource {
  * conversion to JTS Geometry objects.
  */
 class HazardsRepository() : HazardsDataSource {
-  companion object Endpoints {
-    private const val EVENTS_BY_AREA =
-        "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
-    private const val EMM_NEWS_BY_KEY = "https://www.gdacs.org/gdacsapi/api/Emm/getemmnewsbykey"
-    private const val GET_GEOMETRY = "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry"
-  }
 
   private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay
 
@@ -67,9 +62,8 @@ class HazardsRepository() : HazardsDataSource {
    * @return The complete, URL-encoded string for the GDACS API endpoint.
    */
   private fun buildUrlAreaHazards(geometry: String, days: String): String {
-    val base = EVENTS_BY_AREA
     val geom = geometry.replace(" ", "%20")
-    return "$base?geometryArea=$geom&days=$days"
+    return "${Endpoints.EVENTS_BY_AREA}?geometryArea=$geom&days=$days"
   }
 
   /**
@@ -164,7 +158,8 @@ class HazardsRepository() : HazardsDataSource {
 
   override suspend fun completeParsingOf(hazard: Hazard): Hazard? {
     return try {
-      val detailedGeometryUrl = "$GET_GEOMETRY?eventtype=${hazard.type}&eventid=${hazard.id}"
+      val detailedGeometryUrl =
+          "${Endpoints.GET_GEOMETRY}?eventtype=${hazard.type}&eventid=${hazard.id}"
       val geometryRes = httpGet(detailedGeometryUrl)
       val articleUrl = getHazardArticleUrl(hazard)
       val bbox = getBbox(geometryRes)
@@ -237,7 +232,9 @@ class HazardsRepository() : HazardsDataSource {
   private suspend fun getHazardArticleUrl(hazard: Hazard): String? {
     return try {
       // We limit to 1 result as we only need the first article link
-      val res = httpGet("$EMM_NEWS_BY_KEY?eventtype=${hazard.type}&eventid=${hazard.id}&limit=1")
+      val res =
+          httpGet(
+              "${Endpoints.EMM_NEWS_BY_KEY}?eventtype=${hazard.type}&eventid=${hazard.id}&limit=1")
       JSONArray(res).getJSONObject(0).getString("link")
     } catch (e: Exception) {
       null
