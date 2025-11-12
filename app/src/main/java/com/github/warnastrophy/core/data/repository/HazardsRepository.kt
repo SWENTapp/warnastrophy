@@ -1,5 +1,7 @@
 package com.github.warnastrophy.core.data.repository
 
+import android.util.Log
+import com.github.warnastrophy.core.model.ErrorHandler
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.Endpoints
@@ -51,7 +53,9 @@ interface HazardsDataSource {
  * This repository handles the multi-step process of network communication, GeoJSON parsing, and
  * conversion to JTS Geometry objects.
  */
-class HazardsRepository() : HazardsDataSource {
+class HazardsRepository(
+    val errorHandler: ErrorHandler = ErrorHandler(),
+) : HazardsDataSource {
 
   private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay
 
@@ -74,9 +78,9 @@ class HazardsRepository() : HazardsDataSource {
    * coroutine running on Dispatchers.IO.
    *
    * @param urlStr The URL to fetch.
-   * @return The response body as a String, or an empty string if the connection fails.
+   * @return The response body as a String, or null when the status code is not 2xx or on error.
    */
-  private suspend fun httpGet(urlStr: String): String {
+  private suspend fun httpGet(urlStr: String): String? {
     // Throttle API calls to avoid rate limiting
     delay(AppConfig.gdacsThrottleDelay - lastApiCall.elapsedNow())
     lastApiCall = TimeSource.Monotonic.markNow()
@@ -90,9 +94,14 @@ class HazardsRepository() : HazardsDataSource {
           readTimeout = HTTP_TIMEOUT
         }
     return try {
-      val code = conn.responseCode
-      val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-      BufferedReader(InputStreamReader(stream)).use { it.readText() }
+      if (conn.responseCode in 200..299) {
+        BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+      } else {
+        null
+      }
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "HTTP GET error for $urlStr", e)
+      null
     } finally {
       conn.disconnect()
     }
@@ -101,7 +110,7 @@ class HazardsRepository() : HazardsDataSource {
   override suspend fun getPartialAreaHazards(geometry: String, days: String): List<Hazard> {
     val url = buildUrlAreaHazards(geometry, days)
     val response = httpGet(url)
-    if (response.isBlank()) {
+    if (response == null || response.isBlank()) {
       return emptyList()
     }
 
@@ -153,6 +162,7 @@ class HazardsRepository() : HazardsDataSource {
           affectedZone = null,
           bbox = null)
     } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error parsing partial hazard", e)
       return null
     }
   }
@@ -163,10 +173,11 @@ class HazardsRepository() : HazardsDataSource {
           "${Endpoints.GET_GEOMETRY}?eventtype=${hazard.type}&eventid=${hazard.id}"
       val geometryRes = httpGet(detailedGeometryUrl)
       val articleUrl = getHazardArticleUrl(hazard)
-      val bbox = getBbox(geometryRes)
-      val affectedZone = getAffectedZone(geometryRes)
+      val bbox = geometryRes?.let { getBbox(it) }
+      val affectedZone = geometryRes?.let { getAffectedZone(it) }
       return hazard.copy(articleUrl = articleUrl, affectedZone = affectedZone, bbox = bbox)
     } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error completing hazard parsing", e)
       null
     }
   }
@@ -183,7 +194,8 @@ class HazardsRepository() : HazardsDataSource {
       getRawGeoJsonGeometry(geometryRes).getJSONArray("bbox").let { bboxArray ->
         List(bboxArray.length()) { i -> bboxArray.getDouble(i) }
       }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error parsing bbox", e)
       null
     }
   }
@@ -203,7 +215,8 @@ class HazardsRepository() : HazardsDataSource {
       val geometry = JSONObject(geometryRes)
       val rawGeoJsonGeometry = geometry.getJSONArray("features").getJSONObject(1)
       rawGeoJsonGeometry
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error extracting raw GeoJSON geometry", e)
       JSONObject() // return empty json object in case of exception
     }
   }
@@ -219,7 +232,8 @@ class HazardsRepository() : HazardsDataSource {
     return try {
       val rawGeoJsonAffectedZone = getRawGeoJsonGeometry(geometryRes).getString("geometry")
       GeometryParser.convertRawGeoJsonGeometryToJTS(rawGeoJsonAffectedZone)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error parsing affected zone", e)
       null
     }
   }
@@ -236,8 +250,9 @@ class HazardsRepository() : HazardsDataSource {
       val res =
           httpGet(
               "${Endpoints.EMM_NEWS_BY_KEY}?eventtype=${hazard.type}&eventid=${hazard.id}&limit=1")
-      JSONArray(res).getJSONObject(0).getString("link")
+      res?.let { JSONArray(it).getJSONObject(0).getString("link") }
     } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error fetching article URL", e)
       null
     }
   }
