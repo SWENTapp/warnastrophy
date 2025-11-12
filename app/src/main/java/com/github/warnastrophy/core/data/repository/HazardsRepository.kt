@@ -8,6 +8,7 @@ import com.github.warnastrophy.core.util.AppConfig.Endpoints
 import com.github.warnastrophy.core.util.AppConfig.HTTP_TIMEOUT
 import com.github.warnastrophy.core.util.GeometryParser
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -95,14 +96,18 @@ class HazardsRepository(
           readTimeout = HTTP_TIMEOUT
         }
     return try {
-      if (conn.responseCode in VALID_REPONSE_CODE_RANGE) {
-        BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
-      } else {
-        null
+      when (conn.responseCode) {
+        in VALID_REPONSE_CODE_RANGE -> {
+          BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+        }
+        404 -> null // 404 means no data, return null
+        else -> { // This usually indicates rate limiting, bad request, or server error
+          throw IOException(
+              "HTTP GET failed with response: ${
+            BufferedReader(InputStreamReader(conn.errorStream)).readText()
+          }")
+        }
       }
-    } catch (e: Exception) {
-      Log.e("HazardsRepository", "HTTP GET error for $urlStr", e)
-      null
     } finally {
       conn.disconnect()
     }
