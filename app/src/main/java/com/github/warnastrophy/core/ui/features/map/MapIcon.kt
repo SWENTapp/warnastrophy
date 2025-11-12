@@ -97,7 +97,7 @@ fun HazardMarker(
 
   centroidLatLngs?.let { locations ->
     if (locations.size > 1) {
-      val polygonCoords = locations.map { location -> Location.Companion.toLatLng(location) }
+      val polygonCoords = locations.map { location -> Location.toLatLng(location) }
 
       // Draw a polygon on the map for multi-point geometries.
       Polygon(
@@ -105,7 +105,7 @@ fun HazardMarker(
           strokeWidth = 2f,
           strokeColor = Color.Red,
           fillColor = Color.Red.copy(alpha = 0.18f))
-    } else if (locations.isEmpty()) {
+    } else {
       // Fallback for empty polygon.
       // This branch is unlikely if hazard.affectedZone exists.
       // Log or handle this case as an anomaly if necessary.
@@ -113,7 +113,7 @@ fun HazardMarker(
   }
 
   markerContent(
-      rememberMarkerState(position = Location.Companion.toLatLng(markerLocation)),
+      rememberMarkerState(position = Location.toLatLng(markerLocation)),
       hazard.description,
       "${hazard.severity} ${hazard.severityUnit}",
   ) {
