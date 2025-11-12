@@ -5,7 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 object HealthCardRepositoryProvider {
-    const val COLLECTION = "healthCards"
+  const val COLLECTION = "healthCards"
 
   @Volatile private var _repo: HealthCardRepository? = null
 

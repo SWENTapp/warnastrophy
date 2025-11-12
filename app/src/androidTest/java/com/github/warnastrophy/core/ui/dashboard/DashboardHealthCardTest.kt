@@ -83,8 +83,8 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   ) =
       HealthCard(
           fullName = fullName,
-          dateOfBirthIso =birthDate,
-            idNumber = socialSecurityNumber,
+          dateOfBirthIso = birthDate,
+          idNumber = socialSecurityNumber,
           bloodType = bloodType,
           allergies = allergies,
           medications = medications,

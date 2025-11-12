@@ -217,7 +217,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
-    verify { mockViewModel.deleteHealthCard()}
+    verify { mockViewModel.deleteHealthCard() }
   }
 
   @Test
@@ -293,16 +293,14 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD)
         .assertTextContains("01/01/2000")
-    composeTestRule
-        .onNodeWithTag(HealthCardTestTags.SSN_FIELD)
-        .assertTextContains(card.idNumber)
+    composeTestRule.onNodeWithTag(HealthCardTestTags.SSN_FIELD).assertTextContains(card.idNumber)
   }
 
   private fun dummyCard() =
       HealthCard(
           fullName = "John Doe",
-            dateOfBirthIso = "2000-01-01",
-            idNumber = "123-45-6789",
+          dateOfBirthIso = "2000-01-01",
+          idNumber = "123-45-6789",
           sex = "Male",
           bloodType = "A+",
           heightCm = 180,
