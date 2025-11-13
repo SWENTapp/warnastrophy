@@ -100,8 +100,12 @@ class GpsServiceMock(initial: LatLng = pos) : PositionService {
 }
 
 class HazardsRepositoryMock(private val hazards: List<Hazard>) : HazardsDataSource {
-  override suspend fun getAreaHazards(geometry: String, days: String): List<Hazard> {
-    return hazards
+  override suspend fun getPartialAreaHazards(geometry: String, days: String): List<Hazard> {
+    return hazards.map { it.copy(articleUrl = null, bbox = null, affectedZone = null) }
+  }
+
+  override suspend fun completeParsingOf(hazard: Hazard): Hazard? {
+    return hazards.find { it.id == hazard.id }
   }
 }
 
