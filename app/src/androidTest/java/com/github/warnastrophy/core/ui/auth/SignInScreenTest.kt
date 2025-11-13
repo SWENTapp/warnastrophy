@@ -1,14 +1,13 @@
 package com.github.warnastrophy.core.ui.auth
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.credentials.CredentialManager
-import com.github.warnastrophy.core.auth.AuthRepository
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.features.auth.AuthUIState
+import com.github.warnastrophy.core.ui.features.auth.GitHubSignInButton
 import com.github.warnastrophy.core.ui.features.auth.GoogleSignInButton
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.auth.SignInScreenTestTags
@@ -29,7 +28,6 @@ import org.junit.Test
 
 class SignInScreenTest : BaseAndroidComposeTest() {
 
-  private lateinit var mockRepository: AuthRepository
   private lateinit var mockCredentialManager: CredentialManager
   private lateinit var mockViewModel: SignInViewModel
   private lateinit var onSignedInCallback: () -> Unit
@@ -37,7 +35,6 @@ class SignInScreenTest : BaseAndroidComposeTest() {
   @Before
   override fun setUp() {
     super.setUp()
-    mockRepository = mockk(relaxed = true)
     mockCredentialManager = mockk(relaxed = true)
     onSignedInCallback = mockk(relaxed = true)
     mockViewModel = mockk(relaxed = true)
@@ -67,15 +64,10 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     setUpSignInScreen()
     composeTestRule.waitForIdleWithTimeout()
 
-    composeTestRule.onNodeWithTag(SignInScreenTestTags.APP_LOGO).assertExists().assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(SignInScreenTestTags.LOGIN_TITLE)
-        .assertExists()
-        .assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON)
-        .assertExists()
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.APP_LOGO).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.LOGIN_TITLE).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -87,11 +79,21 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).performClick()
-
     composeTestRule.waitForIdleWithTimeout()
 
     assert(signInCalled)
     verify { mockViewModel.signInWithGoogle(any(), any(), any()) }
+  }
+
+  @Test
+  fun signInScreen_githubButtonClick_showsNotImplementedMessage() {
+    setUpSignInScreen()
+    composeTestRule.waitForIdleWithTimeout()
+
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON).performClick()
+    composeTestRule.waitForIdleWithTimeout()
+
+    verify(exactly = 0) { mockViewModel.signInWithGithub(any()) }
   }
 
   @Test
@@ -101,27 +103,21 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     setUpSignInScreen()
     composeTestRule.waitForIdleWithTimeout()
 
-    composeTestRule
-        .onNodeWithTag(LoadingTestTags.LOADING_INDICATOR)
-        .assertExists()
-        .assertIsDisplayed()
-
-    composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(LoadingTestTags.LOADING_INDICATOR).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON).assertDoesNotExist()
   }
 
   @Test
-  fun signInScreen_whenNotLoading_showsSignInButton() {
+  fun signInScreen_whenNotLoading_showsSignInButtons() {
     every { mockViewModel.uiState } returns MutableStateFlow(AuthUIState(isLoading = false))
 
     setUpSignInScreen()
     composeTestRule.waitForIdleWithTimeout()
 
-    composeTestRule
-        .onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON)
-        .assertExists()
-        .assertIsDisplayed()
-
-    composeTestRule.onNodeWithTag(LoadingTestTags.LOADING_INDICATOR).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(LoadingTestTags.LOADING_INDICATOR).assertDoesNotExist()
   }
 
   @Test
@@ -135,7 +131,6 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     stateFlow.value = AuthUIState(user = mockUser)
-
     composeTestRule.waitForIdleWithTimeout()
 
     verify(timeout = 1000) { onSignedInCallback() }
@@ -151,14 +146,13 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     stateFlow.value = AuthUIState(errorMsg = "Login failed")
-
     composeTestRule.waitForIdleWithTimeout()
 
     verify(timeout = 1000) { mockViewModel.clearErrorMsg() }
   }
 
   @Test
-  fun googleSignInButton_isClickable() {
+  fun googleSignInButton_isClickableAndDisplaysCorrectText() {
     var clicked = false
 
     composeTestRule.setContent {
@@ -170,27 +164,35 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON)
         .assertIsDisplayed()
+        .assertTextContains("Sign in with Google")
         .performClick()
 
     composeTestRule.waitForIdleWithTimeout()
-
     assert(clicked)
   }
 
   @Test
-  fun googleSignInButton_displaysCorrectText() {
-    composeTestRule.setContent { MainAppTheme { GoogleSignInButton(onSignInClick = {}) } }
+  fun githubSignInButton_isClickableAndDisplaysCorrectText() {
+    var clicked = false
+
+    composeTestRule.setContent {
+      MainAppTheme { GitHubSignInButton(onSignInClick = { clicked = true }) }
+    }
 
     composeTestRule.waitForIdleWithTimeout()
 
     composeTestRule
-        .onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON)
+        .onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON)
         .assertIsDisplayed()
-        .assertTextContains("Sign in with Google", substring = true)
+        .assertTextContains("Sign in with GitHub")
+        .performClick()
+
+    composeTestRule.waitForIdleWithTimeout()
+    assert(clicked)
   }
 
   @Test
-  fun signInScreen_multipleStates_updateCorrectly() {
+  fun signInScreen_stateTransitions_updateUICorrectly() {
     val stateFlow = MutableStateFlow(AuthUIState())
     every { mockViewModel.uiState } returns stateFlow
 
@@ -198,13 +200,16 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON).assertIsDisplayed()
 
     stateFlow.value = AuthUIState(isLoading = true)
     composeTestRule.waitForIdleWithTimeout()
-    composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(LoadingTestTags.LOADING_INDICATOR).assertIsDisplayed()
 
     stateFlow.value = AuthUIState(isLoading = false)
     composeTestRule.waitForIdleWithTimeout()
     composeTestRule.onNodeWithTag(SignInScreenTestTags.GOOGLE_SIGN_IN_BUTTON).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON).assertIsDisplayed()
   }
 }
