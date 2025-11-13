@@ -140,9 +140,7 @@ fun DashboardHealthCardStateful(
 ) {
   val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadHealthCard(context, userId)
-    }
+  LaunchedEffect(Unit) { viewModel.loadHealthCard(context, userId) }
   when (val state = uiState) {
     is DashboardHealthCardUiState.Loading -> {
       DashboardHealthCardStateless(

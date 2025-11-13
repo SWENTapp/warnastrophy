@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
-import com.google.firebase.BuildConfig
 import com.google.firebase.FirebaseApp
 
 /**
@@ -30,11 +29,10 @@ class MainActivity : ComponentActivity() {
     val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
     val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
 
-    auth.signOut()  // fine; we use device ID, not auth uid
+    auth.signOut() // fine; we use device ID, not auth uid
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.init(applicationContext)
     showUI()
   }
-
 }

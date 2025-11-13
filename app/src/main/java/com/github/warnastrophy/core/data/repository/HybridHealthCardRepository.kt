@@ -7,14 +7,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.merge
 
 class HybridHealthCardRepository(
-  private val local: HealthCardRepository,
-  private val remote: HealthCardRepository,
-  private val auth: FirebaseAuth // you can even drop this param later
+    private val local: HealthCardRepository,
+    private val remote: HealthCardRepository,
+    private val auth: FirebaseAuth // you can even drop this param later
 ) : HealthCardRepository {
 
   override fun observeMyHealthCard(): Flow<HealthCard?> {
-    return merge(local.observeMyHealthCard(), remote.observeMyHealthCard())
-      .distinctUntilChanged()
+    return merge(local.observeMyHealthCard(), remote.observeMyHealthCard()).distinctUntilChanged()
   }
 
   override suspend fun getMyHealthCardOnce(fromCacheFirst: Boolean): HealthCard? {

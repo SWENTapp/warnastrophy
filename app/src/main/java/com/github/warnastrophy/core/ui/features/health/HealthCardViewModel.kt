@@ -24,9 +24,9 @@ import kotlinx.coroutines.launch
  * @param dispatcher Dispatcher attribute for testing purposes
  */
 class HealthCardViewModel(
-  private val repo: HealthCardRepository = HealthCardRepositoryProvider.repository,
-  private val dispatcher: CoroutineDispatcher = Dispatchers.IO) :
-    ViewModel() {
+    private val repo: HealthCardRepository = HealthCardRepositoryProvider.repository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow<HealthCardUiState>(HealthCardUiState.Idle)
   val uiState: StateFlow<HealthCardUiState> = _uiState.asStateFlow()
@@ -82,28 +82,31 @@ class HealthCardViewModel(
   }
 
   /** One-shot refresh (optional; cache-first by default) */
-  fun refreshOnce() = viewModelScope.launch(dispatcher) {
-    _uiState.value = HealthCardUiState.Loading
-    runCatching { repo.getMyHealthCardOnce(true) }
-      .onSuccess { _uiState.value = HealthCardUiState.Success("Loaded") }
-      .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Loading error") }
-  }
+  fun refreshOnce() =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.getMyHealthCardOnce(true) }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Loaded") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Loading error") }
+      }
 
   /** Create or update (upsert) the HealthCard */
-  fun saveHealthCardDB(card: HealthCard) = viewModelScope.launch(dispatcher) {
-    _uiState.value = HealthCardUiState.Loading
-    runCatching { repo.upsertMyHealthCard(card) }
-      .onSuccess { _uiState.value = HealthCardUiState.Success("Saved") }
-      .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Saving error") }
-  }
+  fun saveHealthCardDB(card: HealthCard) =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.upsertMyHealthCard(card) }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Saved") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Saving error") }
+      }
 
   /** Delete the HealthCard */
-  fun deleteHealthCardDB() = viewModelScope.launch(dispatcher) {
-    _uiState.value = HealthCardUiState.Loading
-    runCatching { repo.deleteMyHealthCard() }
-      .onSuccess { _uiState.value = HealthCardUiState.Success("Deleted") }
-      .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Deletion error") }
-  }
+  fun deleteHealthCardDB() =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.deleteMyHealthCard() }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Deleted") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Deletion error") }
+      }
 
   /**
    * Updates an existing health card.

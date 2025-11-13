@@ -181,6 +181,7 @@ fun HealthCardScreen(
 
   var formState by remember { mutableStateOf(HealthCardFormState()) }
 
+  LaunchedEffect(Unit) { viewModel.loadHealthCard(context, userId) }
   // Update the form when a health card is loaded
   LaunchedEffect(currentCard) { currentCard?.let { formState = it.toFormState() } }
 
@@ -205,16 +206,15 @@ fun HealthCardScreen(
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
-              viewModel.saveHealthCard(context, userId, validatedState.toDomain())
+            viewModel.saveHealthCard(context, userId, validatedState.toDomain())
             viewModel.saveHealthCardDB(validatedState.toDomain())
-
           }
         },
         onUpdate = {
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
-              viewModel.updateHealthCard(context, userId, validatedState.toDomain())
+            viewModel.updateHealthCard(context, userId, validatedState.toDomain())
             viewModel.saveHealthCardDB(validatedState.toDomain())
           }
         },

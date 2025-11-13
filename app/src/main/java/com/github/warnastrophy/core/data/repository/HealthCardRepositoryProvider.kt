@@ -9,13 +9,12 @@ object HealthCardRepositoryProvider {
 
   const val COLLECTION = "healthCards"
 
-  @Volatile
-  private var _repo: HealthCardRepository? = null
+  @Volatile private var _repo: HealthCardRepository? = null
 
   // Public access point
   var repository: HealthCardRepository
     get() = _repo ?: error("HealthCardRepositoryProvider not initialized")
-    private set(value) {        // <-- IMPORTANT: write into _repo
+    private set(value) { // <-- IMPORTANT: write into _repo
       _repo = value
     }
 
@@ -35,32 +34,26 @@ object HealthCardRepositoryProvider {
   fun useFirestoreEncrypted(context: Context, db: FirebaseFirestore) {
     val fallbackUidProvider = { DeviceIdProvider.get(context) }
 
-    repository = HealthCardRepositoryImpl(
-      auth = null,                  // don’t depend on FirebaseAuth
-      db = db,
-      collectionName = COLLECTION,  // "healthCards"
-      fallbackUidProvider = fallbackUidProvider
-    )
+    repository =
+        HealthCardRepositoryImpl(
+            auth = null, // don’t depend on FirebaseAuth
+            db = db,
+            collectionName = COLLECTION, // "healthCards"
+            fallbackUidProvider = fallbackUidProvider)
   }
 
   /** Hybrid: local DataStore + Firestore */
-  fun useHybridEncrypted(
-    context: Context,
-    db: FirebaseFirestore,
-    auth: FirebaseAuth
-  ) {
+  fun useHybridEncrypted(context: Context, db: FirebaseFirestore, auth: FirebaseAuth) {
     val fallbackUidProvider = { DeviceIdProvider.get(context) }
 
     val remote: HealthCardRepository =
-      HealthCardRepositoryImpl(
-        auth = null,                 // still use device ID, not auth uid
-        db = db,
-        collectionName = COLLECTION,
-        fallbackUidProvider = fallbackUidProvider
-      )
+        HealthCardRepositoryImpl(
+            auth = null, // still use device ID, not auth uid
+            db = db,
+            collectionName = COLLECTION,
+            fallbackUidProvider = fallbackUidProvider)
 
-    val local: HealthCardRepository =
-      LocalHealthCardRepository(context.applicationContext)
+    val local: HealthCardRepository = LocalHealthCardRepository(context.applicationContext)
 
     repository = HybridHealthCardRepository(local, remote, auth)
   }
