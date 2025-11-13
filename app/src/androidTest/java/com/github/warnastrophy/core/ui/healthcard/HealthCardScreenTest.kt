@@ -175,7 +175,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
-    verify { mockViewModel.saveHealthCard(card = any()) }
+    verify { mockViewModel.saveHealthCardDB(card = any()) }
   }
 
   @Test
@@ -199,7 +199,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON).performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
-    verify { mockViewModel.saveHealthCard(card = any()) }
+    verify { mockViewModel.saveHealthCardDB(card = any()) }
   }
 
   @Test
@@ -217,7 +217,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
-    verify { mockViewModel.deleteHealthCard() }
+    verify { mockViewModel.deleteHealthCardDB() }
   }
 
   @Test
