@@ -8,10 +8,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.gson.Gson
-import kotlin.text.get
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 

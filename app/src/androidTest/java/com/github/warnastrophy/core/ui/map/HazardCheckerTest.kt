@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.ui.map
 
 import com.github.warnastrophy.core.data.service.HazardChecker
 import com.github.warnastrophy.core.data.service.ServiceStateManager
-import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.domain.model.Hazard
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull

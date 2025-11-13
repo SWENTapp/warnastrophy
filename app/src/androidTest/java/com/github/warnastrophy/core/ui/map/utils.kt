@@ -2,18 +2,18 @@ package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
-import com.github.warnastrophy.core.model.AppPermissions
-import com.github.warnastrophy.core.model.ErrorHandler
-import com.github.warnastrophy.core.model.FetcherState
-import com.github.warnastrophy.core.model.GpsPositionState
-import com.github.warnastrophy.core.model.GpsResult
-import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.model.Location
-import com.github.warnastrophy.core.model.PermissionManager
-import com.github.warnastrophy.core.model.PermissionManagerInterface
-import com.github.warnastrophy.core.model.PermissionResult
-import com.github.warnastrophy.core.model.PositionService
+import com.github.warnastrophy.core.domain.model.FetcherState
+import com.github.warnastrophy.core.domain.model.GpsPositionState
+import com.github.warnastrophy.core.domain.model.GpsResult
+import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.Location
+import com.github.warnastrophy.core.domain.model.PositionService
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionManager
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -100,8 +100,12 @@ class GpsServiceMock(initial: LatLng = pos) : PositionService {
 }
 
 class HazardsRepositoryMock(private val hazards: List<Hazard>) : HazardsDataSource {
-  override suspend fun getAreaHazards(geometry: String, days: String): List<Hazard> {
-    return hazards
+  override suspend fun getPartialAreaHazards(geometry: String, days: String): List<Hazard> {
+    return hazards.map { it.copy(articleUrl = null, bbox = null, affectedZone = null) }
+  }
+
+  override suspend fun completeParsingOf(hazard: Hazard): Hazard? {
+    return hazards.find { it.id == hazard.id }
   }
 }
 
