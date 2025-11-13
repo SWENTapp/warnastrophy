@@ -10,7 +10,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 object AppConfig {
   /** Fetch delay for periodic data updates (from GDACS API). */
-  val gdacsFetchDelay = 1.minutes
+  val gdacsFetchDelay = 10.minutes
   /** Throttle delay between successive API requests to avoid rate limiting. */
   val gdacsThrottleDelay = 1.seconds
   val defaultPosition: LatLng = LatLng(0.0, 0.0) // Somewhere
