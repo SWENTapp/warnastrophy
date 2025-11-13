@@ -7,7 +7,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.rule.GrantPermissionRule
-import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapScreen
@@ -22,7 +21,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -124,12 +122,5 @@ class HazardPolygonTest : BaseAndroidComposeTest() {
 
     composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).isDisplayed()
     assert(!hazardService.fetcherState.value.hazards.first().affectedZone?.isEmpty!!)
-  }
-
-  @Test
-  fun testPolygonAreFetched() = runBlocking {
-    hazardService.fetchHazards(HazardRepositoryProvider.WORLD_POLYGON)
-    val hazards = hazardService.fetcherState.value.hazards
-    if (!hazards.isEmpty()) {}
   }
 }
