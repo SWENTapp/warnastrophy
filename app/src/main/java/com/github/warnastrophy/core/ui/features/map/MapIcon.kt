@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -91,13 +92,13 @@ fun HazardMarker(
   val markerLocation =
       hazard.centroid?.centroid?.let { point -> Location(point.y, point.x) } ?: Location(0.0, 0.0)
 
-  val centroidLatLngs: List<Location>? =
+  val affectedZone: List<Location>? =
       hazard.affectedZone?.let { nonNullGeometry ->
         // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
         GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
       }
 
-  centroidLatLngs?.let { locations ->
+  affectedZone?.let { locations ->
     if (locations.size > 1) {
       val polygonCoords = locations.map { location -> Location.toLatLng(location) }
 
@@ -163,6 +164,6 @@ fun PolygonWrapper(polygonCoords: List<LatLng>) {
   Polygon(
       points = polygonCoords,
       strokeWidth = 2f,
-      strokeColor = Color.Red,
-      fillColor = Color.Red.copy(alpha = 0.18f))
+      strokeColor = MaterialTheme.colorScheme.error,
+      fillColor = MaterialTheme.colorScheme.error.copy(alpha = 0.18f))
 }
