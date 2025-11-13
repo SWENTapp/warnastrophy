@@ -30,18 +30,6 @@ object HealthCardRepositoryProvider {
     repository = LocalHealthCardRepository(context.applicationContext)
   }
 
-  /** Only Firestore (no hybrid), using device ID as UID */
-  fun useFirestoreEncrypted(context: Context, db: FirebaseFirestore) {
-    val fallbackUidProvider = { DeviceIdProvider.get(context) }
-
-    repository =
-        HealthCardRepositoryImpl(
-            auth = null,
-            db = db,
-            collectionName = COLLECTION,
-            fallbackUidProvider = fallbackUidProvider)
-  }
-
   /** Hybrid: local DataStore + Firestore */
   fun useHybridEncrypted(context: Context, db: FirebaseFirestore, auth: FirebaseAuth) {
     val fallbackUidProvider = { DeviceIdProvider.get(context) }
