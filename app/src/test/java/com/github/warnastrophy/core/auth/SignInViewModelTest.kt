@@ -12,11 +12,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertNull
-import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -24,11 +19,17 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SignInViewModelTest {
+
   private lateinit var repository: AuthRepository
   private lateinit var viewModel: SignInViewModel
   private lateinit var context: Context
@@ -65,10 +66,9 @@ class SignInViewModelTest {
 
     coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
         mockResponse
-
     coEvery { repository.signIn(any(), AuthProvider.GOOGLE) } returns Result.success(mockUser)
 
-    viewModel.signInWithGoogle(context, credentialManager, "test-server-id")
+    viewModel.signInWithGoogle(context, credentialManager, "test-client-id")
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
@@ -88,7 +88,7 @@ class SignInViewModelTest {
     coEvery { repository.signIn(any(), AuthProvider.GOOGLE) } returns
         Result.failure(Exception("Auth failed"))
 
-    viewModel.signInWithGoogle(context, credentialManager, "test-server-id")
+    viewModel.signInWithGoogle(context, credentialManager, "test-client-id")
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
@@ -103,7 +103,7 @@ class SignInViewModelTest {
     coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } throws
         GetCredentialCancellationException("Cancelled")
 
-    viewModel.signInWithGoogle(context, credentialManager, "test-server-id")
+    viewModel.signInWithGoogle(context, credentialManager, "test-client-id")
     testDispatcher.scheduler.advanceUntilIdle()
 
     val state = viewModel.uiState.value
@@ -135,7 +135,7 @@ class SignInViewModelTest {
     val mockCredential: Credential = mockk()
 
     coEvery { repository.signIn(mockCredential, AuthProvider.GITHUB) } returns
-        Result.failure(Exception("Github auth failed"))
+        Result.failure(Exception("GitHub auth failed"))
 
     viewModel.signInWithGithub(mockCredential)
     testDispatcher.scheduler.advanceUntilIdle()
