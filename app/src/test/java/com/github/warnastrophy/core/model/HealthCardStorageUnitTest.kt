@@ -8,6 +8,7 @@ import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
 import com.github.warnastrophy.core.data.local.healthCardDataStore
+import com.github.warnastrophy.core.domain.model.HealthCard
 import junit.framework.TestCase
 import kotlinx.coroutines.test.runTest
 import org.junit.Before

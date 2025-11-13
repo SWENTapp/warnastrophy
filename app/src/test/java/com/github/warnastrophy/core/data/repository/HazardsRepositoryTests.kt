@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.domain.model.Hazard
 import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -20,18 +20,38 @@ class HazardsRepositoryIntegrationTest {
   }
 
   @Test
-  fun `getAreaHazards with world polygon returns non empty list`() = runBlocking {
+  fun `getPartialHazards with world polygon returns a non empty list with incomplete hazards`() =
+      runBlocking {
+        val repo = HazardsRepository()
+        val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
+        val hazards: List<Hazard> = repo.getPartialAreaHazards(locationPolygon, days = "3")
+        assertTrue(hazards.isNotEmpty())
+        val hasIncompleteHazard =
+            hazards.all { hazard ->
+              hazard.articleUrl == null && hazard.affectedZone == null && hazard.bbox == null
+            }
+
+        assertTrue(hasIncompleteHazard)
+      }
+
+  @Test
+  fun `completeParsingOf completes hazards with full data`() = runBlocking {
     val repo = HazardsRepository()
     val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
-    // "POLYGON((-124.848974 49.384358,-124.848974 24.396308,-66.93457 24.396308," +
-    //  "-66.93457 49.384358,-124.848974 49.384358))"
-    // Polygone simplifié des USA (format WKT ou GeoJSON selon l'API attendue)
-    val hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "3")
-    assertTrue(hazards.isNotEmpty())
+    val partialHazards: List<Hazard> = repo.getPartialAreaHazards(locationPolygon, days = "3")
+    val incompleteHazard = partialHazards.first()
+    assertNull(incompleteHazard.articleUrl)
+    assertNull(incompleteHazard.affectedZone)
+    assertNull(incompleteHazard.bbox)
+
+    val completedHazard = repo.completeParsingOf(incompleteHazard)!!
+    assertNotNull(completedHazard.affectedZone)
+    assertNotNull(completedHazard.bbox)
+    // articleUrl may be null depending on the hazard
   }
 
   @Test
-  fun `parseHazard retourne deux JSON hazards`() {
+  fun `partialParseHazard parses correctly`() {
     // val testLogger = TestLogger()
     val repo = spyk(HazardsRepository())
 
@@ -130,9 +150,10 @@ class HazardsRepositoryIntegrationTest {
                   }
                 }
         """)
-
     val method =
-        HazardsRepository::class.java.getDeclaredMethod("parseHazard", JSONObject::class.java)
+        HazardsRepository::class
+            .java
+            .getDeclaredMethod("parsePartialHazard", JSONObject::class.java)
     method.isAccessible = true
 
     val hazard1 = method.invoke(repo, hazardJson1) as Hazard
@@ -143,19 +164,19 @@ class HazardsRepositoryIntegrationTest {
     assertEquals("Mexico", hazard1.country)
     assertEquals(4.6, hazard1.severity!!, 0.001)
 
-    assertNotNull(hazard1.affectedZone)
     assertNotNull(hazard1.description)
-    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
-    assertNotNull(hazard1.bbox)
+    assertNull(hazard1.affectedZone)
+    assertNull(hazard1.articleUrl)
+    assertNull(hazard1.bbox)
 
     assertEquals(1001216, hazard2.id)
     assertEquals("TC", hazard2.type)
     assertEquals("Bermuda, Bahamas, Cuba", hazard2.country)
     assertEquals(157.4064, hazard2.severity!!, 0.001)
 
-    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
-    assertNotNull(hazard2.affectedZone)
     assertNotNull(hazard2.description)
-    assertNotNull(hazard2.bbox)
+    assertNull(hazard2.articleUrl)
+    assertNull(hazard2.affectedZone)
+    assertNull(hazard2.bbox)
   }
 }

@@ -22,6 +22,7 @@ import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.defaultPosition
 import com.google.android.gms.maps.MapsInitializer
 import org.junit.After
@@ -50,7 +51,6 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     permissionManager = MockPermissionManager()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
-
     viewModel = MapViewModel(gpsService, hazardService, permissionManager)
   }
 
@@ -60,7 +60,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
 
     // Clear shared preferences
     val ctx = ApplicationProvider.getApplicationContext<Context>()
-    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    val prefs = ctx.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
     prefs.edit().clear().apply()
 
     // Unregister idling resources

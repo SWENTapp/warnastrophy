@@ -1,9 +1,9 @@
 package com.github.warnastrophy.core.ui.map
 
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
-import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.model.HazardsService
-import com.github.warnastrophy.core.model.PositionService
+import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.domain.model.HazardsService
+import com.github.warnastrophy.core.domain.model.PositionService
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking

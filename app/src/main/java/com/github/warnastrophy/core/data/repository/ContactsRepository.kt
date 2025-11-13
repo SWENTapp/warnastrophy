@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.domain.model.Contact
 
 interface ContactsRepository {
   /**

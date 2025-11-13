@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.util.formatDate
 
 object LatestNewsTestTags {
@@ -75,10 +74,9 @@ object LatestNewsCardColors {
 @Composable
 fun LatestNewsCard(hazardsService: HazardsDataService) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
-  val hazards = fetcherState.value.hazards
-  var currentIndex by remember { mutableStateOf(0) }
+  val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
+  var currentIndex by remember { mutableIntStateOf(0) }
   val context = LocalContext.current
-  Log.d("LatestNewsCard", "curr idnex : $currentIndex, ${hazards.size}")
 
   val currentHazard =
       if (hazards.isEmpty()) {
