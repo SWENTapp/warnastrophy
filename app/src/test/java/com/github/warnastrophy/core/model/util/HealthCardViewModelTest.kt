@@ -5,6 +5,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
+import com.github.warnastrophy.core.data.repository.HealthCardRepository
 import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.features.health.HealthCardUiState
 import com.github.warnastrophy.core.ui.features.health.HealthCardViewModel
@@ -36,6 +37,7 @@ class HealthCardViewModelTest {
 
   private lateinit var viewModel: HealthCardViewModel
   private lateinit var mockContext: Context
+  private lateinit var mockRepo: HealthCardRepository
 
   private val testUserId = "test_user_123"
   private val testHealthCard =
@@ -58,7 +60,8 @@ class HealthCardViewModelTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    viewModel = HealthCardViewModel()
+    mockRepo = mockk(relaxed = true)
+    viewModel = HealthCardViewModel(repo = mockRepo, dispatcher = testDispatcher)
     mockContext = mockk(relaxed = true)
     mockkObject(HealthCardStorage)
   }
