@@ -49,37 +49,30 @@ class EndToEndM2Test : EndToEndUtils() {
    */
   @Test
   fun create_and_update_health_card_flow() {
-    // 1. Check if in Dashboard screen and set content
     setContent()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Dashboard", ignoreCase = true)
 
-    // 2. Click on Health Card widget
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).performClick()
 
-    // 3. Fill Health card and save
     createHealthCard(fullName = "John Doe", allergies = "Peanuts")
 
-    // 4. Go to Profile
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Profile", ignoreCase = true)
 
-    // 5. Click on Health Card button from Profile screen
     composeTestRule.onNodeWithTag(NavigationTestTags.HEALTH_CARD).performClick()
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Emergency Card", ignoreCase = true)
 
-    // 6. Update Health Card content and save
     editHealthCard(fullName = "Johnathan Smith", allergies = "Peanuts, Shellfish")
 
     composeTestRule.waitForIdle()
 
-    // 7. Delete Health Card
     deleteHealthCard()
   }
 }
