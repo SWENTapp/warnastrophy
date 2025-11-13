@@ -25,8 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.github.warnastrophy.core.domain.model.GpsPositionState
-import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.data.permissions.PermissionResult
+import com.github.warnastrophy.core.data.service.GpsPositionState
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags

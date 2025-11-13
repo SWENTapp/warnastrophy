@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.Hazard
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.formatDate
 
 object LatestNewsTestTags {

@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.warnastrophy.core.data.local.StorageException
-import com.github.warnastrophy.core.domain.model.Contact
+import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.gson.Gson
 import java.util.UUID

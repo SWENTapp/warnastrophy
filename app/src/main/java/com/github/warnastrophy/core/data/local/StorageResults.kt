@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.local
 
-import com.github.warnastrophy.core.domain.model.HealthCard
+import com.github.warnastrophy.core.model.HealthCard
 
 /**
  * Represents the result of a storage operation.

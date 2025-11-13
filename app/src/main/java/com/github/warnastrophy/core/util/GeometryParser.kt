@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.util
 
-import com.github.warnastrophy.core.domain.model.Location
+import com.github.warnastrophy.core.model.Location
 import java.text.ParseException
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Geometry
