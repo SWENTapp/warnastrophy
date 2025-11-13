@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.credentials.CredentialManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -19,6 +20,7 @@ import com.github.warnastrophy.core.domain.model.GpsServiceFactory
 import com.github.warnastrophy.core.domain.model.HazardsServiceFactory
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreen
@@ -34,9 +36,12 @@ import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
+import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 
 /** Object containing test tags for the WarnastrophyApp. */
 object WarnastrophyAppTestTags {
@@ -46,6 +51,12 @@ object WarnastrophyAppTestTags {
 @Composable
 fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
   val context = LocalContext.current
+
+  if (FirebaseApp.getApps(context).isEmpty()) {
+    FirebaseApp.initializeApp(context)
+  }
+
+  val credentialManager = CredentialManager.create(context)
 
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
@@ -64,12 +75,16 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
+        SignIn.route -> SignIn
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
         else -> Dashboard
       }
 
-  val startDestination = Dashboard.route
+  // val startDestination = Dashboard.route
+  val startDestination =
+      if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
+
   val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
   val errorHandler = ErrorHandler()
@@ -108,6 +123,11 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
+              composable(SignIn.route) {
+                SignInScreen(
+                    credentialManager = credentialManager,
+                    onSignedIn = { navigationActions.navigateTo(Dashboard) })
+              }
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,

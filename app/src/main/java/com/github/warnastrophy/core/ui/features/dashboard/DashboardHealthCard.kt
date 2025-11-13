@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Context
 import androidx.compose.foundation.clickable
@@ -31,8 +31,6 @@ import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardUiState
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel
 
 /** Object holding test tag constants for the Health Card UI. */
 object DashboardHealthCardTestTags {

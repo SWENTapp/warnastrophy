@@ -7,11 +7,14 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.github.warnastrophy.core.ui.features.auth.SignInViewModel
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -38,7 +41,13 @@ class SignInViewModelTest {
 
   @Before
   fun setup() {
+    mockkStatic(FirebaseApp::class)
+    val mockFirebaseApp: FirebaseApp = mockk(relaxed = true)
+    every { FirebaseApp.getInstance() } returns mockFirebaseApp
+    every { FirebaseApp.getApps(any()) } returns listOf(mockFirebaseApp)
+
     Dispatchers.setMain(testDispatcher)
+
     repository = mockk()
     context = mockk(relaxed = true)
     credentialManager = mockk()
@@ -48,6 +57,7 @@ class SignInViewModelTest {
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    unmockkStatic(FirebaseApp::class)
     unmockkAll()
   }
 
@@ -60,12 +70,13 @@ class SignInViewModelTest {
 
   @Test
   fun `signInWithGoogle success updates state correctly`() = runTest {
-    val mockUser: FirebaseUser = mockk()
-    val mockCredential: Credential = mockk()
+    val mockUser: FirebaseUser = mockk(relaxed = true)
+    val mockCredential: Credential = mockk(relaxed = true)
     val mockResponse: GetCredentialResponse = mockk { every { credential } returns mockCredential }
 
     coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
         mockResponse
+
     coEvery { repository.signIn(any(), AuthProvider.GOOGLE) } returns Result.success(mockUser)
 
     viewModel.signInWithGoogle(context, credentialManager, "test-client-id")
@@ -80,11 +91,12 @@ class SignInViewModelTest {
 
   @Test
   fun `signInWithGoogle failure updates state with error`() = runTest {
-    val mockCredential: Credential = mockk()
+    val mockCredential: Credential = mockk(relaxed = true)
     val mockResponse: GetCredentialResponse = mockk { every { credential } returns mockCredential }
 
     coEvery { credentialManager.getCredential(any<Context>(), any<GetCredentialRequest>()) } returns
         mockResponse
+
     coEvery { repository.signIn(any(), AuthProvider.GOOGLE) } returns
         Result.failure(Exception("Auth failed"))
 
@@ -114,8 +126,8 @@ class SignInViewModelTest {
 
   @Test
   fun `signInWithGithub success updates state correctly`() = runTest {
-    val mockUser: FirebaseUser = mockk()
-    val mockCredential: Credential = mockk()
+    val mockUser: FirebaseUser = mockk(relaxed = true)
+    val mockCredential: Credential = mockk(relaxed = true)
 
     coEvery { repository.signIn(mockCredential, AuthProvider.GITHUB) } returns
         Result.success(mockUser)
@@ -132,7 +144,7 @@ class SignInViewModelTest {
 
   @Test
   fun `signInWithGithub failure updates state with error`() = runTest {
-    val mockCredential: Credential = mockk()
+    val mockCredential: Credential = mockk(relaxed = true)
 
     coEvery { repository.signIn(mockCredential, AuthProvider.GITHUB) } returns
         Result.failure(Exception("GitHub auth failed"))
