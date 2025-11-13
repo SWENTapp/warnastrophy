@@ -1,9 +1,10 @@
 package com.github.warnastrophy.core.util
 
-import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.domain.model.Location
 import java.text.ParseException
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.geom.MultiPolygon
 import org.locationtech.jts.geom.Point
 import org.locationtech.jts.geom.Polygon
 import org.locationtech.jts.io.geojson.GeoJsonReader
@@ -53,6 +54,15 @@ object GeometryParser {
           "Polygon" -> {
             // A Polygon's boundary is the exterior ring. We only convert the exterior.
             (jtsGeometry as Polygon).exteriorRing.coordinates
+          }
+          "MultiPolygon" -> {
+            // Fallback: use the exterior ring of the first polygon in the MultiPolygon.
+            val mp = jtsGeometry as MultiPolygon
+            if (mp.numGeometries == 0) {
+              return null
+            }
+            val firstPoly = mp.getGeometryN(0) as? Polygon
+            firstPoly?.exteriorRing?.coordinates ?: return null
           }
           else -> {
             System.err.println(

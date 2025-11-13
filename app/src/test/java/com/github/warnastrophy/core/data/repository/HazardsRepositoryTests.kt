@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.domain.model.Hazard
 import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -14,23 +14,43 @@ import org.robolectric.shadows.ShadowLog
 @RunWith(RobolectricTestRunner::class)
 class HazardsRepositoryIntegrationTest {
 
-  private val hazards = mutableListOf<Hazard>()
+  private val partialHazards = mutableListOf<Hazard>()
+  private val repo = HazardsRepository()
 
   @Before
   fun setUp() {
     ShadowLog.stream = System.out
-    val repo = HazardsRepository()
     val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
-    hazards += runBlocking { repo.getAreaHazards(locationPolygon, days = "3") }
+    partialHazards += runBlocking { repo.getPartialAreaHazards(locationPolygon, days = "3") }
   }
 
   @Test
-  fun `getAreaHazards with world polygon returns non empty list`() = runBlocking {
-    assertTrue(hazards.isNotEmpty())
+  fun `getPartialHazards with world polygon returns a non empty list with incomplete hazards`() =
+      runBlocking {
+        assertTrue(partialHazards.isNotEmpty())
+        val hasIncompleteHazard =
+            partialHazards.all { hazard ->
+              hazard.articleUrl == null && hazard.affectedZone == null && hazard.bbox == null
+            }
+
+        assertTrue(hasIncompleteHazard)
+      }
+
+  @Test
+  fun `completeParsingOf completes hazards with full data`() = runBlocking {
+    val incompleteHazard = partialHazards.first()
+    assertNull(incompleteHazard.articleUrl)
+    assertNull(incompleteHazard.affectedZone)
+    assertNull(incompleteHazard.bbox)
+
+    val completedHazard = repo.completeParsingOf(incompleteHazard)!!
+    assertNotNull(completedHazard.affectedZone)
+    assertNotNull(completedHazard.bbox)
+    // articleUrl may be null depending on the hazard
   }
 
   @Test
-  fun `parseHazard retourne deux JSON hazards`() {
+  fun `partialParseHazard parses correctly`() {
     // val testLogger = TestLogger()
     val repo = spyk(HazardsRepository())
 
@@ -131,7 +151,9 @@ class HazardsRepositoryIntegrationTest {
         """)
 
     val method =
-        HazardsRepository::class.java.getDeclaredMethod("parseHazard", JSONObject::class.java)
+        HazardsRepository::class
+            .java
+            .getDeclaredMethod("parsePartialHazard", JSONObject::class.java)
     method.isAccessible = true
 
     val hazard1 = method.invoke(repo, hazardJson1) as Hazard
@@ -144,8 +166,9 @@ class HazardsRepositoryIntegrationTest {
 
     assertNotNull(hazard1.affectedZone)
     assertNotNull(hazard1.description)
-    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
-    assertNotNull(hazard1.bbox)
+    assertNull(hazard1.affectedZone)
+    assertNull(hazard1.articleUrl)
+    assertNull(hazard1.bbox)
 
     assertEquals(1001216, hazard2.id)
     assertEquals("TC", hazard2.type)
@@ -155,14 +178,8 @@ class HazardsRepositoryIntegrationTest {
     assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
     assertNotNull(hazard2.affectedZone)
     assertNotNull(hazard2.description)
-    assertNotNull(hazard2.bbox)
-  }
-
-  @Test
-  fun testPolygonAreFetched() = runBlocking {
-    if (!hazards.isEmpty()) {
-      assert(hazards.all { it.affectedZone != null })
-      assert(hazards.all { it.bbox != null })
-    }
+    assertNull(hazard2.articleUrl)
+    assertNull(hazard2.affectedZone)
+    assertNull(hazard2.bbox)
   }
 }

@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
-import com.github.warnastrophy.core.data.repository.usecase.RefreshHazardsIfMovedUseCase
-import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.domain.model.Location
+import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMovedUseCase
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before

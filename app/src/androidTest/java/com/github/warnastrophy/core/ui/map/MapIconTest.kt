@@ -9,7 +9,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.ui.features.map.HazardMarker
 import com.github.warnastrophy.core.ui.features.map.MapIcon
 import com.github.warnastrophy.core.ui.features.map.Tint

@@ -1,11 +1,12 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.domain.model
 
 import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
-import com.github.warnastrophy.core.util.AppConfig.fetchDelayMs
+import kotlin.time.TimeSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,15 +69,28 @@ class HazardsService(
         val wktPolygon = Location.locationsToWktPolygon(polygon)
            */
         try {
-          val hazards = fetchHazardsForLocation(HazardRepositoryProvider.locationPolygon)
-          _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
+          val lastFetch = TimeSource.Monotonic.markNow()
+          _fetcherState.value =
+              _fetcherState.value.copy(
+                  hazards = fetchHazardsForLocation(HazardRepositoryProvider.locationPolygon),
+                  isLoading = false)
+
+          // Fetch complete data sequentially for each hazard to avoid making the UI wait
+          val currentHazards = _fetcherState.value.hazards.toMutableList()
+          currentHazards.forEachIndexed { index, hazard ->
+            repository.completeParsingOf(hazard)?.let {
+              // Mutate the list in place
+              currentHazards[index] = it // Assign the completed hazard back to the list
+              _fetcherState.value = _fetcherState.value.copy(hazards = currentHazards.toList())
+            }
+          }
+          Log.i("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
+          delay(AppConfig.gdacsFetchDelay - lastFetch.elapsedNow())
         } catch (e: Exception) {
           Log.e("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
         }
-        Log.d("HazardsService", "Fetched hazards: ${_fetcherState.value.hazards}")
-        delay(fetchDelayMs)
       }
     }
   }
@@ -89,7 +103,7 @@ class HazardsService(
    * @return A list of hazards found in the specified area and time frame.
    */
   override suspend fun fetchHazardsForLocation(geometry: String, days: String): List<Hazard> {
-    return repository.getAreaHazards(geometry, days)
+    return repository.getPartialAreaHazards(geometry, days)
   }
 
   override fun fetchHazardsAroundUser() {
@@ -107,7 +121,7 @@ class HazardsService(
  * status, and any error messages.
  *
  * @property hazards List of currently fetched hazards.
- * @property isLoading Indicates whether a fetch operation is in progress.
+ * @property isLoading Indicates whether a fetch using `/eventsbyarea` endpoint is in progress.
  * @property errorMsg Optional error message if an error occurred during fetching.
  */
 data class FetcherState(

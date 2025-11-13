@@ -1,8 +1,9 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.domain.model
 
 import android.annotation.SuppressLint
 import android.os.Looper
 import android.util.Log
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.*

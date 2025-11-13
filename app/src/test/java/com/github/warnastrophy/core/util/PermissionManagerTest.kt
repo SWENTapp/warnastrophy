@@ -6,9 +6,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import com.github.warnastrophy.core.model.AppPermissions
-import com.github.warnastrophy.core.model.PermissionManager
-import com.github.warnastrophy.core.model.PermissionResult
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionManager
+import com.github.warnastrophy.core.permissions.PermissionResult
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -31,7 +31,7 @@ class PermissionManagerTest {
   fun setup() {
     activity = Robolectric.buildActivity(Activity::class.java).get()
     context = activity.applicationContext
-    prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    prefs = context.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
     prefs.edit().clear().apply() // use apply() for async operation in tests
     // Initialize the manager with the application context, as designed
     manager = PermissionManager(context)
