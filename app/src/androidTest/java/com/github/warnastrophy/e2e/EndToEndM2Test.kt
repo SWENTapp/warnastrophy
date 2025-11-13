@@ -22,11 +22,7 @@ class EndToEndM2Test : EndToEndUtils() {
     ContactRepositoryProvider.init(context)
     repository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
-    runBlocking {
-      runCatching {
-        HealthCardRepositoryProvider.repository.deleteMyHealthCard()
-      }
-    }
+    runBlocking { runCatching { HealthCardRepositoryProvider.repository.deleteMyHealthCard() } }
   }
 
   @Test
