@@ -8,6 +8,7 @@ package com.example.dangermode.service
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
 import com.github.warnastrophy.core.util.AppConfig.windowMillisMotion
+import kotlin.text.compareTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -84,8 +85,9 @@ class MouvementService(private val repository: MouvementSensorRepository) {
    * @return an immutable snapshot [List] of recent [MotionData].
    */
   fun getRecentSamples(): List<MotionData> {
-    samples.removeIf { it.timestamp < System.currentTimeMillis() - windowMillisMotion }
-    return samples.toList()
+    val data = _recentData.value.toMutableList()
+    data.removeIf { it.timestamp < System.currentTimeMillis() - windowMillisMotion }
+    return data.toList()
   }
 
   /**
