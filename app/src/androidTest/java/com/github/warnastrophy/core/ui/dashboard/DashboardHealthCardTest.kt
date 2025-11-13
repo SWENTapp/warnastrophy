@@ -8,7 +8,7 @@ import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel
 import com.github.warnastrophy.core.ui.theme.MainAppTheme

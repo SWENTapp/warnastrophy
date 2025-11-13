@@ -25,4 +25,6 @@ object AppConfig {
     const val EMM_NEWS_BY_KEY = "https://www.gdacs.org/gdacsapi/api/Emm/getemmnewsbykey"
     const val GET_GEOMETRY = "https://www.gdacs.org/gdacsapi/api/polygons/getgeometry"
   }
+
+  const val PREF_FILE_NAME = "warnastrophy_app_prefs"
 }

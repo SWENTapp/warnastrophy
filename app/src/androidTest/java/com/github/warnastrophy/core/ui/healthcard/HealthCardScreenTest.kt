@@ -10,7 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardTestTags

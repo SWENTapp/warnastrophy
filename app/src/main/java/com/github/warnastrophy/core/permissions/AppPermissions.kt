@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.permissions
 
 import android.Manifest
 import android.os.Build
@@ -10,8 +10,12 @@ import androidx.annotation.ChecksSdkIntAtLeast
  * The constructor uses 'vararg' to allow passing permissions as a comma-separated list. The
  * permissions are stored as an Array<String> to avoid later conversions, as Android's permission
  * APIs expect an array.
+ *
+ * @property permissions The array of Android permission strings.
+ * @property key A stable, non-changing string identifier for this permission set, used for storage.
+ *   This value MUST NOT be changed once defined.
  */
-sealed class AppPermissions(vararg permissionsWithNulls: String?) {
+sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String?) {
   // Filter out nulls from the incoming vararg and convert to an array.
   val permissions: Array<String> = permissionsWithNulls.filterNotNull().toTypedArray()
 
@@ -23,6 +27,7 @@ sealed class AppPermissions(vararg permissionsWithNulls: String?) {
    */
   object LocationFine :
       AppPermissions(
+          key = "location_fine",
           // The common permission required for all versions
           Manifest.permission.ACCESS_FINE_LOCATION,
 
@@ -35,7 +40,8 @@ sealed class AppPermissions(vararg permissionsWithNulls: String?) {
           })
 
   /** Permissions required for accessing the user's APPROXIMATE (coarse) location only. */
-  object LocationCoarse : AppPermissions(Manifest.permission.ACCESS_COARSE_LOCATION)
+  object LocationCoarse :
+      AppPermissions(key = "location_coarse", Manifest.permission.ACCESS_COARSE_LOCATION)
 
   companion object {
     /** A reusable check for SDK versions, annotated to help the compiler with smart casting. */

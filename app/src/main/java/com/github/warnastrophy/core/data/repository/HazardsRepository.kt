@@ -1,8 +1,7 @@
 package com.github.warnastrophy.core.data.repository
 
 import android.util.Log
-import com.github.warnastrophy.core.model.ErrorHandler
-import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.Endpoints
 import com.github.warnastrophy.core.util.AppConfig.HTTP_TIMEOUT
@@ -54,9 +53,7 @@ interface HazardsDataSource {
  * This repository handles the multi-step process of network communication, GeoJSON parsing, and
  * conversion to JTS Geometry objects.
  */
-class HazardsRepository(
-    val errorHandler: ErrorHandler = ErrorHandler(),
-) : HazardsDataSource {
+class HazardsRepository() : HazardsDataSource {
 
   private val VALID_REPONSE_CODE_RANGE = 200..299
   private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay

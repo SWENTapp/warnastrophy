@@ -1,6 +1,7 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.domain.model
 
 import com.google.android.gms.maps.model.LatLng
+import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -139,9 +140,7 @@ data class Location(val latitude: Double, val longitude: Double, val name: Strin
       val impairs = points.filterIndexed { index, _ -> index % 2 == 1 }
       val coords =
           (pairs + impairs.reversed() + pairs[0]).joinToString(",") {
-            java.util.Locale.US.run {
-              String.format(this, "%.2f%%20%.2f", it.longitude, it.latitude)
-            }
+            Locale.US.run { String.format(this, "%.2f%%20%.2f", it.longitude, it.latitude) }
           }
       return "POLYGON(($coords))"
     }
