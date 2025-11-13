@@ -118,14 +118,12 @@ fun SignInScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Uncomment the following lines once GitHub OAuth flow is implemented
-                /*
-                 * GithubSignInButton(
-                 *   onSignInClick = {
-                 *       authViewModel.startGithubSignIn(context)
-                 *   }
-                 * )
-                 */
+                GitHubSignInButton(
+                    onSignInClick = {
+                      Toast.makeText(
+                              context, "This feature is not implemented yet!", Toast.LENGTH_LONG)
+                          .show()
+                    })
               }
             }
       })
@@ -166,31 +164,40 @@ fun GoogleSignInButton(onSignInClick: () -> Unit) {
             }
       }
 }
-// Similarly, uncomment those lines when the Github OAuth flow is implemented
-/*@Composable
+
+/**
+ * Composable function that displays the GitHub sign-in button.
+ *
+ * This button is intended to initiate the GitHub sign-in process when clicked. Currently, it shows
+ * a placeholder toast message indicating that the feature is not yet implemented.
+ *
+ * @param onSignInClick The callback to invoke when the button is clicked.
+ */
+@Composable
 fun GitHubSignInButton(onSignInClick: () -> Unit) {
-    Button(
-        onClick = onSignInClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF24292e)),
-        shape = RoundedCornerShape(50),
-        modifier =
-        Modifier.padding(8.dp)
-            .height(48.dp)
-            .testTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON)) {
+  Button(
+      onClick = onSignInClick,
+      colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+      shape = RoundedCornerShape(50),
+      border = BorderStroke(1.dp, Color.LightGray),
+      modifier =
+          Modifier.padding(8.dp)
+              .height(48.dp)
+              .testTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()) {
-            Image(
-                painter = painterResource(id = R.drawable.github_logo),
-                contentDescription = "GitHub Logo",
-                modifier = Modifier.size(30.dp).padding(end = 8.dp))
+              Image(
+                  painter = painterResource(id = R.drawable.github_logo),
+                  contentDescription = "GitHub Logo",
+                  modifier = Modifier.size(30.dp).padding(end = 8.dp))
 
-            Text(
-                text = "Sign in with GitHub",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium)
-        }
-    }
-}*/
+              Text(
+                  text = "Sign in with GitHub",
+                  color = Color.Gray,
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Medium)
+            }
+      }
+}
