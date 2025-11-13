@@ -7,13 +7,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.domain.model.FetcherState
 import com.github.warnastrophy.core.domain.model.GpsPositionState
-import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
-import com.github.warnastrophy.core.domain.model.HazardsService
 import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.permissions.AppPermissions
-import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.util.AnimationIdlingResource
@@ -216,9 +213,9 @@ class MapViewModel(
  * @see MapViewModelFactory
  */
 class MapViewModelFactory(
-    private val gpsService: GpsService,
-    private val hazardsService: HazardsService,
-    private val permissionManager: PermissionManager
+    private val gpsService: PositionService,
+    private val hazardsService: HazardsDataService,
+    private val permissionManager: PermissionManagerInterface
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(MapViewModel::class.java)) {

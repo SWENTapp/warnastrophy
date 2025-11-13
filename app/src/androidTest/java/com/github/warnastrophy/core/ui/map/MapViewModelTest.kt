@@ -1,14 +1,19 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
+import kotlin.collections.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -228,5 +233,32 @@ class MapViewModelTest {
         "The OS pop-up should not be displayed", viewModel.uiState.value.isOsRequestInFlight)
     viewModel.onPermissionsRequestStart()
     assertTrue("The OS pop-up should be displayed", viewModel.uiState.value.isOsRequestInFlight)
+  }
+
+  @Test
+  fun location_is_preserved_after_rotation() = runTest {
+    val initialPos = LatLng(48.8566, 2.3522)
+    gpsService.setPosition(position = initialPos)
+
+    val viewModelStore = ViewModelStore()
+    val owner =
+        object : ViewModelStoreOwner {
+          override val viewModelStore: ViewModelStore = viewModelStore
+        }
+
+    val factory = MapViewModelFactory(gpsService, hazardsService, permissionManager)
+
+    // Avant rotation
+    val vmBefore = ViewModelProvider(owner, factory)[MapViewModel::class.java]
+    vmBefore.startLocationUpdate()
+    testDispatcher.scheduler.advanceUntilIdle()
+    val posBefore = vmBefore.uiState.value.positionState.position
+
+    // Après rotation - même ViewModelStore
+    val vmAfter = ViewModelProvider(owner, factory)[MapViewModel::class.java]
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertTrue(vmBefore === vmAfter)
+    assertEquals(posBefore, vmAfter.uiState.value.positionState.position)
   }
 }
