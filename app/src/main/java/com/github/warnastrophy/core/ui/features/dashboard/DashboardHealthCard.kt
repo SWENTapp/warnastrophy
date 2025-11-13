@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,7 +31,9 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
+import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardUiState
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel
 
@@ -77,14 +80,25 @@ fun DashboardHealthCardStateless(
       minHeight = 120.dp,
       maxHeight = 150.dp) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
             verticalArrangement = Arrangement.SpaceBetween) {
-              Text(
-                  text = "Health",
-                  modifier = Modifier.testTag(DashboardHealthCardTestTags.TITLE),
-                  color = DashboardHealthCardColors.textColor,
-                  fontWeight = FontWeight.SemiBold,
-                  fontSize = 16.sp)
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Health",
+                        modifier = Modifier.testTag(DashboardHealthCardTestTags.TITLE),
+                        color = DashboardHealthCardColors.textColor,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp)
+
+                    Box(
+                        modifier =
+                            Modifier.testTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)) {
+                          StandardDashboardButton(label = "Manage", onClick = onHealthCardClick)
+                        }
+                  }
 
               Spacer(modifier = Modifier.height(8.dp))
 

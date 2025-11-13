@@ -50,7 +50,6 @@ object DangerModeTestTags {
   const val MODE_LABEL = "dangerModeCurrentMode"
   const val SENDS_ROW = "dangerModeSendsRow"
   const val COLOR_ROW = "dangerModeColorRow"
-  const val OPEN_BUTTON = "dangerModeOpenBtn"
   const val CAPABILITY_PREFIX = "dangerModeContactButton"
   const val MODE_PREFIX = "dangerModePresetButton"
   const val COLOR_BOX_PREFIX = "dangerModeColorBox"
@@ -194,27 +193,6 @@ fun DangerModeCard(
               }
             }
           }
-      Spacer(Modifier.height(8.dp))
-
-      Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Surface(
-            shape = RoundedCornerShape(40.dp), // TODO: Why 40?
-            color = colorScheme.surfaceVariant,
-            tonalElevation = 0.dp,
-            modifier =
-                Modifier.fillMaxWidth(0.9f).height(36.dp).testTag(DangerModeTestTags.OPEN_BUTTON),
-        ) {
-          Box(
-              modifier = Modifier.width(20.dp).clickable(onClick = onOpenClick),
-              contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Open",
-                    color = colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp)
-              }
-        }
-      }
     }
   }
 }

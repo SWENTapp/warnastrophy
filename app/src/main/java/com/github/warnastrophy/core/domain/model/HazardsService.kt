@@ -53,6 +53,7 @@ class HazardsService(
   /** Initializes the service and starts periodic hazard fetching based on the user's position. */
   init {
     serviceScope.launch {
+      _fetcherState.value = _fetcherState.value.copy(isLoading = true)
       while (isActive) {
         // for now we only use a fixed polygon from the repository provider
         /*
@@ -70,11 +71,13 @@ class HazardsService(
            */
         try {
           val hazards = fetchHazardsForLocation(HazardRepositoryProvider.locationPolygon)
-          _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
+          _fetcherState.value = _fetcherState.value.copy(hazards = hazards, isLoading = false)
         } catch (e: Exception) {
           Log.e("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
+          _fetcherState.value =
+              _fetcherState.value.copy(errorMsg = "Error fetching hazards", isLoading = false)
         }
         Log.d("HazardsService", "Fetched hazards: ${_fetcherState.value.hazards}")
         delay(fetchDelayMs)
