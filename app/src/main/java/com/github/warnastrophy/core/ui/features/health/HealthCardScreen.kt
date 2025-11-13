@@ -35,7 +35,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
@@ -205,13 +205,16 @@ fun HealthCardScreen(
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
+              viewModel.saveHealthCard(context, userId, validatedState.toDomain())
             viewModel.saveHealthCardDB(validatedState.toDomain())
+
           }
         },
         onUpdate = {
           val validatedState = formState.markAllTouched()
           formState = validatedState
           if (validatedState.isValid()) {
+              viewModel.updateHealthCard(context, userId, validatedState.toDomain())
             viewModel.saveHealthCardDB(validatedState.toDomain())
           }
         },

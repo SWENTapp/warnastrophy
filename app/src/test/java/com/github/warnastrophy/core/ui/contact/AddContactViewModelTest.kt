@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.ui.contact
 
 import com.github.warnastrophy.core.data.repository.MockContactRepository
-import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactViewModel
 import junit.framework.TestCase
 import kotlin.time.Duration.Companion.milliseconds

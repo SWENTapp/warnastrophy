@@ -5,7 +5,7 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.repository.MockContactRepository
-import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactViewModel

@@ -1,7 +1,7 @@
-package com.github.warnastrophy.core.data.repository.usecase
+package com.github.warnastrophy.core.domain.usecase
 
-import com.github.warnastrophy.core.model.HazardsDataService
-import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.Location
 
 /**
  * This class contains the logic that controls when to refresh hazard data from the server.
@@ -20,7 +20,7 @@ class RefreshHazardsIfMovedUseCase(
     private val hazardsService: HazardsDataService,
     private val distanceThresholdKm: Double = 5.0,
     private val distanceCalculator: (Location, Location) -> Double = { start, end ->
-      Location.distanceBetween(start, end)
+      Location.Companion.distanceBetween(start, end)
     }
 ) {
   private var lastFetchLocation: Location? = null

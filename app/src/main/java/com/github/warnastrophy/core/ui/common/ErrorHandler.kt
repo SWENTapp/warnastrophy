@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.ui.common
 
 import androidx.lifecycle.ViewModel
 import com.github.warnastrophy.core.ui.navigation.Screen

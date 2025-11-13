@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
@@ -69,6 +70,7 @@ fun DashboardHealthCardStateless(
     isLoading: Boolean = false,
     summaryText: String? = null
 ) {
+
   StandardDashboardCard(
       modifier =
           modifier.testTag(DashboardHealthCardTestTags.CARD).clickable { onHealthCardClick() },
@@ -138,6 +140,9 @@ fun DashboardHealthCardStateful(
 ) {
   val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadHealthCard(context, userId)
+    }
   when (val state = uiState) {
     is DashboardHealthCardUiState.Loading -> {
       DashboardHealthCardStateless(

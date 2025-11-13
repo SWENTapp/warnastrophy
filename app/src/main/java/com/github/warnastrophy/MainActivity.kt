@@ -26,18 +26,15 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     FirebaseApp.initializeApp(this)
+
     val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
     val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-    if (BuildConfig.DEBUG) {
-      auth.useEmulator("10.0.2.2", 9099)
-      db.useEmulator("10.0.2.2", 8080)
-    }
 
-    // Route HealthCards to Firestore + app-layer encryption
+    auth.signOut()  // fine; we use device ID, not auth uid
+
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
-
-    showUI()
-
     ContactRepositoryProvider.init(applicationContext)
+    showUI()
   }
+
 }

@@ -1,37 +1,72 @@
 package com.github.warnastrophy.core.data.repository
 
 import android.content.Context
+import com.github.warnastrophy.core.data.service.DeviceIdProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 object HealthCardRepositoryProvider {
+
   const val COLLECTION = "healthCards"
 
-  @Volatile private var _repo: HealthCardRepository? = null
+  @Volatile
+  private var _repo: HealthCardRepository? = null
 
-  val repository: HealthCardRepository
+  // Public access point
+  var repository: HealthCardRepository
     get() = _repo ?: error("HealthCardRepositoryProvider not initialized")
+    private set(value) {        // <-- IMPORTANT: write into _repo
+      _repo = value
+    }
 
-  /** Default to local encrypted (on-device) if you want */
+  /** Default: local encrypted (DataStore) */
   fun init(context: Context) {
     if (_repo == null) {
       useLocalEncrypted(context)
     }
   }
 
-  /** Keep your existing local-encrypted DataStore option */
+  /** Only local encrypted storage */
   fun useLocalEncrypted(context: Context) {
-    _repo = LocalHealthCardRepository(context.applicationContext)
+    repository = LocalHealthCardRepository(context.applicationContext)
   }
 
-  /** <-- This is the function you asked for */
-  fun useFirestoreEncrypted(db: FirebaseFirestore, auth: FirebaseAuth) {
-    _repo = FirestoreHealthCardRepository(db, auth)
+  /** Only Firestore (no hybrid), using device ID as UID */
+  fun useFirestoreEncrypted(context: Context, db: FirebaseFirestore) {
+    val fallbackUidProvider = { DeviceIdProvider.get(context) }
+
+    repository = HealthCardRepositoryImpl(
+      auth = null,                  // don’t depend on FirebaseAuth
+      db = db,
+      collectionName = COLLECTION,  // "healthCards"
+      fallbackUidProvider = fallbackUidProvider
+    )
   }
 
-  fun useHybridEncrypted(context: Context, db: FirebaseFirestore, auth: FirebaseAuth) {
-    val local = LocalHealthCardRepository(context.applicationContext)
-    val remote = FirestoreHealthCardRepository(db, auth)
-    _repo = HybridHealthCardRepository(local, remote, auth)
+  /** Hybrid: local DataStore + Firestore */
+  fun useHybridEncrypted(
+    context: Context,
+    db: FirebaseFirestore,
+    auth: FirebaseAuth
+  ) {
+    val fallbackUidProvider = { DeviceIdProvider.get(context) }
+
+    val remote: HealthCardRepository =
+      HealthCardRepositoryImpl(
+        auth = null,                 // still use device ID, not auth uid
+        db = db,
+        collectionName = COLLECTION,
+        fallbackUidProvider = fallbackUidProvider
+      )
+
+    val local: HealthCardRepository =
+      LocalHealthCardRepository(context.applicationContext)
+
+    repository = HybridHealthCardRepository(local, remote, auth)
+  }
+
+  /** Optional helper for tests / re-init */
+  fun resetForTests() {
+    _repo = null
   }
 }

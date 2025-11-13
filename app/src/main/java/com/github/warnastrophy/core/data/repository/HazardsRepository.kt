@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.util.GeometryParser
 import java.io.BufferedReader
 import java.io.InputStreamReader

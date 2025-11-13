@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageResult
 import com.github.warnastrophy.core.data.local.healthCardDataStore
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow

@@ -14,4 +14,5 @@ object AppConfig {
   val positionUpdateDelayMs: Long = 10_000L
   val rectangleHazardZone = Pair(20000.0, 20000.0)
   val priorDaysFetch = "4"
+  const val PREF_FILE_NAME = "warnastrophy_app_prefs"
 }

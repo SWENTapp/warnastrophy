@@ -22,14 +22,15 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
-import com.github.warnastrophy.core.model.AppPermissions
-import com.github.warnastrophy.core.model.PermissionResult
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AnimationIdlingResource
+import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.defaultPosition
 import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.CameraPosition
@@ -83,7 +84,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     // Clear shared preferences
     val ctx = ApplicationProvider.getApplicationContext<Context>()
-    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    val prefs = ctx.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
     prefs.edit().clear().apply()
 
     // Unregister idling resources
@@ -130,7 +131,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
   /** Sets shared preferences to simulate different app launch states. */
   private fun setPref(firstLaunchDone: Boolean, askedOnce: Boolean) {
     val ctx = ApplicationProvider.getApplicationContext<Context>()
-    val prefs = ctx.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    val prefs = ctx.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
     prefs
         .edit()
         .putBoolean("first_launch_done", firstLaunchDone)

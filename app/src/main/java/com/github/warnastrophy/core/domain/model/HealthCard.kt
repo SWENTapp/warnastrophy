@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.domain.model
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.PropertyName

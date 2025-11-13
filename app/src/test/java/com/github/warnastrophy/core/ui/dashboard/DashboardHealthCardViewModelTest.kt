@@ -4,7 +4,7 @@ import android.content.Context
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardUiState
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel
 import io.mockk.coEvery

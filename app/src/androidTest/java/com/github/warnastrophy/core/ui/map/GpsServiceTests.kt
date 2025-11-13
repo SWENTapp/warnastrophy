@@ -3,8 +3,8 @@ package com.github.warnastrophy.core.ui.map
 import android.content.Context
 import android.location.Location
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.model.GpsResult
-import com.github.warnastrophy.core.model.GpsService
+import com.github.warnastrophy.core.domain.model.GpsResult
+import com.github.warnastrophy.core.domain.model.GpsService
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -29,7 +29,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.whenever
