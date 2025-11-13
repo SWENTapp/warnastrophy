@@ -86,23 +86,7 @@ class SignInViewModel(
 
         val credential = credentialManager.getCredential(context, signInRequest).credential
 
-        repository
-            .signIn(credential, AuthProvider.GOOGLE)
-            .fold(
-                onSuccess = { user ->
-                  _uiState.update {
-                    it.copy(isLoading = false, user = user, errorMsg = null, signedOut = false)
-                  }
-                },
-                onFailure = { failure ->
-                  _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMsg = failure.localizedMessage ?: "Sign-in failed",
-                        signedOut = true,
-                        user = null)
-                  }
-                })
+        performSignIn(credential, AuthProvider.GOOGLE)
       } catch (e: GetCredentialCancellationException) {
         _uiState.update {
           it.copy(isLoading = false, errorMsg = "Sign-in cancelled", signedOut = true, user = null)
@@ -111,7 +95,7 @@ class SignInViewModel(
         _uiState.update {
           it.copy(
               isLoading = false,
-              errorMsg = "Failed to get credentials: ${e.localizedMessage}",
+              errorMsg = "Failed to get credentials",
               signedOut = true,
               user = null)
         }
@@ -119,7 +103,7 @@ class SignInViewModel(
         _uiState.update {
           it.copy(
               isLoading = false,
-              errorMsg = "Unexpected error: ${e.localizedMessage}",
+              errorMsg = "Unexpected error occurred",
               signedOut = true,
               user = null)
         }
@@ -137,33 +121,40 @@ class SignInViewModel(
 
     viewModelScope.launch(dispatcher) {
       _uiState.update { it.copy(isLoading = true, errorMsg = null) }
+      performSignIn(credential, AuthProvider.GITHUB)
+    }
+  }
 
-      try {
-        repository
-            .signIn(credential, AuthProvider.GITHUB)
-            .fold(
-                onSuccess = { user ->
-                  _uiState.update {
-                    it.copy(isLoading = false, user = user, errorMsg = null, signedOut = false)
-                  }
-                },
-                onFailure = { failure ->
-                  _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMsg = failure.localizedMessage ?: "GitHub sign-in failed",
-                        signedOut = true,
-                        user = null)
-                  }
-                })
-      } catch (e: Exception) {
-        _uiState.update {
-          it.copy(
-              isLoading = false,
-              errorMsg = "Unexpected error: ${e.localizedMessage}",
-              signedOut = true,
-              user = null)
-        }
+  /**
+   * Performs the sign-in operation with the provided credential and authentication provider. This
+   * method should only be called from within a coroutine scope with loading state already set.
+   *
+   * @param credential The credential used for signing in.
+   * @param authProvider The authentication provider (Google or GitHub).
+   */
+  private suspend fun performSignIn(credential: Credential, authProvider: AuthProvider) {
+    try {
+      repository
+          .signIn(credential, authProvider)
+          .fold(
+              onSuccess = { user ->
+                _uiState.update {
+                  it.copy(isLoading = false, user = user, errorMsg = null, signedOut = false)
+                }
+              },
+              onFailure = {
+                _uiState.update {
+                  it.copy(
+                      isLoading = false, errorMsg = "Sign-in failed", signedOut = true, user = null)
+                }
+              })
+    } catch (e: Exception) {
+      _uiState.update {
+        it.copy(
+            isLoading = false,
+            errorMsg = "Unexpected error occurred",
+            signedOut = true,
+            user = null)
       }
     }
   }
@@ -177,11 +168,7 @@ class SignInViewModel(
               onSuccess = {
                 _uiState.update { it.copy(user = null, signedOut = true, errorMsg = null) }
               },
-              onFailure = { failure ->
-                _uiState.update {
-                  it.copy(errorMsg = failure.localizedMessage ?: "Sign-out failed")
-                }
-              })
+              onFailure = { _uiState.update { it.copy(errorMsg = "Sign-out failed") } })
     }
   }
 }
