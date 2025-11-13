@@ -14,6 +14,7 @@ import com.github.warnastrophy.core.model.PermissionManager
 import com.github.warnastrophy.core.model.PermissionManagerInterface
 import com.github.warnastrophy.core.model.PermissionResult
 import com.github.warnastrophy.core.model.PositionService
+import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -122,6 +123,10 @@ class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = p
 
   override fun fetchHazardsAroundUser() {
     fetchCount++
+  }
+
+  suspend fun fetchHazards(geometry: String) {
+    repository.getAreaHazards(geometry, AppConfig.priorDaysFetch)
   }
 
   fun assertFetchCalled(expectedCount: Int) {

@@ -14,19 +14,18 @@ import org.robolectric.shadows.ShadowLog
 @RunWith(RobolectricTestRunner::class)
 class HazardsRepositoryIntegrationTest {
 
+  private val hazards = mutableListOf<Hazard>()
+
   @Before
   fun setUp() {
     ShadowLog.stream = System.out
+    val repo = HazardsRepository()
+    val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
+    hazards += runBlocking { repo.getAreaHazards(locationPolygon, days = "3") }
   }
 
   @Test
   fun `getAreaHazards with world polygon returns non empty list`() = runBlocking {
-    val repo = HazardsRepository()
-    val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
-    // "POLYGON((-124.848974 49.384358,-124.848974 24.396308,-66.93457 24.396308," +
-    //  "-66.93457 49.384358,-124.848974 49.384358))"
-    // Polygone simplifié des USA (format WKT ou GeoJSON selon l'API attendue)
-    val hazards: List<Hazard> = repo.getAreaHazards(locationPolygon, days = "3")
     assertTrue(hazards.isNotEmpty())
   }
 
@@ -157,5 +156,13 @@ class HazardsRepositoryIntegrationTest {
     assertNotNull(hazard2.affectedZone)
     assertNotNull(hazard2.description)
     assertNotNull(hazard2.bbox)
+  }
+
+  @Test
+  fun testPolygonAreFetched() = runBlocking {
+    if (!hazards.isEmpty()) {
+      assert(hazards.all { it.affectedZone != null })
+      assert(hazards.all { it.bbox != null })
+    }
   }
 }

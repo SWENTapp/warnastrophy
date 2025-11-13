@@ -97,6 +97,22 @@ class HazardsRepository() : HazardsDataSource {
   }
 
   /**
+   * Extracts the affected zone geometry from the detailed geometry response and converts it to JTS.
+   *
+   * @param geometryRes The raw JSON response string from the detailed geometry URL.
+   * @return A JTS [Geometry] object representing the affected zone (e.g., a Polygon or
+   *   MultiPolygon), or null on failure.
+   */
+  fun getAffectedZone(geometryRes: String): Geometry? {
+    return try {
+      val rawGeoJsonAffectedZone = getRawGeoJsonGeometry(geometryRes).getString("geometry")
+      GeometryParser.convertRawGeoJsonGeometryToJTS(rawGeoJsonAffectedZone)
+    } catch (_: Exception) {
+      null
+    }
+  }
+
+  /**
    * Parses a single GeoJSON Feature object into a full Hazard data class.
    *
    * This function performs multiple subsequent network calls to retrieve detailed geometry,
@@ -195,22 +211,6 @@ class HazardsRepository() : HazardsDataSource {
       rawGeoJsonGeometry
     } catch (_: Exception) {
       JSONObject() // return empty json object in case of exception
-    }
-  }
-
-  /**
-   * Extracts the affected zone geometry from the detailed geometry response and converts it to JTS.
-   *
-   * @param geometryRes The raw JSON response string from the detailed geometry URL.
-   * @return A JTS [Geometry] object representing the affected zone (e.g., a Polygon or
-   *   MultiPolygon), or null on failure.
-   */
-  private fun getAffectedZone(geometryRes: String): Geometry? {
-    return try {
-      val rawGeoJsonAffectedZone = getRawGeoJsonGeometry(geometryRes).getString("geometry")
-      GeometryParser.convertRawGeoJsonGeometryToJTS(rawGeoJsonAffectedZone)
-    } catch (_: Exception) {
-      null
     }
   }
 

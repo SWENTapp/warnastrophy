@@ -18,6 +18,8 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.util.GeometryParser
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMapComposable
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polygon
@@ -99,12 +101,7 @@ fun HazardMarker(
     if (locations.size > 1) {
       val polygonCoords = locations.map { location -> Location.toLatLng(location) }
 
-      // Draw a polygon on the map for multi-point geometries.
-      Polygon(
-          points = polygonCoords,
-          strokeWidth = 2f,
-          strokeColor = Color.Red,
-          fillColor = Color.Red.copy(alpha = 0.18f))
+      PolygonWrapper(polygonCoords)
     } else {
       // Fallback for empty polygon.
       // This branch is unlikely if hazard.affectedZone exists.
@@ -158,4 +155,14 @@ fun HazardMarker(
 
     icon(tint = tint)
   }
+}
+
+@Composable
+@GoogleMapComposable
+fun PolygonWrapper(polygonCoords: List<LatLng>) {
+  Polygon(
+      points = polygonCoords,
+      strokeWidth = 2f,
+      strokeColor = Color.Red,
+      fillColor = Color.Red.copy(alpha = 0.18f))
 }
