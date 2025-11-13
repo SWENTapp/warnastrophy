@@ -41,8 +41,8 @@ class HealthCardViewModelTest {
   private val testHealthCard =
       HealthCard(
           fullName = "John Doe",
-          birthDate = "1990-01-01",
-          socialSecurityNumber = "123-45-6789",
+          dateOfBirthIso = "1990-01-01",
+          idNumber = "123-45-6789",
           sex = "Male",
           bloodType = "O+",
           heightCm = 180,
