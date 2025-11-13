@@ -182,16 +182,6 @@ fun HealthCardScreen(
   LaunchedEffect(Unit) { viewModel.loadHealthCard(context, userId) }
   LaunchedEffect(currentCard) { currentCard?.let { formState = it.toFormState() } }
 
-  LaunchedEffect(uiState) {
-    val ok =
-        uiState is HealthCardUiState.Success &&
-            (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
-    if (ok) {
-      onDone()
-      viewModel.resetUiState()
-    }
-  }
-
   Scaffold() { paddingValues ->
     HealthCardContent(
         formState = formState,
