@@ -164,7 +164,6 @@ class HazardsRepositoryIntegrationTest {
     assertEquals("Mexico", hazard1.country)
     assertEquals(4.6, hazard1.severity!!, 0.001)
 
-    assertNotNull(hazard1.affectedZone)
     assertNotNull(hazard1.description)
     assertNull(hazard1.affectedZone)
     assertNull(hazard1.articleUrl)
@@ -175,8 +174,6 @@ class HazardsRepositoryIntegrationTest {
     assertEquals("Bermuda, Bahamas, Cuba", hazard2.country)
     assertEquals(157.4064, hazard2.severity!!, 0.001)
 
-    assertTrue(hazard1.articleUrl?.isNotBlank() ?: false)
-    assertNotNull(hazard2.affectedZone)
     assertNotNull(hazard2.description)
     assertNull(hazard2.articleUrl)
     assertNull(hazard2.affectedZone)
