@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -262,6 +263,8 @@ abstract class EndToEndUtils : UITest() {
     checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, conditions)
     checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, allergies)
     checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, medications)
+    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, treatments)
+    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, history)
     checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, notes)
   }
 
@@ -277,19 +280,19 @@ abstract class EndToEndUtils : UITest() {
     composeTestRule.waitForIdle()
 
     // Check all fields empty
-    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, "")
-    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, "")
+    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, null)
+    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, null)
   }
 
   /**
@@ -335,12 +338,9 @@ abstract class EndToEndUtils : UITest() {
       }
     }
 
-    // --- Fill Required Fields ---
     enterText(HealthCardTestTags.FULL_NAME_FIELD, fullName)
     enterText(HealthCardTestTags.BIRTH_DATE_FIELD, birthDate)
     enterText(HealthCardTestTags.SSN_FIELD, ssn)
-
-    // --- Fill Optional Fields ---
     enterText(HealthCardTestTags.SEX_FIELD, sex)
     enterText(HealthCardTestTags.BLOOD_TYPE_FIELD, bloodType)
     enterText(HealthCardTestTags.HEIGHT_FIELD, height)
@@ -352,10 +352,10 @@ abstract class EndToEndUtils : UITest() {
     enterText(HealthCardTestTags.HISTORY_FIELD, history)
     enterText(HealthCardTestTags.NOTES_FIELD, notes)
 
-    // --- Toggle the Organ Donor Switch ---
     if (isOrganDonor) {
       // Assume the switch is not checked by default
       composeTestRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).performClick()
+      composeTestRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).assertIsOn()
     }
   }
 
