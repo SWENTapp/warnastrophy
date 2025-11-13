@@ -11,10 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.ui.common.Error
-import com.github.warnastrophy.core.ui.navigation.Screen
 
 /** Object containing test tags for the ErrorScreen composable. */
 object ErrorScreenTestTags {
@@ -56,17 +54,4 @@ fun ErrorScreen(
           }
         }
       }
-}
-
-@Preview
-@Composable
-fun ErrorScreenPreview() {
-  val sampleErrors =
-      listOf(
-          Error("First error message", Screen.Map),
-          Error("Second error message", Screen.Dashboard),
-          Error("Third error message", Screen.Profile))
-
-  ErrorScreen(
-      message = "Sample error messages", onDismiss = {}, expanded = true, errors = sampleErrors)
 }
