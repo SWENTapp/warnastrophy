@@ -7,9 +7,11 @@ package com.example.dangermode.service
 
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
+import com.github.warnastrophy.core.util.AppConfig.windowMillisMotion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -53,12 +55,6 @@ class MouvementService(private val repository: MouvementSensorRepository) {
   val recentData: StateFlow<List<MotionData>> = _recentData
 
   /** Window duration in milliseconds used to keep only recent samples (default 2 minutes). */
-  private val windowMillis = 2 * 60 * 1000L // 2 minutes
-
-  init {
-    startListening()
-  }
-
   /**
    * Start collecting motion samples from the repository.
    *
@@ -68,12 +64,12 @@ class MouvementService(private val repository: MouvementSensorRepository) {
    *
    * The collector runs until [stop] is called which cancels the internal job.
    */
-  private fun startListening() {
+  fun startListening() {
     scope.launch {
       repository.data.collect { motion ->
         val now = System.currentTimeMillis()
         samples.add(motion)
-        samples.removeIf { it.timestamp < now - windowMillis }
+        samples.removeIf { it.timestamp < now - windowMillisMotion }
         _recentData.value = samples.toList()
       }
     }
@@ -87,7 +83,10 @@ class MouvementService(private val repository: MouvementSensorRepository) {
    *
    * @return an immutable snapshot [List] of recent [MotionData].
    */
-  fun getRecentSamples(): List<MotionData> = samples.toList()
+  fun getRecentSamples(): List<MotionData> {
+    samples.removeIf { it.timestamp < System.currentTimeMillis() - windowMillisMotion }
+    return samples.toList()
+  }
 
   /**
    * Stop listening to sensors and cancel internal coroutines.
@@ -96,5 +95,6 @@ class MouvementService(private val repository: MouvementSensorRepository) {
    */
   fun stop() {
     job.cancel()
+    scope.cancel()
   }
 }

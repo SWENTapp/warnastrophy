@@ -14,4 +14,6 @@ object AppConfig {
   val positionUpdateDelayMs: Long = 10_000L
   val rectangleHazardZone = Pair(20000.0, 20000.0)
   val priorDaysFetch = "4"
+
+  val windowMillisMotion = 2 * 60 * 1000L
 }

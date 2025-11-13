@@ -1,3 +1,8 @@
+/**
+ * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
+ *
+ * Author: Anas Sidi Mohamed Assistance: ChatGPT
+ */
 package com.github.warnastrophy.core.data.repository
 
 import android.content.Context
@@ -45,7 +50,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     val proxy =
         object : SensorEventListener {
-          @Volatile var delegate: SensorEventListener? = null
+          var delegate: SensorEventListener? = null
 
           override fun onSensorChanged(event: SensorEvent?) {
             delegate?.onSensorChanged(event)
@@ -85,19 +90,15 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     return Pair(mockSensorManager, proxy)
   }
 
-  // kotlin
   private fun createMockSensorEvent(sensorType: Int, values: FloatArray): SensorEvent {
-    // mock du Sensor pour définir son type
     val sensor = mockk<Sensor>(relaxed = true)
     every { sensor.type } returns sensorType
 
     try {
-      // accéder au constructeur package-private SensorEvent(int)
       val ctor = SensorEvent::class.java.getDeclaredConstructor(Int::class.javaPrimitiveType)
       ctor.isAccessible = true
       val event = ctor.newInstance(values.size) as SensorEvent
 
-      // affecter fields via réflexion
       val valuesField = SensorEvent::class.java.getDeclaredField("values")
       valuesField.isAccessible = true
       valuesField.set(event, values)
@@ -106,9 +107,13 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
       sensorField.isAccessible = true
       sensorField.set(event, sensor)
 
+      val timestampField = SensorEvent::class.java.getDeclaredField("timestamp")
+      timestampField.isAccessible = true
+      timestampField.setLong(event, System.currentTimeMillis()) // Convert to nanoseconds
+
       return event
     } catch (e: Exception) {
-      throw RuntimeException("Impossible de créer SensorEvent via reflection", e)
+      throw RuntimeException("Impossible to create SensorEvent via reflection", e)
     }
   }
 
@@ -154,10 +159,8 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     job.cancel()
     delay(100)
 
-    // S'assurer que le slot a bien capturé le listener réel
-    assertTrue("Le listener enregistré doit être capturé", listenerSlot.isCaptured)
+    assertTrue("The registered listener must be captured", listenerSlot.isCaptured)
 
-    // Vérifier que unregisterListener a été appelé avec le listener réel capturé
     verify(atLeast = 1) { mockManager.unregisterListener(listenerSlot.captured) }
   }
 
@@ -170,7 +173,6 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     delay(100)
 
-    // Simuler plusieurs événements d'accéléromètre
     listener.onSensorChanged(
         createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(9.8f, 0f, 0f)))
     listener.onSensorChanged(
@@ -181,7 +183,6 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     job.join()
 
     assertTrue(receivedData.size >= 3)
-    // Vérifier que le filtre passe-bas est appliqué (les valeurs ne sont pas exactement 9.8f)
     receivedData.forEach { data ->
       assertNotNull(data.acceleration)
       assertTrue(data.acceleration.first.isFinite())
@@ -269,7 +270,6 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     delay(100)
 
-    // Envoyer des données variées
     listener.onSensorChanged(
         createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(-3f, -4f, -5f)))
     listener.onSensorChanged(
@@ -299,10 +299,8 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     delay(100)
 
-    // Envoyer un événement null
     listener.onSensorChanged(null)
 
-    // Si aucune exception n'est levée, le test réussit
     assertTrue(true)
 
     job.cancel()
@@ -316,7 +314,6 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     delay(100)
 
-    // Appeler onAccuracyChanged ne devrait pas causer d'erreur
     listener.onAccuracyChanged(mockAccelerometer, SensorManager.SENSOR_STATUS_ACCURACY_HIGH)
 
     assertTrue(true)
@@ -345,7 +342,6 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     job.join()
 
     assertTrue(receivedData.size >= 4)
-    // Vérifier que les données de gyroscope ont été capturées
     val lastData = receivedData.last()
     assertEquals(0.8f, lastData.rotation.first, 0.01f)
     assertEquals(0.9f, lastData.rotation.second, 0.01f)

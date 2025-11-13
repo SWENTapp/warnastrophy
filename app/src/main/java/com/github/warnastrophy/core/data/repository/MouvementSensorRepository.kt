@@ -95,7 +95,7 @@ class MouvementSensorRepository(context: Context) {
 
             trySend(
                     MotionData(
-                        timestamp = System.currentTimeMillis(),
+                        timestamp = event.timestamp,
                         acceleration = accValues,
                         rotation = gyroValues,
                         accelerationMagnitude = magnitude))
