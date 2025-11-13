@@ -53,7 +53,9 @@ fun DashboardScreen(
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            LatestNewsCard(hazardsService)
+            LatestNewsCard(
+                hazardsService = hazardsService,
+                modifier = Modifier.testTag(DashboardScreenTestTags.LATEST_NEWS_SECTION))
 
             Spacer(modifier = Modifier.height(12.dp))
 
