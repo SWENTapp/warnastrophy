@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,6 +37,11 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
+
+/** Object containing test tags for the WarnastrophyApp. */
+object WarnastrophyAppTestTags {
+  const val MAIN_SCREEN = "mainScreen"
+}
 
 @Composable
 fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
@@ -89,6 +95,7 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
       }
 
   Scaffold(
+      modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
       topBar = {
         TopBar(

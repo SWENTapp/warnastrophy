@@ -14,20 +14,22 @@ import org.robolectric.shadows.ShadowLog
 @RunWith(RobolectricTestRunner::class)
 class HazardsRepositoryIntegrationTest {
 
+  private val partialHazards = mutableListOf<Hazard>()
+  private val repo = HazardsRepository()
+
   @Before
   fun setUp() {
     ShadowLog.stream = System.out
+    val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
+    partialHazards += runBlocking { repo.getPartialAreaHazards(locationPolygon, days = "3") }
   }
 
   @Test
   fun `getPartialHazards with world polygon returns a non empty list with incomplete hazards`() =
       runBlocking {
-        val repo = HazardsRepository()
-        val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
-        val hazards: List<Hazard> = repo.getPartialAreaHazards(locationPolygon, days = "3")
-        assertTrue(hazards.isNotEmpty())
+        assertTrue(partialHazards.isNotEmpty())
         val hasIncompleteHazard =
-            hazards.all { hazard ->
+            partialHazards.all { hazard ->
               hazard.articleUrl == null && hazard.affectedZone == null && hazard.bbox == null
             }
 
@@ -36,9 +38,6 @@ class HazardsRepositoryIntegrationTest {
 
   @Test
   fun `completeParsingOf completes hazards with full data`() = runBlocking {
-    val repo = HazardsRepository()
-    val locationPolygon: String = HazardRepositoryProvider.WORLD_POLYGON
-    val partialHazards: List<Hazard> = repo.getPartialAreaHazards(locationPolygon, days = "3")
     val incompleteHazard = partialHazards.first()
     assertNull(incompleteHazard.articleUrl)
     assertNull(incompleteHazard.affectedZone)
@@ -150,6 +149,7 @@ class HazardsRepositoryIntegrationTest {
                   }
                 }
         """)
+
     val method =
         HazardsRepository::class
             .java

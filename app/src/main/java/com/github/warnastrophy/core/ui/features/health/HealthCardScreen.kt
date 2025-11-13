@@ -48,26 +48,26 @@ import java.time.format.ResolverStyle
  * testing by providing stable identifiers for UI components.
  */
 object HealthCardTestTags {
-  const val BACK_BUTTON = "BackButton"
-  const val FULL_NAME_FIELD = "FullNameField"
-  const val BIRTH_DATE_FIELD = "BirthDateField"
-  const val SSN_FIELD = "SSNField"
-  const val SEX_FIELD = "SexField"
-  const val BLOOD_TYPE_FIELD = "BloodTypeField"
-  const val HEIGHT_FIELD = "HeightField"
-  const val WEIGHT_FIELD = "WeightField"
-  const val CHRONIC_CONDITIONS_FIELD = "ChronicField"
-  const val ALLERGIES_FIELD = "AllergiesField"
-  const val MEDICATIONS_FIELD = "MedicationsField"
-  const val TREATMENTS_FIELD = "TreatmentsField"
-  const val HISTORY_FIELD = "HistoryField"
-  const val ORGAN_DONOR_FIELD = "OrganDonorSwitch"
-  const val NOTES_FIELD = "NotesField"
+    const val BACK_BUTTON = "BackButton"
+    const val FULL_NAME_FIELD = "FullNameField"
+    const val BIRTH_DATE_FIELD = "BirthDateField"
+    const val SSN_FIELD = "SSNField"
+    const val SEX_FIELD = "SexField"
+    const val BLOOD_TYPE_FIELD = "BloodTypeField"
+    const val HEIGHT_FIELD = "HeightField"
+    const val WEIGHT_FIELD = "WeightField"
+    const val CHRONIC_CONDITIONS_FIELD = "ChronicField"
+    const val ALLERGIES_FIELD = "AllergiesField"
+    const val MEDICATIONS_FIELD = "MedicationsField"
+    const val TREATMENTS_FIELD = "TreatmentsField"
+    const val HISTORY_FIELD = "HistoryField"
+    const val ORGAN_DONOR_FIELD = "OrganDonorSwitch"
+    const val NOTES_FIELD = "NotesField"
 
-  // Action button tags
-  const val ADD_BUTTON = "AddButton"
-  const val UPDATE_BUTTON = "UpdateButton"
-  const val DELETE_BUTTON = "DeleteButton"
+    // Action button tags
+    const val ADD_BUTTON = "AddButton"
+    const val UPDATE_BUTTON = "UpdateButton"
+    const val DELETE_BUTTON = "DeleteButton"
 }
 
 /**
@@ -115,47 +115,47 @@ data class HealthCardFormState(
     val organDonor: Boolean = false,
     val notes: String = ""
 ) {
-  private val dateFormatter =
-      DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
+    private val dateFormatter =
+        DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
 
-  /**
-   * Validates the birth date format and ensures it represents a valid date.
-   *
-   * @return true if the date is valid and parseable, false otherwise
-   */
-  fun isDateValid(): Boolean {
-    try {
-      val date = LocalDate.parse(birthDate, dateFormatter)
-      return birthDate.isNotBlank() && !date.isAfter(LocalDate.now())
-    } catch (e: Exception) {
-      return false
+    /**
+     * Validates the birth date format and ensures it represents a valid date.
+     *
+     * @return true if the date is valid and parseable, false otherwise
+     */
+    fun isDateValid(): Boolean {
+        try {
+            val date = LocalDate.parse(birthDate, dateFormatter)
+            return birthDate.isNotBlank() && !date.isAfter(LocalDate.now())
+        } catch (e: Exception) {
+            return false
+        }
     }
-  }
 
-  /**
-   * Validates that all required fields are filled and properly formatted.
-   *
-   * @return true if all required fields are valid, false otherwise
-   */
-  fun isValid(): Boolean =
-      fullName.isNotBlank() && isDateValid() && socialSecurityNumber.isNotBlank()
+    /**
+     * Validates that all required fields are filled and properly formatted.
+     *
+     * @return true if all required fields are valid, false otherwise
+     */
+    fun isValid(): Boolean =
+        fullName.isNotBlank() && isDateValid() && socialSecurityNumber.isNotBlank()
 
-  /**
-   * Marks all required fields as touched to trigger validation display. Used when attempting to
-   * submit the form.
-   *
-   * @return A new form state with all required fields marked as touched
-   */
-  fun markAllTouched(): HealthCardFormState =
-      copy(fullNameTouched = true, birthDateTouched = true, ssnTouched = true)
+    /**
+     * Marks all required fields as touched to trigger validation display. Used when attempting to
+     * submit the form.
+     *
+     * @return A new form state with all required fields marked as touched
+     */
+    fun markAllTouched(): HealthCardFormState =
+        copy(fullNameTouched = true, birthDateTouched = true, ssnTouched = true)
 
-  /**
-   * Splits a comma-separated string into a list of trimmed, non-empty strings.
-   *
-   * @return A list of trimmed strings, excluding empty values
-   */
-  private fun String.splitToList(): List<String> =
-      split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    /**
+     * Splits a comma-separated string into a list of trimmed, non-empty strings.
+     *
+     * @return A list of trimmed strings, excluding empty values
+     */
+    private fun String.splitToList(): List<String> =
+        split(",").map { it.trim() }.filter { it.isNotEmpty() }
 }
 
 /**
@@ -173,44 +173,54 @@ fun HealthCardScreen(
     viewModel: HealthCardViewModel = viewModel(),
     onDone: () -> Unit = {}
 ) {
-  val context = LocalContext.current
-  val uiState by viewModel.uiState.collectAsState()
-  val currentCard by viewModel.currentCard.collectAsState()
+    val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
+    val currentCard by viewModel.currentCard.collectAsState()
 
-  var formState by remember { mutableStateOf(HealthCardFormState()) }
+    LaunchedEffect(uiState) {
+        val ok =
+            uiState is HealthCardUiState.Success &&
+                    (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
+        if (ok) {
+            onDone()
+            viewModel.resetUiState()
+        }
+    }
 
-  LaunchedEffect(Unit) { viewModel.loadHealthCard(context, userId) }
-  LaunchedEffect(currentCard) { currentCard?.let { formState = it.toFormState() } }
+    var formState by remember { mutableStateOf(HealthCardFormState()) }
 
-  Scaffold() { paddingValues ->
-    HealthCardContent(
-        formState = formState,
-        onFormStateChange = { formState = it },
-        currentCard = currentCard,
-        uiState = uiState,
-        onSave = {
-          val validatedState = formState.markAllTouched()
-          formState = validatedState
-          if (validatedState.isValid()) {
-            viewModel.saveHealthCard(context, userId, validatedState.toDomain())
-            viewModel.saveHealthCardDB(validatedState.toDomain())
-          }
-        },
-        onUpdate = {
-          val validatedState = formState.markAllTouched()
-          formState = validatedState
-          if (validatedState.isValid()) {
-            viewModel.updateHealthCard(context, userId, validatedState.toDomain())
-            viewModel.saveHealthCardDB(validatedState.toDomain())
-          }
-        },
-        onDelete = {
-          viewModel.deleteHealthCard(context, userId)
-          viewModel.deleteHealthCardDB()
-          formState = HealthCardFormState()
-        },
-        modifier = Modifier.padding(paddingValues))
-  }
+    LaunchedEffect(Unit) { viewModel.loadHealthCard(context, userId) }
+    LaunchedEffect(currentCard) { currentCard?.let { formState = it.toFormState() } }
+
+    Scaffold() { paddingValues ->
+        HealthCardContent(
+            formState = formState,
+            onFormStateChange = { formState = it },
+            currentCard = currentCard,
+            uiState = uiState,
+            onSave = {
+                val validatedState = formState.markAllTouched()
+                formState = validatedState
+                if (validatedState.isValid()) {
+                    viewModel.saveHealthCard(context, userId, validatedState.toDomain())
+                    viewModel.saveHealthCardDB(validatedState.toDomain())
+                }
+            },
+            onUpdate = {
+                val validatedState = formState.markAllTouched()
+                formState = validatedState
+                if (validatedState.isValid()) {
+                    viewModel.updateHealthCard(context, userId, validatedState.toDomain())
+                    viewModel.saveHealthCardDB(validatedState.toDomain())
+                }
+            },
+            onDelete = {
+                viewModel.deleteHealthCard(context, userId)
+                viewModel.deleteHealthCardDB()
+                formState = HealthCardFormState()
+            },
+            modifier = Modifier.padding(paddingValues))
+    }
 }
 
 /**
@@ -238,9 +248,9 @@ private fun HealthCardContent(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-  Column(
-      modifier = modifier.padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState()),
-      verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        modifier = modifier.padding(16.dp).fillMaxSize().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)) {
         RequiredFieldsSection(formState = formState, onFormStateChange = onFormStateChange)
 
         OptionalFieldsSection(formState = formState, onFormStateChange = onFormStateChange)
@@ -255,9 +265,9 @@ private fun HealthCardContent(
             onDelete = onDelete)
 
         if (uiState is HealthCardUiState.Loading) {
-          Loading(modifier = Modifier.fillMaxSize().testTag(LoadingTestTags.LOADING_INDICATOR))
+            Loading(modifier = Modifier.fillMaxSize().testTag(LoadingTestTags.LOADING_INDICATOR))
         }
-      }
+    }
 }
 
 /**
@@ -273,46 +283,46 @@ private fun RequiredFieldsSection(
     onFormStateChange: (HealthCardFormState) -> Unit,
     modifier: Modifier = Modifier
 ) {
-  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    LabeledRequiredTextField(
-        value = formState.fullName,
-        onValueChange = { onFormStateChange(formState.copy(fullName = it)) },
-        label = "Full name",
-        testTag = HealthCardTestTags.FULL_NAME_FIELD,
-        touched = formState.fullNameTouched,
-        onTouched = { onFormStateChange(formState.copy(fullNameTouched = true)) },
-        error = formState.fullName.isBlank(),
-        errorText = if (formState.fullName.isBlank()) "Mandatory field" else null)
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LabeledRequiredTextField(
+            value = formState.fullName,
+            onValueChange = { onFormStateChange(formState.copy(fullName = it)) },
+            label = "Full name",
+            testTag = HealthCardTestTags.FULL_NAME_FIELD,
+            touched = formState.fullNameTouched,
+            onTouched = { onFormStateChange(formState.copy(fullNameTouched = true)) },
+            error = formState.fullName.isBlank(),
+            errorText = if (formState.fullName.isBlank()) "Mandatory field" else null)
 
-    val birthDateErrorText =
-        when {
-          formState.birthDate.isBlank() && formState.birthDateTouched -> "Mandatory field"
-          formState.birthDate.isNotBlank() &&
-              !formState.isDateValid() &&
-              formState.birthDateTouched -> "Invalid birth date (dd/mm/yyyy)"
-          else -> null
-        }
+        val birthDateErrorText =
+            when {
+                formState.birthDate.isBlank() && formState.birthDateTouched -> "Mandatory field"
+                formState.birthDate.isNotBlank() &&
+                        !formState.isDateValid() &&
+                        formState.birthDateTouched -> "Invalid birth date (dd/mm/yyyy)"
+                else -> null
+            }
 
-    LabeledRequiredTextField(
-        value = formState.birthDate,
-        onValueChange = { onFormStateChange(formState.copy(birthDate = it)) },
-        label = "Birth date",
-        testTag = HealthCardTestTags.BIRTH_DATE_FIELD,
-        touched = formState.birthDateTouched,
-        onTouched = { onFormStateChange(formState.copy(birthDateTouched = true)) },
-        error = birthDateErrorText != null,
-        errorText = birthDateErrorText)
+        LabeledRequiredTextField(
+            value = formState.birthDate,
+            onValueChange = { onFormStateChange(formState.copy(birthDate = it)) },
+            label = "Birth date",
+            testTag = HealthCardTestTags.BIRTH_DATE_FIELD,
+            touched = formState.birthDateTouched,
+            onTouched = { onFormStateChange(formState.copy(birthDateTouched = true)) },
+            error = birthDateErrorText != null,
+            errorText = birthDateErrorText)
 
-    LabeledRequiredTextField(
-        value = formState.socialSecurityNumber,
-        onValueChange = { onFormStateChange(formState.copy(socialSecurityNumber = it)) },
-        label = "National ID number",
-        testTag = HealthCardTestTags.SSN_FIELD,
-        touched = formState.ssnTouched,
-        onTouched = { onFormStateChange(formState.copy(ssnTouched = true)) },
-        error = formState.socialSecurityNumber.isBlank(),
-        errorText = if (formState.socialSecurityNumber.isBlank()) "Mandatory field" else null)
-  }
+        LabeledRequiredTextField(
+            value = formState.socialSecurityNumber,
+            onValueChange = { onFormStateChange(formState.copy(socialSecurityNumber = it)) },
+            label = "National ID number",
+            testTag = HealthCardTestTags.SSN_FIELD,
+            touched = formState.ssnTouched,
+            onTouched = { onFormStateChange(formState.copy(ssnTouched = true)) },
+            error = formState.socialSecurityNumber.isBlank(),
+            errorText = if (formState.socialSecurityNumber.isBlank()) "Mandatory field" else null)
+    }
 }
 
 /**
@@ -328,73 +338,73 @@ private fun OptionalFieldsSection(
     onFormStateChange: (HealthCardFormState) -> Unit,
     modifier: Modifier = Modifier
 ) {
-  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    LabeledTextField(
-        value = formState.sex,
-        onValueChange = { onFormStateChange(formState.copy(sex = it)) },
-        label = "Sex",
-        testTag = HealthCardTestTags.SEX_FIELD)
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LabeledTextField(
+            value = formState.sex,
+            onValueChange = { onFormStateChange(formState.copy(sex = it)) },
+            label = "Sex",
+            testTag = HealthCardTestTags.SEX_FIELD)
 
-    LabeledTextField(
-        value = formState.bloodType,
-        onValueChange = { onFormStateChange(formState.copy(bloodType = it)) },
-        label = "Blood type",
-        testTag = HealthCardTestTags.BLOOD_TYPE_FIELD)
+        LabeledTextField(
+            value = formState.bloodType,
+            onValueChange = { onFormStateChange(formState.copy(bloodType = it)) },
+            label = "Blood type",
+            testTag = HealthCardTestTags.BLOOD_TYPE_FIELD)
 
-    LabeledTextField(
-        value = formState.heightCm,
-        onValueChange = { onFormStateChange(formState.copy(heightCm = it)) },
-        label = "Height (cm)",
-        testTag = HealthCardTestTags.HEIGHT_FIELD,
-        keyboardType = KeyboardType.Number)
+        LabeledTextField(
+            value = formState.heightCm,
+            onValueChange = { onFormStateChange(formState.copy(heightCm = it)) },
+            label = "Height (cm)",
+            testTag = HealthCardTestTags.HEIGHT_FIELD,
+            keyboardType = KeyboardType.Number)
 
-    LabeledTextField(
-        value = formState.weightKg,
-        onValueChange = { onFormStateChange(formState.copy(weightKg = it)) },
-        label = "Weight (kg)",
-        testTag = HealthCardTestTags.WEIGHT_FIELD,
-        keyboardType = KeyboardType.Number)
+        LabeledTextField(
+            value = formState.weightKg,
+            onValueChange = { onFormStateChange(formState.copy(weightKg = it)) },
+            label = "Weight (kg)",
+            testTag = HealthCardTestTags.WEIGHT_FIELD,
+            keyboardType = KeyboardType.Number)
 
-    LabeledTextField(
-        value = formState.chronicConditions,
-        onValueChange = { onFormStateChange(formState.copy(chronicConditions = it)) },
-        label = "Chronic conditions",
-        testTag = HealthCardTestTags.CHRONIC_CONDITIONS_FIELD)
+        LabeledTextField(
+            value = formState.chronicConditions,
+            onValueChange = { onFormStateChange(formState.copy(chronicConditions = it)) },
+            label = "Chronic conditions",
+            testTag = HealthCardTestTags.CHRONIC_CONDITIONS_FIELD)
 
-    LabeledTextField(
-        value = formState.allergies,
-        onValueChange = { onFormStateChange(formState.copy(allergies = it)) },
-        label = "Allergies",
-        testTag = HealthCardTestTags.ALLERGIES_FIELD)
+        LabeledTextField(
+            value = formState.allergies,
+            onValueChange = { onFormStateChange(formState.copy(allergies = it)) },
+            label = "Allergies",
+            testTag = HealthCardTestTags.ALLERGIES_FIELD)
 
-    LabeledTextField(
-        value = formState.medications,
-        onValueChange = { onFormStateChange(formState.copy(medications = it)) },
-        label = "Medications",
-        testTag = HealthCardTestTags.MEDICATIONS_FIELD)
+        LabeledTextField(
+            value = formState.medications,
+            onValueChange = { onFormStateChange(formState.copy(medications = it)) },
+            label = "Medications",
+            testTag = HealthCardTestTags.MEDICATIONS_FIELD)
 
-    LabeledTextField(
-        value = formState.onGoingTreatments,
-        onValueChange = { onFormStateChange(formState.copy(onGoingTreatments = it)) },
-        label = "On going treatments",
-        testTag = HealthCardTestTags.TREATMENTS_FIELD)
+        LabeledTextField(
+            value = formState.onGoingTreatments,
+            onValueChange = { onFormStateChange(formState.copy(onGoingTreatments = it)) },
+            label = "On going treatments",
+            testTag = HealthCardTestTags.TREATMENTS_FIELD)
 
-    LabeledTextField(
-        value = formState.medicalHistory,
-        onValueChange = { onFormStateChange(formState.copy(medicalHistory = it)) },
-        label = "Medical history",
-        testTag = HealthCardTestTags.HISTORY_FIELD)
+        LabeledTextField(
+            value = formState.medicalHistory,
+            onValueChange = { onFormStateChange(formState.copy(medicalHistory = it)) },
+            label = "Medical history",
+            testTag = HealthCardTestTags.HISTORY_FIELD)
 
-    OrganDonorSwitch(
-        checked = formState.organDonor,
-        onCheckedChange = { onFormStateChange(formState.copy(organDonor = it)) })
+        OrganDonorSwitch(
+            checked = formState.organDonor,
+            onCheckedChange = { onFormStateChange(formState.copy(organDonor = it)) })
 
-    LabeledTextField(
-        value = formState.notes,
-        onValueChange = { onFormStateChange(formState.copy(notes = it)) },
-        label = "Notes",
-        testTag = HealthCardTestTags.NOTES_FIELD)
-  }
+        LabeledTextField(
+            value = formState.notes,
+            onValueChange = { onFormStateChange(formState.copy(notes = it)) },
+            label = "Notes",
+            testTag = HealthCardTestTags.NOTES_FIELD)
+    }
 }
 
 /**
@@ -410,16 +420,16 @@ private fun OrganDonorSwitch(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-  Row(
-      modifier = modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically) {
         Text("Organ donor")
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             modifier = Modifier.testTag(HealthCardTestTags.ORGAN_DONOR_FIELD))
-      }
+    }
 }
 
 /**
@@ -443,29 +453,29 @@ private fun ActionButtons(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    if (currentCard == null) {
-      Button(
-          onClick = onSave,
-          enabled = isFormValid,
-          modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.ADD_BUTTON)) {
-            Text("Add")
-          }
-    } else {
-      Button(
-          onClick = onUpdate,
-          enabled = isFormValid,
-          modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.UPDATE_BUTTON)) {
-            Text("Update")
-          }
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (currentCard == null) {
+            Button(
+                onClick = onSave,
+                enabled = isFormValid,
+                modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.ADD_BUTTON)) {
+                Text("Add")
+            }
+        } else {
+            Button(
+                onClick = onUpdate,
+                enabled = isFormValid,
+                modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.UPDATE_BUTTON)) {
+                Text("Update")
+            }
 
-      OutlinedButton(
-          onClick = onDelete,
-          modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.DELETE_BUTTON)) {
-            Text("Delete")
-          }
+            OutlinedButton(
+                onClick = onDelete,
+                modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.DELETE_BUTTON)) {
+                Text("Delete")
+            }
+        }
     }
-  }
 }
 
 /**
@@ -491,23 +501,23 @@ private fun LabeledTextField(
     errorText: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
-  Column(modifier = modifier) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text("$label (Optional)") },
-        isError = isError,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        modifier = Modifier.fillMaxWidth().testTag(testTag))
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text("$label (Optional)") },
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            modifier = Modifier.fillMaxWidth().testTag(testTag))
 
-    if (isError && errorText != null) {
-      Text(
-          text = errorText,
-          color = MaterialTheme.colorScheme.error,
-          style = MaterialTheme.typography.bodySmall,
-          modifier = Modifier.padding(start = 16.dp, top = 4.dp))
+        if (isError && errorText != null) {
+            Text(
+                text = errorText,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp))
+        }
     }
-  }
 }
 
 /**
@@ -540,34 +550,34 @@ private fun LabeledRequiredTextField(
     errorText: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
-  Column(modifier = modifier) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = {
-          onValueChange(it)
-          if (!touched) onTouched()
-        },
-        label = { Text(label) },
-        isError = error && touched,
-        keyboardOptions = keyboardOptions,
-        modifier =
-            Modifier.fillMaxWidth().testTag(testTag).onFocusChanged { focusState ->
-              if (focusState.isFocused) onTouched()
-            })
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {
+                onValueChange(it)
+                if (!touched) onTouched()
+            },
+            label = { Text(label) },
+            isError = error && touched,
+            keyboardOptions = keyboardOptions,
+            modifier =
+                Modifier.fillMaxWidth().testTag(testTag).onFocusChanged { focusState ->
+                    if (focusState.isFocused) onTouched()
+                })
 
-    if (error && touched && errorText != null) {
-      Text(
-          text = errorText,
-          color = MaterialTheme.colorScheme.error,
-          style = MaterialTheme.typography.bodySmall,
-          modifier = Modifier.padding(start = 16.dp, top = 4.dp))
+        if (error && touched && errorText != null) {
+            Text(
+                text = errorText,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp))
+        }
     }
-  }
 }
 
 /** Preview function for the Health Card screen in Android Studio. */
 @Preview(showBackground = true)
 @Composable
 private fun HealthCardScreenPreview() {
-  MainAppTheme { HealthCardScreen() }
+    MainAppTheme { HealthCardScreen() }
 }
