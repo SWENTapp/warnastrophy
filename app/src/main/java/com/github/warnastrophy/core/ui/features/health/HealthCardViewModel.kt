@@ -81,16 +81,7 @@ class HealthCardViewModel(
     }
   }
 
-  /** One-shot refresh (optional; cache-first by default) */
-  fun refreshOnce() =
-      viewModelScope.launch(dispatcher) {
-        _uiState.value = HealthCardUiState.Loading
-        runCatching { repo.getMyHealthCardOnce(true) }
-            .onSuccess { _uiState.value = HealthCardUiState.Success("Loaded") }
-            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Loading error") }
-      }
-
-  /** Create or update (upsert) the HealthCard */
+  /** Saves the HealthCard to the local database. */
   fun saveHealthCardDB(card: HealthCard) =
       viewModelScope.launch(dispatcher) {
         _uiState.value = HealthCardUiState.Loading
@@ -99,7 +90,7 @@ class HealthCardViewModel(
             .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Saving error") }
       }
 
-  /** Delete the HealthCard */
+  /** Delete the HealthCard from the Database */
   fun deleteHealthCardDB() =
       viewModelScope.launch(dispatcher) {
         _uiState.value = HealthCardUiState.Loading

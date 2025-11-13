@@ -14,7 +14,7 @@ object HealthCardRepositoryProvider {
   // Public access point
   var repository: HealthCardRepository
     get() = _repo ?: error("HealthCardRepositoryProvider not initialized")
-    private set(value) { // <-- IMPORTANT: write into _repo
+    private set(value) {
       _repo = value
     }
 
@@ -36,9 +36,9 @@ object HealthCardRepositoryProvider {
 
     repository =
         HealthCardRepositoryImpl(
-            auth = null, // don’t depend on FirebaseAuth
+            auth = null,
             db = db,
-            collectionName = COLLECTION, // "healthCards"
+            collectionName = COLLECTION,
             fallbackUidProvider = fallbackUidProvider)
   }
 
@@ -48,14 +48,14 @@ object HealthCardRepositoryProvider {
 
     val remote: HealthCardRepository =
         HealthCardRepositoryImpl(
-            auth = null, // still use device ID, not auth uid
+            auth = null,
             db = db,
             collectionName = COLLECTION,
             fallbackUidProvider = fallbackUidProvider)
 
     val local: HealthCardRepository = LocalHealthCardRepository(context.applicationContext)
 
-    repository = HybridHealthCardRepository(local, remote, auth)
+    repository = HybridHealthCardRepository(local, remote)
   }
 
   /** Optional helper for tests / re-init */

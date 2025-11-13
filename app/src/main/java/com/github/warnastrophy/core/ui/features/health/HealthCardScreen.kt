@@ -49,8 +49,6 @@ import java.time.format.ResolverStyle
  */
 object HealthCardTestTags {
   const val BACK_BUTTON = "BackButton"
-
-  // Input field tags
   const val FULL_NAME_FIELD = "FullNameField"
   const val BIRTH_DATE_FIELD = "BirthDateField"
   const val SSN_FIELD = "SSNField"
@@ -182,17 +180,15 @@ fun HealthCardScreen(
   var formState by remember { mutableStateOf(HealthCardFormState()) }
 
   LaunchedEffect(Unit) { viewModel.loadHealthCard(context, userId) }
-  // Update the form when a health card is loaded
   LaunchedEffect(currentCard) { currentCard?.let { formState = it.toFormState() } }
 
-  // Navigate away after a successful save/update (and also after delete if you want)
   LaunchedEffect(uiState) {
     val ok =
         uiState is HealthCardUiState.Success &&
             (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
     if (ok) {
       onDone()
-      viewModel.resetUiState() // prevent re-trigger on recomposition
+      viewModel.resetUiState()
     }
   }
 
@@ -219,6 +215,7 @@ fun HealthCardScreen(
           }
         },
         onDelete = {
+          viewModel.deleteHealthCard(context, userId)
           viewModel.deleteHealthCardDB()
           formState = HealthCardFormState()
         },
@@ -267,7 +264,6 @@ private fun HealthCardContent(
             onUpdate = onUpdate,
             onDelete = onDelete)
 
-        // Show loading indicator when performing operations
         if (uiState is HealthCardUiState.Loading) {
           Loading(modifier = Modifier.fillMaxSize().testTag(LoadingTestTags.LOADING_INDICATOR))
         }
@@ -459,7 +455,6 @@ private fun ActionButtons(
 ) {
   Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
     if (currentCard == null) {
-      // Show Add button when creating new card
       Button(
           onClick = onSave,
           enabled = isFormValid,
@@ -467,7 +462,6 @@ private fun ActionButtons(
             Text("Add")
           }
     } else {
-      // Show Update and Delete buttons when editing existing card
       Button(
           onClick = onUpdate,
           enabled = isFormValid,

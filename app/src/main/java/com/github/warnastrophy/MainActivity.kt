@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
     val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
     val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
 
-    auth.signOut() // fine; we use device ID, not auth uid
+    auth.signOut()
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.init(applicationContext)

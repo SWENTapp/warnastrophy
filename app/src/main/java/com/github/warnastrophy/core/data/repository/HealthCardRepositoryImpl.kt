@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class HealthCardRepositoryImpl(
-    private val auth: FirebaseAuth?, // can be null
+    private val auth: FirebaseAuth?,
     private val db: FirebaseFirestore,
     private val collectionName: String = HealthCardRepositoryProvider.COLLECTION,
-    private val fallbackUidProvider: (() -> String)? = null // device ID provider
+    private val fallbackUidProvider: (() -> String)? = null
 ) : HealthCardRepository {
 
   private fun resolvedUid(): String =

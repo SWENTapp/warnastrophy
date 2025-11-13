@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.map
 
 class LocalHealthCardRepository(private val context: Context) : HealthCardRepository {
 
-  // No auth → pick a stable local user id
   private val localUid = "local"
   private val gson = Gson()
 
@@ -32,7 +31,6 @@ class LocalHealthCardRepository(private val context: Context) : HealthCardReposi
   }
 
   override fun observeMyHealthCard(): Flow<HealthCard?> {
-    // Stream updates directly from DataStore
     val key = stringPreferencesKey("health_card_$localUid")
     return context.healthCardDataStore.data.map { prefs ->
       val enc = prefs[key] ?: return@map null
