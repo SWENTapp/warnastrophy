@@ -15,8 +15,6 @@ import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
 
-
-
 /**
  * Manages the geofencing logic for a set of hazards.
  *
