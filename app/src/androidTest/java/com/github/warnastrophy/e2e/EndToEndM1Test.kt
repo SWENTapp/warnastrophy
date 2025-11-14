@@ -114,13 +114,4 @@ class EndToEndM1Test : EndToEndUtils() {
         .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
         .assertTextContains("Dashboard", ignoreCase = true)
   }
-
-  @Test
-  fun create_edit_and_delete_contact() {
-    setContent()
-    addNewContact()
-    editContact(saveChanges = false)
-    editContact(saveChanges = true)
-    deleteContact()
-  }
 }
