@@ -1,12 +1,18 @@
 package com.github.warnastrophy.core.data.repository
 
+import android.util.Log
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.util.AppConfig
+import com.github.warnastrophy.core.util.AppConfig.Endpoints
+import com.github.warnastrophy.core.util.AppConfig.HTTP_TIMEOUT
 import com.github.warnastrophy.core.util.GeometryParser
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlinx.coroutines.Dispatchers
+import kotlin.time.TimeSource
+import kotlinx.coroutines.delay
 import org.json.JSONArray
 import org.json.JSONObject
 import org.locationtech.jts.geom.Geometry
@@ -18,7 +24,26 @@ import org.locationtech.jts.geom.Geometry
  * This interface abstracts the underlying data source
  */
 interface HazardsDataSource {
-  suspend fun getAreaHazards(geometry: String, days: String): List<Hazard>
+  /**
+   * Fetches a list of current hazards that are inside the defined geographic area.
+   *
+   * This method performs a partial fetch, only retrieving basic hazard information and centroid
+   * geometry, skipping detailed geometry, bounding box (bbox), and article URL retrieval.
+   *
+   * @param geometry A WKT string defining the area to search within.
+   * @param days The number of days back to search for events.
+   * @return A List of successfully parsed [Hazard] objects with partial data.
+   */
+  suspend fun getPartialAreaHazards(geometry: String, days: String): List<Hazard>
+
+  /**
+   * Completes the parsing of a partially constructed Hazard by fetching detailed geometry, bounding
+   * box (bbox), and article URL.
+   *
+   * @param hazard The partially constructed [Hazard] object.
+   * @return A complete [Hazard] object with additional fields populated, or null on failure.
+   */
+  suspend fun completeParsingOf(hazard: Hazard): Hazard?
 }
 
 /**
@@ -30,6 +55,9 @@ interface HazardsDataSource {
  */
 class HazardsRepository() : HazardsDataSource {
 
+  private val VALID_REPONSE_CODE_RANGE = 200..299
+  private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay
+
   /**
    * Constructs the full URL for fetching hazard events within a specific geographic area.
    *
@@ -38,9 +66,8 @@ class HazardsRepository() : HazardsDataSource {
    * @return The complete, URL-encoded string for the GDACS API endpoint.
    */
   private fun buildUrlAreaHazards(geometry: String, days: String): String {
-    val base = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
     val geom = geometry.replace(" ", "%20")
-    return "$base?geometryArea=$geom&days=$days"
+    return "${Endpoints.EVENTS_BY_AREA}?geometryArea=$geom&days=$days"
   }
 
   /**
@@ -50,63 +77,66 @@ class HazardsRepository() : HazardsDataSource {
    * coroutine running on Dispatchers.IO.
    *
    * @param urlStr The URL to fetch.
-   * @return The response body as a String, or an empty string if the connection fails.
+   * @return The response body as a String, or null when the status code is not 2xx or on error.
    */
-  private fun httpGet(urlStr: String): String =
-      with(Dispatchers.IO) {
-        val url = URL(urlStr)
-        val conn =
-            (url.openConnection() as HttpURLConnection).apply {
-              requestMethod = "GET"
-              setRequestProperty("Accept", "application/json")
-              connectTimeout = 15000
-              readTimeout = 15000
-            }
-        try {
-          val code = conn.responseCode
-          val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-          BufferedReader(InputStreamReader(stream)).use { it.readText() }
-        } finally {
-          conn.disconnect()
+  private suspend fun httpGet(urlStr: String): String? {
+    // Throttle API calls to avoid rate limiting
+    delay(AppConfig.gdacsThrottleDelay - lastApiCall.elapsedNow())
+    lastApiCall = TimeSource.Monotonic.markNow()
+
+    val url = URL(urlStr)
+    val conn =
+        (url.openConnection() as HttpURLConnection).apply {
+          requestMethod = "GET"
+          setRequestProperty("Accept", "application/json")
+          connectTimeout = HTTP_TIMEOUT
+          readTimeout = HTTP_TIMEOUT
+        }
+    return try {
+      when (conn.responseCode) {
+        in VALID_REPONSE_CODE_RANGE -> {
+          BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+        }
+        404 -> null // 404 means no data, return null
+        else -> { // This usually indicates rate limiting, bad request, or server error
+          throw IOException(
+              "HTTP GET failed with response: ${
+            BufferedReader(InputStreamReader(conn.errorStream)).readText()
+          }")
         }
       }
+    } finally {
+      conn.disconnect()
+    }
+  }
 
-  /**
-   * Fetches a list of current hazards that are inside the defined geographic area.
-   *
-   * @param geometry A WKT string defining the area to search within.
-   * @param days The number of days back to search for events.
-   * @return A List of successfully parsed [Hazard] objects.
-   */
-  override suspend fun getAreaHazards(geometry: String, days: String): List<Hazard> {
+  override suspend fun getPartialAreaHazards(geometry: String, days: String): List<Hazard> {
     val url = buildUrlAreaHazards(geometry, days)
     val response = httpGet(url)
-    if (response.isBlank()) {
+    if (response == null || response.isBlank()) {
       return emptyList()
     }
-    val hazards = mutableListOf<Hazard>()
 
     val jsonObject = JSONObject(response)
     val jsonHazards = jsonObject.getJSONArray("features")
-    for (i in 0 until jsonHazards.length()) {
+    return (0 until jsonHazards.length()).mapNotNull { i ->
       val hazardJson = jsonHazards.getJSONObject(i)
-      val hazard = parseHazard(hazardJson)
-      if (hazard != null) hazards.add(hazard)
+      parsePartialHazard(hazardJson)
     }
-    return hazards
   }
 
   /**
-   * Parses a single GeoJSON Feature object into a full Hazard data class.
+   * Parses a single GeoJSON Feature object into a partial Hazard data class.
    *
-   * This function performs multiple subsequent network calls to retrieve detailed geometry,
-   * bounding box (bbox), and the article URL for the hazard. It filters out non-current hazards and
-   * skips those with missing fields.
+   * This function only extracts basic information and the centroid geometry, skipping detailed
+   * geometry, bounding box (bbox), and article URL retrieval. It filters out non-current hazards
+   * and skips those with missing fields.
    *
    * @param root The JSONObject representing a single GeoJSON Feature (a hazard event).
-   * @return A fully constructed [Hazard] object, or null if parsing fails or fields are missing.
+   * @return A partially constructed [Hazard] object, or null if parsing fails or fields are
+   *   missing.
    */
-  private fun parseHazard(root: JSONObject): Hazard? {
+  private fun parsePartialHazard(root: JSONObject): Hazard? {
     try {
       val properties = root.getJSONObject("properties")
       val isCurrent = properties.getBoolean("iscurrent")
@@ -120,44 +150,38 @@ class HazardsRepository() : HazardsDataSource {
                 return null
               }
 
-      val urlsOfHazard = properties.getJSONObject("url")
-      val detailedGeometryUrl = urlsOfHazard.getString("geometry")
-      val geometryRes = httpGet(detailedGeometryUrl)
-      val hazardDetailUrl = urlsOfHazard.getString("details")
-
-      val articleUrl =
-          getHazardArticleUrl(hazardDetailUrl)
-              ?: run {
-                return null
-              }
-      val bbox =
-          getBbox(geometryRes)
-              ?: run {
-                return null
-              }
-      val affectedZone =
-          getAffectedZone(geometryRes)
-              ?: run {
-                return null
-              }
-      val hazard =
-          Hazard(
-              id = properties.getInt("eventid"),
-              type = properties.getString("eventtype"),
-              description = properties.optString("description"),
-              severityText = properties.getJSONObject("severitydata").getString("severitytext"),
-              country = properties.getString("country"),
-              date = properties.getString("fromdate"),
-              severity = properties.getJSONObject("severitydata").getDouble("severity"),
-              severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
-              articleUrl = articleUrl,
-              alertLevel = properties.getDouble("alertscore"),
-              centroid = centroid,
-              affectedZone = affectedZone,
-              bbox = bbox)
-      return hazard
+      return Hazard(
+          id = properties.getInt("eventid"),
+          type = properties.getString("eventtype"),
+          description = properties.optString("description"),
+          severityText = properties.getJSONObject("severitydata").getString("severitytext"),
+          country = properties.getString("country"),
+          date = properties.getString("fromdate"),
+          severity = properties.getJSONObject("severitydata").getDouble("severity"),
+          severityUnit = properties.getJSONObject("severitydata").getString("severityunit"),
+          articleUrl = null,
+          alertLevel = properties.getDouble("alertscore"),
+          centroid = centroid,
+          affectedZone = null,
+          bbox = null)
     } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error parsing partial hazard", e)
       return null
+    }
+  }
+
+  override suspend fun completeParsingOf(hazard: Hazard): Hazard? {
+    return try {
+      val detailedGeometryUrl =
+          "${Endpoints.GET_GEOMETRY}?eventtype=${hazard.type}&eventid=${hazard.id}"
+      val geometryRes = httpGet(detailedGeometryUrl)
+      val articleUrl = getHazardArticleUrl(hazard)
+      val bbox = geometryRes?.let { getBbox(it) }
+      val affectedZone = geometryRes?.let { getAffectedZone(it) }
+      return hazard.copy(articleUrl = articleUrl, affectedZone = affectedZone, bbox = bbox)
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error completing hazard parsing", e)
+      null
     }
   }
 
@@ -173,7 +197,8 @@ class HazardsRepository() : HazardsDataSource {
       getRawGeoJsonGeometry(geometryRes).getJSONArray("bbox").let { bboxArray ->
         List(bboxArray.length()) { i -> bboxArray.getDouble(i) }
       }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error parsing bbox", e)
       null
     }
   }
@@ -193,7 +218,8 @@ class HazardsRepository() : HazardsDataSource {
       val geometry = JSONObject(geometryRes)
       val rawGeoJsonGeometry = geometry.getJSONArray("features").getJSONObject(1)
       rawGeoJsonGeometry
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error extracting raw GeoJSON geometry", e)
       JSONObject() // return empty json object in case of exception
     }
   }
@@ -209,30 +235,28 @@ class HazardsRepository() : HazardsDataSource {
     return try {
       val rawGeoJsonAffectedZone = getRawGeoJsonGeometry(geometryRes).getString("geometry")
       GeometryParser.convertRawGeoJsonGeometryToJTS(rawGeoJsonAffectedZone)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error parsing affected zone", e)
       null
     }
   }
 
   /**
-   * Fetches the final article URL for the hazard, requiring two subsequent network calls.
-   * 1. Fetches the initial hazard detail JSON.
-   * 2. Fetches the media URL specified in the detail JSON.
-   * 3. Parses the media response to find the actual article link.
+   * Fetches the final article URL for the hazard.
    *
-   * @param hazardDetailUrl The URL to fetch detailed information about the hazard.
+   * @param hazard the [Hazard] object for which to fetch the article URL.
    * @return The direct article link (String), or null on parsing/network failure.
    */
-  private fun getHazardArticleUrl(hazardDetailUrl: String): String? {
-    val detailRes = httpGet(hazardDetailUrl)
+  private suspend fun getHazardArticleUrl(hazard: Hazard): String? {
     return try {
-      val json = JSONObject(detailRes)
-      val mediaUrl = json.getJSONObject("properties").getJSONObject("url").getString("media")
-      val mediaRes = httpGet(mediaUrl)
-      val mediaJson = JSONArray(mediaRes)
-      mediaJson.getJSONObject(0).getString("link")
-    } catch (_: Exception) {
-      return null
+      // We limit to 1 result as we only need the first article link
+      val res =
+          httpGet(
+              "${Endpoints.EMM_NEWS_BY_KEY}?eventtype=${hazard.type}&eventid=${hazard.id}&limit=1")
+      res?.let { JSONArray(it).getJSONObject(0).getString("link") }
+    } catch (e: Exception) {
+      Log.e("HazardsRepository", "Error fetching article URL", e)
+      null
     }
   }
 }

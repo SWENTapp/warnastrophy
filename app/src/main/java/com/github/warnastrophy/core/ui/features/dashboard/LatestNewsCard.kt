@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,8 +42,6 @@ object LatestNewsTestTags {
   const val LEFT_BUTTON = "latestNewsCardLeftButton"
 
   const val LINK = "latestNewsLink"
-
-  const val LATEST_NEWS_CARD = "latestNewsCard"
 }
 
 object LatestNewsCardColors {
@@ -73,13 +70,12 @@ object LatestNewsCardColors {
  * @see HazardsDataService
  */
 @Composable
-fun LatestNewsCard(hazardsService: HazardsDataService) {
+fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
+  val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
   val state = fetcherState.value
-  Log.d("LatestNewsCard", "fetcher state : ${state.isLoading}")
   var currentIndex by remember { mutableStateOf(0) }
   val context = LocalContext.current
-  Log.d("LatestNewsCard", "curr idnex : $currentIndex, ${state.hazards.size}")
 
   val currentHazard =
       if (state.hazards.isEmpty()) {
@@ -90,13 +86,13 @@ fun LatestNewsCard(hazardsService: HazardsDataService) {
 
   Column(
       modifier =
-          Modifier.fillMaxWidth()
+          modifier
+              .fillMaxWidth()
               .clip(RoundedCornerShape(12.dp))
               .border(
                   width = 1.dp,
                   color = LatestNewsCardColors.BORDER_COLOR.copy(alpha = 0.4f),
-                  shape = RoundedCornerShape(12.dp))
-              .testTag(LatestNewsTestTags.LATEST_NEWS_CARD)) {
+                  shape = RoundedCornerShape(12.dp))) {
         Row(
             modifier =
                 Modifier.fillMaxWidth()

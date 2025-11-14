@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.data.service
 
-import android.util.Log
 import com.github.warnastrophy.core.domain.model.Hazard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -15,8 +14,6 @@ import org.locationtech.jts.geom.Envelope
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
-
-private const val TAG = "HazardChecker"
 
 /**
  * Manages the geofencing logic for a set of hazards.
@@ -56,7 +53,6 @@ class HazardChecker(
   fun checkAndPublishAlert(userLng: Double, userLat: Double) {
     scope.launch(dispatcher) {
       val activeHazard: Hazard? = findHighestPriorityActiveHazard(userLng, userLat)
-      Log.d(TAG, "active hazard is: ${activeHazard?.id}")
 
       // 1. Clean up ALL inactive/lower-priority hazards first
       cleanUpInactiveHazards(activeHazard)
@@ -73,13 +69,10 @@ class HazardChecker(
     var highestPriorityHazard: Hazard? = null
 
     for (hazard in allHazards) {
-      Log.d("HazardChecker", "Evaluating hazard ID=${hazard.id}...")
       // Assumes isInsideBBox is already implemented
       if (hazard.bbox != null && isInsideBBox(userLng, userLat, hazard.bbox)) {
         if (hazard.affectedZone == null) continue
-        Log.d("HazardChecker", "Checking hazard ID=${hazard.id} with WKT=${hazard.affectedZone}")
         if (isInsideMultiPolygon(userLat, userLng, hazard.affectedZone)) {
-          Log.d("HazardChecker", "User is inside hazard ID=${hazard.id}!!!!!!")
 
           if (highestPriorityHazard == null ||
               (hazard.alertLevel ?: 0.0) > (highestPriorityHazard.alertLevel ?: 0.0)) {
@@ -88,7 +81,6 @@ class HazardChecker(
         }
       }
     }
-    Log.d("HazardChecker", "Highest hazard is ID=${highestPriorityHazard?.id}!!!!!!")
     return highestPriorityHazard
   }
 
@@ -118,7 +110,6 @@ class HazardChecker(
   private fun scheduleAlertCheck(hazard: Hazard) {
     // Cancel any existing job for this hazard to avoid duplicates (though rare here)
     val hazardId = hazard.id ?: return
-    Log.d(TAG, "Schedule hazard: ${hazard.id}")
     pendingAlertJobs[hazardId]?.cancel()
 
     // Schedule a job to run after the time threshold
@@ -129,18 +120,15 @@ class HazardChecker(
           // Check if the user is *still* inside the hazard zone
           // This final check confirms GPS stability (removes drift)
           val currentEntryTime = hazardEntryTimes[hazardId]
-          Log.d(TAG, "Current entry time: ${currentEntryTime}")
           if (currentEntryTime != null) {
             // If we reach here, the time has passed AND we haven't been canceled,
             // so the user has been stable inside the zone.
-            Log.d(TAG, "Update active hazard in service state manager: ${hazard.id}")
             ServiceStateManager.updateActiveHazard(hazard)
           }
 
           // Clean up the job entry after execution
           pendingAlertJobs.remove(hazard.id)
         }
-    Log.d(TAG, "Job add: ${hazard.id}")
     pendingAlertJobs[hazardId] = job
   }
 
@@ -191,16 +179,13 @@ class HazardChecker(
     hazardLock.withLock {
       val hazardsToClean = hazardEntryTimes.keys - setOfNotNull(currentHazardId)
       hazardsToClean.forEach { hazardId ->
-        Log.d(TAG, "Cleaning up inactive hazard ID=$hazardId")
         pendingAlertJobs[hazardId]?.cancel()
         pendingAlertJobs.remove(hazardId)
         hazardEntryTimes.remove(hazardId)
         if (ServiceStateManager.activeHazardFlow.value?.id == hazardId) {
-          Log.d(TAG, "Clearing global active hazard ID=$hazardId (user exited)")
           ServiceStateManager.clearActiveAlert()
         }
       }
-      Log.d("HazardChecker", "There is no hazard to clear: ${hazardsToClean.isEmpty()}")
     }
   }
 }

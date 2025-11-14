@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.features.health
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,7 +49,6 @@ import java.time.format.ResolverStyle
  * testing by providing stable identifiers for UI components.
  */
 object HealthCardTestTags {
-  const val BACK_BUTTON = "BackButton"
 
   // Input field tags
   const val FULL_NAME_FIELD = "FullNameField"
@@ -131,7 +129,7 @@ data class HealthCardFormState(
     try {
       val date = LocalDate.parse(birthDate, dateFormatter)
       return birthDate.isNotBlank() && !date.isAfter(LocalDate.now())
-    } catch (e: Exception) {
+    } catch (_: Exception) {
       return false
     }
   }
@@ -155,7 +153,6 @@ data class HealthCardFormState(
     }
 
     val trimmedDate = birthDate.trim()
-    Log.d("formatDateToIso", "birthDate: $birthDate")
     try {
       val date = LocalDate.parse(trimmedDate, dateFormatter)
       val outputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
