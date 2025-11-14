@@ -53,7 +53,6 @@ class HazardsService(
   /** Initializes the service and starts periodic hazard fetching based on the user's position. */
   init {
     serviceScope.launch {
-      _fetcherState.value = _fetcherState.value.copy(isLoading = true)
       while (isActive) {
         // for now we only use a fixed polygon from the repository provider
         /*

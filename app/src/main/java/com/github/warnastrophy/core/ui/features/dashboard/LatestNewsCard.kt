@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -78,11 +79,9 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
   val context = LocalContext.current
 
   val currentHazard =
-      if (state.hazards.isEmpty()) {
-        Hazard()
-      } else {
+      if (state.hazards.isNotEmpty()) {
         state.hazards[currentIndex]
-      }
+      } else Hazard()
 
   Column(
       modifier =
@@ -102,7 +101,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Text(
-                  text = "Latest news",
+                  text = stringResource(id = R.string.latest_news),
                   modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TITLE),
                   color = LatestNewsCardColors.HEADER_TEXT_COLOR,
                   fontWeight = FontWeight.Bold,
@@ -150,8 +149,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           text =
                               when {
                                 currentHazard.description != null -> currentHazard.description
-                                state.isLoading -> "Loading..."
-                                else -> "No recent hazards"
+                                state.isLoading -> stringResource(id = R.string.loading)
+                                else -> stringResource(id = R.string.no_news_yet)
                               },
                           color = Color.Black,
                           fontWeight = FontWeight.SemiBold,
