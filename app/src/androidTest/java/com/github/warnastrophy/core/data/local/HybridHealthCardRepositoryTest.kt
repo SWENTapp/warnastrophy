@@ -1,6 +1,7 @@
-package com.github.warnastrophy.core.data.repository
+package com.github.warnastrophy.core.data.local
 
-import com.github.warnastrophy.core.domain.model.HealthCard
+import com.github.warnastrophy.core.data.repository.HealthCardRepository
+import com.github.warnastrophy.core.data.repository.HybridHealthCardRepository
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,28 +30,28 @@ class HybridHealthCardRepositoryTest {
 
   @Test
   fun upsertMyHealthCard_writes_to_both_local_and_remote() = runTest {
-    val local = mockk<HealthCardRepository>(relaxed = true)
-    val remote = mockk<HealthCardRepository>(relaxed = true)
+      val local = mockk<HealthCardRepository>(relaxed = true)
+      val remote = mockk<HealthCardRepository>(relaxed = true)
 
-    val repo = HybridHealthCardRepository(local, remote)
-    val card = sampleCard()
+      val repo = HybridHealthCardRepository(local, remote)
+      val card = sampleCard()
 
-    repo.upsertMyHealthCard(card)
+      repo.upsertMyHealthCard(card)
 
-    coVerify(exactly = 1) { local.upsertMyHealthCard(card) }
-    coVerify(exactly = 1) { remote.upsertMyHealthCard(card) }
+      coVerify(exactly = 1) { local.upsertMyHealthCard(card) }
+      coVerify(exactly = 1) { remote.upsertMyHealthCard(card) }
   }
 
   @Test
   fun deleteMyHealthCard_deletes_both_local_and_remote() = runTest {
-    val local = mockk<HealthCardRepository>(relaxed = true)
-    val remote = mockk<HealthCardRepository>(relaxed = true)
+      val local = mockk<HealthCardRepository>(relaxed = true)
+      val remote = mockk<HealthCardRepository>(relaxed = true)
 
-    val repo = HybridHealthCardRepository(local, remote)
+      val repo = HybridHealthCardRepository(local, remote)
 
-    repo.deleteMyHealthCard()
+      repo.deleteMyHealthCard()
 
-    coVerify(exactly = 1) { local.deleteMyHealthCard() }
-    coVerify(exactly = 1) { remote.deleteMyHealthCard() }
+      coVerify(exactly = 1) { local.deleteMyHealthCard() }
+      coVerify(exactly = 1) { remote.deleteMyHealthCard() }
   }
 }
