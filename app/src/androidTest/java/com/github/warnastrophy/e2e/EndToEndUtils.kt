@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextContains
@@ -31,7 +32,7 @@ import com.google.firebase.auth.FirebaseUser
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
+import io.mockk.unmockkAll
 import org.junit.After
 import org.junit.Before
 
@@ -65,7 +66,7 @@ abstract class EndToEndUtils : UITest() {
   @After
   override fun tearDown() {
     super.tearDown()
-    unmockkStatic(FirebaseAuth::class)
+    unmockkAll()
   }
 
   /**
@@ -225,7 +226,13 @@ abstract class EndToEndUtils : UITest() {
         .assertIsDisplayed()
         .performClick()
 
-    composeTestRule.waitForIdle()
+    // After creating, the 'Add' button becomes an 'Update' button. Wait for it to appear.
+    composeTestRule.waitUntil(defaultTimeout) {
+      composeTestRule
+          .onAllNodesWithTag(HealthCardTestTags.UPDATE_BUTTON)
+          .fetchSemanticsNodes()
+          .isNotEmpty()
+    }
 
     // Check if content saved
     checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, fullName)
@@ -297,6 +304,8 @@ abstract class EndToEndUtils : UITest() {
         .onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON)
         .performScrollTo()
         .assertIsDisplayed()
+
+    composeTestRule.waitForIdle()
 
     checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, fullName)
     checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, birthDate)
@@ -412,7 +421,10 @@ abstract class EndToEndUtils : UITest() {
    */
   private fun checkTextFieldValue(fieldTag: String, expectedText: String?) {
     expectedText?.let {
-      composeTestRule.onNodeWithTag(fieldTag).assertTextContains(it, ignoreCase = true)
+      composeTestRule
+          .onNodeWithTag(fieldTag)
+          .performScrollTo()
+          .assertTextContains(it, ignoreCase = true)
     }
   }
 

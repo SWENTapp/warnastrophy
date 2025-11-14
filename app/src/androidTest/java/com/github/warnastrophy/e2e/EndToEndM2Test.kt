@@ -9,7 +9,6 @@ import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 
@@ -23,7 +22,6 @@ class EndToEndM2Test : EndToEndUtils() {
     ContactRepositoryProvider.init(context)
     repository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
-    runBlocking { runCatching { HealthCardRepositoryProvider.repository.deleteMyHealthCard() } }
   }
 
   @Test
