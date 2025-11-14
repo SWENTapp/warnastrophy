@@ -178,10 +178,10 @@ fun HealthCardScreen(
   val currentCard by viewModel.currentCard.collectAsState()
 
   LaunchedEffect(uiState) {
-    val ok =
+    val isOperationSuccessful =
         uiState is HealthCardUiState.Success &&
             (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
-    if (ok) {
+    if (isOperationSuccessful) {
       onDone()
       viewModel.resetUiState()
     }
