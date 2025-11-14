@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.model
+package com.github.warnastrophy.core.ui.dashboard
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

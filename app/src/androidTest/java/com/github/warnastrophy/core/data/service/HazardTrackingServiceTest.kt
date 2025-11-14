@@ -1,6 +1,5 @@
-package com.github.warnastrophy.core.service
+package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.data.service.HazardTrackingService
 import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMovedUseCase
 import com.github.warnastrophy.core.ui.map.GpsServiceMock

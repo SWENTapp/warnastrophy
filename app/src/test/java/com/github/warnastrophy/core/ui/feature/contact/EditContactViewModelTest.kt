@@ -1,12 +1,10 @@
-package com.github.warnastrophy.core.ui.contact
+package com.github.warnastrophy.core.ui.feature.contact
 
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactViewModel
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertNull
+import junit.framework.TestCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -58,10 +56,10 @@ class EditContactViewModelTest {
     viewModel.loadContact("1")
     advanceUntilIdle() // This ensures loadContact() completes and updates uiState.
     val uiState = viewModel.uiState.first()
-    assertEquals(contact1.fullName, uiState.fullName)
-    assertEquals(contact1.phoneNumber, uiState.phoneNumber)
-    assertEquals(contact1.relationship, uiState.relationship)
-    assertNull(uiState.errorMsg)
+    TestCase.assertEquals(contact1.fullName, uiState.fullName)
+    TestCase.assertEquals(contact1.phoneNumber, uiState.phoneNumber)
+    TestCase.assertEquals(contact1.relationship, uiState.relationship)
+    TestCase.assertNull(uiState.errorMsg)
   }
 
   @Test
@@ -86,11 +84,11 @@ class EditContactViewModelTest {
 
     val updated = repository.getContact("1").getOrNull()!!
 
-    assertEquals("Alice Updated", updated.fullName)
-    assertEquals("+11111111111", updated.phoneNumber)
-    assertEquals("Colleague", updated.relationship)
+    TestCase.assertEquals("Alice Updated", updated.fullName)
+    TestCase.assertEquals("+11111111111", updated.phoneNumber)
+    TestCase.assertEquals("Colleague", updated.relationship)
 
-    assertNotNull(navigateBackEvent.await())
+    TestCase.assertNotNull(navigateBackEvent.await())
   }
 
   @Test
@@ -109,8 +107,8 @@ class EditContactViewModelTest {
     advanceUntilIdle()
 
     val result = repository.getContact("2")
-    assertEquals(true, result.isFailure)
+    TestCase.assertEquals(true, result.isFailure)
 
-    assertNotNull(navigateBackEvent.await())
+    TestCase.assertNotNull(navigateBackEvent.await())
   }
 }

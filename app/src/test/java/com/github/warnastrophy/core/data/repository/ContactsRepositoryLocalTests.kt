@@ -1,14 +1,13 @@
-package com.github.warnastrophy.core.ui.repository
+package com.github.warnastrophy.core.data.repository
 
+import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.repository.ContactsRepositoryLocal
-import com.github.warnastrophy.core.data.repository.contactDataStore
 import com.github.warnastrophy.core.domain.model.Contact
-import junit.framework.TestCase.assertEquals
+import com.github.warnastrophy.core.util.CryptoUtils
+import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -21,8 +20,8 @@ class ContactsRepositoryLocalTests {
   private lateinit var datastore: DataStore<Preferences>
 
   @Before
-  fun setUp() {
-    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+  fun etUp() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
     ContactRepositoryProvider.init(context)
     datastore = context.contactDataStore
     repositoryLocal = ContactRepositoryProvider.repository as ContactsRepositoryLocal
@@ -36,7 +35,7 @@ class ContactsRepositoryLocalTests {
       assert(repositoryLocal.addContact(contact).isSuccess)
       val r = repositoryLocal.getContact("1")
       assert(r.isSuccess)
-      assertEquals(contact, r.getOrNull())
+      TestCase.assertEquals(contact, r.getOrNull())
     }
   }
 
@@ -87,7 +86,7 @@ class ContactsRepositoryLocalTests {
       // Overwrite with valid ciphertext but invalid JSON
       datastore.edit {
         val key = repositoryLocal.keyFor(contact)
-        it[key] = com.github.warnastrophy.core.util.CryptoUtils.encrypt("not_a_valid_json")
+        it[key] = CryptoUtils.encrypt("not_a_valid_json")
       }
       // Try to read the corrupted contact
       val result = repositoryLocal.getContact("badjson")
@@ -104,7 +103,7 @@ class ContactsRepositoryLocalTests {
       assert(repositoryLocal.editContact(contact.id, updatedContact).isSuccess)
       val r = repositoryLocal.getContact("3")
       assert(r.isSuccess)
-      assertEquals(updatedContact, r.getOrNull())
+      TestCase.assertEquals(updatedContact, r.getOrNull())
     }
   }
 
@@ -143,7 +142,7 @@ class ContactsRepositoryLocalTests {
       repositoryLocal.addContact(contact)
       val fetched = repositoryLocal.getContact("6")
       assert(fetched.isSuccess)
-      assertEquals(contact, fetched.getOrThrow())
+      TestCase.assertEquals(contact, fetched.getOrThrow())
     }
   }
 
