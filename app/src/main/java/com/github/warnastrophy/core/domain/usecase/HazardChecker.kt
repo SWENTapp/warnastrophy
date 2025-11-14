@@ -1,5 +1,6 @@
-package com.github.warnastrophy.core.data.service
+package com.github.warnastrophy.core.domain.usecase
 
+import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.domain.model.Hazard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
