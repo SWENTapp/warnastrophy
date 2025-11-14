@@ -53,6 +53,7 @@ class HazardsService(
   /** Initializes the service and starts periodic hazard fetching based on the user's position. */
   init {
     serviceScope.launch {
+      _fetcherState.value = _fetcherState.value.copy(isLoading = true)
       while (isActive) {
         // for now we only use a fixed polygon from the repository provider
         /*
@@ -81,7 +82,8 @@ class HazardsService(
             repository.completeParsingOf(hazard)?.let {
               // Mutate the list in place
               currentHazards[index] = it // Assign the completed hazard back to the list
-              _fetcherState.value = _fetcherState.value.copy(hazards = currentHazards.toList())
+              _fetcherState.value =
+                  _fetcherState.value.copy(hazards = currentHazards.toList(), isLoading = false)
             }
           }
           Log.i("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
@@ -90,6 +92,8 @@ class HazardsService(
           Log.e("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
+          _fetcherState.value =
+              _fetcherState.value.copy(errorMsg = "Error fetching hazards", isLoading = false)
         }
       }
     }
@@ -121,7 +125,7 @@ class HazardsService(
  * status, and any error messages.
  *
  * @property hazards List of currently fetched hazards.
- * @property isLoading Indicates whether a fetch using `/eventsbyarea` endpoint is in progress.
+ * @property isLoading Indicates whether a fetch operation is in progress.
  * @property errorMsg Optional error message if an error occurred during fetching.
  */
 data class FetcherState(

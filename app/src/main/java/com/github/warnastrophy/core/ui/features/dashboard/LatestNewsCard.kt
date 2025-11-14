@@ -73,15 +73,17 @@ object LatestNewsCardColors {
 fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
   val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
-  var currentIndex by remember { mutableIntStateOf(0) }
+  val state = fetcherState.value
+  var currentIndex by remember { mutableStateOf(0) }
   val context = LocalContext.current
 
   val currentHazard =
-      if (hazards.isEmpty()) {
-        Hazard(severityText = "No news yet")
+      if (state.hazards.isEmpty()) {
+        Hazard()
       } else {
-        hazards[currentIndex]
+        state.hazards[currentIndex]
       }
+
   Column(
       modifier =
           modifier
@@ -113,6 +115,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                   fontSize = 12.sp)
             }
 
+        Spacer(Modifier.height(8.dp))
+
         Column(
             modifier =
                 Modifier.fillMaxWidth()
@@ -122,10 +126,11 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                   modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.spacedBy(12.dp),
                   verticalAlignment = Alignment.CenterVertically) {
-                    if (hazards.isNotEmpty()) {
+                    if (state.hazards.isNotEmpty()) {
                       Button(
                           onClick = {
-                            currentIndex = (currentIndex - 1 + hazards.size) % hazards.size
+                            currentIndex =
+                                (currentIndex - 1 + state.hazards.size) % state.hazards.size
                           },
                           modifier =
                               Modifier.fillMaxHeight()
@@ -142,12 +147,19 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
 
                     Column(modifier = Modifier.weight(1f)) {
                       Text(
-                          text = currentHazard.description ?: "",
+                          text =
+                              when {
+                                currentHazard.description != null -> currentHazard.description
+                                state.isLoading -> "Loading..."
+                                else -> "No recent hazards"
+                              },
                           color = Color.Black,
                           fontWeight = FontWeight.SemiBold,
                           fontSize = 16.sp,
                           maxLines = 1,
-                          modifier = Modifier.testTag(LatestNewsTestTags.HEADLINE),
+                          modifier =
+                              Modifier.testTag(LatestNewsTestTags.HEADLINE)
+                                  .align(Alignment.CenterHorizontally),
                           overflow = TextOverflow.Ellipsis)
 
                       Spacer(modifier = Modifier.height(4.dp))
@@ -157,12 +169,12 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           color = Color.DarkGray,
                           fontSize = 13.sp,
                           lineHeight = 16.sp,
-                          modifier = Modifier.testTag(LatestNewsTestTags.BODY),
+                          modifier = Modifier.testTag(LatestNewsTestTags.BODY).height(32.dp),
                           maxLines = 2,
                           overflow = TextOverflow.Ellipsis)
 
                       Spacer(modifier = Modifier.height(8.dp))
-                      if (hazards.isNotEmpty()) {
+                      if (state.hazards.isNotEmpty()) {
                         Text(
                             text = "read",
                             color = LatestNewsCardColors.READ_ARTICLE_TEXT_COLOR,
@@ -197,11 +209,15 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                               contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                               modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)))
                         }
-                    if (hazards.isNotEmpty()) {
+                    if (state.hazards.isEmpty()) {
+                      Spacer(modifier = Modifier.width(2.dp))
+                    }
+                    if (state.hazards.isNotEmpty()) {
 
                       Button(
                           onClick = {
-                            currentIndex = (currentIndex + 1 + hazards.size) % hazards.size
+                            currentIndex =
+                                (currentIndex + 1 + state.hazards.size) % state.hazards.size
                           },
                           modifier =
                               Modifier.fillMaxHeight()
@@ -236,6 +252,6 @@ fun getImageForEvent(eventType: String): Int {
     "VO" -> R.drawable.vo
     "DR" -> R.drawable.dr
     "WF" -> R.drawable.wf
-    else -> R.drawable.eq // Une image par défaut
+    else -> R.drawable.de // Une image par défaut
   }
 }
