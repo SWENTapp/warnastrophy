@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,6 +86,7 @@ fun DashboardEmergencyContactsCardStateless(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
+  modifier.clickable { onManageContactsClick() }
   val colorScheme = MaterialTheme.colorScheme
   val colors = DashboardEmergencyContactsCardColors.getColors(colorScheme)
   StandardDashboardCard(

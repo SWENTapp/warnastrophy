@@ -70,7 +70,6 @@ object HealthCardStorage {
         context.healthCardDataStore.edit { preferences ->
           preferences[getUserKey(userId)] = encrypted
         }
-        Log.d(TAG, "Health card for user: $userId saved")
         StorageResult.Success(Unit)
       } catch (e: Exception) {
         StorageResult.Error(StorageException.DataStoreError(e))
@@ -99,7 +98,6 @@ object HealthCardStorage {
               .first()
 
       if (encrypted == null) {
-        Log.d(TAG, "No Health card found for user: $userId")
         return StorageResult.Success(null)
       }
 
@@ -119,7 +117,6 @@ object HealthCardStorage {
             return StorageResult.Error(StorageException.DeserializationError(e))
           }
 
-      Log.d(TAG, "Health card loaded for user: $userId")
       StorageResult.Success(healthCard)
     } catch (e: IOException) {
       Log.e(TAG, "Access error to DataStore", e)
@@ -140,7 +137,6 @@ object HealthCardStorage {
   suspend fun deleteHealthCard(context: Context, userId: String): StorageResult<Unit> {
     return try {
       context.healthCardDataStore.edit { preferences -> preferences.remove(getUserKey(userId)) }
-      Log.d(TAG, "Health card for user: $userId deleted")
       StorageResult.Success(Unit)
     } catch (e: IOException) {
       Log.e(TAG, "Error during deletion", e)

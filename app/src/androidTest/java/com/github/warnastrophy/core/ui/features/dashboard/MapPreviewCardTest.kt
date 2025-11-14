@@ -22,6 +22,13 @@ import com.github.warnastrophy.core.util.GpsServiceMock
 import com.github.warnastrophy.core.util.HazardServiceMock
 import com.github.warnastrophy.core.util.MockPermissionManager
 import com.google.android.gms.maps.MapsInitializer
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -43,6 +50,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
   @Before
   override fun setUp() {
     super.setUp()
+    setupMockFirebaseAuth()
     gpsService = GpsServiceMock()
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
@@ -51,10 +59,38 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     viewModel = MapViewModel(gpsService, hazardService, permissionManager)
   }
 
+  /**
+   * Sets up a mocked Firebase authentication with a logged-in user. This ensures the app starts at
+   * the Dashboard instead of the SignIn screen.
+   */
+  private fun setupMockFirebaseAuth() {
+    // Mock FirebaseApp
+    mockkStatic(FirebaseApp::class)
+    val mockFirebaseApp: FirebaseApp = mockk(relaxed = true)
+    every { FirebaseApp.getInstance() } returns mockFirebaseApp
+    every { FirebaseApp.getApps(any()) } returns listOf(mockFirebaseApp)
+
+    // Mock FirebaseAuth with an authenticated user
+    mockkStatic(FirebaseAuth::class)
+    val mockFirebaseAuth: FirebaseAuth = mockk(relaxed = true)
+    val mockFirebaseUser: FirebaseUser =
+        mockk(relaxed = true) {
+          every { uid } returns "test-user-id"
+          every { email } returns "test@example.com"
+          every { displayName } returns "Test User"
+          every { isAnonymous } returns false
+        }
+
+    every { FirebaseAuth.getInstance() } returns mockFirebaseAuth
+    every { mockFirebaseAuth.currentUser } returns mockFirebaseUser
+  }
+
   @After
   override fun tearDown() {
     super.tearDown()
 
+    unmockkStatic(FirebaseAuth::class)
+    unmockkStatic(FirebaseApp::class)
     // Clear shared preferences
     val ctx = ApplicationProvider.getApplicationContext<Context>()
     val prefs = ctx.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)

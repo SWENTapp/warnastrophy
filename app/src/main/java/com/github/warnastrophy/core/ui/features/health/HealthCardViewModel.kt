@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageResult
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.data.repository.HealthCardRepository
+import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.domain.model.HealthCard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +23,10 @@ import kotlinx.coroutines.launch
  *
  * @param dispatcher Dispatcher attribute for testing purposes
  */
-class HealthCardViewModel(private val dispatcher: CoroutineDispatcher = Dispatchers.Main) :
-    ViewModel() {
+class HealthCardViewModel(
+    private val repo: HealthCardRepository = HealthCardRepositoryProvider.repository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow<HealthCardUiState>(HealthCardUiState.Idle)
   val uiState: StateFlow<HealthCardUiState> = _uiState.asStateFlow()
@@ -76,6 +80,24 @@ class HealthCardViewModel(private val dispatcher: CoroutineDispatcher = Dispatch
       }
     }
   }
+
+  /** Saves the HealthCard to the local database. */
+  fun saveHealthCardDB(card: HealthCard) =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.upsertMyHealthCard(card) }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Saved") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Saving error") }
+      }
+
+  /** Delete the HealthCard from the Database */
+  fun deleteHealthCardDB() =
+      viewModelScope.launch(dispatcher) {
+        _uiState.value = HealthCardUiState.Loading
+        runCatching { repo.deleteMyHealthCard() }
+            .onSuccess { _uiState.value = HealthCardUiState.Success("Deleted") }
+            .onFailure { _uiState.value = HealthCardUiState.Error(it.message ?: "Deletion error") }
+      }
 
   /**
    * Updates an existing health card.

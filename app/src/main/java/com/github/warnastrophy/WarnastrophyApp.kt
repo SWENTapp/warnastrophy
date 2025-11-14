@@ -8,38 +8,55 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.credentials.CredentialManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.data.permissions.PermissionManager
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
-import com.github.warnastrophy.core.data.service.GpsServiceFactory
-import com.github.warnastrophy.core.data.service.HazardsServiceFactory
+import com.github.warnastrophy.core.domain.model.GpsServiceFactory
+import com.github.warnastrophy.core.domain.model.HazardsServiceFactory
+import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.ui.common.ErrorHandler
-import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
-import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
-import com.github.warnastrophy.core.ui.features.contact.EditContactScreen
+import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
+import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+
+/** Object containing test tags for the WarnastrophyApp. */
+object WarnastrophyAppTestTags {
+  const val MAIN_SCREEN = "mainScreen"
+}
 
 @Composable
 fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
   val context = LocalContext.current
+
+  if (FirebaseApp.getApps(context).isEmpty()) {
+    FirebaseApp.initializeApp(context)
+  }
+
+  val credentialManager = CredentialManager.create(context)
 
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
@@ -58,12 +75,16 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
+        SignIn.route -> SignIn
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
         else -> Dashboard
       }
 
-  val startDestination = Dashboard.route
+  // val startDestination = Dashboard.route
+  val startDestination =
+      if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
+
   val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
   val errorHandler = ErrorHandler()
@@ -89,6 +110,7 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
       }
 
   Scaffold(
+      modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
       topBar = {
         TopBar(
@@ -101,6 +123,11 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
+              composable(SignIn.route) {
+                SignInScreen(
+                    credentialManager = credentialManager,
+                    onSignedIn = { navigationActions.navigateTo(Dashboard) })
+              }
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,
@@ -126,7 +153,9 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
               composable(Screen.AddContact.route) {
                 AddContactScreen(onDone = { navigationActions.goBack() })
               }
-              composable(Screen.HealthCard.route) { HealthCardScreen() }
+              composable(Screen.HealthCard.route) {
+                HealthCardScreen(onDone = { navController.popBackStack() })
+              }
               composable(route = Screen.EditContact.route) { navBackStackEntry ->
                 val id = navBackStackEntry.arguments?.getString("id")
 

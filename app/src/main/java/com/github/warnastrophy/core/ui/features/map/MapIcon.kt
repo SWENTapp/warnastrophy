@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +19,8 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.util.GeometryParser
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMapComposable
 import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polygon
@@ -89,31 +92,26 @@ fun HazardMarker(
   val markerLocation =
       hazard.centroid?.centroid?.let { point -> Location(point.y, point.x) } ?: Location(0.0, 0.0)
 
-  val centroidLatLngs: List<Location>? =
-      hazard.centroid?.let { nonNullGeometry ->
+  val affectedZone: List<Location>? =
+      hazard.affectedZone?.let { nonNullGeometry ->
         // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
         GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
       }
 
-  // If there are multiple points, draw a polygon.
-  centroidLatLngs?.let { locations ->
+  affectedZone?.let { locations ->
     if (locations.size > 1) {
-      val polygonCoords = locations.map { location -> Location.Companion.toLatLng(location) }
+      val polygonCoords = locations.map { location -> Location.toLatLng(location) }
 
-      // Draw a polygon on the map for multi-point geometries.
-      Polygon(
-          points = polygonCoords,
-          strokeWidth = 2f,
-      )
-    } else if (locations.isEmpty()) {
-      // Fallback for empty location list, though markerLocation from centroid should be used.
-      // This branch is unlikely if hazard.centroid exists.
+      PolygonWrapper(polygonCoords)
+    } else {
+      // Fallback for empty polygon.
+      // This branch is unlikely if hazard.affectedZone exists.
       // Log or handle this case as an anomaly if necessary.
     }
   }
 
   markerContent(
-      rememberMarkerState(position = Location.Companion.toLatLng(markerLocation)),
+      rememberMarkerState(position = Location.toLatLng(markerLocation)),
       hazard.description,
       "${hazard.severity} ${hazard.severityUnit}",
   ) {
@@ -158,4 +156,14 @@ fun HazardMarker(
 
     icon(tint = tint)
   }
+}
+
+@Composable
+@GoogleMapComposable
+fun PolygonWrapper(polygonCoords: List<LatLng>) {
+  Polygon(
+      points = polygonCoords,
+      strokeWidth = 2f,
+      strokeColor = MaterialTheme.colorScheme.error,
+      fillColor = MaterialTheme.colorScheme.error.copy(alpha = 0.18f))
 }

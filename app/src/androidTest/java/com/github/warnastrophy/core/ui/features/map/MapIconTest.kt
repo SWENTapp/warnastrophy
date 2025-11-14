@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.features.map
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.MutableState
@@ -113,7 +112,6 @@ class MapIconTest : BaseAndroidComposeTest() {
     }
 
     hazardToTag.forEach { (haz, expectedTag) ->
-      Log.d("MapIconTest", "Testing hazard type ${haz.type} expecting tag $expectedTag")
       hazard.value = haz
       composeTestRule.waitForIdle()
       composeTestRule.onNodeWithContentDescription(expectedTag).assertIsDisplayed()

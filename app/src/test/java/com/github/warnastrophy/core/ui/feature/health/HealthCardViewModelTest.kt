@@ -1,11 +1,12 @@
-package com.github.warnastrophy.core.ui.feature.health
+package com.github.warnastrophy.core.model.util
 
 import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.data.repository.HealthCardRepository
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.features.health.HealthCardUiState
 import com.github.warnastrophy.core.ui.features.health.HealthCardViewModel
 import io.mockk.coEvery
@@ -13,7 +14,9 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import junit.framework.TestCase
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNull
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -34,13 +37,14 @@ class HealthCardViewModelTest {
 
   private lateinit var viewModel: HealthCardViewModel
   private lateinit var mockContext: Context
+  private lateinit var mockRepo: HealthCardRepository
 
   private val testUserId = "test_user_123"
   private val testHealthCard =
       HealthCard(
           fullName = "John Doe",
-          birthDate = "1990-01-01",
-          socialSecurityNumber = "123-45-6789",
+          dateOfBirthIso = "1990-01-01",
+          idNumber = "123-45-6789",
           sex = "Male",
           bloodType = "O+",
           heightCm = 180,
@@ -56,7 +60,8 @@ class HealthCardViewModelTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    viewModel = HealthCardViewModel()
+    mockRepo = mockk(relaxed = true)
+    viewModel = HealthCardViewModel(repo = mockRepo, dispatcher = testDispatcher)
     mockContext = mockk(relaxed = true)
     mockkObject(HealthCardStorage)
   }
@@ -69,8 +74,8 @@ class HealthCardViewModelTest {
 
   @Test
   fun `initial state is Idle and currentCard is null`() {
-    TestCase.assertEquals(HealthCardUiState.Idle, viewModel.uiState.value)
-    TestCase.assertNull(viewModel.currentCard.value)
+    assertEquals(HealthCardUiState.Idle, viewModel.uiState.value)
+    assertNull(viewModel.currentCard.value)
   }
 
   @Test
@@ -84,11 +89,11 @@ class HealthCardViewModelTest {
     testDispatcher.scheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
-    TestCase.assertEquals(
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertEquals(
         "Health card successfully loaded",
         (viewModel.uiState.value as HealthCardUiState.Success).message)
-    TestCase.assertEquals(testHealthCard, viewModel.currentCard.value)
+    assertEquals(testHealthCard, viewModel.currentCard.value)
 
     coVerify { HealthCardStorage.loadHealthCard(mockContext, testUserId) }
   }
@@ -104,8 +109,8 @@ class HealthCardViewModelTest {
     testDispatcher.scheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
-    TestCase.assertNull(viewModel.currentCard.value)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertNull(viewModel.currentCard.value)
   }
 
   @Test
@@ -121,12 +126,12 @@ class HealthCardViewModelTest {
     testDispatcher.scheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
-    TestCase.assertTrue(
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
+    assertTrue(
         (viewModel.uiState.value as HealthCardUiState.Error)
             .message
             .contains("Decryption", ignoreCase = true))
-    TestCase.assertNull(viewModel.currentCard.value)
+    assertNull(viewModel.currentCard.value)
   }
 
   @Test
@@ -143,13 +148,13 @@ class HealthCardViewModelTest {
     testScheduler.runCurrent()
 
     // Then - check Loading state
-    TestCase.assertEquals(HealthCardUiState.Loading, viewModel.uiState.value)
+    assertEquals(HealthCardUiState.Loading, viewModel.uiState.value)
 
     // Advance to completion
     testScheduler.advanceUntilIdle()
 
     // Then - after completion
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
   }
 
   @Test
@@ -163,11 +168,11 @@ class HealthCardViewModelTest {
     testScheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
-    TestCase.assertEquals(
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertEquals(
         "Health card saved successfully",
         (viewModel.uiState.value as HealthCardUiState.Success).message)
-    TestCase.assertEquals(testHealthCard, viewModel.currentCard.value)
+    assertEquals(testHealthCard, viewModel.currentCard.value)
     coVerify { HealthCardStorage.saveHealthCard(mockContext, testUserId, testHealthCard) }
   }
 
@@ -183,8 +188,8 @@ class HealthCardViewModelTest {
     testScheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
-    TestCase.assertNull(viewModel.currentCard.value)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
+    assertNull(viewModel.currentCard.value)
   }
 
   @Test
@@ -201,12 +206,12 @@ class HealthCardViewModelTest {
     testScheduler.runCurrent()
 
     // Then - Check Loading state
-    TestCase.assertEquals(HealthCardUiState.Loading, viewModel.uiState.value)
+    assertEquals(HealthCardUiState.Loading, viewModel.uiState.value)
 
     testScheduler.advanceUntilIdle()
 
     // Then - after completion
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
   }
 
   @Test
@@ -221,12 +226,12 @@ class HealthCardViewModelTest {
     testScheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
-    TestCase.assertEquals(
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertEquals(
         "Health card updated successfully",
         (viewModel.uiState.value as HealthCardUiState.Success).message)
-    TestCase.assertEquals(updatedCard, viewModel.currentCard.value)
-    TestCase.assertEquals(80.0, viewModel.currentCard.value?.weightKg)
+    assertEquals(updatedCard, viewModel.currentCard.value)
+    assertEquals(80.0, viewModel.currentCard.value?.weightKg)
   }
 
   @Test
@@ -242,7 +247,7 @@ class HealthCardViewModelTest {
     testScheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
   }
 
   @Test
@@ -263,11 +268,11 @@ class HealthCardViewModelTest {
     testScheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
-    TestCase.assertEquals(
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertEquals(
         "Health card deleted successfully",
         (viewModel.uiState.value as HealthCardUiState.Success).message)
-    TestCase.assertNull(viewModel.currentCard.value)
+    assertNull(viewModel.currentCard.value)
 
     coVerify { HealthCardStorage.deleteHealthCard(mockContext, testUserId) }
   }
@@ -284,7 +289,7 @@ class HealthCardViewModelTest {
     testScheduler.advanceUntilIdle()
 
     // Then
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
   }
 
   @Test
@@ -295,13 +300,13 @@ class HealthCardViewModelTest {
 
     viewModel.saveHealthCard(mockContext, testUserId, testHealthCard)
     testScheduler.advanceUntilIdle()
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Success)
 
     // When
     viewModel.resetUiState()
 
     // Then
-    TestCase.assertEquals(HealthCardUiState.Idle, viewModel.uiState.value)
+    assertEquals(HealthCardUiState.Idle, viewModel.uiState.value)
   }
 
   @Test
@@ -313,13 +318,13 @@ class HealthCardViewModelTest {
 
     viewModel.loadHealthCard(mockContext, testUserId)
     testScheduler.advanceUntilIdle()
-    TestCase.assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
+    assertTrue(viewModel.uiState.value is HealthCardUiState.Error)
 
     // When
     viewModel.resetUiState()
 
     // Then
-    TestCase.assertEquals(HealthCardUiState.Idle, viewModel.uiState.value)
+    assertEquals(HealthCardUiState.Idle, viewModel.uiState.value)
   }
 
   @Test
@@ -330,7 +335,7 @@ class HealthCardViewModelTest {
 
     viewModel.saveHealthCard(mockContext, testUserId, testHealthCard)
     testScheduler.advanceUntilIdle()
-    TestCase.assertEquals(testHealthCard, viewModel.currentCard.value)
+    assertEquals(testHealthCard, viewModel.currentCard.value)
 
     // Update
     val updatedCard = testHealthCard.copy(weightKg = 80.0)
@@ -339,7 +344,7 @@ class HealthCardViewModelTest {
 
     viewModel.updateHealthCard(mockContext, testUserId, updatedCard)
     testScheduler.advanceUntilIdle()
-    TestCase.assertEquals(80.0, viewModel.currentCard.value?.weightKg)
+    assertEquals(80.0, viewModel.currentCard.value?.weightKg)
 
     // Delete
     coEvery { HealthCardStorage.deleteHealthCard(mockContext, testUserId) } returns
@@ -347,6 +352,6 @@ class HealthCardViewModelTest {
 
     viewModel.deleteHealthCard(mockContext, testUserId)
     testScheduler.advanceUntilIdle()
-    TestCase.assertNull(viewModel.currentCard.value)
+    assertNull(viewModel.currentCard.value)
   }
 }

@@ -4,8 +4,11 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.Rule
 
@@ -44,6 +47,29 @@ abstract class BaseComposeTest {
       runBlocking { withTimeout(timeoutMillis) { waitForIdle() } }
     } catch (e: TimeoutCancellationException) {
       throw AssertionError("Timed out waiting for Compose to be idle after $timeoutMillis ms", e)
+    }
+  }
+
+  /**
+   * Waits for a condition to be met within a specified timeout.
+   *
+   * This suspended function periodically checks a condition until it is met or the specified
+   * timeout is exceeded. It uses a limited execution context to avoid unnecessary thread overhead.
+   *
+   * @param timeoutMillis The maximum time in milliseconds to wait for the condition to be met.
+   *   Default is 2000 ms.
+   * @param condition A lambda function representing the condition to check. It should return `true`
+   *   when the condition is met.
+   * @throws TimeoutCancellationException If the specified timeout is exceeded before the condition
+   *   is met.
+   */
+  protected suspend fun awaitCondition(timeoutMillis: Long = 2000L, condition: () -> Boolean) {
+    withContext(Dispatchers.Default) {
+      withTimeout(timeoutMillis) {
+        while (!condition()) {
+          delay(10)
+        }
+      }
     }
   }
 

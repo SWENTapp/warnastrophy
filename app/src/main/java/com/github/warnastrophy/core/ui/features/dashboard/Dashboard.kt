@@ -17,9 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.data.service.HazardsDataService
-import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardStateful
-import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardTestTags
+import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 
 object DashboardScreenTestTags {
@@ -53,7 +51,9 @@ fun DashboardScreen(
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            LatestNewsCard(hazardsService)
+            LatestNewsCard(
+                hazardsService = hazardsService,
+                modifier = Modifier.testTag(DashboardScreenTestTags.LATEST_NEWS_SECTION))
 
             Spacer(modifier = Modifier.height(12.dp))
 

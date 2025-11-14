@@ -5,6 +5,9 @@ import com.github.warnastrophy.core.model.Contact
 class MockContactRepository : ContactsRepository {
   private val mockContacts = mutableListOf<Contact>()
 
+  /** If set to true, `getAllContacts()` will throw an exception to simulate a failure. */
+  var shouldThrowException = false
+
   override suspend fun addContact(contact: Contact): Result<Unit> = runCatching {
     if (mockContacts.any { it.id == contact.id }) {
       throw IllegalArgumentException("Contact ${contact.id} already exists")
@@ -15,6 +18,7 @@ class MockContactRepository : ContactsRepository {
   override fun getNewUid(): String = ""
 
   override suspend fun getAllContacts(): Result<List<Contact>> = runCatching {
+    if (shouldThrowException) throw Exception()
     mockContacts.toList() // return a copy
   }
 

@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.ktfmt)
     alias(libs.plugins.sonar)
-    //id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
     id("jacoco")
 }
 
@@ -271,6 +271,7 @@ dependencies {
     // Espresso-Intents
     testImplementation("androidx.test.espresso:espresso-intents:3.5.0")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.0")
+    testImplementation(kotlin("test"))
 }
 
 tasks.withType<Test> {

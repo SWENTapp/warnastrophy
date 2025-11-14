@@ -1,15 +1,19 @@
-package com.github.warnastrophy.core.ui.features.map
+package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
-import com.github.warnastrophy.core.data.permissions.AppPermissions
-import com.github.warnastrophy.core.data.permissions.PermissionResult
-import com.github.warnastrophy.core.util.GpsServiceMock
-import com.github.warnastrophy.core.util.HazardServiceMock
-import com.github.warnastrophy.core.util.MockPermissionManager
-import com.github.warnastrophy.core.util.createHazard
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.mockk
-import junit.framework.TestCase
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertTrue
+import kotlin.collections.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -55,8 +59,8 @@ class MapViewModelTest {
   @Test
   fun initial_state_has_denied_permission_and_loading_true() = runTest {
     val uiState = viewModel.uiState.value
-    TestCase.assertTrue(uiState.permissionResult is PermissionResult.Denied)
-    TestCase.assertTrue(uiState.isLoading)
+    assertTrue(uiState.permissionResult is PermissionResult.Denied)
+    assertTrue(uiState.isLoading)
   }
   /** Tests if applying a permission result correctly updates the UI state. */
   @Test
@@ -67,18 +71,18 @@ class MapViewModelTest {
     viewModel.applyPermissionsResult(activity)
 
     val newState = viewModel.uiState.value
-    TestCase.assertTrue(newState.permissionResult is PermissionResult.Denied)
-    TestCase.assertFalse(newState.isOsRequestInFlight)
+    assertTrue(newState.permissionResult is PermissionResult.Denied)
+    assertFalse(newState.isOsRequestInFlight)
   }
 
   /** Checks if the tracking state in the UI is correctly updated when `setTracking` is called. */
   @Test
   fun setTracking_updates_tracking_state() = runTest {
     viewModel.setTracking(true)
-    TestCase.assertTrue(viewModel.uiState.value.isTrackingLocation)
+    assertTrue(viewModel.uiState.value.isTrackingLocation)
 
     viewModel.setTracking(false)
-    TestCase.assertFalse(viewModel.uiState.value.isTrackingLocation)
+    assertFalse(viewModel.uiState.value.isTrackingLocation)
   }
 
   /**
@@ -93,8 +97,8 @@ class MapViewModelTest {
     testDispatcher.scheduler.advanceUntilIdle()
 
     val uiState = viewModel.uiState.value
-    TestCase.assertTrue(gpsService.isLocationUpdated)
-    TestCase.assertEquals(mockPos, uiState.positionState.position)
+    assertTrue(gpsService.isLocationUpdated)
+    assertEquals(mockPos, uiState.positionState.position)
   }
 
   /** Verifies that the UI state is updated when the GPS service emits new location data. */
@@ -104,7 +108,7 @@ class MapViewModelTest {
     testDispatcher.scheduler.advanceUntilIdle()
 
     val uiState = viewModel.uiState.value
-    TestCase.assertEquals(mockPos, uiState.positionState.position)
+    assertEquals(mockPos, uiState.positionState.position)
   }
 
   /**
@@ -114,7 +118,7 @@ class MapViewModelTest {
   fun stopLocationUpdate_calls_gpsService_methods() = runTest {
     gpsService.stopLocationUpdates()
     testDispatcher.scheduler.advanceUntilIdle()
-    TestCase.assertFalse(gpsService.isLocationUpdated)
+    assertFalse(gpsService.isLocationUpdated)
   }
 
   /**
@@ -143,9 +147,8 @@ class MapViewModelTest {
 
     // --- Assert initial state before acting ---
     val initialState = viewModel.uiState.value
-    TestCase.assertEquals(
-        "Initial hazard count should be correct", 2, initialState.hazardState.hazards.size)
-    TestCase.assertEquals(
+    assertEquals("Initial hazard count should be correct", 2, initialState.hazardState.hazards.size)
+    assertEquals(
         "Initial severities for Flood should be calculated",
         Pair(0.3, 0.8),
         initialState.severitiesByType["Flood"])
@@ -160,30 +163,30 @@ class MapViewModelTest {
     val finalState = viewModel.uiState.value
 
     // Verify position state was updated
-    TestCase.assertFalse("Position should no longer be loading", finalState.positionState.isLoading)
-    TestCase.assertEquals(
+    assertFalse("Position should no longer be loading", finalState.positionState.isLoading)
+    assertEquals(
         "Position should be updated to the new value",
         newPosition,
         finalState.positionState.position)
 
     // Verify hazard state was updated
-    TestCase.assertEquals(
+    assertEquals(
         "Hazard list should be updated to the new list",
         newHazards.size,
         finalState.hazardState.hazards.size)
-    TestCase.assertEquals(
+    assertEquals(
         "Hazard data should match the new hazards", newHazards, finalState.hazardState.hazards)
 
     // Verify the derived 'severities' state was re-calculated and updated
-    TestCase.assertEquals(
+    assertEquals(
         "Severities for Flood should be updated",
         Pair(0.5, 1.0),
         finalState.severitiesByType["Water"])
-    TestCase.assertEquals(
+    assertEquals(
         "Severities for Fire should be updated",
         Pair(2.0, 3.5),
         finalState.severitiesByType["Fire"])
-    TestCase.assertFalse(
+    assertFalse(
         "Old severity key 'Flood' should no longer exist",
         finalState.severitiesByType.containsKey("Flood"))
   }
@@ -216,9 +219,8 @@ class MapViewModelTest {
 
     val state = viewModel.uiState.value
 
-    TestCase.assertEquals(
-        "Hazard count should be correct", hazards.size, state.hazardState.hazards.size)
-    TestCase.assertEquals("Severities should be correct", expectedResult, state.severitiesByType)
+    assertEquals("Hazard count should be correct", hazards.size, state.hazardState.hazards.size)
+    assertEquals("Severities should be correct", expectedResult, state.severitiesByType)
   }
 
   /**
@@ -227,10 +229,36 @@ class MapViewModelTest {
    */
   @Test
   fun onPermissionsRequestStart_works_as_expected() = runTest {
-    TestCase.assertFalse(
+    assertFalse(
         "The OS pop-up should not be displayed", viewModel.uiState.value.isOsRequestInFlight)
     viewModel.onPermissionsRequestStart()
-    TestCase.assertTrue(
-        "The OS pop-up should be displayed", viewModel.uiState.value.isOsRequestInFlight)
+    assertTrue("The OS pop-up should be displayed", viewModel.uiState.value.isOsRequestInFlight)
+  }
+
+  @Test
+  fun location_is_preserved_after_rotation() = runTest {
+    val initialPos = LatLng(48.8566, 2.3522)
+    gpsService.setPosition(position = initialPos)
+
+    val viewModelStore = ViewModelStore()
+    val owner =
+        object : ViewModelStoreOwner {
+          override val viewModelStore: ViewModelStore = viewModelStore
+        }
+
+    val factory = MapViewModelFactory(gpsService, hazardsService, permissionManager)
+
+    // Avant rotation
+    val vmBefore = ViewModelProvider(owner, factory)[MapViewModel::class.java]
+    vmBefore.startLocationUpdate()
+    testDispatcher.scheduler.advanceUntilIdle()
+    val posBefore = vmBefore.uiState.value.positionState.position
+
+    // Après rotation - même ViewModelStore
+    val vmAfter = ViewModelProvider(owner, factory)[MapViewModel::class.java]
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    assertTrue(vmBefore === vmAfter)
+    assertEquals(posBefore, vmAfter.uiState.value.positionState.position)
   }
 }

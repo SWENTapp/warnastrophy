@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.features.dashboard
+package com.github.warnastrophy.core.ui.dashboard
 
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
@@ -8,19 +8,19 @@ import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.data.local.HealthCardStorage
 import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.data.local.StorageResult
-import com.github.warnastrophy.core.model.HealthCard
+import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
-import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardStateful
-import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardStateless
-import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardTestTags
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardStateful
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardStateless
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardTestTags
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
-import com.github.warnastrophy.core.util.BaseSimpleComposeTest
+import com.github.warnastrophy.core.ui.util.BaseSimpleComposeTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
-import kotlinx.coroutines.delay
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -86,8 +86,8 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   ) =
       HealthCard(
           fullName = fullName,
-          birthDate = birthDate,
-          socialSecurityNumber = socialSecurityNumber,
+          dateOfBirthIso = birthDate,
+          idNumber = socialSecurityNumber,
           bloodType = bloodType,
           allergies = allergies,
           medications = medications,
@@ -208,7 +208,7 @@ class DashboardHealthCardTest : BaseSimpleComposeTest() {
   fun stateful_showsLoading_initially() {
     coEvery { HealthCardStorage.loadHealthCard(any(), any()) } coAnswers
         {
-          delay(1000)
+          kotlinx.coroutines.delay(1000)
           StorageResult.Success(null)
         }
 

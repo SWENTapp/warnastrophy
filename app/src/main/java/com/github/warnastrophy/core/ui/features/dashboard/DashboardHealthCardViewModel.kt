@@ -74,7 +74,7 @@ class DashboardHealthCardViewModel(private val dispatcher: CoroutineDispatcher =
       additionalLines.add("${healthCard.medications.size} $medsText")
     }
 
-    if (healthCard.organDonor) {
+    if (healthCard.organDonor == true) {
       additionalLines.add("Organ donor")
     }
 

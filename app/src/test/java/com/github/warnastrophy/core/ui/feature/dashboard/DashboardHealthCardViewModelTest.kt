@@ -183,8 +183,8 @@ class DashboardHealthCardViewModelTest {
   ) =
       HealthCard(
           fullName = fullName,
-          birthDate = birthDate,
-          socialSecurityNumber = socialSecurityNumber,
+          dateOfBirthIso = birthDate,
+          idNumber = socialSecurityNumber,
           bloodType = bloodType,
           allergies = allergies,
           medications = medications,

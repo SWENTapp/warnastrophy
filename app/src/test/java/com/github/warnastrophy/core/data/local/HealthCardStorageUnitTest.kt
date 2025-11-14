@@ -28,8 +28,8 @@ class HealthCardStorageUnitTest {
     sampleCard =
         HealthCard(
             fullName = "John Doe",
-            birthDate = "1992-05-17",
-            socialSecurityNumber = "securityNumber123",
+            dateOfBirthIso = "1992-05-17",
+            idNumber = "securityNumber123",
             sex = "M",
             bloodType = "A+",
             heightCm = 180,
@@ -54,7 +54,7 @@ class HealthCardStorageUnitTest {
     val loaded = (loadResult as StorageResult.Success).data
     TestCase.assertNotNull("The loaded health card should not be null", loaded)
     TestCase.assertEquals(sampleCard.fullName, loaded!!.fullName)
-    TestCase.assertEquals(sampleCard.birthDate, loaded.birthDate)
+    TestCase.assertEquals(sampleCard.dateOfBirthIso, loaded.dateOfBirthIso)
     TestCase.assertEquals(sampleCard.sex, loaded.sex)
     TestCase.assertEquals(sampleCard.bloodType, loaded.bloodType)
     TestCase.assertEquals(sampleCard.heightCm, loaded.heightCm)
@@ -189,8 +189,8 @@ class HealthCardStorageUnitTest {
     val cardsWithNulls =
         HealthCard(
             fullName = "Test User",
-            birthDate = "1990-01-01",
-            socialSecurityNumber = "a social security number",
+            dateOfBirthIso = "1990-01-01",
+            idNumber = "a social security number",
             sex = null,
             bloodType = null,
             heightCm = null,

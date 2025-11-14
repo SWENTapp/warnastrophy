@@ -9,4 +9,13 @@
     <string name="contact_list_title">Contact List</string>
     <string name="edit_contact_screen_title">Edit Contact</string>
     <string name="health_card_screen_title">Emergency Card</string>
+    <string name="sign_in_title">Sign In</string>
+    <string name="default_web_client_id">327661063729-k001fc71n2e3dt9t4epmd976dmorjvqm.apps.googleusercontent.com</string>
+
+    <!-- Dashboard Strings -->
+    <string name="latest_news">Latest news</string>
+    <string name="no_news_yet">No news yet !</string>
+    <string name="read">read</string>
+    <string name="event_image_description">Event Image</string>
+    <string name="loading">Loading...</string>
 </resources>

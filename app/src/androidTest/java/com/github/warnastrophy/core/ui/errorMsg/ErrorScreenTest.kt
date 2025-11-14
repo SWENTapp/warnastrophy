@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.ui.errorMsg
 
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.ui.common.Error
 import com.github.warnastrophy.core.ui.common.ErrorHandler
@@ -27,6 +28,21 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
         .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE, useUnmergedTree = true)
         .assertExists()
         .assertTextEquals(testErrorMessage)
+  }
+
+  @Test
+  fun errorScreen_displaysNoErrorsMessage_whenErrorListIsEmpty() {
+    composeTestRule.setContent {
+      ErrorScreen(
+          message = "This message won't be shown",
+          onDismiss = {},
+          expanded = true,
+          errors = emptyList())
+    }
+
+    composeTestRule.onNodeWithText("No errors").assertExists()
+
+    composeTestRule.onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE).assertDoesNotExist()
   }
 
   @Test

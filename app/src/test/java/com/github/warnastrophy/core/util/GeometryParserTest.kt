@@ -115,4 +115,43 @@ class GeometryParserTest {
 
     assertNull("Result must be null for unsupported geometry type", result)
   }
+
+  @Test
+  fun `jtsGeometryToLatLngList handles MultiPolygon by using first polygon exterior ring`() {
+    // First polygon (square) - this exterior ring should be returned
+    val coords1 =
+        arrayOf(
+            Coordinate(10.0, 40.0),
+            Coordinate(20.0, 40.0),
+            Coordinate(20.0, 50.0),
+            Coordinate(10.0, 50.0),
+            Coordinate(10.0, 40.0))
+    val shell1 = geometryFactory.createLinearRing(coords1)
+    val poly1 = geometryFactory.createPolygon(shell1, null)
+
+    // Second polygon (different area) - should be ignored by the fallback
+    val coords2 =
+        arrayOf(
+            Coordinate(30.0, 60.0),
+            Coordinate(40.0, 60.0),
+            Coordinate(40.0, 70.0),
+            Coordinate(30.0, 70.0),
+            Coordinate(30.0, 60.0))
+    val shell2 = geometryFactory.createLinearRing(coords2)
+    val poly2 = geometryFactory.createPolygon(shell2, null)
+
+    val multi = geometryFactory.createMultiPolygon(arrayOf(poly1, poly2))
+
+    val result = GeometryParser.jtsGeometryToLatLngList(multi)
+
+    assertNotNull("Result must not be null for MultiPolygon fallback", result)
+    assertEquals(
+        "Result list must contain the exterior ring of the first polygon", 5, result!!.size)
+
+    // Verify mapping (latitude = Y, longitude = X) for first/last (closing) coordinate
+    assertEquals(40.0, result.first().latitude, 0.0001)
+    assertEquals(10.0, result.first().longitude, 0.0001)
+    assertEquals(40.0, result.last().latitude, 0.0001)
+    assertEquals(10.0, result.last().longitude, 0.0001)
+  }
 }

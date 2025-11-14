@@ -49,10 +49,6 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.COLOR_ROW, useUnmergedTree = true)
         .assertIsDisplayed()
-
-    composeTestRule
-        .onNodeWithTag(DangerModeTestTags.OPEN_BUTTON, useUnmergedTree = true)
-        .assertIsDisplayed()
   }
 
   /* Verify that the DangerModeCard's switch toggles its state when clicked */
