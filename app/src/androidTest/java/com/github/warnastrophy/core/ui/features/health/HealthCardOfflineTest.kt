@@ -19,29 +19,29 @@ class HealthCardOfflineTest {
 
   @Before
   fun setUp() = runBlocking {
-      context = ApplicationProvider.getApplicationContext()
-      HealthCardRepositoryProvider.useLocalEncrypted(context)
+    context = ApplicationProvider.getApplicationContext()
+    HealthCardRepositoryProvider.useLocalEncrypted(context)
   }
 
   @After
   fun tearDown() = runBlocking {
-      runCatching { HealthCardRepositoryProvider.repository.deleteMyHealthCard() }
-      HealthCardRepositoryProvider.resetForTests()
+    runCatching { HealthCardRepositoryProvider.repository.deleteMyHealthCard() }
+    HealthCardRepositoryProvider.resetForTests()
   }
 
   @Test
   fun writeAndReadLocalHealthCard() = runTest {
-      val repo = HealthCardRepositoryProvider.repository
+    val repo = HealthCardRepositoryProvider.repository
 
-      val card =
-          HealthCard(fullName = "Offline User", dateOfBirthIso = "1999-12-31", idNumber = "OFF-1")
+    val card =
+        HealthCard(fullName = "Offline User", dateOfBirthIso = "1999-12-31", idNumber = "OFF-1")
 
-      repo.upsertMyHealthCard(card)
+    repo.upsertMyHealthCard(card)
 
-      val cached = repo.getMyHealthCardOnce(fromCacheFirst = true)
-      Assert.assertNotNull(cached)
-      Assert.assertEquals("Offline User", cached!!.fullName)
-      Assert.assertEquals("1999-12-31", cached.dateOfBirthIso)
-      Assert.assertEquals("OFF-1", cached.idNumber)
+    val cached = repo.getMyHealthCardOnce(fromCacheFirst = true)
+    Assert.assertNotNull(cached)
+    Assert.assertEquals("Offline User", cached!!.fullName)
+    Assert.assertEquals("1999-12-31", cached.dateOfBirthIso)
+    Assert.assertEquals("OFF-1", cached.idNumber)
   }
 }

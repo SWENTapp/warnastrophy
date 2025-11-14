@@ -38,7 +38,7 @@ class HealthCardRepositoryProviderTest {
   @Test
   fun init_sets_LocalHealthCardRepository_when_repo_is_null() {
     HealthCardRepositoryProvider.init(context)
-      TestCase.assertTrue(HealthCardRepositoryProvider.repository is LocalHealthCardRepository)
+    TestCase.assertTrue(HealthCardRepositoryProvider.repository is LocalHealthCardRepository)
   }
 
   @Test
@@ -47,18 +47,18 @@ class HealthCardRepositoryProviderTest {
     val first = HealthCardRepositoryProvider.repository
 
     HealthCardRepositoryProvider.init(context)
-      TestCase.assertSame(first, HealthCardRepositoryProvider.repository)
+    TestCase.assertSame(first, HealthCardRepositoryProvider.repository)
   }
 
   @Test
   fun useLocalEncrypted_always_sets_LocalHealthCardRepository() {
     HealthCardRepositoryProvider.useLocalEncrypted(context)
-      TestCase.assertTrue(HealthCardRepositoryProvider.repository is LocalHealthCardRepository)
+    TestCase.assertTrue(HealthCardRepositoryProvider.repository is LocalHealthCardRepository)
   }
 
   @Test
   fun useHybridEncrypted_sets_HybridHealthCardRepository() {
     HealthCardRepositoryProvider.useHybridEncrypted(context, mockDb, mockAuth)
-      TestCase.assertTrue(HealthCardRepositoryProvider.repository is HybridHealthCardRepository)
+    TestCase.assertTrue(HealthCardRepositoryProvider.repository is HybridHealthCardRepository)
   }
 }

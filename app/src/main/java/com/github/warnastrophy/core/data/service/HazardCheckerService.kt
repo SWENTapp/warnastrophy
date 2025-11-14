@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.model.Hazard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +27,7 @@ import org.locationtech.jts.geom.Point
  *   delays.
  * @property scope The parent CoroutineScope that manages the lifecycle of the checker jobs.
  */
-class HazardChecker(
+class HazardCheckerService(
     private val allHazards: List<Hazard>,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
     private val scope: CoroutineScope

@@ -10,6 +10,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlin.math.sqrt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -18,7 +19,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import kotlin.math.sqrt
 
 /**
  * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
@@ -65,7 +65,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     every { mockSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) } returns mockGyroscope
 
     every {
-        mockSensorManager.registerListener(capture(listenerSlot), any<Sensor>(), any())
+      mockSensorManager.registerListener(capture(listenerSlot), any<Sensor>(), any())
     } answers
         {
           proxy.delegate = listenerSlot.captured
@@ -119,249 +119,231 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
   @Test
   fun repository_initialization_succeeds() {
     repo = MouvementSensorRepository(context)
-      Assert.assertNotNull(repo)
-      Assert.assertNotNull(repo.data)
+    Assert.assertNotNull(repo)
+    Assert.assertNotNull(repo.data)
   }
 
   @Test
   fun data_flow_is_created_successfully() = runTest {
-      repo = MouvementSensorRepository(context)
-      val flow = repo.data
-      Assert.assertNotNull(flow)
+    repo = MouvementSensorRepository(context)
+    val flow = repo.data
+    Assert.assertNotNull(flow)
   }
 
   @Test
   fun sensor_manager_registers_listeners_on_flow_collection() = runTest {
-      val (mockManager, listener) = setupMockedRepository()
+    val (mockManager, listener) = setupMockedRepository()
 
-      val job = launch { repo.data.collect {} }
+    val job = launch { repo.data.collect {} }
 
-      delay(100)
+    delay(100)
 
-      verify(exactly = 1) {
-          mockManager.registerListener(any(), mockAccelerometer, SensorManager.SENSOR_DELAY_GAME)
-      }
-      verify(exactly = 1) {
-          mockManager.registerListener(any(), mockGyroscope, SensorManager.SENSOR_DELAY_GAME)
-      }
+    verify(exactly = 1) {
+      mockManager.registerListener(any(), mockAccelerometer, SensorManager.SENSOR_DELAY_GAME)
+    }
+    verify(exactly = 1) {
+      mockManager.registerListener(any(), mockGyroscope, SensorManager.SENSOR_DELAY_GAME)
+    }
 
-      job.cancel()
+    job.cancel()
   }
 
   @Test
   fun sensor_manager_unregisters_listener_on_flow_cancellation() = runTest {
-      val (mockManager, listener) = setupMockedRepository()
+    val (mockManager, listener) = setupMockedRepository()
 
-      val job = launch { repo.data.collect {} }
+    val job = launch { repo.data.collect {} }
 
-      delay(100)
-      job.cancel()
-      delay(100)
+    delay(100)
+    job.cancel()
+    delay(100)
 
-      Assert.assertTrue("The registered listener must be captured", listenerSlot.isCaptured)
+    Assert.assertTrue("The registered listener must be captured", listenerSlot.isCaptured)
 
-      verify(atLeast = 1) { mockManager.unregisterListener(listenerSlot.captured) }
+    verify(atLeast = 1) { mockManager.unregisterListener(listenerSlot.captured) }
   }
 
   @Test
   fun accelerometer_data_is_processed_with_low_pass_filter() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val receivedData = mutableListOf<MotionData>()
-      val job = launch { repo.data.take(3).toList().also { receivedData.addAll(it) } }
+    val receivedData = mutableListOf<MotionData>()
+    val job = launch { repo.data.take(3).toList().also { receivedData.addAll(it) } }
 
-      delay(100)
+    delay(100)
 
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(9.8f, 0f, 0f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(9.8f, 0f, 0f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(9.8f, 0f, 0f))
-      )
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(9.8f, 0f, 0f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(9.8f, 0f, 0f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(9.8f, 0f, 0f)))
 
-      job.join()
+    job.join()
 
-      Assert.assertTrue(receivedData.size >= 3)
-      receivedData.forEach { data ->
-          Assert.assertNotNull(data.acceleration)
-          Assert.assertTrue(data.acceleration.first.isFinite())
-      }
+    Assert.assertTrue(receivedData.size >= 3)
+    receivedData.forEach { data ->
+      Assert.assertNotNull(data.acceleration)
+      Assert.assertTrue(data.acceleration.first.isFinite())
+    }
   }
 
   @Test
   fun gyroscope_data_is_captured_correctly() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val receivedData = mutableListOf<MotionData>()
-      val job = launch { repo.data.take(2).toList().also { receivedData.addAll(it) } }
+    val receivedData = mutableListOf<MotionData>()
+    val job = launch { repo.data.take(2).toList().also { receivedData.addAll(it) } }
 
-      delay(100)
+    delay(100)
 
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(1.5f, -0.5f, 0.8f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(1.5f, -0.5f, 0.8f))
-      )
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(1.5f, -0.5f, 0.8f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(1.5f, -0.5f, 0.8f)))
 
-      job.join()
+    job.join()
 
-      Assert.assertTrue(receivedData.size >= 2)
-      receivedData.forEach { data ->
-          Assert.assertEquals(1.5f, data.rotation.first, 0.01f)
-          Assert.assertEquals(-0.5f, data.rotation.second, 0.01f)
-          Assert.assertEquals(0.8f, data.rotation.third, 0.01f)
-      }
+    Assert.assertTrue(receivedData.size >= 2)
+    receivedData.forEach { data ->
+      Assert.assertEquals(1.5f, data.rotation.first, 0.01f)
+      Assert.assertEquals(-0.5f, data.rotation.second, 0.01f)
+      Assert.assertEquals(0.8f, data.rotation.third, 0.01f)
+    }
   }
 
   @Test
   fun acceleration_magnitude_is_calculated_correctly() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val receivedData = mutableListOf<MotionData>()
-      val job = launch { repo.data.take(1).toList().also { receivedData.addAll(it) } }
+    val receivedData = mutableListOf<MotionData>()
+    val job = launch { repo.data.take(1).toList().also { receivedData.addAll(it) } }
 
-      delay(100)
+    delay(100)
 
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(3f, 4f, 0f))
-      )
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(3f, 4f, 0f)))
 
-      job.join()
+    job.join()
 
-      Assert.assertTrue(receivedData.isNotEmpty())
-      val data = receivedData.first()
-      val expectedMagnitude =
-          sqrt(
-              data.acceleration.first * data.acceleration.first +
-                      data.acceleration.second * data.acceleration.second +
-                      data.acceleration.third * data.acceleration.third
-          )
-      Assert.assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01f)
+    Assert.assertTrue(receivedData.isNotEmpty())
+    val data = receivedData.first()
+    val expectedMagnitude =
+        sqrt(
+            data.acceleration.first * data.acceleration.first +
+                data.acceleration.second * data.acceleration.second +
+                data.acceleration.third * data.acceleration.third)
+    Assert.assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01f)
   }
 
   @Test
   fun timestamp_is_valid_and_recent() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val beforeTime = System.currentTimeMillis()
+    val beforeTime = System.currentTimeMillis()
 
-      val receivedData = mutableListOf<MotionData>()
-      val job = launch { repo.data.take(1).toList().also { receivedData.addAll(it) } }
+    val receivedData = mutableListOf<MotionData>()
+    val job = launch { repo.data.take(1).toList().also { receivedData.addAll(it) } }
 
-      delay(100)
+    delay(100)
 
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(0f, 0f, 0f))
-      )
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(0f, 0f, 0f)))
 
-      job.join()
+    job.join()
 
-      val afterTime = System.currentTimeMillis()
+    val afterTime = System.currentTimeMillis()
 
-      Assert.assertTrue(receivedData.isNotEmpty())
-      val data = receivedData.first()
-      Assert.assertTrue(data.timestamp >= beforeTime)
-      Assert.assertTrue(data.timestamp <= afterTime)
+    Assert.assertTrue(receivedData.isNotEmpty())
+    val data = receivedData.first()
+    Assert.assertTrue(data.timestamp >= beforeTime)
+    Assert.assertTrue(data.timestamp <= afterTime)
   }
 
   @Test
   fun acceleration_magnitude_is_always_positive() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val receivedData = mutableListOf<MotionData>()
-      val job = launch { repo.data.take(5).toList().also { receivedData.addAll(it) } }
+    val receivedData = mutableListOf<MotionData>()
+    val job = launch { repo.data.take(5).toList().also { receivedData.addAll(it) } }
 
-      delay(100)
+    delay(100)
 
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(-3f, -4f, -5f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(1f, 2f, 3f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(0f, 0f, 0f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(10f, -10f, 5f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(-2f, 8f, -3f))
-      )
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(-3f, -4f, -5f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(1f, 2f, 3f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(0f, 0f, 0f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(10f, -10f, 5f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(-2f, 8f, -3f)))
 
-      job.join()
+    job.join()
 
-      Assert.assertTrue(receivedData.size >= 5)
-      receivedData.forEach { data ->
-          Assert.assertTrue(
-              "Magnitude should be positive: ${data.accelerationMagnitude}",
-              data.accelerationMagnitude >= 0f
-          )
-      }
+    Assert.assertTrue(receivedData.size >= 5)
+    receivedData.forEach { data ->
+      Assert.assertTrue(
+          "Magnitude should be positive: ${data.accelerationMagnitude}",
+          data.accelerationMagnitude >= 0f)
+    }
   }
 
   @Test
   fun null_sensor_event_is_handled_gracefully() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val job = launch { repo.data.collect {} }
+    val job = launch { repo.data.collect {} }
 
-      delay(100)
+    delay(100)
 
-      listener.onSensorChanged(null)
+    listener.onSensorChanged(null)
 
-      Assert.assertTrue(true)
+    Assert.assertTrue(true)
 
-      job.cancel()
+    job.cancel()
   }
 
   @Test
   fun onAccuracyChanged_does_nothing() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val job = launch { repo.data.collect {} }
+    val job = launch { repo.data.collect {} }
 
-      delay(100)
+    delay(100)
 
-      listener.onAccuracyChanged(mockAccelerometer, SensorManager.SENSOR_STATUS_ACCURACY_HIGH)
+    listener.onAccuracyChanged(mockAccelerometer, SensorManager.SENSOR_STATUS_ACCURACY_HIGH)
 
-      Assert.assertTrue(true)
+    Assert.assertTrue(true)
 
-      job.cancel()
+    job.cancel()
   }
 
   @Test
   fun mixed_accelerometer_and_gyroscope_events() = runTest {
-      val (_, listener) = setupMockedRepository()
+    val (_, listener) = setupMockedRepository()
 
-      val receivedData = mutableListOf<MotionData>()
-      val job = launch { repo.data.take(4).toList().also { receivedData.addAll(it) } }
+    val receivedData = mutableListOf<MotionData>()
+    val job = launch { repo.data.take(4).toList().also { receivedData.addAll(it) } }
 
-      delay(100)
+    delay(100)
 
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(1f, 2f, 3f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(0.5f, 0.6f, 0.7f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(4f, 5f, 6f))
-      )
-      listener.onSensorChanged(
-          createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(0.8f, 0.9f, 1.0f))
-      )
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(1f, 2f, 3f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(0.5f, 0.6f, 0.7f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_ACCELEROMETER, floatArrayOf(4f, 5f, 6f)))
+    listener.onSensorChanged(
+        createMockSensorEvent(Sensor.TYPE_GYROSCOPE, floatArrayOf(0.8f, 0.9f, 1.0f)))
 
-      job.join()
+    job.join()
 
-      Assert.assertTrue(receivedData.size >= 4)
-      val lastData = receivedData.last()
-      Assert.assertEquals(0.8f, lastData.rotation.first, 0.01f)
-      Assert.assertEquals(0.9f, lastData.rotation.second, 0.01f)
-      Assert.assertEquals(1.0f, lastData.rotation.third, 0.01f)
+    Assert.assertTrue(receivedData.size >= 4)
+    val lastData = receivedData.last()
+    Assert.assertEquals(0.8f, lastData.rotation.first, 0.01f)
+    Assert.assertEquals(0.9f, lastData.rotation.second, 0.01f)
+    Assert.assertEquals(1.0f, lastData.rotation.third, 0.01f)
   }
 }

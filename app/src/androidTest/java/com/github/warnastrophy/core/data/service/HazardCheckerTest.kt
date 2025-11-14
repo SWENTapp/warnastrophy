@@ -81,7 +81,7 @@ class HazardCheckerTest {
     serviceStateManager.updateActiveHazard(null)
 
     val hazardChecker =
-        HazardChecker(listOf(testHazardA, testHazardB), testDispatcher, scope = this)
+        HazardCheckerService(listOf(testHazardA, testHazardB), testDispatcher, scope = this)
 
     hazardChecker.checkAndPublishAlert(10.0, 10.0)
 
@@ -124,7 +124,8 @@ class HazardCheckerTest {
     serviceStateManager.clearActiveAlert()
 
     val hazardChecker =
-        HazardChecker(listOf(testHazardA), StandardTestDispatcher(testScheduler), scope = this)
+        HazardCheckerService(
+            listOf(testHazardA), StandardTestDispatcher(testScheduler), scope = this)
 
     hazardChecker.checkAndPublishAlert(20.0, 20.0) // User outside hazard
 
@@ -163,7 +164,7 @@ class HazardCheckerTest {
             affectedZone = geometryA)
 
     val hazardChecker =
-        HazardChecker(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
+        HazardCheckerService(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
 
     // User enters hazard
     hazardChecker.checkAndPublishAlert(10.0, 10.0)
@@ -206,7 +207,7 @@ class HazardCheckerTest {
             affectedZone = geometryA)
 
     val hazardChecker =
-        HazardChecker(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
+        HazardCheckerService(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
 
     // --- Step 1: User enters the hazard ---
     hazardChecker.checkAndPublishAlert(10.0, 10.0)

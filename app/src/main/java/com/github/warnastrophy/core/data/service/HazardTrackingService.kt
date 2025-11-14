@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
  *
  * This class uses Kotlin Coroutines to subscribe to a continuous stream of GPS position updates
  * from the [PositionService] and delegates the movement check and network fetch logic to the
- * [RefreshHazardsIfMovedUseCase].
+ * [RefreshHazardsIfMovedService].
  *
  * @property gpsService The service providing the continuous stream of user position data via Flow.
  * @property refreshHazardsIfMovedUseCase The use case responsible for checking distance moved and
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
  */
 class HazardTrackingService(
     private val gpsService: PositionService? = null,
-    private val refreshHazardsIfMovedUseCase: RefreshHazardsIfMovedUseCase? = null,
+    private val refreshHazardsIfMovedUseCase: RefreshHazardsIfMovedService? = null,
     private val serviceScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {

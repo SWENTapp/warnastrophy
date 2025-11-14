@@ -17,7 +17,7 @@ import org.junit.Test
 
 class azardTrackingServiceTest {
   private val mockGpsService = GpsServiceMock()
-  private val mockUseCase = mockk<RefreshHazardsIfMovedUseCase>(relaxed = true)
+  private val mockUseCase = mockk<RefreshHazardsIfMovedService>(relaxed = true)
 
   private lateinit var trackingService: HazardTrackingService
 

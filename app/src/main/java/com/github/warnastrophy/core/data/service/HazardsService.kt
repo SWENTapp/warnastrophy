@@ -1,12 +1,13 @@
 package com.github.warnastrophy.core.data.service
 
 import android.util.Log
-import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
+import kotlin.text.set
 import kotlin.time.TimeSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,8 +56,7 @@ class HazardsService(
   init {
     serviceScope.launch {
       while (isActive) {
-        // for now we only use a fixed polygon from the repository provider
-        /*
+
         val currPosition =
             Location(
                 latitude = gpsService.positionState.value.position.latitude,
@@ -68,20 +68,18 @@ class HazardsService(
                 AppConfig.rectangleHazardZone.second)
 
         val wktPolygon = Location.locationsToWktPolygon(polygon)
-           */
         try {
           val lastFetch = TimeSource.Monotonic.markNow()
           _fetcherState.value =
               _fetcherState.value.copy(
-                  hazards = fetchHazardsForLocation(HazardRepositoryProvider.locationPolygon),
-                  isLoading = false)
+                  hazards = fetchHazardsForLocation(wktPolygon), isLoading = false)
 
           // Fetch complete data sequentially for each hazard to avoid making the UI wait
           val currentHazards = _fetcherState.value.hazards.toMutableList()
           currentHazards.forEachIndexed { index, hazard ->
-            repository.completeParsingOf(hazard)?.let {
-              // Mutate the list in place
-              currentHazards[index] = it // Assign the completed hazard back to the list
+            val completed: Hazard? = repository.completeParsingOf(hazard)
+            if (completed != null) {
+              currentHazards[index] = completed
               _fetcherState.value =
                   _fetcherState.value.copy(hazards = currentHazards.toList(), isLoading = false)
             }
@@ -89,7 +87,7 @@ class HazardsService(
           Log.i("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
           delay(AppConfig.gdacsFetchDelay - lastFetch.elapsedNow())
         } catch (e: Exception) {
-          Log.e("HazardsService", "Error fetching hazards", e)
+          Log.i("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
           _fetcherState.value =

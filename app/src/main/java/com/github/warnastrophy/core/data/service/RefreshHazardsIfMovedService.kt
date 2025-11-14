@@ -15,7 +15,7 @@ import com.github.warnastrophy.core.model.Location
  * @property distanceCalculator A lambda function to calculate the distance between two [Location]
  *   objects.
  */
-class RefreshHazardsIfMovedUseCase(
+class RefreshHazardsIfMovedService(
     private val hazardsService: HazardsDataService,
     private val distanceThresholdKm: Double = 5.0,
     private val distanceCalculator: (Location, Location) -> Double = { start, end ->

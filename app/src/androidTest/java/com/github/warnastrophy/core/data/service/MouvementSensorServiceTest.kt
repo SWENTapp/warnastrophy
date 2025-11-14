@@ -7,10 +7,9 @@ package com.example.dangermode.service
 
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
-import kotlin.compareTo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
