@@ -69,10 +69,10 @@ class DangerModeService {
   /**
    * Sets the danger level for Danger Mode.
    *
-   * @param level The danger level to set.
+   * @param level The danger level to set, coerced to be in [0, 3]
    */
   fun setDangerLevel(level: Int) {
-    _state.value = _state.value.copy(dangerLevel = level)
+    _state.value = _state.value.copy(dangerLevel = level.coerceIn(0, 3))
   }
 
   /** Manually activates Danger Mode. */
