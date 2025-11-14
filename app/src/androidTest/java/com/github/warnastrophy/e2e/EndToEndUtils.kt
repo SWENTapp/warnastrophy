@@ -25,6 +25,15 @@ import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTa
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import org.junit.After
+import org.junit.Before
 
 /**
  * Provides high-level, reusable End-to-End test actions.
@@ -45,6 +54,42 @@ abstract class EndToEndUtils : UITest() {
     } else {
       composeTestRule.setContent { WarnastrophyApp() }
     }
+  }
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    setupMockFirebaseAuth()
+  }
+
+  @After
+  override fun tearDown() {
+    super.tearDown()
+    unmockkStatic(FirebaseAuth::class)
+  }
+
+  /**
+   * Sets up a mocked Firebase authentication with a logged-in user. This ensures the app starts at
+   * the Dashboard instead of the SignIn screen.
+   */
+  private fun setupMockFirebaseAuth() {
+    mockkStatic(FirebaseApp::class)
+    val mockFirebaseApp: FirebaseApp = mockk(relaxed = true)
+    every { FirebaseApp.getInstance() } returns mockFirebaseApp
+    every { FirebaseApp.getApps(any()) } returns listOf(mockFirebaseApp)
+
+    mockkStatic(FirebaseAuth::class)
+    val mockFirebaseAuth: FirebaseAuth = mockk(relaxed = true)
+    val mockFirebaseUser: FirebaseUser =
+        mockk(relaxed = true) {
+          every { uid } returns "test-user-id"
+          every { email } returns "test@example.com"
+          every { displayName } returns "Test User"
+          every { isAnonymous } returns false
+        }
+
+    every { FirebaseAuth.getInstance() } returns mockFirebaseAuth
+    every { mockFirebaseAuth.currentUser } returns mockFirebaseUser
   }
 
   /**

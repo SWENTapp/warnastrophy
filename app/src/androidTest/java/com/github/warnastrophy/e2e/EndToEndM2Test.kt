@@ -6,7 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
-import com.github.warnastrophy.core.ui.dashboard.DashboardHealthCardTestTags
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import kotlinx.coroutines.runBlocking
@@ -18,6 +18,7 @@ class EndToEndM2Test : EndToEndUtils() {
   @Before
   override fun setUp() {
     super.setUp()
+
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.init(context)
     repository = ContactRepositoryProvider.repository
