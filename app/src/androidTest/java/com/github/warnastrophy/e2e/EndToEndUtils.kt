@@ -412,10 +412,7 @@ abstract class EndToEndUtils : UITest() {
    */
   private fun checkTextFieldValue(fieldTag: String, expectedText: String?) {
     expectedText?.let {
-      composeTestRule
-          .onNodeWithTag(fieldTag)
-          .performScrollTo() // Scroll the OutlinedTextField into view
-          .assertTextContains(it, ignoreCase = true)
+      composeTestRule.onNodeWithTag(fieldTag).assertTextContains(it, ignoreCase = true)
     }
   }
 
