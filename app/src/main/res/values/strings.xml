@@ -9,4 +9,10 @@
     <string name="contact_list_title">Contact List</string>
     <string name="edit_contact_screen_title">Edit Contact</string>
     <string name="health_card_screen_title">Emergency Card</string>
+
+    <!-- Dashboard Strings -->
+    <string name="latest_news">Latest news</string>
+    <string name="no_news_yet">No news yet</string>
+    <string name="read">read</string>
+    <string name="event_image_description">Event Image</string>
 </resources>

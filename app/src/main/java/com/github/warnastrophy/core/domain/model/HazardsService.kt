@@ -71,12 +71,11 @@ class HazardsService(
         try {
           val hazards = fetchHazardsForLocation(HazardRepositoryProvider.locationPolygon)
           _fetcherState.value = _fetcherState.value.copy(hazards = hazards)
+          Log.d("HazardsService", "Fetched ${hazards.size} hazards")
         } catch (e: Exception) {
-          Log.e("HazardsService", "Error fetching hazards", e)
           errorHandler.addError(
               "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
         }
-        Log.d("HazardsService", "Fetched hazards: ${_fetcherState.value.hazards}")
         delay(fetchDelayMs)
       }
     }
