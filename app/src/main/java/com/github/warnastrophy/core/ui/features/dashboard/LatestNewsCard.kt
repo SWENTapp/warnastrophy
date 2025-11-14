@@ -51,7 +51,7 @@ object LatestNewsCardColors {
   val HEADER_TEXT_COLOR: Color = Color(0xFFD32F2F) // Dark Red
   val BODY_BACKGROUND_COLOR: Color = Color(0xFFF6F4F4) // Off White
   val WEATHER_TEXT_COLOR: Color = Color(0xFF616161) // Dark Grey
-    val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
+  val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
 }
 
 /**

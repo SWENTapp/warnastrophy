@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.data.local
 
-
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey

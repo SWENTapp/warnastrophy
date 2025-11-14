@@ -39,22 +39,21 @@ class HealthCardViewModelTest {
 
   private val testUserId = "test_user_123"
   private val testHealthCard =
-    HealthCard(
-      fullName = "John Doe",
-      dateOfBirthIso = "1990-01-01",
-      idNumber = "123-45-6789",
-      sex = "Male",
-      bloodType = "O+",
-      heightCm = 180,
-      weightKg = 75.0,
-      chronicConditions = listOf("Asthma"),
-      allergies = listOf("Peanuts"),
-      medications = listOf("Albuterol"),
-      onGoingTreatments = emptyList(),
-      medicalHistory = listOf("Broken arm (2015)"),
-      organDonor = true,
-      notes = "Regular checkups needed"
-    )
+      HealthCard(
+          fullName = "John Doe",
+          dateOfBirthIso = "1990-01-01",
+          idNumber = "123-45-6789",
+          sex = "Male",
+          bloodType = "O+",
+          heightCm = 180,
+          weightKg = 75.0,
+          chronicConditions = listOf("Asthma"),
+          allergies = listOf("Peanuts"),
+          medications = listOf("Albuterol"),
+          onGoingTreatments = emptyList(),
+          medicalHistory = listOf("Broken arm (2015)"),
+          organDonor = true,
+          notes = "Regular checkups needed")
 
   @Before
   fun setUp() {
