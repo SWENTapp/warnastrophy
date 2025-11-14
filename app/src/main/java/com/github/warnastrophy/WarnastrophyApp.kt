@@ -36,7 +36,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
-import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
@@ -75,7 +74,7 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
-        SignIn.route -> SignIn
+        Screen.SignIn.route -> Screen.SignIn
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
         else -> Dashboard
@@ -83,7 +82,7 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
 
   // val startDestination = Dashboard.route
   val startDestination =
-      if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
+      if (FirebaseAuth.getInstance().currentUser == null) Screen.SignIn.route else Dashboard.route
 
   val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
@@ -111,7 +110,9 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
 
   Scaffold(
       modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
-      bottomBar = { BottomNavigationBar(currentScreen, navController) },
+      bottomBar = {
+        if (currentRoute != Screen.SignIn.route) BottomNavigationBar(currentScreen, navController)
+      },
       topBar = {
         TopBar(
             currentScreen,
@@ -123,7 +124,7 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
-              composable(SignIn.route) {
+              composable(Screen.SignIn.route) {
                 SignInScreen(
                     credentialManager = credentialManager,
                     onSignedIn = { navigationActions.navigateTo(Dashboard) })

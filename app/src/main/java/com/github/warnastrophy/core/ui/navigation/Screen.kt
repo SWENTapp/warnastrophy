@@ -57,6 +57,8 @@ sealed class Screen(
           route = "profile",
           isTopLevelDestination = true)
 
+  object SignIn : Screen(R.string.sign_in_title, route = "sign-in")
+
   object AddContact :
       Screen(R.string.add_contact_screen_title, icon = Icons.Filled.Add, route = "add_contact")
 
@@ -70,8 +72,6 @@ sealed class Screen(
       const val route = "edit_contact/{id}"
     }
   }
-
-  object SignIn : Screen(R.string.sign_in_title, route = "sign-in")
 }
 
 val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Dashboard, Screen.Map, Screen.Profile)

@@ -1,7 +1,7 @@
-package com.github.warnastrophy.core.ui.contact
+package com.github.warnastrophy.core.ui.feature.contact
 
 import com.github.warnastrophy.core.data.repository.MockContactRepository
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListViewModel
+import com.github.warnastrophy.core.ui.features.contact.ContactListViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
