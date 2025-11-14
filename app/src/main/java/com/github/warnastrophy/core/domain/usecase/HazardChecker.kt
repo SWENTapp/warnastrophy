@@ -73,12 +73,10 @@ class HazardChecker(
       // Assumes isInsideBBox is already implemented
       if (hazard.bbox != null && isInsideBBox(userLng, userLat, hazard.bbox)) {
         if (hazard.affectedZone == null) continue
-        if (isInsideMultiPolygon(userLat, userLng, hazard.affectedZone)) {
-
-          if (highestPriorityHazard == null ||
-              (hazard.alertLevel ?: 0.0) > (highestPriorityHazard.alertLevel ?: 0.0)) {
-            highestPriorityHazard = hazard
-          }
+        if (isInsideMultiPolygon(userLat, userLng, hazard.affectedZone) &&
+            (highestPriorityHazard == null ||
+                (hazard.alertLevel ?: 0.0) > (highestPriorityHazard.alertLevel ?: 0.0))) {
+          highestPriorityHazard = hazard
         }
       }
     }
@@ -151,7 +149,6 @@ class HazardChecker(
    * @return True if the point is contained within the geometry, false otherwise.
    */
   private fun isInsideMultiPolygon(lat: Double, lng: Double, affectedZone: Geometry): Boolean {
-    // val hazardGeometry = WktParser.parseWktToJtsGeometry(affectedZone)
 
     // Safety check: if parsing failed or the geometry is empty, return false.
     if (affectedZone.isEmpty) {
