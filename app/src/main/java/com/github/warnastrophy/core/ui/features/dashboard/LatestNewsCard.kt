@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.Hazard
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.formatDate
 
 object LatestNewsTestTags {
@@ -51,8 +51,6 @@ object LatestNewsCardColors {
   val HEADER_TEXT_COLOR: Color = Color(0xFFD32F2F) // Dark Red
   val BODY_BACKGROUND_COLOR: Color = Color(0xFFF6F4F4) // Off White
   val WEATHER_TEXT_COLOR: Color = Color(0xFF616161) // Dark Grey
-
-  val IMAGE_TEXT_COLOR: Color = Color(0xFF9E9E9E) // Grey
   val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
 }
 
@@ -73,7 +71,6 @@ object LatestNewsCardColors {
 @Composable
 fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
-  val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
   val state = fetcherState.value
   var currentIndex by remember { mutableStateOf(0) }
   val context = LocalContext.current
@@ -173,7 +170,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           overflow = TextOverflow.Ellipsis)
 
                       Spacer(modifier = Modifier.height(8.dp))
-                      if (state.hazards.isNotEmpty()) {
+                      if (state.hazards.isNotEmpty() && currentHazard.articleUrl != null) {
                         Text(
                             text = "read",
                             color = LatestNewsCardColors.READ_ARTICLE_TEXT_COLOR,

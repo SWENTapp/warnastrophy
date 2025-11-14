@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.domain.model.HealthCard
+import com.github.warnastrophy.core.model.HealthCard
 import kotlinx.coroutines.flow.Flow
 
 /** Contract for CRUD + live updates of the current user's HealthCard. */

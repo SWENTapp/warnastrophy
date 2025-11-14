@@ -9,7 +9,7 @@ import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBarPreview
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.navigation.Screen
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import org.junit.Test
 
 class BottomNavBarComponentTest : BaseAndroidComposeTest() {

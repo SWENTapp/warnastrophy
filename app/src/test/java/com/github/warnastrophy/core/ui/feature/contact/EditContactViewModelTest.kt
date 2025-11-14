@@ -1,0 +1,114 @@
+package com.github.warnastrophy.core.ui.feature.contact
+
+import com.github.warnastrophy.core.data.repository.ContactsRepository
+import com.github.warnastrophy.core.data.repository.MockContactRepository
+import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.ui.features.contact.EditContactViewModel
+import junit.framework.TestCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class EditContactViewModelTest {
+  private lateinit var repository: ContactsRepository
+  private lateinit var viewModel: EditContactViewModel
+
+  private val contact1 = Contact("1", "Alice Johnson", "+1234567890", "Family")
+  private val contact2 = Contact("2", "Bob Smith", "+19876543210", "Friend")
+
+  private val testDispatcher = StandardTestDispatcher()
+
+  @Before
+  fun setUp() = runTest {
+    Dispatchers.setMain(testDispatcher)
+    repository = MockContactRepository()
+    // Add some contacts to the repository
+    repository.addContact(contact1)
+    repository.addContact(contact2)
+
+    viewModel = EditContactViewModel(repository)
+  }
+
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
+  }
+
+  @Test
+  /**
+   * Tests the [loadContact] function. It verifies that when a contact ID is provided, the ViewModel
+   * correctly fetches the corresponding contact data from the repository and populates the
+   * appropriate fields ([fullName], [phoneNumber], [relationship]) in the [uiState]. It also
+   * ensures the error message is null upon successful loading.
+   */
+  fun `load Contact Populate UI state`() = runTest {
+    viewModel.loadContact("1")
+    advanceUntilIdle() // This ensures loadContact() completes and updates uiState.
+    val uiState = viewModel.uiState.first()
+    TestCase.assertEquals(contact1.fullName, uiState.fullName)
+    TestCase.assertEquals(contact1.phoneNumber, uiState.phoneNumber)
+    TestCase.assertEquals(contact1.relationship, uiState.relationship)
+    TestCase.assertNull(uiState.errorMsg)
+  }
+
+  @Test
+  /**
+   * Tests that [editContact] correctly processes valid UI state, updates the contact in the
+   * repository with the new data, and signals a successful operation by emitting the [navigateBack]
+   * event.
+   *
+   * It verifies:
+   * 1. The contact data in the repository is successfully updated.
+   * 2. The transient [navigateBack] event is emitted, confirming the function completes
+   *    successfully and triggers the required navigation action.
+   */
+  fun `Edit contact with valid contact update repository and emits navigateBack event`() = runTest {
+    val navigateBackEvent = async { viewModel.navigateBack.firstOrNull() }
+    viewModel.setFullName("Alice Updated")
+    viewModel.setPhoneNumber("+11111111111")
+    viewModel.setRelationship("Colleague")
+    viewModel.editContact("1")
+
+    advanceUntilIdle()
+
+    val updated = repository.getContact("1").getOrNull()!!
+
+    TestCase.assertEquals("Alice Updated", updated.fullName)
+    TestCase.assertEquals("+11111111111", updated.phoneNumber)
+    TestCase.assertEquals("Colleague", updated.relationship)
+
+    TestCase.assertNotNull(navigateBackEvent.await())
+  }
+
+  @Test
+  /**
+   * Tests that [deleteContact] correctly executes the deletion logic.
+   *
+   * It verifies:
+   * 1. The contact with the specified ID ("2") is successfully removed from the repository,
+   *    resulting in a failure when attempting to retrieve it.
+   * 2. The transient [navigateBack] event is emitted, confirming the success of the operation and
+   *    triggering the necessary navigation action.
+   */
+  fun `Delete contact remove contact and emits navigateBack event`() = runTest {
+    val navigateBackEvent = async { viewModel.navigateBack.firstOrNull() }
+    viewModel.deleteContact("2")
+    advanceUntilIdle()
+
+    val result = repository.getContact("2")
+    TestCase.assertEquals(true, result.isFailure)
+
+    TestCase.assertNotNull(navigateBackEvent.await())
+  }
+}

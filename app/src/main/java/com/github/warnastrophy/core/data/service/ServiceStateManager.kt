@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.model.Hazard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

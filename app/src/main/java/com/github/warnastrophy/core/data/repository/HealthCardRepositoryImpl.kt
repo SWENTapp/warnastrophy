@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.domain.model.HealthCard
+import com.github.warnastrophy.core.model.HealthCard
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions

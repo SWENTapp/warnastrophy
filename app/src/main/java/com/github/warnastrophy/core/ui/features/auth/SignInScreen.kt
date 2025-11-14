@@ -124,6 +124,8 @@ fun SignInScreen(
                               context, "This feature is not implemented yet!", Toast.LENGTH_LONG)
                           .show()
                     })
+
+                GuestSignInButton(onSignInClick = { onSignedIn() })
               }
             }
       })
@@ -198,6 +200,35 @@ fun GitHubSignInButton(onSignInClick: () -> Unit) {
                   color = Color.Gray,
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Medium)
+            }
+      }
+}
+/**
+ * Composable function that displays a button for signing in as a guest.
+ *
+ * @param onSignInClick The callback to invoke when the button is clicked.
+ * @param modifier The [Modifier] to be applied to the button.
+ * @param text The text to display on the button. Default is "Se connecter en invité".
+ */
+@Composable
+fun GuestSignInButton(
+    onSignInClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    text: String = stringResource(R.string.sign_in_as_guest)
+) {
+  Button(
+      onClick = onSignInClick,
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
+      shape = RoundedCornerShape(50),
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+      modifier = modifier.padding(8.dp).height(48.dp).testTag("invitedSignInButton")) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()) {
+              Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
       }
 }

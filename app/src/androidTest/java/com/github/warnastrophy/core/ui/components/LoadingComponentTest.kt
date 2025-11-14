@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.ui.components
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.ui.util.BaseSimpleComposeTest
+import com.github.warnastrophy.core.util.BaseSimpleComposeTest
 import org.junit.Before
 import org.junit.Test
 

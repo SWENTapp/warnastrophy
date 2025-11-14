@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.domain.model.HealthCard
+import com.github.warnastrophy.core.model.HealthCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.merge

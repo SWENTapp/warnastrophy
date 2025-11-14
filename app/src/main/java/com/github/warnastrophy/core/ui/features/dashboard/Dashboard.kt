@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.HazardsDataService
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 
 object DashboardScreenTestTags {
