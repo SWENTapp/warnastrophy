@@ -1,5 +1,9 @@
 package com.github.warnastrophy.core.domain.model
 
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
+import com.google.firebase.firestore.ServerTimestamp
+
 /**
  * A data class representing a health card for an individual, containing personal and medical
  * information. This class can be used to store and manage a person's health-related data.
@@ -27,18 +31,40 @@ package com.github.warnastrophy.core.domain.model
  *   optional and nullable.
  */
 data class HealthCard(
-    val fullName: String,
-    val birthDate: String,
-    val socialSecurityNumber: String,
-    val sex: String? = null,
-    val bloodType: String? = null,
-    val heightCm: Int? = null,
-    val weightKg: Double? = null,
-    val chronicConditions: List<String> = emptyList(),
-    val allergies: List<String> = emptyList(),
-    val medications: List<String> = emptyList(),
-    val onGoingTreatments: List<String> = emptyList(),
-    val medicalHistory: List<String> = emptyList(),
-    val organDonor: Boolean = false,
-    val notes: String? = null
+    @get:PropertyName("full_name") @set:PropertyName("full_name") var fullName: String = "",
+    @get:PropertyName("dob_iso")
+    @set:PropertyName("dob_iso")
+    var dateOfBirthIso: String = "", // ISO yyyy-MM-dd
+    @get:PropertyName("id_number")
+    @set:PropertyName("id_number")
+    var idNumber: String = "", // (UI name: socialSecurityNumber)
+    @get:PropertyName("sex") @set:PropertyName("sex") var sex: String? = null,
+    @get:PropertyName("blood_type") @set:PropertyName("blood_type") var bloodType: String? = null,
+    @get:PropertyName("height_cm") @set:PropertyName("height_cm") var heightCm: Int? = null,
+    @get:PropertyName("weight_kg")
+    @set:PropertyName("weight_kg")
+    var weightKg: Double? = null, // allow decimals
+    @get:PropertyName("conditions")
+    @set:PropertyName("conditions")
+    var chronicConditions: List<String> = emptyList(),
+    @get:PropertyName("allergies")
+    @set:PropertyName("allergies")
+    var allergies: List<String> = emptyList(),
+    @get:PropertyName("medications")
+    @set:PropertyName("medications")
+    var medications: List<String> = emptyList(),
+    @get:PropertyName("treatments")
+    @set:PropertyName("treatments")
+    var onGoingTreatments: List<String> = emptyList(),
+    @get:PropertyName("history")
+    @set:PropertyName("history")
+    var medicalHistory: List<String> = emptyList(),
+    @get:PropertyName("organ_donor")
+    @set:PropertyName("organ_donor")
+    var organDonor: Boolean? = null,
+    @get:PropertyName("notes") @set:PropertyName("notes") var notes: String? = null,
+    @ServerTimestamp
+    @get:PropertyName("updated_at")
+    @set:PropertyName("updated_at")
+    var updatedAt: Timestamp? = null
 )

@@ -70,6 +70,7 @@ fun DashboardHealthCardStateless(
     isLoading: Boolean = false,
     summaryText: String? = null
 ) {
+
   StandardDashboardCard(
       modifier =
           modifier.testTag(DashboardHealthCardTestTags.CARD).clickable { onHealthCardClick() },
@@ -150,8 +151,7 @@ fun DashboardHealthCardStateful(
 ) {
   val uiState by viewModel.uiState.collectAsState()
 
-  LaunchedEffect(userId) { viewModel.loadHealthCard(context, userId) }
-
+  LaunchedEffect(Unit) { viewModel.loadHealthCard(context, userId) }
   when (val state = uiState) {
     is DashboardHealthCardUiState.Loading -> {
       DashboardHealthCardStateless(

@@ -175,7 +175,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardTestTags.ADD_BUTTON).performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
-    verify { mockViewModel.saveHealthCard(any(), "user123", any()) }
+    verify { mockViewModel.saveHealthCardDB(card = any()) }
   }
 
   @Test
@@ -199,7 +199,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON).performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
-    verify { mockViewModel.updateHealthCard(any(), "user123", any()) }
+    verify { mockViewModel.saveHealthCardDB(card = any()) }
   }
 
   @Test
@@ -217,7 +217,7 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
-    verify { mockViewModel.deleteHealthCard(any(), "user123") }
+    verify { mockViewModel.deleteHealthCardDB() }
   }
 
   @Test
@@ -293,16 +293,14 @@ class HealthCardScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(HealthCardTestTags.BIRTH_DATE_FIELD)
         .assertTextContains("01/01/2000")
-    composeTestRule
-        .onNodeWithTag(HealthCardTestTags.SSN_FIELD)
-        .assertTextContains(card.socialSecurityNumber)
+    composeTestRule.onNodeWithTag(HealthCardTestTags.SSN_FIELD).assertTextContains(card.idNumber)
   }
 
   private fun dummyCard() =
       HealthCard(
           fullName = "John Doe",
-          birthDate = "2000-01-01",
-          socialSecurityNumber = "123-45-6789",
+          dateOfBirthIso = "2000-01-01",
+          idNumber = "123-45-6789",
           sex = "Male",
           bloodType = "A+",
           heightCm = 180,

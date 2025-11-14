@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+import com.google.firebase.FirebaseApp
 
 /**
  * `MainActivity` is the entry point of the application. It sets up the content view with the
@@ -16,9 +18,21 @@ import com.github.warnastrophy.core.ui.theme.MainAppTheme
  */
 class MainActivity : ComponentActivity() {
 
+  private fun showUI() {
+    setContent { MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyApp() } } }
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    FirebaseApp.initializeApp(this)
+
+    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+    auth.signOut()
+
+    HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.init(applicationContext)
-    setContent { MainAppTheme { Surface(modifier = Modifier.fillMaxSize()) { WarnastrophyApp() } } }
+    showUI()
   }
 }

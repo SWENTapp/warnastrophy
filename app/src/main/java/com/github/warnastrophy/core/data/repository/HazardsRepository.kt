@@ -249,7 +249,6 @@ class HazardsRepository() : HazardsDataSource {
    */
   private suspend fun getHazardArticleUrl(hazard: Hazard): String? {
     return try {
-      // We limit to 1 result as we only need the first article link
       val res =
           httpGet(
               "${Endpoints.EMM_NEWS_BY_KEY}?eventtype=${hazard.type}&eventid=${hazard.id}&limit=1")
