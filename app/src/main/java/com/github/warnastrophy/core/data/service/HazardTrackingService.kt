@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.data.service
 
 import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.PositionService
-import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMovedUseCase
+import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMoved
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -15,17 +15,17 @@ import kotlinx.coroutines.launch
  *
  * This class uses Kotlin Coroutines to subscribe to a continuous stream of GPS position updates
  * from the [PositionService] and delegates the movement check and network fetch logic to the
- * [RefreshHazardsIfMovedUseCase].
+ * [RefreshHazardsIfMoved].
  *
  * @property gpsService The service providing the continuous stream of user position data via Flow.
- * @property refreshHazardsIfMovedUseCase The use case responsible for checking distance moved and
+ * @property refreshHazardsIfMoved The use case responsible for checking distance moved and
  *   executing the hazard data network fetch.
  * @property serviceScope The [CoroutineScope] used to launch and manage the tracking coroutine. It
  *   should typically be tied to the application's process lifecycle (e.g., [Application] scope).
  */
 class HazardTrackingService(
     private val gpsService: PositionService? = null,
-    private val refreshHazardsIfMovedUseCase: RefreshHazardsIfMovedUseCase? = null,
+    private val refreshHazardsIfMoved: RefreshHazardsIfMoved? = null,
     private val serviceScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {
@@ -44,7 +44,7 @@ class HazardTrackingService(
       gpsService?.positionState?.collectLatest { positionState ->
         positionState.position.let { currentLocation ->
           val hazardLocation = Location(currentLocation.latitude, currentLocation.longitude)
-          refreshHazardsIfMovedUseCase?.execute(hazardLocation)
+          refreshHazardsIfMoved?.execute(hazardLocation)
         }
       }
     }
