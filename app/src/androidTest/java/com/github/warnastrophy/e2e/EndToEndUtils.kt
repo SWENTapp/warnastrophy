@@ -47,7 +47,6 @@ import org.junit.Before
  * scenarios.
  */
 abstract class EndToEndUtils : UITest() {
-  private val defaultTimeOut = 5000L
 
   // @get:Rule(order = 1)
   // override val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
@@ -170,7 +169,7 @@ abstract class EndToEndUtils : UITest() {
 
     // Click delete and wait for navigation
     composeTestRule.onNodeWithTag(EditContactTestTags.DELETE_BUTTON).performClick()
-    composeTestRule.waitUntil(defaultTimeOut) {
+    composeTestRule.waitUntil(defaultTimeout) {
       composeTestRule
           .onAllNodesWithTag(EditContactTestTags.DELETE_BUTTON)
           .fetchSemanticsNodes()
@@ -232,7 +231,7 @@ abstract class EndToEndUtils : UITest() {
         .performClick()
 
     // After creating, the 'Add' button becomes an 'Update' button. Wait for it to appear.
-    composeTestRule.waitUntil(defaultTimeOut) {
+    composeTestRule.waitUntil(defaultTimeout) {
       composeTestRule
           .onAllNodesWithTag(HealthCardTestTags.UPDATE_BUTTON)
           .fetchSemanticsNodes()

@@ -51,9 +51,6 @@ class GpsServiceTests {
   fun setup() {
     hiltRule.inject()
     Dispatchers.setMain(testDispatcher)
-    // mockErrorDisplayManager = mockk<ErrorDisplayManager>()
-    // context = ApplicationProvider.getApplicationContext()
-    // mockClient = Mockito.mock<FusedLocationProviderClient>()
     gpsService = GpsService(locationClient = mockClient, errorDisplayManager)
   }
 

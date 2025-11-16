@@ -11,6 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * A Hilt ViewModel responsible for fetching and managing the state of emergency contacts in order
+ * to display on the Dashboard.
+ *
+ * @property repository The [ContactsRepository] used to fetch contact data from the data layer.
+ */
 @HiltViewModel
 class DashboardEmergencyContactsStatefulViewModel
 @Inject
@@ -22,6 +28,7 @@ constructor(private val repository: ContactsRepository) : ViewModel() {
     fetchContacts()
   }
 
+  /** Initiates the asynchronous operation to fetch all contacts from the repository. */
   private fun fetchContacts() {
     viewModelScope.launch {
       repository
@@ -32,6 +39,10 @@ constructor(private val repository: ContactsRepository) : ViewModel() {
   }
 }
 
+/**
+ * A sealed interface representing the distinct states of the emergency contact data that the UI can
+ * be in.
+ */
 sealed interface ContactCardState {
   data object Loading : ContactCardState
 
