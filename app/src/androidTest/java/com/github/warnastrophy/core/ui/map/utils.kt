@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
+import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.domain.model.FetcherState
 import com.github.warnastrophy.core.domain.model.GpsPositionState
 import com.github.warnastrophy.core.domain.model.GpsResult
@@ -13,9 +14,9 @@ import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
-import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
+import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.locationtech.jts.geom.Coordinate
@@ -75,7 +76,7 @@ class GpsServiceMock(initial: LatLng = pos) : PositionService {
 
   override val locationClient: FusedLocationProviderClient = Mockito.mock()
 
-  override val errorHandler = ErrorHandler()
+  override val errorHandler: ErrorDisplayManager = mockk<ErrorDisplayManager>()
 
   /** Whether updates are "started" (just for test verification) */
   var isLocationUpdated = false
@@ -115,7 +116,7 @@ class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = p
 
   override val fetcherState = MutableStateFlow(FetcherState(hazards))
   override val gpsService: PositionService = GpsServiceMock(position)
-  override val errorHandler: ErrorHandler = ErrorHandler()
+  override val errorHandler: ErrorDisplayManager = mockk<ErrorDisplayManager>()
   override val repository = HazardsRepositoryMock(hazards)
 
   fun setHazards(hazards: List<Hazard>) {
@@ -130,6 +131,11 @@ class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = p
 
   fun assertFetchCalled(expectedCount: Int) {
     assertEquals(expectedCount, fetchCount)
+  }
+
+  override fun close() {
+    fetcherState.value = FetcherState()
+    fetchCount = 0
   }
 }
 

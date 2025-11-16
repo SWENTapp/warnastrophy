@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
+import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
 import org.junit.Before
@@ -28,6 +29,7 @@ import org.junit.Test
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Geometry
 
+@HiltAndroidTest
 @OptIn(ExperimentalCoroutinesApi::class)
 class HazardPolygonTest : BaseAndroidComposeTest() {
   private lateinit var gpsService: GpsServiceMock

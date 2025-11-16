@@ -3,11 +3,13 @@ package com.github.warnastrophy.core.domain.model
 import android.annotation.SuppressLint
 import android.os.Looper
 import android.util.Log
-import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -32,7 +34,7 @@ interface PositionService {
 
   val locationClient: FusedLocationProviderClient
 
-  val errorHandler: ErrorHandler
+  val errorHandler: ErrorDisplayManager
 
   /**
    * Requests the user's current location and updates [positionState] with the new position or the
@@ -58,9 +60,12 @@ const val TAG = "GpsService"
  * @property locationClient Location provider client for accessing fused location services.
  * @property errorHandler Handler for managing errors related to GPS operations.
  */
-class GpsService(
+@Singleton
+class GpsService
+@Inject
+constructor(
     override val locationClient: FusedLocationProviderClient,
-    override val errorHandler: ErrorHandler = ErrorHandler(),
+    override val errorHandler: ErrorDisplayManager,
 ) : PositionService {
 
   /** Coroutine scope for background operations. */
@@ -247,13 +252,4 @@ sealed class GpsResult {
    * @property message Success message.
    */
   data class Success(val message: String = "Success") : GpsResult()
-}
-
-class GpsServiceFactory(
-    private val locationClient: FusedLocationProviderClient,
-    private val errorHandler: ErrorHandler
-) {
-  fun create(): GpsService {
-    return GpsService(locationClient, errorHandler)
-  }
 }

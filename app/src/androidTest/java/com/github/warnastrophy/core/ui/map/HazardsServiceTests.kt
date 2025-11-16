@@ -1,21 +1,36 @@
 package com.github.warnastrophy.core.ui.map
 
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import com.github.warnastrophy.HiltTestActivity
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
+import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.domain.model.HazardsService
 import com.github.warnastrophy.core.domain.model.PositionService
-import com.google.android.gms.maps.model.LatLng
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
+@HiltAndroidTest
 class HazardsServiceTests {
+  @get:Rule(order = 0) val hiltRule = HiltAndroidRule(this)
+  @get:Rule(order = 1) val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
 
-  private lateinit var gps: PositionService
-  private lateinit var hazardProvider: HazardsDataSource
+  @Inject lateinit var gpsMock: PositionService
+
+  @Inject lateinit var hazardsRepositoryMock: HazardsDataSource
+
+  lateinit var hazardsService: HazardsDataService
+
+  @Inject lateinit var errorDisplayManager: ErrorDisplayManager
 
   private val hazards =
       listOf(
@@ -48,8 +63,8 @@ class HazardsServiceTests {
 
   @Before
   fun setUp() {
-    gps = GpsServiceMock(LatLng(48.8146, 2.3486))
-    hazardProvider = HazardsRepositoryMock(hazards)
+    hiltRule.inject()
+    hazardsService = HazardsService(hazardsRepositoryMock, gpsMock, errorDisplayManager)
   }
 
   @After
@@ -59,12 +74,12 @@ class HazardsServiceTests {
 
   @Test
   fun testHazardsLoadedIntoService() = runBlocking {
-    val service = HazardsService(hazardProvider, gps)
+    // val service = HazardsService(hazardProvider, gps, errorDisplayManager)
     delay(500)
-    val hazards = service.fetcherState.value.hazards
+    val hazards = hazardsService.fetcherState.value.hazards
     Assert.assertNotNull(hazards)
     Assert.assertTrue(hazards.isNotEmpty())
-    Assert.assertEquals(service.fetcherState.value.hazards, hazards)
-    service.close()
+    Assert.assertEquals(hazardsService.fetcherState.value.hazards, hazards)
+    hazardsService.close()
   }
 }

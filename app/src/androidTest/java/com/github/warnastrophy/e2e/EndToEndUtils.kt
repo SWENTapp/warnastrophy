@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextContains
@@ -18,7 +17,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
-import com.github.warnastrophy.WarnastrophyApp
+import com.github.warnastrophy.WarnastrophyComposable
 import com.github.warnastrophy.core.ui.contact.UITest
 import com.github.warnastrophy.core.ui.features.health.HealthCardTestTags
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
@@ -33,6 +32,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 
@@ -47,13 +47,18 @@ import org.junit.Before
  * scenarios.
  */
 abstract class EndToEndUtils : UITest() {
+  private val defaultTimeOut = 5000L
+
+  // @get:Rule(order = 1)
+  // override val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
 
   /** Sets the content of the test rule to the WarnastrophyApp, optionally using a fake map. */
   fun setContent(useFakeMap: Boolean = true) {
+    hiltRule.inject()
     if (useFakeMap) {
-      composeTestRule.setContent { WarnastrophyApp(mockMapScreen = { FakeMapComponent() }) }
+      composeTestRule.setContent { WarnastrophyComposable(mockMapScreen = { FakeMapComponent() }) }
     } else {
-      composeTestRule.setContent { WarnastrophyApp() }
+      composeTestRule.setContent { WarnastrophyComposable() }
     }
   }
 
@@ -64,7 +69,7 @@ abstract class EndToEndUtils : UITest() {
   }
 
   @After
-  override fun tearDown() {
+  override fun tearDown() = runTest {
     super.tearDown()
     unmockkAll()
   }
@@ -165,7 +170,7 @@ abstract class EndToEndUtils : UITest() {
 
     // Click delete and wait for navigation
     composeTestRule.onNodeWithTag(EditContactTestTags.DELETE_BUTTON).performClick()
-    composeTestRule.waitUntil(defaultTimeout) {
+    composeTestRule.waitUntil(defaultTimeOut) {
       composeTestRule
           .onAllNodesWithTag(EditContactTestTags.DELETE_BUTTON)
           .fetchSemanticsNodes()
@@ -227,7 +232,7 @@ abstract class EndToEndUtils : UITest() {
         .performClick()
 
     // After creating, the 'Add' button becomes an 'Update' button. Wait for it to appear.
-    composeTestRule.waitUntil(defaultTimeout) {
+    composeTestRule.waitUntil(defaultTimeOut) {
       composeTestRule
           .onAllNodesWithTag(HealthCardTestTags.UPDATE_BUTTON)
           .fetchSemanticsNodes()

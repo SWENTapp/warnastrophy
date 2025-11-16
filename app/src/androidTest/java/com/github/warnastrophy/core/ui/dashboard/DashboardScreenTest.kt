@@ -5,19 +5,16 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
-import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Test
 
+@HiltAndroidTest
 class DashboardScreenTest : BaseAndroidComposeTest() {
-  // Verify that the root of the DashboardScreen is scrollable
+
   @Test
   fun dashboardScreen_rootIsScrollable() {
-    val mockHazardService = HazardServiceMock()
-    composeTestRule.setContent {
-      MaterialTheme { DashboardScreen(hazardsService = mockHazardService) }
-    }
-
+    composeTestRule.setContent { MaterialTheme { DashboardScreen() } }
     composeTestRule
         .onNode(
             hasScrollAction() and hasTestTag(DashboardScreenTestTags.ROOT_SCROLL),

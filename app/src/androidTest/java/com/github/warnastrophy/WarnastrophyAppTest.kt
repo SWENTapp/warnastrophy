@@ -1,14 +1,18 @@
+package com.github.warnastrophy
+
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.MainActivity
-import com.github.warnastrophy.WarnastrophyAppTestTags
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Rule
 import org.junit.Test
 
+@HiltAndroidTest
 class MainActivityTest {
+  @get:Rule(order = 0) val hiltRule = HiltAndroidRule(this)
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
+  @get:Rule(order = 1) val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   @Test
   fun mainActivity_launches_and_displays_content() {

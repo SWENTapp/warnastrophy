@@ -4,7 +4,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepositoryLocal
 import com.github.warnastrophy.core.data.repository.contactDataStore
 import com.github.warnastrophy.core.domain.model.Contact
@@ -23,9 +22,8 @@ class ContactsRepositoryLocalTests {
   @Before
   fun setUp() {
     val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-    ContactRepositoryProvider.init(context)
     datastore = context.contactDataStore
-    repositoryLocal = ContactRepositoryProvider.repository as ContactsRepositoryLocal
+    repositoryLocal = ContactsRepositoryLocal(datastore)
   }
 
   @Test

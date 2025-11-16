@@ -11,12 +11,16 @@ import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 
+@HiltAndroidTest
 abstract class UITest : BaseAndroidComposeTest() {
-  lateinit var repository: ContactsRepository
+  @Inject lateinit var repository: ContactsRepository
+  // private val defaultTimeout = 5000L
 
   /**
    * Enters the provided full name into the Full Name input field on the Edit Contact screen,

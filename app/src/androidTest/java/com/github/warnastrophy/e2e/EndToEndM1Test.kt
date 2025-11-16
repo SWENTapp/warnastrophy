@@ -7,19 +7,27 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
+import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+@HiltAndroidTest
 class EndToEndM1Test : EndToEndUtils() {
-
   @Before
   override fun setUp() {
     super.setUp()
-    val context = composeTestRule.activity.applicationContext
-    ContactRepositoryProvider.init(context)
-    repository = ContactRepositoryProvider.repository
+  }
+
+  @After
+  override fun tearDown() {
+    super.tearDown()
+    runTest {
+      val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
+      contacts.forEach { contact -> repository.deleteContact(contact.id) }
+    }
   }
 
   @Test

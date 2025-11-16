@@ -13,9 +13,11 @@ import com.github.warnastrophy.core.ui.features.map.HazardMarker
 import com.github.warnastrophy.core.ui.features.map.MapIcon
 import com.github.warnastrophy.core.ui.features.map.Tint
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
 import junit.framework.TestCase.assertNotNull
 import org.junit.Test
 
+@HiltAndroidTest
 class MapIconTest : BaseAndroidComposeTest() {
   val tsunami = hazardBasedOnType("TS")
   val drought = hazardBasedOnType("DR")

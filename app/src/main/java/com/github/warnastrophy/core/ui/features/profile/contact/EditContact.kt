@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
 object EditContactTestTags {
   const val INPUT_FULL_NAME = "inputFullName"
@@ -50,7 +50,7 @@ object EditContactTestTags {
 @Composable
 fun EditContactScreen(
     contactID: String = "1", // just for testing purpose
-    editContactViewModel: EditContactViewModel = viewModel(),
+    editContactViewModel: EditContactViewModel = hiltViewModel(),
     onDone: () -> Unit = {}
 ) {
   LaunchedEffect(contactID) { editContactViewModel.loadContact(contactID) }

@@ -4,6 +4,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.github.warnastrophy.HiltTestActivity
+import dagger.hilt.android.testing.HiltAndroidRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -89,17 +91,18 @@ abstract class BaseComposeTest {
 }
 
 /**
- * Base class for testing Compose UI in Android with a [ComponentActivity] context. Provides a
+ * Base class for testing Compose UI in Android with a [HiltTestActivity] context. Provides a
  * [composeTestRule] for interacting with Compose UI components in the context of an Android
- * [ComponentActivity].
+ * [HiltTestActivity].
  */
 abstract class BaseAndroidComposeTest : BaseComposeTest() {
   /**
-   * [Rule] that provides access to [ComposeTestRule] for Android-specific Compose UI tests. This
-   * rule is responsible for launching and managing the lifecycle of a [ComponentActivity] for
+   * [Rule] that provides access to [HiltTestActivity] for Android-specific Compose UI tests. This
+   * rule is responsible for launching and managing the lifecycle of a [HiltTestActivity] for
    * testing.
    */
-  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+  @get:Rule(order = 0) val hiltRule = HiltAndroidRule(this)
+  @get:Rule(order = 1) val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
 
   /**
    * Setup method for initializing necessary state or resources before each test. Can be overridden
@@ -125,7 +128,7 @@ abstract class BaseAndroidComposeTest : BaseComposeTest() {
 abstract class BaseSimpleComposeTest : BaseComposeTest() {
 
   /**
-   * [Rule] that provides access to [ComposeTestRule] for simple Compose UI tests. This rule is used
+   * [Rule] that provides access to [composeTestRule] for simple Compose UI tests. This rule is used
    * for tests that do not involve an Android [Activity] context.
    */
   @get:Rule val composeTestRule = createComposeRule()

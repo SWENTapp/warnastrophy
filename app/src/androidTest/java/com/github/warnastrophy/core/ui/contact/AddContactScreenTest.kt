@@ -4,23 +4,29 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.AddContactViewModel
+import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+@HiltAndroidTest
 class AddContactScreenTest : UITest() {
   private val contact1 = Contact(id = "a", "Ronaldo", "+41", "Friend")
 
   @Before
   override fun setUp() {
-    super.setUp()
-    repository = MockContactRepository()
-    val mockViewModel = AddContactViewModel(repository = repository)
-    composeTestRule.setContent { AddContactScreen(addContactViewModel = mockViewModel) }
+    hiltRule.inject()
+    composeTestRule.setContent { AddContactScreen() }
+  }
+
+  @After
+  override fun tearDown() = runTest {
+    val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
+    contacts.forEach { contact -> repository.deleteContact(contact.id) }
   }
 
   @Test

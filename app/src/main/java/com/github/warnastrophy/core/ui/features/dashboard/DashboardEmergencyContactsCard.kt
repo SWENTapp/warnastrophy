@@ -11,12 +11,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,13 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
-import kotlinx.coroutines.launch
 
 /**
  * Test tags for the Dashboard Emergency Contacts Card component.
@@ -170,12 +165,8 @@ private fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
 /**
  * Displays a dashboard card showing emergency contacts with automatic data fetching.
  *
- * This is a stateful composable that automatically fetches emergency contacts from the
- * [ContactRepositoryProvider] on composition. It manages its own loading state and delegates
- * rendering to the stateless version of this composable.
- *
- * The card will fetch contacts once when first composed using [LaunchedEffect]. If the fetch fails,
- * an empty contact list is displayed.
+ * The card will fetch contacts once when first composed using [viewModel]. If the fetch fails, an
+ * empty contact list is displayed.
  *
  * @param onManageContactsClick Callback invoked when the user clicks the "Manage" button.
  * @param modifier Modifier to be applied to the card container.
@@ -185,26 +176,12 @@ private fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
 @Composable
 fun DashboardEmergencyContactsCardStateful(
     onManageContactsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: DashboardEmergencyContactsStatefulViewModel = hiltViewModel()
 ) {
-  var contacts by remember { mutableStateOf<List<Contact>>(emptyList()) }
-  var isLoading by remember { mutableStateOf(true) }
-  val scope = rememberCoroutineScope()
-
-  LaunchedEffect(Unit) {
-    scope.launch {
-      ContactRepositoryProvider.repository
-          .getAllContacts()
-          .onSuccess { contactList ->
-            contacts = contactList
-            isLoading = false
-          }
-          .onFailure {
-            contacts = emptyList()
-            isLoading = false
-          }
-    }
-  }
+  val state by viewModel.contactsState.collectAsState()
+  val contacts = (state as? ContactCardState.Success)?.contacts ?: emptyList()
+  val isLoading = state == ContactCardState.Loading
 
   DashboardEmergencyContactsCardStateless(
       contacts = contacts,

@@ -11,6 +11,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import javax.inject.Inject
 import kotlin.time.TimeSource
 import kotlinx.coroutines.delay
 import org.json.JSONArray
@@ -53,7 +54,7 @@ interface HazardsDataSource {
  * This repository handles the multi-step process of network communication, GeoJSON parsing, and
  * conversion to JTS Geometry objects.
  */
-class HazardsRepository() : HazardsDataSource {
+class HazardsRepository @Inject constructor() : HazardsDataSource {
 
   private val VALID_REPONSE_CODE_RANGE = 200..299
   private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay

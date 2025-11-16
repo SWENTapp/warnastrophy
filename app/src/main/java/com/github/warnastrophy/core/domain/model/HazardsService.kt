@@ -3,9 +3,11 @@ package com.github.warnastrophy.core.domain.model
 import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
-import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.time.TimeSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +26,7 @@ interface HazardsDataService {
   val repository: HazardsDataSource
   val gpsService: PositionService
 
-  val errorHandler: ErrorHandler
+  val errorHandler: ErrorDisplayManager
 
   val fetcherState: StateFlow<FetcherState>
 
@@ -34,12 +36,17 @@ interface HazardsDataService {
   ): List<Hazard>
 
   fun fetchHazardsAroundUser()
+
+  fun close()
 }
 
-class HazardsService(
+@Singleton
+class HazardsService
+@Inject
+constructor(
     override val repository: HazardsDataSource,
     override val gpsService: PositionService,
-    override val errorHandler: ErrorHandler = ErrorHandler(),
+    override val errorHandler: ErrorDisplayManager,
 ) : HazardsDataService {
   /** Coroutine scope used for background hazard fetching. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
@@ -114,7 +121,7 @@ class HazardsService(
   }
 
   /** Cancels the background hazard fetching and releases resources. */
-  fun close() {
+  override fun close() {
     serviceScope.cancel()
   }
 }
@@ -132,13 +139,3 @@ data class FetcherState(
     val isLoading: Boolean = false,
     val errorMsg: String? = null
 )
-
-class HazardsServiceFactory(
-    private val repository: HazardsDataSource,
-    private val gpsService: PositionService,
-    private val errorHandler: ErrorHandler
-) {
-  fun create(): HazardsService {
-    return HazardsService(repository, gpsService, errorHandler)
-  }
-}

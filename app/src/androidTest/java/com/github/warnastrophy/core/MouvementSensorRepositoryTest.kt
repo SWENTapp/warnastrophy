@@ -12,12 +12,10 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.*
-import kotlin.compareTo
 import kotlin.math.sqrt
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -26,6 +24,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
+@HiltAndroidTest
 class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
   private lateinit var repo: MouvementSensorRepository
   private lateinit var context: Context
