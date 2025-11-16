@@ -6,6 +6,7 @@ import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
+import javax.inject.Inject
 import kotlin.time.TimeSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +37,9 @@ interface HazardsDataService {
   fun fetchHazardsAroundUser()
 }
 
-class HazardsService(
+class HazardsService
+@Inject
+constructor(
     override val repository: HazardsDataSource,
     override val gpsService: PositionService,
     override val errorHandler: ErrorHandler = ErrorHandler(),

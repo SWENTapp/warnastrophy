@@ -16,10 +16,12 @@ import com.google.firebase.FirebaseApp
  * `onCreate` methods. You can run the app by running the `app` configuration in Android Studio. NB:
  * Make sure you have an Android emulator running or a physical device connected.
  */
+
+// @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
   private fun showUI() {
-    setContent { MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyApp() } } }
+    setContent { MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyComposable() } } }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
