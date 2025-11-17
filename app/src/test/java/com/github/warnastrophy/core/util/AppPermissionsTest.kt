@@ -42,4 +42,12 @@ class AppPermissionsTest {
     assertTrue(perms.contains(Manifest.permission.ACCESS_FINE_LOCATION))
     assertFalse(perms.contains(Manifest.permission.ACCESS_COARSE_LOCATION))
   }
+
+  @Test
+  fun SendSms_should_contain_correct_permission() {
+    val perms = AppPermissions.SendEmergencySms.permissions
+    assertEquals(2, perms.size)
+    assertTrue(perms.contains(Manifest.permission.SEND_SMS))
+    assertTrue(perms.contains(Manifest.permission.ACCESS_FINE_LOCATION))
+  }
 }
