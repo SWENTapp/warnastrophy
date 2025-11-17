@@ -1,7 +1,10 @@
 import android.content.Context
 import android.os.Build
 import android.telephony.SmsManager
+import com.github.warnastrophy.core.domain.model.EmergencyMessage
+import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.SmsManagerSender
+import java.time.Instant
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,7 +21,21 @@ class SmsServiceTests {
   @Mock private lateinit var mockSmsManager: SmsManager
   private lateinit var smsManagerSender: SmsManagerSender
   private val phoneNumber: String = "0123456789"
-  private val message: String = "Hello World!"
+  private val message =
+      EmergencyMessage(
+          text = "Engine room is on fire",
+          timestamp = Instant.parse("2023-10-27T10:30:00Z"),
+          location = Location(48.8584, 2.2945),
+          additionalInfo = "Sector 7G")
+  val expectedString =
+      """
+            Engine room is on fire
+            
+            - Time: 2023-10-27T10:30:00Z
+            - Location: 48.8584, 2.2945
+            - Additional Info: Sector 7G
+        """
+          .trimIndent()
 
   @Before
   fun setUp() {
@@ -34,7 +51,7 @@ class SmsServiceTests {
 
     smsManagerSender.sendSms(phoneNumber, message)
 
-    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, message, null, null)
+    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, expectedString, null, null)
   }
 
   @Test
@@ -47,7 +64,7 @@ class SmsServiceTests {
 
     smsManagerSender.sendSms(phoneNumber, message)
 
-    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, message, null, null)
+    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, expectedString, null, null)
 
     mockedStaticSmsManager.close()
   }

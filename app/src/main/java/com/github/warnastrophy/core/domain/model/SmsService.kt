@@ -5,7 +5,7 @@ import android.os.Build
 import android.telephony.SmsManager
 
 interface SmsSender {
-  fun sendSms(phoneNumber: String, message: String)
+  fun sendSms(phoneNumber: String, message: EmergencyMessage)
 }
 
 class SmsManagerSender(context: Context) : SmsSender {
@@ -16,7 +16,7 @@ class SmsManagerSender(context: Context) : SmsSender {
         SmsManager.getDefault() // For API versions ≤ 31
       }
 
-  override fun sendSms(phoneNumber: String, message: String) {
-    smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+  override fun sendSms(phoneNumber: String, message: EmergencyMessage) {
+    smsManager.sendTextMessage(phoneNumber, null, message.toStringMessage(), null, null)
   }
 }
