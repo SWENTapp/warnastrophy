@@ -3,7 +3,7 @@
  *
  * Author: Anas Sidi Mohamed Assistance: ChatGPT
  */
-package com.github.warnastrophy.core.data.repository
+package com.github.warnastrophy.core
 
 import android.content.Context
 import android.hardware.Sensor
@@ -11,13 +11,12 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.data.repository.MotionData
+import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import io.mockk.*
-import kotlin.compareTo
 import kotlin.math.sqrt
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
