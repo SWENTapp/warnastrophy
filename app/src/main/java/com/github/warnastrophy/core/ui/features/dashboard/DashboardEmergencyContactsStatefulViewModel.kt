@@ -28,6 +28,10 @@ constructor(private val repository: ContactsRepository) : ViewModel() {
     fetchContacts()
   }
 
+  fun refreshUIStates() {
+    fetchContacts()
+  }
+
   /** Initiates the asynchronous operation to fetch all contacts from the repository. */
   private fun fetchContacts() {
     viewModelScope.launch {

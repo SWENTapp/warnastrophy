@@ -11,6 +11,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -179,6 +180,7 @@ fun DashboardEmergencyContactsCardStateful(
     modifier: Modifier = Modifier,
     viewModel: DashboardEmergencyContactsStatefulViewModel = hiltViewModel()
 ) {
+  LaunchedEffect(Unit) { viewModel.refreshUIStates() }
   val state by viewModel.contactsState.collectAsState()
   val contacts = (state as? ContactCardState.Success)?.contacts ?: emptyList()
   val isLoading = state == ContactCardState.Loading
