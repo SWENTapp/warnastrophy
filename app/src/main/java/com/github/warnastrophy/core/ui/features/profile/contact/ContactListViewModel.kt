@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.domain.model.Contact
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Represents the complete UI state for a screen displaying a list of contacts.
@@ -38,8 +40,9 @@ data class ContactListUIState(
  * @property contactsRepository The dependency responsible for fetching, caching, and persisting
  *   contacts data.
  */
-class ContactListViewModel(
-    private val contactsRepository: ContactsRepository = ContactRepositoryProvider.repository
+@HiltViewModel
+class ContactListViewModel @Inject constructor(
+    private val contactsRepository: ContactsRepository
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(ContactListUIState())
   val uiState: StateFlow<ContactListUIState> = _uiState.asStateFlow()

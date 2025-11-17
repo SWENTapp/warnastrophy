@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import javax.inject.Singleton
 
 /**
  * Service managing the user's GPS position. Maintains an observable state representing the current
@@ -59,6 +60,7 @@ const val TAG = "GpsService"
  * @property locationClient Location provider client for accessing fused location services.
  * @property errorHandler Handler for managing errors related to GPS operations.
  */
+@Singleton
 class GpsService
 @Inject
 constructor(

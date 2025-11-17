@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 object AddContactTestTags {
@@ -46,7 +47,7 @@ object AddContactTestTags {
 @Composable
 fun AddContactScreen(
     // Optional: Add a callback to handle the save action and pass the contact data
-    addContactViewModel: AddContactViewModel = viewModel(),
+    addContactViewModel: AddContactViewModel = hiltViewModel(),
     onDone: () -> Unit = {}
 ) {
   val contactUIState by addContactViewModel.uiState.collectAsState()

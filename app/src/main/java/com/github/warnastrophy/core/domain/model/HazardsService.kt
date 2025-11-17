@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Singleton
 
 /**
  * Service responsible for fetching and maintaining the current list of hazards based on the user's
@@ -37,6 +38,7 @@ interface HazardsDataService {
   fun fetchHazardsAroundUser()
 }
 
+@Singleton
 class HazardsService
 @Inject
 constructor(

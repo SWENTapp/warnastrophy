@@ -7,6 +7,7 @@ import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.util.isValidPhoneNumber
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Represents the complete UI state for the Add Contact screen, including all input fields,
@@ -55,8 +57,9 @@ data class AddContactUIState(
  *
  * @property repository The data source dependency used for contact persistence.
  */
-class AddContactViewModel(
-    private val repository: ContactsRepository = ContactRepositoryProvider.repository
+@HiltViewModel
+class AddContactViewModel @Inject constructor(
+    private val repository: ContactsRepository
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(AddContactUIState())
   val uiState: StateFlow<AddContactUIState> = _uiState.asStateFlow()

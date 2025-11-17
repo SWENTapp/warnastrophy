@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.domain.model.Contact
 
@@ -94,7 +95,7 @@ private fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactListScreen(
-    contactListViewModel: ContactListViewModel = viewModel(),
+    contactListViewModel: ContactListViewModel = hiltViewModel(),
     onContactClick: (Contact) -> Unit = {},
     onAddButtonClick: () -> Unit = {},
 ) {
