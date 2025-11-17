@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
@@ -71,11 +72,15 @@ object LatestNewsCardColors {
  * @see HazardsDataService
  */
 @Composable
-fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
-  val fetcherState = hazardsService.fetcherState.collectAsState()
-  val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
+fun LatestNewsCard(
+    latestNewsViewModel: LatestNewsViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
+) {
+  val fetcherState = latestNewsViewModel.fetcherState.collectAsState()
   val state = fetcherState.value
-  var currentIndex by remember { mutableStateOf(0) }
+
+
+  var currentIndex by remember { mutableIntStateOf(0) }
   val context = LocalContext.current
 
   val currentHazard =

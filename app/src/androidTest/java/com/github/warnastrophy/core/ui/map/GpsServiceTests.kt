@@ -5,6 +5,7 @@ import android.location.Location
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.domain.model.GpsResult
 import com.github.warnastrophy.core.domain.model.GpsService
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -45,7 +46,7 @@ class GpsServiceTests {
     Dispatchers.setMain(testDispatcher)
     context = ApplicationProvider.getApplicationContext()
     mockClient = Mockito.mock<FusedLocationProviderClient>()
-    gpsService = GpsService(locationClient = mockClient)
+    gpsService = GpsService(locationClient = mockClient, errorHandler = ErrorHandler())
   }
 
   @After

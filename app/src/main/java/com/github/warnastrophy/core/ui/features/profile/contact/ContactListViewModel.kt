@@ -3,15 +3,14 @@ package com.github.warnastrophy.core.ui.features.profile.contact
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * Represents the complete UI state for a screen displaying a list of contacts.
@@ -41,9 +40,8 @@ data class ContactListUIState(
  *   contacts data.
  */
 @HiltViewModel
-class ContactListViewModel @Inject constructor(
-    private val contactsRepository: ContactsRepository
-) : ViewModel() {
+class ContactListViewModel @Inject constructor(private val contactsRepository: ContactsRepository) :
+    ViewModel() {
   private val _uiState = MutableStateFlow(ContactListUIState())
   val uiState: StateFlow<ContactListUIState> = _uiState.asStateFlow()
 

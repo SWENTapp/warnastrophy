@@ -112,7 +112,6 @@ class DashboardHealthCardViewModelTest {
     coVerify(exactly = 1) { HealthCardStorage.loadHealthCard(mockContext, "user2") }
   }
 
-  // ==== GET EMERGENCY HEALTH SUMMARY TESTS ====
 
   @Test
   fun `getEmergencyHealthSummary formats all information correctly`() {

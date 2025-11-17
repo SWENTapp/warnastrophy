@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.data.repository
 
 import android.content.Context
 
+// TODO: remove this class next PR
 object ContactRepositoryProvider {
   lateinit var repository: ContactsRepository
 

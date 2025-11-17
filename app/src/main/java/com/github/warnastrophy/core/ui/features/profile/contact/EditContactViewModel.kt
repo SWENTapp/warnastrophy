@@ -3,11 +3,11 @@ package com.github.warnastrophy.core.ui.features.profile.contact
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.util.isValidPhoneNumber
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class EditContactUIState(
     val fullName: String = "",
@@ -31,9 +30,8 @@ data class EditContactUIState(
 }
 
 @HiltViewModel
-class EditContactViewModel @Inject constructor(
-    private val repository: ContactsRepository
-) : ViewModel() {
+class EditContactViewModel @Inject constructor(private val repository: ContactsRepository) :
+    ViewModel() {
   private val _uiState = MutableStateFlow(EditContactUIState())
   val uiState: StateFlow<EditContactUIState> = _uiState.asStateFlow()
   private val _navigateBack = MutableSharedFlow<Unit>(replay = 0)

@@ -4,7 +4,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.github.warnastrophy.core.ui.common.Error
+import com.github.warnastrophy.core.domain.error.Error
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.error.ErrorScreen
 import com.github.warnastrophy.core.ui.features.error.ErrorScreenTestTags

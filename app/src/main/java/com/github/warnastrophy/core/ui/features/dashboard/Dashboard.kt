@@ -37,8 +37,7 @@ object DashboardColors {
 fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
     onHealthCardClick: () -> Unit = {},
-    onEmergencyContactsClick: () -> Unit = {},
-    hazardsService: HazardsDataService
+    onEmergencyContactsClick: () -> Unit = {}
 ) {
   Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
     Column(
@@ -51,9 +50,7 @@ fun DashboardScreen(
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-            LatestNewsCard(
-                hazardsService = hazardsService,
-                modifier = Modifier.testTag(DashboardScreenTestTags.LATEST_NEWS_SECTION))
+            LatestNewsCard(modifier = Modifier.testTag(DashboardScreenTestTags.LATEST_NEWS_SECTION))
 
             Spacer(modifier = Modifier.height(12.dp))
 

@@ -16,6 +16,8 @@ import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlin.collections.filter
 import kotlin.collections.groupBy
 import kotlin.collections.map
@@ -60,7 +62,10 @@ data class MapUIState(
     get() = positionState.isLoading || hazardState.isLoading
 }
 
-class MapViewModel(
+@HiltViewModel
+class MapViewModel
+@Inject
+constructor(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
     private val permissionManager: PermissionManagerInterface,

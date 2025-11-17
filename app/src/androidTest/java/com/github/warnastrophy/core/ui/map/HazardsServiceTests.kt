@@ -4,6 +4,7 @@ import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsService
 import com.github.warnastrophy.core.domain.model.PositionService
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -59,7 +60,7 @@ class HazardsServiceTests {
 
   @Test
   fun testHazardsLoadedIntoService() = runBlocking {
-    val service = HazardsService(hazardProvider, gps)
+    val service = HazardsService(hazardProvider, gps, ErrorHandler())
     delay(500)
     val hazards = service.fetcherState.value.hazards
     Assert.assertNotNull(hazards)

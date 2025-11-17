@@ -39,7 +39,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun latestNewsCard_rendersCardAndHeader() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.HEADER_ROW, useUnmergedTree = true)
@@ -70,7 +70,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
   /* Verify that the LatestNewsCard shows the headline, body, and image */
   @Test
   fun latestNewsCard_showsHeadlineBodyAndImage() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.HEADLINE, useUnmergedTree = true)
@@ -87,7 +87,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun latestNewsCard_rightButton_updatesHeadline() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     // Click the right button to go to the next hazard
     composeTestRule
@@ -142,7 +142,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun latestNewsCard_leftButton_updatesHeadline() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     // Click the right button to go to the next hazard
     composeTestRule

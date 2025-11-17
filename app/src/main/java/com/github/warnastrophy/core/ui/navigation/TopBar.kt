@@ -19,25 +19,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.github.warnastrophy.core.domain.error.getScreenErrors
 import com.github.warnastrophy.core.ui.common.ErrorHandler
-import com.github.warnastrophy.core.ui.common.getScreenErrors
+import com.github.warnastrophy.core.ui.common.GlobalErrorViewModel
 import com.github.warnastrophy.core.ui.features.error.ErrorScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
     currentScreen: Screen,
-    errorHandler: ErrorHandler = ErrorHandler(),
+    globalVM: GlobalErrorViewModel = hiltViewModel(),
     canNavigateBack: Boolean = false,
-    navigateUp: () -> Unit = {}
+    navigateUp: () -> Unit = {},
+    errorHandler: ErrorHandler = ErrorHandler() // TODO: remove next PR
 ) {
   if (!currentScreen.hasTopBar) return
 
   val ctx = LocalContext.current
-  val errorState = errorHandler.state.collectAsState()
-  val hasErrors = errorState.value.errors.isNotEmpty()
+    /* TODO: uncomment next PR
+  val errorState by globalVM.errorState.collectAsState()
+  val currentScreenErrorText = errorState.getScreenErrors(currentScreen)
+  val hasErrors = errorState.errors.isNotEmpty()
+
+     */
+    val errorState = errorHandler.errorState.collectAsState() // TODO: remove next PR
+    val hasErrors = errorState.value.errors.isNotEmpty() // TODO: remove next PR
 
   var expanded by remember { mutableStateOf(false) }
+
+
 
   TopAppBar(
       title = {
