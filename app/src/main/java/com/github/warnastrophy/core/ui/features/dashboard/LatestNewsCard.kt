@@ -75,7 +75,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
   val fetcherState = hazardsService.fetcherState.collectAsState()
   val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
   val state = fetcherState.value
-  var currentIndex by remember { mutableStateOf(0) }
+  var currentIndex by remember { mutableIntStateOf(0) }
+  currentIndex = currentIndex.coerceIn(0, hazards.size - 1)
   val context = LocalContext.current
 
   val currentHazard =
