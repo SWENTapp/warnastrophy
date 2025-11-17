@@ -1,0 +1,54 @@
+import android.content.Context
+import android.os.Build
+import android.telephony.SmsManager
+import com.github.warnastrophy.core.domain.model.SmsManagerSender
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+class SmsServiceTests {
+  @Mock private lateinit var mockContext: Context
+
+  @Mock private lateinit var mockSmsManager: SmsManager
+  private lateinit var smsManagerSender: SmsManagerSender
+  private val phoneNumber: String = "0123456789"
+  private val message: String = "Hello World!"
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.openMocks(this)
+  }
+
+  @Test
+  @Config(sdk = [Build.VERSION_CODES.S]) // API 31
+  fun sendSms_callsSendTextMessage_API_above_S() {
+    Mockito.`when`(mockContext.getSystemService(SmsManager::class.java)).thenReturn(mockSmsManager)
+
+    smsManagerSender = SmsManagerSender(mockContext)
+
+    smsManagerSender.sendSms(phoneNumber, message)
+
+    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, message, null, null)
+  }
+
+  @Test
+  @Config(sdk = [Build.VERSION_CODES.R]) // API 30
+  fun sendSms_callsSendTextMessage_API_below_S() {
+    val mockedStaticSmsManager = Mockito.mockStatic(SmsManager::class.java)
+    mockedStaticSmsManager.`when`<SmsManager> { SmsManager.getDefault() }.thenReturn(mockSmsManager)
+
+    smsManagerSender = SmsManagerSender(mockContext)
+
+    smsManagerSender.sendSms(phoneNumber, message)
+
+    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, message, null, null)
+
+    mockedStaticSmsManager.close()
+  }
+}
