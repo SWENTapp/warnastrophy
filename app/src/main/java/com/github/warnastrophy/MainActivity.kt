@@ -11,6 +11,8 @@ import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.firebase.FirebaseApp
 import dagger.hilt.android.AndroidEntryPoint
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 /**
  * `MainActivity` is the entry point of the application. It sets up the content view with the
@@ -29,10 +31,8 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     FirebaseApp.initializeApp(this)
 
-    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-
-    auth.signOut()
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.init(applicationContext)
