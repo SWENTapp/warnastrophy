@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
 import com.github.warnastrophy.core.domain.model.Location
-import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMovedUseCase
+import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMoved
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -10,7 +10,7 @@ import org.junit.Test
 class RefreshHazardsIfMovedUseCaseTest {
   private val distanceThreshold = 5.0
   private lateinit var hazardsService: HazardServiceMock
-  private lateinit var useCase: RefreshHazardsIfMovedUseCase
+  private lateinit var useCase: RefreshHazardsIfMoved
 
   private val initialLocation = Location(51.5074, 0.1278) // London
   private val farAwayLocation = Location(51.6000, 0.2000)
@@ -24,8 +24,7 @@ class RefreshHazardsIfMovedUseCaseTest {
   @Before
   fun setup() {
     hazardsService = HazardServiceMock()
-    useCase =
-        RefreshHazardsIfMovedUseCase(hazardsService, distanceThreshold, distanceCalculatorStub)
+    useCase = RefreshHazardsIfMoved(hazardsService, distanceThreshold, distanceCalculatorStub)
   }
 
   @Test

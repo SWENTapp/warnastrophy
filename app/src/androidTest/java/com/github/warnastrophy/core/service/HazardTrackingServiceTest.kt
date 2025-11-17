@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.service
 
 import com.github.warnastrophy.core.data.service.HazardTrackingService
 import com.github.warnastrophy.core.domain.model.Location
-import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMovedUseCase
+import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMoved
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.clearAllMocks
@@ -19,7 +19,7 @@ import org.junit.Test
 
 class HazardTrackingServiceTest {
   private val mockGpsService = GpsServiceMock()
-  private val mockUseCase = mockk<RefreshHazardsIfMovedUseCase>(relaxed = true)
+  private val mockUseCase = mockk<RefreshHazardsIfMoved>(relaxed = true)
 
   private lateinit var trackingService: HazardTrackingService
 

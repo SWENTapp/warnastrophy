@@ -10,7 +10,7 @@
     <string name="edit_contact_screen_title">Edit Contact</string>
     <string name="health_card_screen_title">Emergency Card</string>
     <string name="sign_in_title">Sign In</string>
-    <string name="default_web_client_id">327661063729-k001fc71n2e3dt9t4epmd976dmorjvqm.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
 
     <!-- Dashboard Strings -->
     <string name="latest_news">Latest news</string>
@@ -18,4 +18,10 @@
     <string name="read">read</string>
     <string name="event_image_description">Event Image</string>
     <string name="loading">Loading...</string>
+
+    <!-- Logout strings -->
+    <string name="logout_string">Logout</string>
+    <string name="logout_message">Are you sure you want to logout?</string>
+    <string name="cancel_logout">Cancel</string>
+    <string name="logout_error">Error</string>
 </resources>
