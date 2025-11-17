@@ -24,6 +24,7 @@ object NavigationTestTags {
   const val BUTTON_BACK = "buttonBack"
   const val CONTACT_LIST = "contactList"
   const val HEALTH_CARD = "healthCard"
+  const val LOGOUT = "logout"
   const val SIGN_IN = "signIn"
 }
 
@@ -71,7 +72,8 @@ sealed class Screen(
     }
   }
 
-  object SignIn : Screen(R.string.sign_in_title, route = "sign-in")
+  object SignIn :
+      Screen(R.string.sign_in_title, route = "sign-in", hasBottomBar = false, hasTopBar = false)
 }
 
 val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Dashboard, Screen.Map, Screen.Profile)

@@ -51,6 +51,13 @@ android {
     }
 
     signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+
         create("release") {
             val storeFilePath = System.getenv("SIGNING_STORE_FILE")
                     ?: keystoreProperties["storeFile"] as? String
@@ -89,6 +96,7 @@ android {
         }
 
         debug {
+            signingConfig = signingConfigs.getByName("debug")
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
         }
