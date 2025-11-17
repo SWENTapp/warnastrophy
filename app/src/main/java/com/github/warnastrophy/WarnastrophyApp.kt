@@ -40,7 +40,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
-import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 
 /** Object containing test tags for the WarnastrophyApp. */
@@ -51,10 +50,6 @@ object WarnastrophyAppTestTags {
 @Composable
 fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
   val context = LocalContext.current
-
-  if (FirebaseApp.getApps(context).isEmpty()) {
-    FirebaseApp.initializeApp(context)
-  }
 
   val credentialManager = CredentialManager.create(context)
 
@@ -143,7 +138,8 @@ fun WarnastrophyApp(mockMapScreen: (@Composable () -> Unit)? = null) {
               composable(Profile.route) {
                 ProfileScreen(
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
-                    onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) })
+                    onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
+                    onLogout = { navigationActions.navigateTo(SignIn) })
               }
               composable(Screen.ContactList.route) {
                 ContactListScreen(
