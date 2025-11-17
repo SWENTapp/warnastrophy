@@ -23,7 +23,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,15 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.EmergencyMessage
-import com.github.warnastrophy.core.domain.model.Location
-import com.github.warnastrophy.core.domain.model.SmsManagerSender
 import com.github.warnastrophy.core.ui.features.auth.SignInViewModel
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 
@@ -68,20 +63,9 @@ fun ProfileScreen(
     onEmergencyContactsClick: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-  val context = LocalContext.current
+
   val uiState by viewModel.uiState.collectAsState()
   var showLogoutDialog by remember { mutableStateOf(false) }
-  var phoneNumber by remember { mutableStateOf("+123456789") }
-
-  val smsManager = SmsManagerSender(context)
-
-  fun onClick() {
-    val message =
-        EmergencyMessage(
-            location = Location(latitude = 0.0, longitude = 0.0), additionalInfo = "Test message")
-
-    smsManager.sendSms(phoneNumber = phoneNumber, message = message)
-  }
 
   LaunchedEffect(uiState.signedOut) {
     if (uiState.signedOut) {
@@ -112,20 +96,6 @@ fun ProfileScreen(
         onClick = { showLogoutDialog = true },
         modifier = Modifier.testTag(NavigationTestTags.LOGOUT),
         tintColor = MaterialTheme.colorScheme.error)
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    OutlinedTextField(
-        value = phoneNumber,
-        onValueChange = { phoneNumber = it },
-        label = { Text("Phone Number") },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Button(onClick = { onClick() }, modifier = Modifier.padding(horizontal = 16.dp)) {
-      Text("Submit")
-    }
   }
 
   if (showLogoutDialog) {
