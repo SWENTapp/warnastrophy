@@ -44,9 +44,10 @@ class AppPermissionsTest {
   }
 
   @Test
-  fun SendSms_should_contain_only_send_sms_permission() {
-    val perms = AppPermissions.SendSms.permissions
-    assertEquals(1, perms.size)
-    assertEquals(Manifest.permission.SEND_SMS, perms.first())
+  fun SendSms_should_contain_correct_permission() {
+    val perms = AppPermissions.SendEmergencySms.permissions
+    assertEquals(2, perms.size)
+    assertTrue(perms.contains(Manifest.permission.SEND_SMS))
+    assertTrue(perms.contains(Manifest.permission.ACCESS_FINE_LOCATION))
   }
 }
