@@ -32,11 +32,15 @@ import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.util.findActivity
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.MapsComposeExperimentalApi
 import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
@@ -49,9 +53,10 @@ object MapScreenTestTags {
 fun MapScreen(
     viewModel: MapViewModel,
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
-    googleMap: @Composable (CameraPositionState, MapUIState) -> Unit = { cameraState, uiState ->
-      HazardsGoogleMap(cameraState, uiState)
-    } // Used for testing purpose
+    googleMap: @Composable (CameraPositionState, MapUIState, (LatLngBounds) -> Unit) -> Unit =
+        { cameraState, uiState, onBoundsChanged ->
+          HazardsGoogleMap(cameraState, uiState, onBoundsChanged)
+        } // Used for testing purpose
 ) {
   val activity = LocalContext.current.findActivity()
 
@@ -116,7 +121,7 @@ fun MapScreen(
     if (uiState.isLoading) {
       Loading()
     } else {
-      googleMap(cameraPositionState, uiState)
+      googleMap(cameraPositionState, uiState) { viewModel.onBoundsChanged(it) }
       TrackLocationButton(uiState.isTrackingLocation) {
         viewModel.onTrackLocationClicked(cameraPositionState)
       }
@@ -192,10 +197,12 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
       }
 }
 
+@OptIn(MapsComposeExperimentalApi::class)
 @Composable
 fun HazardsGoogleMap(
     cameraPositionState: CameraPositionState,
     uiState: MapUIState,
+    onBoundsChanged: (LatLngBounds) -> Unit = {}
 ) {
   val hazards = uiState.hazardState.hazards
 
@@ -209,6 +216,15 @@ fun HazardsGoogleMap(
               mapToolbarEnabled = false),
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
         hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
+
+        // Subscribe to camera events to detect when the bounds have changed
+        MapEffect(Unit) { map ->
+          // Emit once when attached
+          onBoundsChanged(map.projection.visibleRegion.latLngBounds)
+
+          map.setOnCameraMoveListener { onBoundsChanged(map.projection.visibleRegion.latLngBounds) }
+          map.setOnCameraIdleListener { onBoundsChanged(map.projection.visibleRegion.latLngBounds) }
+        }
       }
 }
 

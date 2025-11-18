@@ -15,6 +15,7 @@ import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.CameraPositionState
 import kotlin.collections.filter
 import kotlin.collections.groupBy
@@ -194,6 +195,17 @@ class MapViewModel(
           (group.key ?: "Unknown") to Pair(minSev, maxSev)
         }
         .toMap()
+  }
+
+  /**
+   * Called when the map bounds have changed.
+   *
+   * This function can be used to trigger data fetches or updates based on the new map bounds.
+   *
+   * @param bounds The new bounds of the map.
+   */
+  fun onBoundsChanged(bounds: LatLngBounds) {
+    // No-op for now, can be used to trigger data fetches based on map bounds
   }
 }
 

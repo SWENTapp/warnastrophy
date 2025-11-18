@@ -147,7 +147,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
             if (useRealMap) {
               MapScreen(viewModel = viewModel) // Keeps original behavior
             } else {
-              MapScreen(viewModel = viewModel, googleMap = { _, _ -> FakeMapForTest() })
+              MapScreen(viewModel = viewModel, googleMap = { _, _, _ -> FakeMapForTest() })
             }
           }
       relaunchKey?.let { key(it.value) { content() } } ?: content()
