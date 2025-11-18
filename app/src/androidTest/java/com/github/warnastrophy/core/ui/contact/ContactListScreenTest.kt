@@ -10,6 +10,7 @@ import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -41,7 +42,7 @@ class ContactListScreenTest : UITest() {
   }
 
   @After
-  override fun tearDown() = runTest {
+  override fun tearDown() = runBlocking {
     val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
     contacts.forEach { contact -> repository.deleteContact(contact.id) }
   }

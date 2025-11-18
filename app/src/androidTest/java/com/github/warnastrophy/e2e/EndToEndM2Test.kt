@@ -19,12 +19,10 @@ class EndToEndM2Test : EndToEndUtils() {
   }
 
   @After
-  override fun tearDown() {
+  override fun tearDown() = runTest {
     super.tearDown()
-    runTest {
-      val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
-      contacts.forEach { contact -> repository.deleteContact(contact.id) }
-    }
+    val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
+    contacts.forEach { contact -> repository.deleteContact(contact.id) }
   }
 
   @Test

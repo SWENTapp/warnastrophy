@@ -9,7 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import dagger.hilt.android.testing.HiltAndroidTest
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -22,12 +22,10 @@ class EndToEndM1Test : EndToEndUtils() {
   }
 
   @After
-  override fun tearDown() {
+  override fun tearDown() = runBlocking {
     super.tearDown()
-    runTest {
-      val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
-      contacts.forEach { contact -> repository.deleteContact(contact.id) }
-    }
+    val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
+    contacts.forEach { contact -> repository.deleteContact(contact.id) }
   }
 
   @Test
