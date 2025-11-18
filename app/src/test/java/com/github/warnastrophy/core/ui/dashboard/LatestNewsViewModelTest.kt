@@ -9,6 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -29,7 +30,7 @@ class LatestNewsViewModelTest {
 
   @Test
   fun `initial fetcherState should mirror the service's initial state`() = runTest {
-    assertEquals(true, viewModel.fetcherState.value.hazards.isEmpty())
+    assertTrue(viewModel.fetcherState.value.hazards.isEmpty())
   }
 
   @Test

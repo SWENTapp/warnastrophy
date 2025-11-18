@@ -8,13 +8,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/** Hilt module that provides the binding for the application's position tracking service. */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class GPSModule {
-
-  /**
-   * Binds the concrete GpsService implementation to the PositionService interface. This tells Hilt:
-   * "When someone asks for PositionService, use GpsService."
-   */
   @Singleton @Binds abstract fun bindPositionService(gpsService: GpsService): PositionService
 }

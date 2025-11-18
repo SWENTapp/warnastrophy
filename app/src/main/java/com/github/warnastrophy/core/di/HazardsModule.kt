@@ -10,6 +10,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Hilt module that provides the bindings for the application's hazard data and service layers. This
+ * module ensures that components requiring hazard information receive Singleton instances of both
+ * the data source (HazardsDataSource) and the domain service (HazardsDataService).
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class HazardsModule {

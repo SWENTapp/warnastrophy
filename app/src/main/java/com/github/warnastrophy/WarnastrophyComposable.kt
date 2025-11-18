@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.credentials.CredentialManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,7 +24,6 @@ import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
@@ -38,7 +36,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 
@@ -95,9 +92,6 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
   val hazardsService = remember { hazardsServiceFactory.create() }
 
   val permissionManager = PermissionManager(context)
-  val mapViewModelFactory = remember {
-    MapViewModelFactory(gpsService, hazardsService, permissionManager)
-  }
 
   val mapScreen =
       @Composable {
@@ -164,10 +158,4 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               }
             }
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainAppPreview() {
-  MainAppTheme { WarnastrophyComposable() }
 }
