@@ -11,15 +11,14 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.WarnastrophyComposable
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.repository.ContactsRepository
+import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.PositionService
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewCard
 import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewTestTags
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
-import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.map.GpsServiceMock
-import com.github.warnastrophy.core.ui.map.HazardServiceMock
-import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AppConfig
@@ -28,22 +27,25 @@ import com.google.android.gms.maps.MapsInitializer
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import javax.inject.Inject
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class MapPreviewCardTest : BaseAndroidComposeTest() {
-  private lateinit var gpsService: GpsServiceMock
-  private lateinit var hazardService: HazardServiceMock
-  private lateinit var permissionManager: MockPermissionManager
-  private lateinit var viewModel: MapViewModel
+  @Inject lateinit var gpsService: PositionService
+  @Inject lateinit var hazardService: HazardsDataService
+  @Inject lateinit var permissionManager: PermissionManagerInterface
+  @Inject lateinit var contactRepository: ContactsRepository
 
   @get:Rule
   val permissionRule: GrantPermissionRule =
@@ -53,13 +55,10 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
   @Before
   override fun setUp() {
     super.setUp()
+    hiltRule.inject()
     setupMockFirebaseAuth()
-    gpsService = GpsServiceMock()
-    hazardService = HazardServiceMock()
-    permissionManager = MockPermissionManager()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager)
   }
 
   /**
@@ -112,11 +111,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun showsMapContent_when_mapContentProvided() {
-    // Initialize Contact Repository (really important for first time app launch during tests)
-    ContactRepositoryProvider.init(ApplicationProvider.getApplicationContext())
-    composeTestRule.setContent {
-      WarnastrophyComposable(mockMapScreen = { MapScreen(viewModel = viewModel) })
-    }
+    composeTestRule.setContent { WarnastrophyComposable(mockMapScreen = { MapScreen() }) }
 
     composeTestRule.waitUntil(
         condition = { composeTestRule.onNodeWithTag(MapPreviewTestTags.MAP_CONTENT).isDisplayed() },

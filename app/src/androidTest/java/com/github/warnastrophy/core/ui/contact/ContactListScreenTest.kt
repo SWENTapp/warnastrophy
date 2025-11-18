@@ -6,17 +6,16 @@ import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListViewModel
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 
-class ContactListScreenTest : BaseAndroidComposeTest() {
+class ContactListScreenTest : UITest() {
   private val mockContacts =
       listOf(
           Contact("1", "Alice Johnson", "+1234567890", "Family"),
@@ -30,71 +29,79 @@ class ContactListScreenTest : BaseAndroidComposeTest() {
           Contact("9", "Zack Taylor", "+12341234123", "Friend"),
           Contact("10", "Yara Habib", "+971501112222", "Family"))
 
-  private val repository: ContactsRepository = MockContactRepository()
-
   private fun setContent(withInitialContacts: List<Contact> = emptyList()) {
     runTest { withInitialContacts.forEach { repository.addContact(it) } }
-    val mockViewModel = ContactListViewModel(contactsRepository = repository)
-    composeTestRule.setContent { ContactListScreen(contactListViewModel = mockViewModel) }
+    composeTestRule.setContent { ContactListScreen() }
   }
 
-  @Test
-  fun testTagsCorrectlySetWhenListIsEmpty() {
-    setContent()
-    composeTestRule.onNodeWithTag(ContactListScreenTestTags.CONTACT_LIST).assertIsNotDisplayed()
+  @Before
+  override fun setUp() {
+    hiltRule.inject()
   }
 
-  @Test
-  fun testTagsCorrectlySetWhenListIsNotEmpty() {
-    setContent(withInitialContacts = mockContacts)
-    composeTestRule.onNodeWithTag(ContactListScreenTestTags.CONTACT_LIST).assertIsDisplayed()
+  @After
+  override fun tearDown() = runBlocking {
+    val contacts = repository.getAllContacts().getOrNull() ?: emptyList()
+    contacts.forEach { contact -> repository.deleteContact(contact.id) }
 
-    composeTestRule
-        .onNodeWithTag(ContactListScreenTestTags.getTestTagForContactItem(mockContacts[0]))
-        .assertIsDisplayed()
+    @Test
+    fun testTagsCorrectlySetWhenListIsEmpty() {
+      setContent()
+      composeTestRule.onNodeWithTag(ContactListScreenTestTags.CONTACT_LIST).assertIsNotDisplayed()
+    }
 
-    composeTestRule
-        .onNodeWithTag(ContactListScreenTestTags.getTestTagForContactItem(mockContacts[2]))
-        .assertIsDisplayed()
-  }
+    @Test
+    fun testTagsCorrectlySetWhenListIsNotEmpty() {
+      setContent(withInitialContacts = mockContacts)
+      composeTestRule.onNodeWithTag(ContactListScreenTestTags.CONTACT_LIST).assertIsDisplayed()
 
-  @Test
-  fun contactListDisplaysFullName() {
-    val sampleContact = mockContacts[3]
-    val contactList = listOf(sampleContact)
-    setContent(withInitialContacts = contactList)
-    composeTestRule
-        .onNode(
-            hasTestTag(ContactListScreenTestTags.getTestTagForContactItem(sampleContact))
-                .and(hasAnyDescendant(hasText(sampleContact.fullName))),
-            useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
+      composeTestRule
+          .onNodeWithTag(ContactListScreenTestTags.getTestTagForContactItem(mockContacts[0]))
+          .assertIsDisplayed()
 
-  @Test
-  fun contactListDisplaysPhoneNumber() {
-    val sampleContact = mockContacts[3]
-    val contactList = listOf(sampleContact)
-    setContent(withInitialContacts = contactList)
-    composeTestRule
-        .onNode(
-            hasTestTag(ContactListScreenTestTags.getTestTagForContactItem(sampleContact))
-                .and(hasAnyDescendant(hasText(sampleContact.phoneNumber))),
-            useUnmergedTree = true)
-        .assertIsDisplayed()
-  }
+      composeTestRule
+          .onNodeWithTag(ContactListScreenTestTags.getTestTagForContactItem(mockContacts[2]))
+          .assertIsDisplayed()
+    }
 
-  @Test
-  fun contactListDisplaysRelationship() {
-    val sampleContact = mockContacts[3]
-    val relationshipString = "Relationship: ${sampleContact.relationship}"
-    val contactList = listOf(sampleContact)
-    setContent(withInitialContacts = contactList)
-    composeTestRule
-        .onNode(
-            hasTestTag(ContactListScreenTestTags.getTestTagForContactItem(sampleContact))
-                .and(hasAnyDescendant(hasText(relationshipString))),
-            useUnmergedTree = true)
-        .assertIsDisplayed()
+    @Test
+    fun contactListDisplaysFullName() {
+      val sampleContact = mockContacts[3]
+      val contactList = listOf(sampleContact)
+      setContent(withInitialContacts = contactList)
+      composeTestRule
+          .onNode(
+              hasTestTag(ContactListScreenTestTags.getTestTagForContactItem(sampleContact))
+                  .and(hasAnyDescendant(hasText(sampleContact.fullName))),
+              useUnmergedTree = true)
+          .assertIsDisplayed()
+    }
+
+    @Test
+    fun contactListDisplaysPhoneNumber() {
+      val sampleContact = mockContacts[3]
+      val contactList = listOf(sampleContact)
+      setContent(withInitialContacts = contactList)
+      composeTestRule
+          .onNode(
+              hasTestTag(ContactListScreenTestTags.getTestTagForContactItem(sampleContact))
+                  .and(hasAnyDescendant(hasText(sampleContact.phoneNumber))),
+              useUnmergedTree = true)
+          .assertIsDisplayed()
+    }
+
+    @Test
+    fun contactListDisplaysRelationship() {
+      val sampleContact = mockContacts[3]
+      val relationshipString = "Relationship: ${sampleContact.relationship}"
+      val contactList = listOf(sampleContact)
+      setContent(withInitialContacts = contactList)
+      composeTestRule
+          .onNode(
+              hasTestTag(ContactListScreenTestTags.getTestTagForContactItem(sampleContact))
+                  .and(hasAnyDescendant(hasText(relationshipString))),
+              useUnmergedTree = true)
+          .assertIsDisplayed()
+    }
   }
 }

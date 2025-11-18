@@ -3,10 +3,11 @@ package com.github.warnastrophy.core.ui.features.profile.contact
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.util.isValidPhoneNumber
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -55,9 +56,9 @@ data class AddContactUIState(
  *
  * @property repository The data source dependency used for contact persistence.
  */
-class AddContactViewModel(
-    private val repository: ContactsRepository = ContactRepositoryProvider.repository
-) : ViewModel() {
+@HiltViewModel
+class AddContactViewModel @Inject constructor(private val repository: ContactsRepository) :
+    ViewModel() {
   private val _uiState = MutableStateFlow(AddContactUIState())
   val uiState: StateFlow<AddContactUIState> = _uiState.asStateFlow()
   private val _navigateBack = MutableSharedFlow<Unit>(replay = 0)

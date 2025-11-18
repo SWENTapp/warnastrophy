@@ -49,6 +49,7 @@ abstract class EndToEndUtils : UITest() {
 
   /** Sets the content of the test rule to the WarnastrophyApp, optionally using a fake map. */
   fun setContent(useFakeMap: Boolean = true) {
+    hiltRule.inject()
     if (useFakeMap) {
       composeTestRule.setContent { WarnastrophyComposable(mockMapScreen = { FakeMapComponent() }) }
     } else {

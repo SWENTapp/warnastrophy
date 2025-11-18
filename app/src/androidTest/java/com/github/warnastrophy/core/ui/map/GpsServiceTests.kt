@@ -1,8 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
-import android.content.Context
 import android.location.Location
-import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.domain.model.GpsResult
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.google.android.gms.location.CurrentLocationRequest
@@ -11,7 +10,10 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Tasks
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import java.lang.Thread.sleep
+import javax.inject.Inject
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
@@ -27,25 +29,26 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.whenever
 
+@HiltAndroidTest
 @ExperimentalCoroutinesApi
 class GpsServiceTests {
-  private lateinit var context: Context
-  private lateinit var mockClient: FusedLocationProviderClient
+  @get:Rule(order = 0) val hiltRule = HiltAndroidRule(this)
+  @Inject lateinit var mockClient: FusedLocationProviderClient
+  @Inject lateinit var errorDisplayManager: ErrorDisplayManager
   private lateinit var gpsService: GpsService
   private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setup() {
+    hiltRule.inject()
     Dispatchers.setMain(testDispatcher)
-    context = ApplicationProvider.getApplicationContext()
-    mockClient = Mockito.mock<FusedLocationProviderClient>()
-    gpsService = GpsService(locationClient = mockClient)
+    gpsService = GpsService(locationClient = mockClient, errorDisplayManager)
   }
 
   @After

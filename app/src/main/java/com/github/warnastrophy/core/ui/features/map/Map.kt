@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.warnastrophy.core.domain.model.GpsPositionState
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
@@ -47,7 +48,7 @@ object MapScreenTestTags {
 
 @Composable
 fun MapScreen(
-    viewModel: MapViewModel,
+    viewModel: MapViewModel = hiltViewModel(),
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
     googleMap: @Composable (CameraPositionState, MapUIState) -> Unit = { cameraState, uiState ->
       HazardsGoogleMap(cameraState, uiState)
@@ -67,7 +68,6 @@ fun MapScreen(
   }
 
   val uiState by viewModel.uiState.collectAsState()
-  val hazards = uiState.hazardState.hazards
 
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->

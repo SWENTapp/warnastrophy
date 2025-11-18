@@ -22,6 +22,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
+import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
@@ -37,6 +39,8 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
+import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
@@ -45,10 +49,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@HiltAndroidTest
 @OptIn(ExperimentalCoroutinesApi::class)
 class MapScreenTest : BaseAndroidComposeTest() {
-  private lateinit var gpsService: GpsServiceMock
-  private lateinit var hazardService: HazardServiceMock
+  @Inject lateinit var gpsService: PositionService
+  @Inject lateinit var hazardService: HazardsDataService
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
@@ -67,9 +72,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
   @Before
   override fun setUp() {
     super.setUp()
-
-    gpsService = GpsServiceMock()
-    hazardService = HazardServiceMock()
+    hiltRule.inject()
     permissionManager = MockPermissionManager()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)

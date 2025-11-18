@@ -17,8 +17,10 @@ import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewMode
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Test
 
+@HiltAndroidTest
 class DangerModeCardTest : BaseAndroidComposeTest() {
 
   /* Verify that the DangerModeCard renders its root elements:

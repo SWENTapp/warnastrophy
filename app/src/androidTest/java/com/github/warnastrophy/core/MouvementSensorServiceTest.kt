@@ -8,9 +8,9 @@ package com.example.dangermode.service
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.every
 import io.mockk.mockk
-import kotlin.compareTo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
@@ -18,6 +18,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
+@HiltAndroidTest
 class MouvementServiceTest : BaseAndroidComposeTest() {
 
   private lateinit var mockRepository: MouvementSensorRepository

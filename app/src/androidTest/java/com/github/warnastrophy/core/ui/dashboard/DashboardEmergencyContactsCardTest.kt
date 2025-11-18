@@ -8,22 +8,28 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onChild
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsCardStateful
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsCardStateless
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsStatefulViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+@HiltAndroidTest
 class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
-  private lateinit var mockRepository: MockContactRepository
-  private var originalRepository: ContactsRepository? = null
+  @Inject lateinit var mockRepository: ContactsRepository
+
+  val scope = TestScope()
 
   private val sampleContact1 =
       Contact(
@@ -48,16 +54,17 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
 
   @Before
   override fun setUp() {
+    hiltRule.inject()
     super.setUp()
-    originalRepository =
-        try {
-          ContactRepositoryProvider.repository
-        } catch (e: UninitializedPropertyAccessException) {
-          null
-        }
+  }
 
-    mockRepository = MockContactRepository()
-    ContactRepositoryProvider.repository = mockRepository
+  @After
+  override fun tearDown() {
+    scope.launch {
+      mockRepository.deleteContact(contactID = "contact_1")
+      mockRepository.deleteContact(contactID = "contact_2")
+      mockRepository.deleteContact(contactID = "contact_3")
+    }
   }
 
   @Test
@@ -344,10 +351,12 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
           override fun getNewUid(): String = ""
         }
 
-    ContactRepositoryProvider.repository = failingRepository
+    val viewModel = DashboardEmergencyContactsStatefulViewModel(repository = failingRepository)
 
     composeTestRule.setContent {
-      MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
+      MainAppTheme {
+        DashboardEmergencyContactsCardStateful(onManageContactsClick = {}, viewModel = viewModel)
+      }
     }
 
     composeTestRule.waitForIdle()

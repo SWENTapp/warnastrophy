@@ -8,6 +8,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsCard
 import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsTestTags
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
@@ -15,10 +16,15 @@ import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.ui.util.hazards
 import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.MapsInitializer
+import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+@HiltAndroidTest
 class LatestNewsCardTest : BaseAndroidComposeTest() {
+  @Inject lateinit var hazardService: HazardsDataService
 
   /* Verify that the LatestNewsCard renders its Card and Header components:
    * - Card
@@ -26,20 +32,25 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
    * - Header Title
    * - Header Timestamp
    */
-  private lateinit var hazardService: HazardServiceMock
 
   @Before
   override fun setUp() {
     super.setUp()
-    hazardService = HazardServiceMock()
-    hazardService.setHazards(hazards)
+    hiltRule.inject()
+    (hazardService as HazardServiceMock).setHazards(hazards)
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
   }
 
+  @After
+  override fun tearDown() {
+    super.tearDown()
+    (hazardService as HazardServiceMock).close()
+  }
+
   @Test
   fun latestNewsCard_rendersCardAndHeader() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.HEADER_ROW, useUnmergedTree = true)
@@ -70,7 +81,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
   /* Verify that the LatestNewsCard shows the headline, body, and image */
   @Test
   fun latestNewsCard_showsHeadlineBodyAndImage() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.HEADLINE, useUnmergedTree = true)
@@ -87,7 +98,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun latestNewsCard_rightButton_updatesHeadline() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     // Click the right button to go to the next hazard
     composeTestRule
@@ -142,7 +153,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun latestNewsCard_leftButton_updatesHeadline() {
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     // Click the right button to go to the next hazard
     composeTestRule

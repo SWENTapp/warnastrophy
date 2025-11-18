@@ -25,9 +25,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.domain.model.Hazard
-import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.util.formatDate
 
 object LatestNewsTestTags {
@@ -57,23 +57,18 @@ object LatestNewsCardColors {
 }
 
 /**
- * Affiche une carte des dernières nouvelles liées aux dangers.
+ * A composable function that displays the latest hazard news in a card format. This component is
+ * responsible for retrieving and presenting hazard data managed by the LatestNewsViewModel.
  *
- * @param hazardsService Une instance de `HazardsDataService` utilisée pour récupérer les données
- *   des dangers et gérer leur état.
- *
- * Fonctionnalités :
- * - Affiche les informations sur le danger actuel, y compris la description, la gravité et la date.
- * - Permet de naviguer entre les dangers à l'aide de boutons gauche et droit.
- * - Inclut un lien cliquable pour lire plus d'informations sur le danger.
- * - Affiche une image associée au type de danger.
- *
- * @see HazardsDataService
+ * @param modifier The Modifier to be applied to the card container.
+ * @param latestNewsViewModel The ViewModel responsible for providing the latest news state.
  */
 @Composable
-fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
-  val fetcherState = hazardsService.fetcherState.collectAsState()
-  val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
+fun LatestNewsCard(
+    latestNewsViewModel: LatestNewsViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
+) {
+  val fetcherState = latestNewsViewModel.fetcherState.collectAsState()
   val state = fetcherState.value
   var currentIndex by remember { mutableStateOf(0) }
   val context = LocalContext.current

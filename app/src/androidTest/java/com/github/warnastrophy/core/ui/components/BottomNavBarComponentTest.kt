@@ -10,8 +10,10 @@ import com.github.warnastrophy.core.ui.navigation.BottomNavigationBarPreview
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Test
 
+@HiltAndroidTest
 class BottomNavBarComponentTest : BaseAndroidComposeTest() {
   @Test
   fun testBottomNavPreview() {

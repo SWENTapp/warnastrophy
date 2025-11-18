@@ -4,17 +4,37 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.github.warnastrophy.core.ui.common.Error
-import com.github.warnastrophy.core.ui.common.ErrorHandler
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.warnastrophy.core.domain.error.Error
+import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.ui.features.error.ErrorScreen
 import com.github.warnastrophy.core.ui.features.error.ErrorScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import dagger.hilt.android.testing.HiltAndroidTest
+import javax.inject.Inject
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@HiltAndroidTest
+@RunWith(AndroidJUnit4::class)
 class ErrorScreenTest : BaseAndroidComposeTest() {
+  @Inject lateinit var errorDisplayManager: ErrorDisplayManager
+
+  @Before
+  override fun setUp() {
+    super.setUp()
+    hiltRule.inject()
+  }
+
+  @After
+  override fun tearDown() {
+    errorDisplayManager.clearError()
+  }
 
   @Test
   fun errorScreen_displaysErrorMessage() {
@@ -47,13 +67,10 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
 
   @Test
   fun errorScreen_correctlyDisplayErrorsFromHandler() {
-    val errorHandler = ErrorHandler()
-    composeTestRule.setContent {
-      TopBar(currentScreen = Screen.Dashboard, errorHandler = errorHandler)
-    }
+    composeTestRule.setContent { TopBar(currentScreen = Screen.Dashboard) }
 
     val testErrorMessage = "Handler error message"
-    errorHandler.addError(testErrorMessage, Screen.Dashboard)
+    errorDisplayManager.addError(testErrorMessage, Screen.Dashboard)
 
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_ERROR_ICON, useUnmergedTree = true)

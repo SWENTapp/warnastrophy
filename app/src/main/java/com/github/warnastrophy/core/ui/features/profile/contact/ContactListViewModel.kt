@@ -3,9 +3,10 @@ package com.github.warnastrophy.core.ui.features.profile.contact
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.domain.model.Contact
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,9 +39,9 @@ data class ContactListUIState(
  * @property contactsRepository The dependency responsible for fetching, caching, and persisting
  *   contacts data.
  */
-class ContactListViewModel(
-    private val contactsRepository: ContactsRepository = ContactRepositoryProvider.repository
-) : ViewModel() {
+@HiltViewModel
+class ContactListViewModel @Inject constructor(private val contactsRepository: ContactsRepository) :
+    ViewModel() {
   private val _uiState = MutableStateFlow(ContactListUIState())
   val uiState: StateFlow<ContactListUIState> = _uiState.asStateFlow()
 
