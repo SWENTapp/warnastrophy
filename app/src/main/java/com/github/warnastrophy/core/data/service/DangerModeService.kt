@@ -1,6 +1,9 @@
 package com.github.warnastrophy.core.data.service
 
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +31,7 @@ class DangerModeService(
      * which is updated by [HazardChecker].
      */
     private val activeHazardFlow: StateFlow<Hazard?> = ServiceStateManager.activeHazardFlow,
+    private val permissionManager: PermissionManagerInterface,
 
     /** Scope used internally to collect flows and manage coroutines. */
     private val serviceScope: CoroutineScope =
@@ -56,8 +60,14 @@ class DangerModeService(
       val dangerLevel: Int? = 0,
   )
 
+  sealed class DangerModeEvent {
+    object MissingSmsPermission : DangerModeEvent()
+  }
+
   private val _state = MutableStateFlow(DangerModeState())
   val state: StateFlow<DangerModeState> = _state.asStateFlow()
+  private val _events = MutableStateFlow<DangerModeEvent?>(null)
+  val events: StateFlow<DangerModeEvent?> = _events.asStateFlow()
 
   init {
     serviceScope.launch {
@@ -94,6 +104,10 @@ class DangerModeService(
 
   /** Manually activates Danger Mode. */
   fun manualActivate() {
+    if (!hasSmsPermission()) {
+      sendEvent(DangerModeEvent.MissingSmsPermission)
+      return
+    }
     _state.value =
         _state.value.copy(
             isActive = true,
@@ -126,6 +140,10 @@ class DangerModeService(
   }
 
   private fun autoActivate(hazard: Hazard) {
+    if (!hasSmsPermission()) {
+      sendEvent(DangerModeEvent.MissingSmsPermission)
+      return
+    }
     _state.value =
         _state.value.copy(
             isActive = true,
@@ -142,5 +160,14 @@ class DangerModeService(
             activationTime = null,
             activatingHazard = null,
         )
+  }
+
+  private fun hasSmsPermission(): Boolean {
+    return permissionManager.getPermissionResult(AppPermissions.SendEmergencySms) ==
+        PermissionResult.Granted
+  }
+
+  private fun sendEvent(event: DangerModeEvent) {
+    _events.value = event
   }
 }
