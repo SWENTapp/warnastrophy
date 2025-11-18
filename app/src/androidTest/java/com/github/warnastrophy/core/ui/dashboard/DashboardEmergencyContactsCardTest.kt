@@ -20,9 +20,7 @@ import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.UninstallModules
 import javax.inject.Inject
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestScope
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -31,8 +29,6 @@ import org.junit.Test
 @UninstallModules(ContactsModule::class)
 class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   @Inject lateinit var mockRepository: ContactsRepository
-
-  val scope = TestScope()
 
   private val sampleContact1 =
       Contact(
@@ -58,29 +54,13 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   @Before
   override fun setUp() {
     hiltRule.inject()
-    /*
-    super.setUp()
-    originalRepository =
-        try {
-          ContactRepositoryProvider.repository
-        } catch (e: UninitializedPropertyAccessException) {
-          null
-        }
-
-    mockRepository = MockContactRepository()
-    ContactRepositoryProvider.repository = mockRepository
-
-       */
   }
 
-  @After
-  override fun tearDown() {
-    scope.launch {
-      mockRepository.deleteContact(contactID = "contact_1")
-      mockRepository.deleteContact(contactID = "contact_2")
-      mockRepository.deleteContact(contactID = "contact_3")
+    @After
+    override fun tearDown() = runBlocking {
+        val contacts = mockRepository.getAllContacts().getOrNull() ?: emptyList()
+        contacts.forEach { contact -> mockRepository.deleteContact(contact.id) }
     }
-  }
 
   @Test
   fun dashboardEmergencyContactsCard_statefulVersion_displaysContactsFromRepository() {
