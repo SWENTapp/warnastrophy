@@ -25,7 +25,7 @@ constructor(private val repository: ContactsRepository) : ViewModel() {
   val contactsState: StateFlow<ContactCardState> = _contactsState.asStateFlow()
 
   init {
-    fetchContacts()
+    refreshUIStates()
   }
 
   fun refreshUIStates() {

@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
+/** This Dagger Hilt module provides [FusedLocationProviderClient] dependencies for GPS service. */
 @Module
 @InstallIn(SingletonComponent::class)
 object LocationModule {
