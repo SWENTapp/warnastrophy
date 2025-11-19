@@ -183,8 +183,8 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun news_index_out_of_range() {
-    hazardService.setHazards(hazards)
-    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    (hazardService as HazardServiceMock).setHazards(hazards)
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard() } }
 
     // Go to last hazard
     for (i in 1 until hazards.size) {
@@ -192,7 +192,7 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
     }
 
     // Now the last hazard is no longer reported
-    hazardService.setHazards(hazards.take(hazards.size - 1))
+    (hazardService as HazardServiceMock).setHazards(hazards.take(hazards.size - 1))
 
     // index should adjust to new size
     composeTestRule
