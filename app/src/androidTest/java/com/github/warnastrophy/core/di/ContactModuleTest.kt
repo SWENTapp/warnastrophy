@@ -8,9 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 
-/**
- * Hilt testing module for providing mock contact repository
- */
+/** Hilt testing module for providing mock contact repository */
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [ContactsModule::class])
 object ContactModuleTest {

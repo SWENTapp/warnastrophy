@@ -10,10 +10,8 @@ import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
-/**
- * Hilt testing module providing mock implementations for hazard repository and hazard service..
- */
 
+/** Hilt testing module providing mock implementations for hazard repository and hazard service.. */
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [HazardsModule::class])
 object HazardsModuleTest {
