@@ -8,6 +8,7 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.CertificatePinner
@@ -36,7 +37,8 @@ class GitHubOAuthHelper(
     private val redirectUri: String = "warnastrophy://github-callback",
     private val tokenUrl: String = TOKEN_URL,
     private val timeout: Long = DEFAULT_TIMEOUT,
-    httpClient: OkHttpClient? = null
+    httpClient: OkHttpClient? = null,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
   // PKCE code verifier - generated per OAuth flow
   private var codeVerifier: String? = null
@@ -53,10 +55,10 @@ class GitHubOAuthHelper(
                       // github.com:443
                       // | openssl x509 -pubkey -noout | openssl pkey -pubin -outform der
                       // | openssl dgst -sha256 -binary | base64
-                      .add("github.com", "sha256/uyPYgclc5Jt69vKu92vci6etcBBY5TslweRGEMlMxnc=")
-                      .add("github.com", "sha256/e4wu8h9eLNeNUg6cVb5gGWM0PsiM9M3i3E32qKOkBwY=")
+                      .add(GITHUB_DOMAIN, "sha256/uyPYgclc5Jt69vKu92vci6etcBBY5TslweRGEMlMxnc=")
+                      .add(GITHUB_DOMAIN, "sha256/e4wu8h9eLNeNUg6cVb5gGWM0PsiM9M3i3E32qKOkBwY=")
                       // Backup pins for redundancy
-                      .add("github.com", "sha256/WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=")
+                      .add(GITHUB_DOMAIN, "sha256/WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18=")
                       .build())
               .connectTimeout(timeout, TimeUnit.SECONDS)
               .readTimeout(timeout, TimeUnit.SECONDS)
@@ -67,6 +69,7 @@ class GitHubOAuthHelper(
   companion object {
     private const val AUTHORIZATION_URL = "https://github.com/login/oauth/authorize"
     const val TOKEN_URL = "https://github.com/login/oauth/access_token"
+    private const val GITHUB_DOMAIN = "github.com"
     private const val DEFAULT_SCOPE = "user:email"
     private const val CODE_VERIFIER_LENGTH = 64 // RFC 7636: 43-128 characters
     const val DEFAULT_TIMEOUT = 30L
@@ -155,7 +158,7 @@ class GitHubOAuthHelper(
    * @throws NetworkException if the network request fails.
    */
   suspend fun exchangeCodeForAccessToken(code: String): String =
-      withContext(Dispatchers.IO) {
+      withContext(dispatcher) {
         val currentVerifier =
             codeVerifier
                 ?: throw IllegalStateException(
