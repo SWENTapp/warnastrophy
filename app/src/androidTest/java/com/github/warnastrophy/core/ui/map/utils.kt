@@ -14,6 +14,7 @@ import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -166,5 +167,13 @@ class MockPermissionManager(
   override fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
     // Optional: you can simulate “has been asked” logic
     return true
+  }
+}
+
+class MockNominatimRepository : GeocodeRepository {
+
+  override suspend fun reverseGeocode(location: String): List<Location> {
+    return listOf(
+        Location(40.7128, -74.0060), Location(40.0583, -74.4057), Location(-40.9006, 174.8860))
   }
 }

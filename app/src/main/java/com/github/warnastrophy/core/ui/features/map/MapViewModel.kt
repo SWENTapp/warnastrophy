@@ -14,6 +14,7 @@ import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -67,7 +68,7 @@ class MapViewModel(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
     private val permissionManager: PermissionManagerInterface,
-    val nominatimRepository: NominatimRepository = NominatimRepository()
+    val nominatimRepository: GeocodeRepository = NominatimRepository()
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
 

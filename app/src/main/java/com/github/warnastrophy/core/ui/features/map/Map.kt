@@ -5,6 +5,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Search
@@ -26,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -63,14 +64,20 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.text.compareTo
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.runtime.getValue as getState
 
 object MapScreenTestTags {
-    const val GOOGLE_MAP_SCREEN = "mapScreen"
-    const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
-    const val TRACK_LOCATION_BUTTON = "trackLocationButton"
+  const val GOOGLE_MAP_SCREEN = "mapScreen"
+  const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
+  const val TRACK_LOCATION_BUTTON = "trackLocationButton"
+  const val SEARCH_BAR = "searchBar"
+
+  const val SEARCH_BAR_TEXT_FIELD = "searchBarTextField"
+
+  const val SEARCH_BAR_DROPDOWN = "searchBarDropdown"
+
+  const val SEARCH_BAR_DROPDOWN_ITEM = "searchBarDropdownItem"
 }
 
 @Composable
@@ -78,154 +85,140 @@ fun MapScreen(
     viewModel: MapViewModel,
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
     googleMap: @Composable (CameraPositionState, MapUIState) -> Unit = { cameraState, uiState ->
-        HazardsGoogleMap(cameraState, uiState)
+      HazardsGoogleMap(cameraState, uiState)
     }
 ) {
-    val activity = LocalContext.current.findActivity()
-    val focusManager = LocalFocusManager.current
+  val activity = LocalContext.current.findActivity()
+  val focusManager = LocalFocusManager.current
 
-    if (activity == null) {
-        Box(
-            modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Error: Map screen cannot function without an Activity context.")
-        }
-        return
-    }
-
-    val uiState by viewModel.uiState.collectAsState()
-
-    val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
-            viewModel.applyPermissionsResult(activity)
-        }
-
-    val requestPermissions: () -> Unit = {
-        viewModel.onPermissionsRequestStart()
-        launcher.launch(viewModel.locationPermissions.permissions)
-    }
-
-    LaunchedEffect(uiState.isGranted) {
-        if (uiState.isGranted) {
-            viewModel.startLocationUpdate()
-        } else {
-            viewModel.stopLocationUpdate()
-        }
-    }
-
-    LaunchedEffect(uiState.isTrackingLocation, uiState.positionState.position, uiState.isGranted) {
-        if (uiState.isGranted && !uiState.isLoading && uiState.isTrackingLocation) {
-            defaultAnimate(cameraPositionState, uiState.positionState.position)
-        }
-    }
-
-    LaunchedEffect(cameraPositionState.isMoving, cameraPositionState.cameraMoveStartedReason) {
-        if (cameraPositionState.isMoving &&
-            cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE
-        ) {
-            viewModel.setTracking(false)
-        }
-    }
-
-    // Box parent capte les taps partout et clearFocus() — focusManager lu ici (composable)
+  if (activity == null) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures { focusManager.clearFocus() }
-            }
-    ) {
+        modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR),
+        contentAlignment = Alignment.Center) {
+          Text("Error: Map screen cannot function without an Activity context.")
+        }
+    return
+  }
+
+  val uiState by viewModel.uiState.collectAsState()
+
+  val launcher =
+      rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
+        viewModel.applyPermissionsResult(activity)
+      }
+
+  val requestPermissions: () -> Unit = {
+    viewModel.onPermissionsRequestStart()
+    launcher.launch(viewModel.locationPermissions.permissions)
+  }
+
+  LaunchedEffect(uiState.isGranted) {
+    if (uiState.isGranted) {
+      viewModel.startLocationUpdate()
+    } else {
+      viewModel.stopLocationUpdate()
+    }
+  }
+
+  LaunchedEffect(uiState.isTrackingLocation, uiState.positionState.position, uiState.isGranted) {
+    if (uiState.isGranted && !uiState.isLoading && uiState.isTrackingLocation) {
+      defaultAnimate(cameraPositionState, uiState.positionState.position)
+    }
+  }
+
+  LaunchedEffect(cameraPositionState.isMoving, cameraPositionState.cameraMoveStartedReason) {
+    if (cameraPositionState.isMoving &&
+        cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) {
+      viewModel.setTracking(false)
+    }
+  }
+
+  // Box parent capte les taps partout et clearFocus() — focusManager lu ici (composable)
+  Box(
+      modifier =
+          Modifier.fillMaxSize().pointerInput(Unit) {
+            detectTapGestures { focusManager.clearFocus() }
+          }) {
         if (uiState.isLoading) {
-            Loading()
+          Loading()
         } else {
-            googleMap(cameraPositionState, uiState)
+          googleMap(cameraPositionState, uiState)
 
-            SearchBar(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 25.dp),
-                viewModel = viewModel,
-                cameraPositionState = cameraPositionState,
-                focusManager = focusManager
-            )
+          SearchBar(
+              modifier = Modifier.align(Alignment.TopCenter).padding(top = 25.dp),
+              viewModel = viewModel,
+              cameraPositionState = cameraPositionState,
+              focusManager = focusManager)
 
-            TrackLocationButton(uiState.isTrackingLocation) {
-                viewModel.onTrackLocationClicked(cameraPositionState)
-            }
+          TrackLocationButton(uiState.isTrackingLocation) {
+            viewModel.onTrackLocationClicked(cameraPositionState)
+          }
         }
 
         if (!uiState.isGranted) {
-            if (uiState.isOsRequestInFlight) {
-                Text(
-                    "Requesting Android location permission…",
-                    modifier = Modifier.testTag(PermissionUiTags.OS_PERMISSION_TEXT)
-                )
-            } else {
-                val (title, msg, showAllow) =
-                    when (uiState.permissionResult) {
-                        is PermissionResult.PermanentlyDenied ->
-                            Triple(
-                                "Location blocked",
-                                "You selected 'Don't ask again'. To enable location, open Android Settings and grant permission.",
-                                false
-                            )
-                        is PermissionResult.Denied ->
-                            Triple(
-                                "Location disabled",
-                                "Map require fine location permissions. You can allow location now or later in Android Settings.",
-                                true
-                            )
-                        else -> Triple("", "", false)
-                    }
-                if (title.isNotEmpty()) {
-                    PermissionRequestCard(
-                        title = title,
-                        message = msg,
-                        showAllowButton = showAllow,
-                        onAllowClick = requestPermissions,
-                        onOpenSettingsClick = {
-                            val intent =
-                                Intent(
-                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                    "package:${activity.packageName}".toUri()
-                                ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                            activity.startActivity(intent)
-                        },
-                        modifier =
-                            Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(16.dp)
-                                .fillMaxWidth()
-                                .testTag(PermissionUiTags.CARD)
-                    )
+          if (uiState.isOsRequestInFlight) {
+            Text(
+                "Requesting Android location permission…",
+                modifier = Modifier.testTag(PermissionUiTags.OS_PERMISSION_TEXT))
+          } else {
+            val (title, msg, showAllow) =
+                when (uiState.permissionResult) {
+                  is PermissionResult.PermanentlyDenied ->
+                      Triple(
+                          "Location blocked",
+                          "You selected 'Don't ask again'. To enable location, open Android Settings and grant permission.",
+                          false)
+                  is PermissionResult.Denied ->
+                      Triple(
+                          "Location disabled",
+                          "Map require fine location permissions. You can allow location now or later in Android Settings.",
+                          true)
+                  else -> Triple("", "", false)
                 }
+            if (title.isNotEmpty()) {
+              PermissionRequestCard(
+                  title = title,
+                  message = msg,
+                  showAllowButton = showAllow,
+                  onAllowClick = requestPermissions,
+                  onOpenSettingsClick = {
+                    val intent =
+                        Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                "package:${activity.packageName}".toUri())
+                            .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                    activity.startActivity(intent)
+                  },
+                  modifier =
+                      Modifier.align(Alignment.BottomCenter)
+                          .padding(16.dp)
+                          .fillMaxWidth()
+                          .testTag(PermissionUiTags.CARD))
             }
+          }
         }
-    }
+      }
 }
 
 @Composable
 fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) {
-    val tint =
-        if (isTracking) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.inversePrimary
-        }
+  val tint =
+      if (isTracking) {
+        MaterialTheme.colorScheme.primary
+      } else {
+        MaterialTheme.colorScheme.inversePrimary
+      }
 
-    FloatingActionButton(
-        onClick = onClick,
-        shape = MaterialTheme.shapes.extraLarge,
-        containerColor = tint,
-        modifier =
-            Modifier
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
-                .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)
-    ) {
+  FloatingActionButton(
+      onClick = onClick,
+      shape = MaterialTheme.shapes.extraLarge,
+      containerColor = tint,
+      modifier =
+          Modifier.align(Alignment.BottomStart)
+              .padding(16.dp)
+              .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
         Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
-    }
+      }
 }
 
 @Composable
@@ -233,24 +226,20 @@ fun HazardsGoogleMap(
     cameraPositionState: CameraPositionState,
     uiState: MapUIState,
 ) {
-    val hazards = uiState.hazardState.hazards
+  val hazards = uiState.hazardState.hazards
 
-    // Pas de pointerInput ici : on clearFocus est déjà géré par le Box parent
-    GoogleMap(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
-        cameraPositionState = cameraPositionState,
-        uiSettings =
-            MapUiSettings(
-                myLocationButtonEnabled = false,
-                zoomControlsEnabled = true,
-                mapToolbarEnabled = false
-            ),
-        properties = MapProperties(isMyLocationEnabled = uiState.isGranted)
-    ) {
+  // Pas de pointerInput ici : on clearFocus est déjà géré par le Box parent
+  GoogleMap(
+      modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
+      cameraPositionState = cameraPositionState,
+      uiSettings =
+          MapUiSettings(
+              myLocationButtonEnabled = false,
+              zoomControlsEnabled = true,
+              mapToolbarEnabled = false),
+      properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
         hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
-    }
+      }
 }
 
 @Composable
@@ -260,108 +249,106 @@ fun SearchBar(
     cameraPositionState: CameraPositionState,
     focusManager: androidx.compose.ui.focus.FocusManager
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val focusRequester = remember { FocusRequester() }
+  val coroutineScope = rememberCoroutineScope()
+  val focusRequester = remember { FocusRequester() }
 
-    var text by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var isTextFocused by remember { mutableStateOf(false) }
-    var selectedItem by remember { mutableStateOf<Location?>(null) }
+  var text by remember { mutableStateOf("") }
+  var expanded by remember { mutableStateOf(false) }
+  var isTextFocused by remember { mutableStateOf(false) }
+  var selectedItem by remember { mutableStateOf<Location?>(null) }
 
-    val uiState by viewModel.uiState.collectAsState()
-    val suggestions = uiState.nominatimState
+  val uiState by viewModel.uiState.collectAsState()
+  val suggestions = uiState.nominatimState
 
-    LaunchedEffect(suggestions, text, isTextFocused) {
-        expanded = isTextFocused && text.isNotEmpty() && suggestions.isNotEmpty()
-    }
+  LaunchedEffect(suggestions, text, isTextFocused) {
+    expanded = isTextFocused && text.isNotEmpty() && suggestions.isNotEmpty()
+  }
 
-    Box(modifier = modifier.fillMaxWidth(0.75f)) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(16.dp))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = "Search Icon",
-                    tint = Color.Black,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
+  Box(modifier = modifier.fillMaxWidth(0.75f).testTag(MapScreenTestTags.SEARCH_BAR)) {
+    Column {
+      Row(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .background(Color.White, RoundedCornerShape(16.dp))
+                  .padding(horizontal = 8.dp, vertical = 6.dp),
+          verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = "Search Icon",
+                tint = Color.Black,
+                modifier = Modifier.padding(start = 8.dp))
 
-                Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(12.dp))
 
-                // TextField gère mieux le curseur et le focus que BasicTextField
-                TextField(
-                    value = text,
-                    onValueChange = { newText ->
-                        text = newText
-                        viewModel.searchLocations(newText)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
+            BasicTextField(
+                value = text,
+                onValueChange = { newText ->
+                  text = newText
+                  viewModel.searchLocations(newText)
+                },
+                modifier =
+                    Modifier.fillMaxWidth()
                         .focusRequester(focusRequester)
                         .onFocusChanged { state ->
-                            isTextFocused = state.isFocused
-                            if (!state.isFocused) expanded = false
+                          isTextFocused = state.isFocused
+                          if (!state.isFocused) expanded = false
                         }
-                        .padding(end = 8.dp),
-                    singleLine = true,
-                    textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                    placeholder = {
-                        Text("Search", color = Color.Black.copy(alpha = 0.6f))
-                    }
-                )
-            }
+                        .testTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD),
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(color = Color.Black),
+                decorationBox = { innerTextField ->
+                  if (text.isEmpty()) {
+                    Text("Search", color = Color.Black.copy(alpha = 0.6f))
+                  }
+                  innerTextField()
+                })
+          }
 
-            if (expanded && suggestions.isNotEmpty()) {
-                DropdownMenu(
-                    expanded = true,
-                    onDismissRequest = {
+      if (expanded && suggestions.isNotEmpty()) {
+        DropdownMenu(
+            expanded = true,
+            onDismissRequest = {
+              expanded = false
+              focusManager.clearFocus()
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .background(Color.White)
+                    .testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN),
+            properties =
+                PopupProperties(
+                    focusable = false, // <-- garder le focus sur le champ texte
+                    dismissOnClickOutside = true,
+                    dismissOnBackPress = true)) {
+              suggestions.forEachIndexed { index, item ->
+                item.name?.let { name ->
+                  DropdownMenuItem(
+                      modifier =
+                          Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM + "_$index"),
+                      text = { Text(name) },
+                      onClick = {
+                        text = name
+                        selectedItem = item
                         expanded = false
                         focusManager.clearFocus()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White),
-                    properties = PopupProperties(
-                        focusable = true,
-                        dismissOnClickOutside = true,
-                        dismissOnBackPress = true
-                    )
-                ) {
-                    suggestions.forEachIndexed { index, item ->
-                        item.name?.let { name ->
-                            DropdownMenuItem(
-                                text = { Text(name) },
-                                onClick = {
-                                    text = name
-                                    selectedItem = item
-                                    expanded = false
-                                    focusManager.clearFocus()
-                                    // recentre la carte après sélection
-                                    coroutineScope.launch {
-                                        selectedItem?.let { loc -> defaultAnimate(cameraPositionState, toLatLng(loc)) }
-                                    }
-                                }
-                            )
-
-                            if (index < suggestions.size - 1) {
-                                HorizontalDivider(thickness = 1.dp, color = Color(0xFFD3F4FF))
-                            }
+                        coroutineScope.launch {
+                          selectedItem?.let { loc ->
+                            defaultAnimate(cameraPositionState, toLatLng(loc))
+                          }
                         }
-                    }
+                      })
+
+                  if (index < suggestions.size - 1) {
+                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFD3F4FF))
+                  }
                 }
+              }
             }
-        }
+      }
     }
+  }
 }
 
-suspend fun defaultAnimate(
-    cameraPositionState: CameraPositionState,
-    position: LatLng
-) {
-    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(position, 12f), 1000)
+suspend fun defaultAnimate(cameraPositionState: CameraPositionState, position: LatLng) {
+  cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(position, 12f), 1000)
 }

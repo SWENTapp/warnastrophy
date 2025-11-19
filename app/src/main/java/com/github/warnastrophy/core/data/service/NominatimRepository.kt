@@ -13,14 +13,18 @@ import org.json.JSONArray
 
 val TAG = "NominatimLocationRepository : "
 
-class NominatimRepository() {
+interface GeocodeRepository {
+  suspend fun reverseGeocode(location: String): List<Location>
+}
+
+class NominatimRepository() : GeocodeRepository {
 
   private val referer = "https://github.com/ssidimoh694"
   private val baseAddress = "https://nominatim.openstreetmap.org/search"
   var maxRateMs: Long = 1000
   private var lastQueryTimestamp: Long? = null
 
-  suspend fun reverseGeocode(location: String): List<Location> {
+  override suspend fun reverseGeocode(location: String): List<Location> {
     val url = buildUrl(location)
     val jsonStr = httpGet(url)
     val locations = decodeLocation(jsonStr)
