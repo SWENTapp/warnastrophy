@@ -8,6 +8,9 @@ plugins {
     alias(libs.plugins.sonar)
     id("com.google.gms.google-services")
     id("jacoco")
+    id("com.google.devtools.ksp")
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 val localProps = Properties()
@@ -40,7 +43,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.github.warnastrophy.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -280,6 +283,15 @@ dependencies {
     testImplementation("androidx.test.espresso:espresso-intents:3.5.0")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.0")
     testImplementation(kotlin("test"))
+
+    // Hilt
+    implementation(libs.dagger.hilt.android)
+    kapt(libs.dagger.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.51.1")
+    testImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.51.1")
 }
 
 tasks.withType<Test> {
