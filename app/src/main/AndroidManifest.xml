@@ -4,6 +4,7 @@
 
 
     <application
+        android:name=".WarnastrophyApp"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
