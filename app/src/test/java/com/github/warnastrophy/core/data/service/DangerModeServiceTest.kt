@@ -4,8 +4,10 @@ import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import junit.framework.TestCase
+import kotlin.test.assertNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -67,12 +69,15 @@ class DangerModeServiceTest {
   @Test
   fun basicSetsWork() {
     service.setDangerLevel(3)
-    assertTrue(service.state.value.dangerLevel == 3)
+    assertEquals(3, service.state.value.dangerLevel)
+
     service.setPreset(DangerModePreset.CLIMBING_MODE)
-    assertTrue(service.state.value.preset == DangerModePreset.CLIMBING_MODE)
-    val set = setOf("GPS_MONITORING", "ALERT_SENDING")
-    service.setCapabilities(set)
-    assertEquals(set, service.state.value.capabilities)
+    assertEquals(DangerModePreset.CLIMBING_MODE, service.state.value.preset)
+
+    val capabilities = setOf(DangerModeCapability.LOCATION)
+    service.setCapabilities(capabilities)
+
+    assertEquals(capabilities, service.state.value.capabilities)
   }
 
   /**
@@ -179,38 +184,17 @@ class DangerModeServiceTest {
     val (service, _) = createService(permissionManager = fakePm)
 
     service.setPreset(DangerModePreset.HIKING_MODE)
-    service.setCapabilities(setOf("CALL", "LOCATION"))
+    val caps = setOf(DangerModeCapability.LOCATION)
+    service.setCapabilities(caps)
+
     service.setDangerLevel(5) // coerced to 3
 
     advanceUntilIdle()
     val state = service.state.value
 
     TestCase.assertEquals(DangerModePreset.HIKING_MODE, state.preset)
-    TestCase.assertEquals(setOf("CALL", "LOCATION"), state.capabilities)
+    assertEquals(caps, state.capabilities)
     TestCase.assertEquals(3, state.dangerLevel)
-  }
-
-  /**
-   * Verifies that manual activation is blocked when SMS permissions are missing.
-   *
-   * In particular, this test ensures that:
-   * - calling manualActivate() does not activate Danger Mode when the SEND_SMS permission is
-   *   denied,
-   * - the DangerModeState remains inactive, and
-   * - the MissingSmsPermission event is emitted to inform the UI layer.
-   */
-  @Test
-  fun manual_activation_blocked_when_sms_permission_missing() = runTest {
-    val fakePm = PermissionManagerMock(PermissionResult.Denied(listOf("sms")))
-    val (service, _) = createService(permissionManager = fakePm)
-
-    service.manualActivate()
-    advanceUntilIdle()
-
-    val state = service.state.value
-    TestCase.assertFalse(state.isActive)
-    TestCase.assertEquals(
-        DangerModeService.DangerModeEvent.MissingSmsPermission, service.events.value)
   }
 
   /**
@@ -236,31 +220,6 @@ class DangerModeServiceTest {
   }
 
   /**
-   * Verifies that automatic activation is blocked when SMS permissions are missing.
-   *
-   * This test ensures that:
-   * - updating the activeHazardFlow with a non-null hazard does NOT trigger automatic activation
-   *   when SEND_SMS permission is denied,
-   * - Danger Mode remains inactive, and
-   * - the MissingSmsPermission event is emitted to notify the UI about the blocked activation.
-   */
-  @Test
-  fun auto_activation_blocked_when_sms_permission_missing() = runTest {
-    val fakePm = PermissionManagerMock(PermissionResult.Denied(listOf("sms")))
-    val hazardFlow = MutableStateFlow<Hazard?>(null)
-    val (service, flow) = createService(hazardFlow = hazardFlow, permissionManager = fakePm)
-
-    val hazard = Hazard(id = 10, alertLevel = 2.0)
-    flow.value = hazard
-    advanceUntilIdle()
-
-    val state = service.state.value
-    TestCase.assertFalse(state.isActive)
-    TestCase.assertEquals(
-        DangerModeService.DangerModeEvent.MissingSmsPermission, service.events.value)
-  }
-
-  /**
    * Verifies that automatic activation succeeds when SMS permissions are granted.
    *
    * This test checks that:
@@ -283,5 +242,115 @@ class DangerModeServiceTest {
     TestCase.assertTrue(state.isActive)
     TestCase.assertEquals(hazard, state.activatingHazard)
     TestCase.assertEquals(null, service.events.value)
+  }
+
+  /**
+   * Ensures SMS capability cannot be enabled when the SEND_SMS permission is denied. The service
+   * must reject the request and leave the capability set empty.
+   */
+  @Test
+  fun sms_capability_cannot_be_enabled_without_sms_permission() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Denied(listOf("SEND_SMS")))
+    val (service, _) = createService(permissionManager = pm)
+
+    val result = service.setCapabilities(setOf(DangerModeCapability.SMS))
+
+    assertTrue(result.isFailure)
+    assertTrue(service.state.value.capabilities.isEmpty())
+  }
+
+  /**
+   * Ensures SMS capability is enabled when the SEND_SMS permission is granted. The service should
+   * accept the capability and update the state accordingly.
+   */
+  @Test
+  fun sms_capability_is_enabled_when_permission_granted() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Granted)
+    val (service, _) = createService(permissionManager = pm)
+
+    val result = service.setCapabilities(setOf(DangerModeCapability.SMS))
+
+    assertTrue(result.isSuccess)
+    assertEquals(setOf(DangerModeCapability.SMS), service.state.value.capabilities)
+  }
+
+  /**
+   * Verifies that the CALL capability is always rejected. This capability is intentionally
+   * unsupported and must never appear in the state.
+   */
+  @Test
+  fun call_capability_is_always_rejected() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Granted)
+    val (service, _) = createService(permissionManager = pm)
+
+    val result = service.setCapabilities(setOf(DangerModeCapability.CALL))
+
+    assertTrue(result.isFailure)
+    assertTrue(service.state.value.capabilities.isEmpty())
+  }
+
+  /**
+   * Confirms that manual activation works even when SMS permission is missing. Danger Mode should
+   * activate normally and no error event should be emitted.
+   */
+  @Test
+  fun manual_activation_succeeds_even_if_sms_permission_missing() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Denied(listOf("SEND_SMS")))
+    val (service, _) = createService(permissionManager = pm)
+
+    service.manualActivate()
+    advanceUntilIdle()
+
+    assertTrue(service.state.value.isActive)
+    assertNull(service.events.value)
+  }
+
+  /**
+   * Confirms that automatic activation also works without SMS permission. The service should
+   * activate based on hazards and emit no error event.
+   */
+  @Test
+  fun auto_activation_succeeds_even_if_sms_permission_missing() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Denied(listOf("SEND_SMS")))
+    val hazardFlow = MutableStateFlow<Hazard?>(null)
+    val (service, flow) = createService(hazardFlow = hazardFlow, permissionManager = pm)
+
+    val hazard = Hazard(id = 1, alertLevel = 3.0)
+    flow.value = hazard
+    advanceUntilIdle()
+
+    assertTrue(service.state.value.isActive)
+    assertEquals(hazard, service.state.value.activatingHazard)
+    assertNull(service.events.value)
+  }
+
+  /**
+   * Ensures LOCATION capability cannot be enabled when location permission is denied. The service
+   * must reject the capability and leave the state untouched.
+   */
+  @Test
+  fun location_capability_fails_when_location_permission_missing() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Denied(listOf("fine_location")))
+    val (service, _) = createService(permissionManager = pm)
+
+    val result = service.setCapabilities(setOf(DangerModeCapability.LOCATION))
+
+    assertTrue(result.isFailure)
+    assertTrue(service.state.value.capabilities.isEmpty())
+  }
+
+  /**
+   * Ensures LOCATION capability is enabled when permission is granted. The capability should be
+   * accepted and reflected in the service state.
+   */
+  @Test
+  fun location_capability_succeeds_when_permission_granted() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Granted)
+    val (service, _) = createService(permissionManager = pm)
+
+    val result = service.setCapabilities(setOf(DangerModeCapability.LOCATION))
+
+    assertTrue(result.isSuccess)
+    assertEquals(setOf(DangerModeCapability.LOCATION), service.state.value.capabilities)
   }
 }
