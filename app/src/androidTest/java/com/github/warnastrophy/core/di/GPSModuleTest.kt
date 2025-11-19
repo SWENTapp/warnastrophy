@@ -8,6 +8,9 @@ import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 
+/**
+ * Hilt testing module providing mock implementations for GPS service.
+ */
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [GPSModule::class])
 object GPSModuleTest {

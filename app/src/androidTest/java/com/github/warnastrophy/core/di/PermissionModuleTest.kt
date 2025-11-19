@@ -8,6 +8,10 @@ import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 
+/**
+ * Hilt testing module providing a mock implementation of the
+ * permission management logic.
+ */
 @Module
 @TestInstallIn(components = [SingletonComponent::class], replaces = [PermissionModule::class])
 object PermissionModuleTest {

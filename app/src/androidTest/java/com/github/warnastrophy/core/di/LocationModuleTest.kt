@@ -8,6 +8,10 @@ import dagger.hilt.testing.TestInstallIn
 import javax.inject.Singleton
 import org.mockito.Mockito
 
+/**
+ * Hilt testing module providing a mock implementation for the
+ * [FusedLocationProviderClient].
+ */
 @Module
 @TestInstallIn(
     components = [SingletonComponent::class],
