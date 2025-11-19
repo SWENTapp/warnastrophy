@@ -9,10 +9,12 @@ import com.github.warnastrophy.core.domain.model.FetcherState
 import com.github.warnastrophy.core.domain.model.GpsPositionState
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
@@ -49,7 +51,8 @@ data class MapUIState(
     val isOsRequestInFlight: Boolean = false,
     val severitiesByType: Map<String, Pair<Double, Double>> = emptyMap(),
     val positionState: GpsPositionState = GpsPositionState(isLoading = true),
-    val hazardState: FetcherState = FetcherState(isLoading = true)
+    val hazardState: FetcherState = FetcherState(isLoading = true),
+    val nominatimState: List<Location> = emptyList()
 ) {
   /** A computed property that is true if the permission is granted. */
   val isGranted: Boolean
@@ -64,6 +67,7 @@ class MapViewModel(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
     private val permissionManager: PermissionManagerInterface,
+    val nominatimRepository: NominatimRepository = NominatimRepository()
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
 
@@ -194,6 +198,13 @@ class MapViewModel(
           (group.key ?: "Unknown") to Pair(minSev, maxSev)
         }
         .toMap()
+  }
+
+  fun searchLocations(query: String) {
+    viewModelScope.launch {
+      val results = nominatimRepository.reverseGeocode(query)
+      _uiState.update { it.copy(nominatimState = results) }
+    }
   }
 }
 
