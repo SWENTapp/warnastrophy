@@ -1,9 +1,9 @@
 // This file is made by Dao Nguyen Ninh and Gemini assistance
 package com.github.warnastrophy.core.ui.error
 
+import com.github.warnastrophy.core.domain.error.Error
 import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
-import com.github.warnastrophy.core.ui.common.Error
-import com.github.warnastrophy.core.ui.common.ErrorState
+import com.github.warnastrophy.core.domain.error.ErrorState
 import com.github.warnastrophy.core.ui.common.GlobalErrorViewModel
 import com.github.warnastrophy.core.ui.navigation.Screen
 import io.mockk.every

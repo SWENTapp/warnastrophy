@@ -31,7 +31,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.firebase.auth.FirebaseAuth
 
 /** Object containing test tags for the WarnastrophyApp. */
