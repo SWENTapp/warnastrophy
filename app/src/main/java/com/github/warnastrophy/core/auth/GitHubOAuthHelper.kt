@@ -112,7 +112,9 @@ class GitHubOAuthHelper(
   fun isGitHubCallback(uri: Uri?): Boolean {
     if (uri == null) return false
     val expectedUri = Uri.parse(redirectUri)
-    return uri.scheme == expectedUri.scheme && uri.host == expectedUri.host
+    return uri.scheme == expectedUri.scheme &&
+        uri.host == expectedUri.host &&
+        uri.path == expectedUri.path
   }
 
   /**
@@ -219,16 +221,32 @@ class GitHubOAuthHelper(
     clearSensitiveData()
   }
 
+  /**
+   * Generates a code verifier to be used in the OAuth flow.
+   *
+   * @return A securely generated random string.
+   */
   private fun generateCodeVerifier(): String {
     val bytes = ByteArray(CODE_VERIFIER_LENGTH)
     SecureRandom().nextBytes(bytes)
     return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
   }
 
+  /**
+   * Generates a random state parameter to prevent CSRF attacks.
+   *
+   * @return A UUID string.
+   */
   private fun generateState(): String {
     return UUID.randomUUID().toString()
   }
 
+  /**
+   * Generates a code challenge based on the code verifier using SHA-256 hashing.
+   *
+   * @param verifier The code verifier to generate the code challenge from.
+   * @return A base64-encoded SHA-256 hash of the code verifier.
+   */
   private fun generateCodeChallenge(verifier: String): String {
     val digest = MessageDigest.getInstance("SHA-256")
     val hash = digest.digest(verifier.toByteArray(Charsets.US_ASCII))
@@ -236,6 +254,7 @@ class GitHubOAuthHelper(
   }
 
   private fun clearSensitiveData() {
+    codeVerifier?.toCharArray()?.fill('*')
     codeVerifier = null
     oauthState = null
   }

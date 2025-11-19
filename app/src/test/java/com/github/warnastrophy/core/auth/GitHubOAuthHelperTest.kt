@@ -94,6 +94,7 @@ class GitHubOAuthHelperTest {
     assertFalse(helper.isGitHubCallback(null))
     assertFalse(helper.isGitHubCallback(Uri.parse("https://github-callback?code=abc")))
     assertFalse(helper.isGitHubCallback(Uri.parse("warnastrophy://wrong-host")))
+    assertFalse(helper.isGitHubCallback(Uri.parse("warnastrophy://github-wrongpath")))
   }
 
   // ==================== extractAuthorizationCode Tests ====================
