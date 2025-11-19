@@ -24,4 +24,14 @@
     <string name="logout_message">Are you sure you want to logout?</string>
     <string name="cancel_logout">Cancel</string>
     <string name="logout_error">Error</string>
+
+    <!-- Emergency message content strings -->
+    <string name="emergency_message_header">🚨 EMERGENCY MESSAGE 🚨</string>
+    <string name="emergency_message_default">"EMERGENCY: I need immediate assistance! Call the emergency services!"</string>
+    <string name="emergency_message_time">Time:</string>
+    <string name="emergency_message_location_header">Location:</string>
+    <string name="emergency_message_latitude">- Latitude:</string>
+    <string name="emergency_message_longitude">- Longitude:</string>
+    <string name="emergency_message_map">Map:</string>
+    <string name="emergency_message_additional_info_header">Additional Information:</string>
 </resources>

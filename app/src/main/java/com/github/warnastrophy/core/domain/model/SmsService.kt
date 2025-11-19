@@ -4,10 +4,9 @@ import android.content.Context
 import android.os.Build
 import android.telephony.SmsManager
 
-/** Defines the contract for a service that sends SMS messages. */
-interface SmsSender {
+fun interface SmsSender {
   /**
-   * Sends an SMS message to the specified phone number.
+   * A functional interface for sending SMS messages.
    *
    * @param phoneNumber The destination phone number.
    * @param message The [EmergencyMessage] to be sent.
@@ -21,7 +20,7 @@ class SmsManagerSender(context: Context) : SmsSender {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         context.getSystemService(SmsManager::class.java)
       } else {
-        SmsManager.getDefault() // For API versions ≤ 31
+        @Suppress("DEPRECATION") SmsManager.getDefault() // For API versions ≤ 31
       }
 
   override fun sendSms(phoneNumber: String, message: EmergencyMessage) {
