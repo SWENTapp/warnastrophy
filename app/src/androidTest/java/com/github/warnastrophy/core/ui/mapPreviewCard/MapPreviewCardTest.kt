@@ -10,7 +10,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import com.github.warnastrophy.WarnastrophyApp
+import com.github.warnastrophy.WarnastrophyComposable
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewCard
 import com.github.warnastrophy.core.ui.features.dashboard.MapPreviewTestTags
@@ -115,7 +115,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     // Initialize Contact Repository (really important for first time app launch during tests)
     ContactRepositoryProvider.init(ApplicationProvider.getApplicationContext())
     composeTestRule.setContent {
-      WarnastrophyApp(mockMapScreen = { MapScreen(viewModel = viewModel) })
+      WarnastrophyComposable(mockMapScreen = { MapScreen(viewModel = viewModel) })
     }
 
     composeTestRule.waitUntil(
