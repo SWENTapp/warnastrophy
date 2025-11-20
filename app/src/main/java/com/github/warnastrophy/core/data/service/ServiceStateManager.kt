@@ -1,11 +1,26 @@
 package com.github.warnastrophy.core.data.service
 
+import android.content.Context
+import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.HazardsService
+import com.github.warnastrophy.core.domain.usecase.HazardChecker
+import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 object ServiceStateManager {
+  val serviceScope = CoroutineScope(Dispatchers.IO)
+  lateinit var gpsService: GpsService
+  lateinit var hazardsService: HazardsDataService
+  lateinit var dangerModeService: DangerModeService
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
   val activeHazardFlow: StateFlow<Hazard?> = _activeHazardFlow.asStateFlow()
@@ -31,5 +46,28 @@ object ServiceStateManager {
     if (_activeHazardFlow.value != null) {
       _activeHazardFlow.value = null
     }
+  }
+
+  fun init(context: Context) {
+    val locationClient = LocationServices.getFusedLocationProviderClient(context)
+    gpsService = GpsService(locationClient)
+
+    hazardsService =
+        HazardsService(
+            HazardRepositoryProvider.repository,
+            gpsService,
+        )
+
+    // Subscribe to hazard updates to keep the active hazard flow current
+    serviceScope.launch {
+      hazardsService.fetcherState.collectLatest {
+        HazardChecker(it.hazards, Dispatchers.IO, serviceScope)
+            .checkAndPublishAlert(
+                gpsService.positionState.value.position.longitude,
+                gpsService.positionState.value.position.latitude)
+      }
+    }
+
+    dangerModeService = DangerModeService()
   }
 }

@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.data.service
 
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
@@ -49,11 +50,11 @@ class DangerModeService(
        */
       val activatingHazard: Hazard? = null,
       /** Current preset mode for Danger Mode, dictates monitoring behavior */
-      val preset: DangerModePreset? = DangerModePreset.DEFAULT_MODE,
+      val preset: DangerModePreset = DangerModePreset.DEFAULT_MODE,
       /** The capabilities (what can it monitor, take which actions) given to danger mode */
-      val capabilities: Set<String> = emptySet(),
+      val capabilities: Set<DangerModeCapability> = emptySet(),
       /** Current danger level, can be used in communication */
-      val dangerLevel: Int? = 0,
+      val dangerLevel: Int = 0,
   )
 
   private val _state = MutableStateFlow(DangerModeState())
@@ -79,8 +80,9 @@ class DangerModeService(
    *
    * @param capabilities The set of capabilities to enable.
    */
-  fun setCapabilities(capabilities: Set<String>) {
+  fun setCapabilities(capabilities: Set<DangerModeCapability>): Result<Unit> {
     _state.value = _state.value.copy(capabilities = capabilities)
+    return Result.success(Unit)
   }
 
   /**

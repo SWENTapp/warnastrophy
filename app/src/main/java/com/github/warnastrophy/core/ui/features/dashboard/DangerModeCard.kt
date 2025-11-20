@@ -77,9 +77,10 @@ fun DangerModeCard(
     viewModel: DangerModeCardViewModel = viewModel(),
     onOpenClick: () -> Unit = {}
 ) {
-  val isDangerModeEnabled = viewModel.isDangerModeEnabled
-  val currentModeName = viewModel.currentMode
+  val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState()
+  val currentModeName by viewModel.currentMode.collectAsState()
   val capabilities by viewModel.capabilities.collectAsState()
+  val dangerLevel by viewModel.dangerLevel.collectAsState()
   val colorScheme = MaterialTheme.colorScheme
 
   StandardDashboardCard(
@@ -155,7 +156,7 @@ fun DangerModeCard(
                       Color(0xFFD32F2F) // red
                       )
                   .forEachIndexed { index, it ->
-                    val alpha = if (index == viewModel.dangerLevel) 1f else 0.1f
+                    val alpha = if (index == dangerLevel) 1f else 0.1f
                     DangerColorBox(
                         it,
                         modifier = Modifier.testTag(DangerModeTestTags.dangerLevelTag(index)),

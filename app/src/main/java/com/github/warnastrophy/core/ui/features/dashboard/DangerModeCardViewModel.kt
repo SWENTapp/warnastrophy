@@ -1,13 +1,14 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.service.ServiceStateManager
 import kotlin.collections.emptySet
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 /** Capabilities of the danger mode that can be enabled in Danger Mode with associated labels. */
 enum class DangerModeCapability(val label: String) {
@@ -25,45 +26,64 @@ enum class DangerModePreset(val label: String) {
 
 /** ViewModel for managing the state of the Danger Mode card in the dashboard UI. */
 class DangerModeCardViewModel : ViewModel() {
-  var isDangerModeEnabled by mutableStateOf(false)
-    private set
+  private val dangerModeService = ServiceStateManager.dangerModeService
 
-  var currentMode by mutableStateOf(DangerModePreset.CLIMBING_MODE)
-    private set
+  val isDangerModeEnabled =
+      dangerModeService.state
+          .map { it.isActive }
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-  var dangerLevel by mutableIntStateOf(0)
-    private set
+  val currentMode =
+      dangerModeService.state
+          .map { it.preset }
+          .stateIn(
+              viewModelScope, SharingStarted.WhileSubscribed(5000), DangerModePreset.DEFAULT_MODE)
 
-  private val _capabilities = MutableStateFlow<Set<DangerModeCapability>>(emptySet())
-  val capabilities = _capabilities.asStateFlow()
+  var dangerLevel =
+      dangerModeService.state
+          .map { it.dangerLevel }
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+  val capabilities =
+      dangerModeService.state
+          .map { it.capabilities }
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
   /** Toggles the Danger Mode on or off. */
   fun onDangerModeToggled(enabled: Boolean) {
-    isDangerModeEnabled = enabled
+    if (enabled) {
+      dangerModeService.manualActivate()
+    } else {
+      dangerModeService.manualDeactivate()
+    }
   }
 
   /** Sets the selected Danger Mode preset. */
   fun onModeSelected(mode: DangerModePreset) {
-    currentMode = mode
+    dangerModeService.setPreset(mode)
   }
 
   /** Updates the set of enabled capabilities for Danger Mode. */
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
-    _capabilities.value = newCapabilities
+    if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
+      // TODO
+    }
   }
 
   /** Toggles a specific capability for Danger Mode. */
   fun onCapabilityToggled(capability: DangerModeCapability) {
-    _capabilities.value =
+    val future =
         if (capabilities.value.contains(capability)) {
           capabilities.value - capability
         } else {
           capabilities.value + capability
         }
+
+    onCapabilitiesChanged(future)
   }
 
   /** Sets the danger level, ensuring it stays within the valid range of 0 to 3. */
   fun onDangerLevelChanged(level: Int) {
-    dangerLevel = level.coerceIn(0, 3)
+    dangerModeService.setDangerLevel(level)
   }
 }
