@@ -13,13 +13,29 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
+ * Enum representing various OAuth error types returned from GitHub. Each enum value contains a
+ * user-friendly message that will be displayed in case of an error.
+ *
+ * @property message The error message that will be shown to the user.
+ */
+enum class AuthErrorTypes(val message: String) {
+  ACCESS_DENIED("You denied access to your GitHub account"),
+  UNAUTHORIZED_CLIENT("Application is not authorized"),
+  UNSUPPORTED_RESPONSE_TYPE("Configuration error"),
+  INVALID_SCOPE("Invalid permissions requested"),
+  SERVER_ERROR("GitHub server error, please try again"),
+  TEMPORARILY_UNAVAILABLE("GitHub service temporarily unavailable"),
+  UNKNOWN("Authorization failed: Unknown error")
+}
+
+/**
  * The activity that handles the callback from GitHub OAuth after the user has authorized the
  * application.
  *
  * This activity is responsible for receiving the callback data from GitHub, validating it, and
  * exchanging the authorization code for an access token. If the OAuth flow succeeds, the access
  * token is passed to the [GitHubAuthManager]. If there is an error at any point, the activity
- * finishes with a result code of [RESULT_CANCELED] and displays an error message.
+ * finishes with a result code of [ComponentActivity.RESULT_CANCELED] and displays an error message.
  *
  * This activity is typically launched as a result of a GitHub OAuth sign-in flow initiated from
  * [GitHubAuthManager] or other parts of the application.
@@ -83,7 +99,12 @@ class GitHubCallbackActivity : ComponentActivity() {
     uri?.let { callbackUri ->
       val error = helper.extractError(callbackUri)
       if (error != null) {
-        handleOAuthError(error)
+        try {
+          val errorType = AuthErrorTypes.valueOf(error.uppercase())
+          handleOAuthError(errorType)
+        } catch (e: IllegalArgumentException) {
+          handleOAuthError(AuthErrorTypes.UNKNOWN)
+        }
         return
       }
 
@@ -134,23 +155,13 @@ class GitHubCallbackActivity : ComponentActivity() {
   /**
    * Handles OAuth error responses from GitHub.
    *
-   * Maps the error codes to user-friendly error messages and shows them in a toast. After
-   * displaying the error, the activity finishes with an error result.
+   * Maps the error codes to user-friendly error messages (using [AuthErrorTypes]) and shows them in
+   * a toast. After displaying the error, the activity finishes with an error result.
    *
-   * @param error The error code returned by GitHub.
+   * @param error The [AuthErrorTypes] enum value that represents the error returned by GitHub.
    */
-  private fun handleOAuthError(error: String) {
-    val errorMessage =
-        when (error) {
-          "access_denied" -> "You denied access to your GitHub account"
-          "unauthorized_client" -> "Application is not authorized"
-          "unsupported_response_type" -> "Configuration error"
-          "invalid_scope" -> "Invalid permissions requested"
-          "server_error" -> "GitHub server error, please try again"
-          "temporarily_unavailable" -> "GitHub service temporarily unavailable"
-          else -> "Authorization failed: $error"
-        }
-
+  private fun handleOAuthError(error: AuthErrorTypes) {
+    val errorMessage = error.message
     showError(errorMessage)
     finishWithError()
   }
