@@ -1,7 +1,5 @@
 package com.github.warnastrophy.core.ui.features.map
 
-import android.content.Intent
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -24,13 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import com.github.warnastrophy.core.domain.model.GpsPositionState
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.util.findActivity
+import com.github.warnastrophy.core.util.openAppSettings
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.CameraPositionState
@@ -151,15 +149,7 @@ fun MapScreen(
               message = msg,
               showAllowButton = showAllow,
               onAllowClick = requestPermissions,
-              onOpenSettingsClick = {
-                val intent =
-                    Intent(
-                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            "package:${activity.packageName}".toUri())
-                        .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                // Use the activity to start the new activity.
-                activity.startActivity(intent)
-              },
+              onOpenSettingsClick = { openAppSettings(context = activity) },
               modifier =
                   Modifier.align(Alignment.BottomCenter)
                       .padding(16.dp)

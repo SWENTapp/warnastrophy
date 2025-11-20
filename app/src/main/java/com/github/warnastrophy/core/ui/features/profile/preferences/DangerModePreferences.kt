@@ -1,8 +1,5 @@
 package com.github.warnastrophy.core.ui.features.profile.preferences
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.util.findActivity
+import com.github.warnastrophy.core.util.openAppSettings
 
 @Composable
 fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
@@ -66,14 +64,6 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
     launcher.launch(permSet.permissions)
   }
 
-  fun openAppSettings() {
-    val intent =
-        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-          data = Uri.fromParts("package", context.packageName, null)
-        }
-    context.startActivity(intent)
-  }
-
   Column(
       modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 24.dp),
       verticalArrangement = Arrangement.spacedBy(24.dp)) {
@@ -87,7 +77,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                 when (uiState.alertModePermissionResult) {
                   is PermissionResult.Granted -> viewModel.onAlertModeToggled(true)
                   is PermissionResult.Denied -> requestPermission(PendingAction.TOGGLE_ALERT_MODE)
-                  is PermissionResult.PermanentlyDenied -> openAppSettings()
+                  is PermissionResult.PermanentlyDenied -> openAppSettings(context)
                 }
               } else {
                 viewModel.onAlertModeToggled(false)
@@ -108,7 +98,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                   is PermissionResult.Granted -> viewModel.onInactivityDetectionToggled(true)
                   is PermissionResult.Denied ->
                       requestPermission(PendingAction.TOGGLE_INACTIVITY_DETECTION)
-                  is PermissionResult.PermanentlyDenied -> openAppSettings()
+                  is PermissionResult.PermanentlyDenied -> openAppSettings(context)
                 }
               } else {
                 viewModel.onInactivityDetectionToggled(false)
@@ -128,7 +118,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                   is PermissionResult.Granted -> viewModel.onAutomaticSmsToggled(true)
                   is PermissionResult.Denied ->
                       requestPermission(PendingAction.TOGGLE_AUTOMATIC_SMS)
-                  is PermissionResult.PermanentlyDenied -> openAppSettings()
+                  is PermissionResult.PermanentlyDenied -> openAppSettings(context)
                 }
               } else {
                 viewModel.onAutomaticSmsToggled(false)
