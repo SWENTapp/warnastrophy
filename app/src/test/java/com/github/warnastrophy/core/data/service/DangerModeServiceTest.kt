@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.data.service
 
+import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -38,7 +39,7 @@ class DangerModeServiceTest {
     assertTrue(service.state.value.dangerLevel == 3)
     service.setPreset(DangerModePreset.CLIMBING_MODE)
     assertTrue(service.state.value.preset == DangerModePreset.CLIMBING_MODE)
-    val set = setOf("GPS_MONITORING", "ALERT_SENDING")
+    val set = setOf(DangerModeCapability.CALL, DangerModeCapability.SMS)
     service.setCapabilities(set)
     assertEquals(set, service.state.value.capabilities)
   }
