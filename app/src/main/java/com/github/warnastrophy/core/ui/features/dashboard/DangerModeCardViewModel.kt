@@ -32,23 +32,22 @@ class DangerModeCardViewModel : ViewModel() {
   val isDangerModeEnabled =
       dangerModeService.state
           .map { it.isActive }
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+          .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
   val currentMode =
       dangerModeService.state
           .map { it.preset }
-          .stateIn(
-              viewModelScope, SharingStarted.WhileSubscribed(5000), DangerModePreset.DEFAULT_MODE)
+          .stateIn(viewModelScope, SharingStarted.Lazily, DangerModePreset.DEFAULT_MODE)
 
-  var dangerLevel =
+  val dangerLevel =
       dangerModeService.state
           .map { it.dangerLevel }
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+          .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
   val capabilities =
       dangerModeService.state
           .map { it.capabilities }
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+          .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
 
   /** Toggles the Danger Mode on or off. */
   fun onDangerModeToggled(enabled: Boolean) {
@@ -74,11 +73,12 @@ class DangerModeCardViewModel : ViewModel() {
 
   /** Toggles a specific capability for Danger Mode. */
   fun onCapabilityToggled(capability: DangerModeCapability) {
+    val current = dangerModeService.state.value.capabilities
     val future =
-        if (capabilities.value.contains(capability)) {
-          capabilities.value - capability
+        if (current.contains(capability)) {
+          current - capability
         } else {
-          capabilities.value + capability
+          current + capability
         }
 
     onCapabilitiesChanged(future)

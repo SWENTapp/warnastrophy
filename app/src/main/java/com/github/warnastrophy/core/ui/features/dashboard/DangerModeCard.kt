@@ -77,10 +77,10 @@ fun DangerModeCard(
     viewModel: DangerModeCardViewModel = viewModel(),
     onOpenClick: () -> Unit = {}
 ) {
-  val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState()
-  val currentModeName by viewModel.currentMode.collectAsState()
-  val capabilities by viewModel.capabilities.collectAsState()
-  val dangerLevel by viewModel.dangerLevel.collectAsState()
+  val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
+  val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
+  val capabilities by viewModel.capabilities.collectAsState(emptySet())
+  val dangerLevel by viewModel.dangerLevel.collectAsState(0)
   val colorScheme = MaterialTheme.colorScheme
 
   StandardDashboardCard(
