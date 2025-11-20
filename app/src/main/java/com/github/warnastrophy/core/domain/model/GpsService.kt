@@ -116,8 +116,6 @@ class GpsService(
         }
       }
 
-  /** Location client for accessing fused location services. */
-
   /**
    * Requests the user's current location and updates [positionState] with the new position or the
    * corresponding error.
