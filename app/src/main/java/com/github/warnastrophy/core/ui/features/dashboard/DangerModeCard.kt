@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -99,12 +100,12 @@ fun DangerModeCard(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp)
 
-            Switch(
+            DangerModeSwitch(
                 checked = isDangerModeEnabled,
-                onCheckedChange = { viewModel.onDangerModeToggled(it) },
-                modifier = Modifier.testTag(DangerModeTestTags.SWITCH))
+                viewModel = viewModel,
+                modifier = modifier.testTag(DangerModeTestTags.SWITCH))
           }
-      Column() {
+      Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(text = "Mode", color = colorScheme.onError, fontSize = 13.sp)
           var expanded by remember { mutableStateOf(false) }
@@ -219,4 +220,18 @@ private fun DangerColorBox(
       modifier = modifier.size(width = 28.dp, height = 28.dp),
       border = BorderStroke(width = 2.dp, color = borderColor),
   ) {}
+}
+
+@Composable
+private fun DangerModeSwitch(
+    checked: Boolean,
+    viewModel: DangerModeCardViewModel,
+    modifier: Modifier = Modifier
+) {
+  val context = LocalContext.current
+
+  Switch(
+      checked = checked,
+      onCheckedChange = { viewModel.onDangerModeToggled(it, context) },
+      modifier = modifier.testTag(DangerModeTestTags.SWITCH))
 }

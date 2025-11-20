@@ -34,7 +34,8 @@ import kotlinx.coroutines.launch
 /**
  * Represents the UI state for the map screen.
  *
- * @property permissionResult The current state of the location permission. See [PermissionResult].
+ * @property locationPermissionResult The current state of the location permission. See
+ *   [PermissionResult].
  * @property isTrackingLocation True if the app is actively tracking the user's location, false
  *   otherwise.
  * @property isOsRequestInFlight True if a system permission dialog is currently being shown to the
@@ -44,8 +45,10 @@ import kotlinx.coroutines.launch
  * @property hazardState The state of the hazard data fetching. See [FetcherState].
  */
 data class MapUIState(
-    val permissionResult: PermissionResult,
+    val locationPermissionResult: PermissionResult,
+    val foregroundPermissionResult: PermissionResult,
     val isTrackingLocation: Boolean = false,
+    val isTrackingInBackground: Boolean = false,
     val isOsRequestInFlight: Boolean = false,
     val severitiesByType: Map<String, Pair<Double, Double>> = emptyMap(),
     val positionState: GpsPositionState = GpsPositionState(isLoading = true),
@@ -53,7 +56,7 @@ data class MapUIState(
 ) {
   /** A computed property that is true if the permission is granted. */
   val isGranted: Boolean
-    get() = permissionResult is PermissionResult.Granted
+    get() = locationPermissionResult is PermissionResult.Granted
 
   /** A computed property that is true if any of the sub-states are loading. */
   val isLoading: Boolean
@@ -66,10 +69,14 @@ class MapViewModel(
     private val permissionManager: PermissionManagerInterface,
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
+  val foregroundPermissions = AppPermissions.ForegroundServiceLocation
 
   private val _uiState =
       MutableStateFlow(
-          MapUIState(permissionResult = permissionManager.getPermissionResult(locationPermissions)))
+          MapUIState(
+              locationPermissionResult = permissionManager.getPermissionResult(locationPermissions),
+              foregroundPermissionResult =
+                  permissionManager.getPermissionResult(foregroundPermissions)))
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
   init {
@@ -119,9 +126,16 @@ class MapViewModel(
    * @param activity The current activity, used as context to check for rationales.
    */
   fun applyPermissionsResult(activity: Activity) {
-    val result = permissionManager.getPermissionResult(locationPermissions, activity)
+    val locationResult = permissionManager.getPermissionResult(locationPermissions, activity)
     permissionManager.markPermissionsAsAsked(locationPermissions)
-    _uiState.update { it.copy(permissionResult = result, isOsRequestInFlight = false) }
+    val foregroundResult = permissionManager.getPermissionResult(foregroundPermissions, activity)
+    permissionManager.markPermissionsAsAsked(foregroundPermissions)
+    _uiState.update {
+      it.copy(
+          locationPermissionResult = locationResult,
+          foregroundPermissionResult = foregroundResult,
+          isOsRequestInFlight = false)
+    }
   }
 
   /** Request a single location update and start location updates. */
@@ -172,6 +186,15 @@ class MapViewModel(
   }
 
   /**
+   * Sets the background location tracking state for the UI.
+   *
+   * @param enabled True to enable background tracking, false to disable it.
+   */
+  fun setBackgroundTracking(enabled: Boolean) {
+    _uiState.update { it.copy(isTrackingInBackground = enabled) }
+  }
+
+  /**
    * Computes a map of severities from a list of hazards.
    *
    * This function processes a list of `Hazard` objects and groups them by their `severity` level.
@@ -200,16 +223,13 @@ class MapViewModel(
 /**
  * Defines a composable for the map route (Map.route).
  *
- * @param backStackEntryForMap The navigation back stack entry associated with the current route.
- *   Used to bind the ViewModel's lifecycle to this destination.
- *
  * Features:
  * - Creates an instance of `MapViewModel` using `viewModel` and a `MapViewModelFactory`.
  * - Associates the `MapViewModel` with the lifecycle of the `Map.route` destination.
  * - If `mockMapScreen` is provided (non-null), it is invoked for testing or overrides. Otherwise,
  *   the `MapScreen` composable is displayed with the `mapViewModel` as a parameter.
  *
- * @see viewModel
+ * @see ViewModel
  * @see MapViewModelFactory
  */
 class MapViewModelFactory(
@@ -219,6 +239,7 @@ class MapViewModelFactory(
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
+      @Suppress("UNCHECKED_CAST")
       return MapViewModel(gpsService, hazardsService, permissionManager) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class: $modelClass")

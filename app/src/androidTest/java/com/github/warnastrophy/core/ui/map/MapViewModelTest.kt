@@ -13,7 +13,6 @@ import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
-import kotlin.collections.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -59,7 +58,7 @@ class MapViewModelTest {
   @Test
   fun initial_state_has_denied_permission_and_loading_true() = runTest {
     val uiState = viewModel.uiState.value
-    assertTrue(uiState.permissionResult is PermissionResult.Denied)
+    assertTrue(uiState.locationPermissionResult is PermissionResult.Denied)
     assertTrue(uiState.isLoading)
   }
   /** Tests if applying a permission result correctly updates the UI state. */
@@ -71,7 +70,7 @@ class MapViewModelTest {
     viewModel.applyPermissionsResult(activity)
 
     val newState = viewModel.uiState.value
-    assertTrue(newState.permissionResult is PermissionResult.Denied)
+    assertTrue(newState.locationPermissionResult is PermissionResult.Denied)
     assertFalse(newState.isOsRequestInFlight)
   }
 
