@@ -93,18 +93,18 @@ fun ProfileScreen(
     Spacer(modifier = Modifier.height(8.dp))
 
     ProfileListItem(
+        icon = Icons.Default.Settings,
+        label = "Danger Mode Preferences",
+        onClick = onDangerModePreferencesClick)
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    ProfileListItem(
         icon = Icons.AutoMirrored.Filled.ExitToApp,
         label = "Logout",
         onClick = { showLogoutDialog = true },
         modifier = Modifier.testTag(NavigationTestTags.LOGOUT),
         tintColor = MaterialTheme.colorScheme.error)
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    ProfileListItem(
-        icon = Icons.Default.Settings,
-        label = "Danger Mode Preferences",
-        onClick = onDangerModePreferencesClick)
   }
 
   if (showLogoutDialog) {
