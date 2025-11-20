@@ -77,6 +77,7 @@ fun MapScreen(
   val requestPermissions: () -> Unit = {
     viewModel.onPermissionsRequestStart()
     launcher.launch(viewModel.locationPermissions.permissions)
+    launcher.launch(viewModel.foregroundPermissions.permissions)
   }
 
   /**
@@ -130,7 +131,7 @@ fun MapScreen(
             modifier = Modifier.testTag(PermissionUiTags.OS_PERMISSION_TEXT))
       } else {
         val (title, msg, showAllow) =
-            when (uiState.permissionResult) {
+            when (uiState.locationPermissionResult) {
               is PermissionResult.PermanentlyDenied ->
                   Triple(
                       "Location blocked",

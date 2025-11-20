@@ -50,6 +50,13 @@ android {
 
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
 
+        // Add GitHub client ID as BuildConfig Field
+        buildConfigField(
+            "String",
+            "GITHUB_CLIENT_ID",
+            "\"${localProps.getProperty("github.client.id", "")}\""
+        )
+
         setProperty("archivesBaseName", "$applicationId-v$versionName($versionCode)")
     }
 
@@ -111,6 +118,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -202,6 +210,9 @@ dependencies {
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
+    globalTestImplementation(libs.hamcrest)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
 
     // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
@@ -259,6 +270,12 @@ dependencies {
 
     // --------------- DataStore -------------------
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // --------------- OkHttp -------------------
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.okhttp.mockwebserver)
+
 
     // test mock
     androidTestImplementation("io.mockk:mockk-android:1.13.8")
