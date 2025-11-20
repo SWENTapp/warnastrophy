@@ -29,6 +29,7 @@ import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -161,7 +162,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                       Toast.makeText(context, "Contact ID is null", Toast.LENGTH_SHORT).show()
                     }
               }
-              composable(Screen.DangerModePreferences.route) { DangerModePreferencesScreen() }
+              composable(Screen.DangerModePreferences.route) {
+                DangerModePreferencesScreen(
+                    viewModel = DangerModePreferencesViewModel(permissionManager))
+              }
             }
       }
 }

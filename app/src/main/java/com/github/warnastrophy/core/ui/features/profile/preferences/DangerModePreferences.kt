@@ -1,5 +1,10 @@
 package com.github.warnastrophy.core.ui.features.profile.preferences
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,36 +18,56 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
+import com.github.warnastrophy.core.util.findActivity
 
 @Composable
-fun DangerModePreferencesScreen() {
-  var alertModeAutomatic by remember { mutableStateOf(true) }
-  var inactivityDetection by remember { mutableStateOf(false) }
-  var automaticSms by remember { mutableStateOf(false) }
+fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
+  val context = LocalContext.current
+  val activity = context.findActivity()
 
-  // When Alert Mode switch turned off, the other two are also turned off.
-  LaunchedEffect(alertModeAutomatic) {
-    if (!alertModeAutomatic) {
-      inactivityDetection = false
-    }
+  if (activity == null) {
+    // A fallback UI to prevent crashes and inform developers.
+    Column(
+        modifier = Modifier.fillMaxSize().testTag(DashboardScreenTestTags.FALLBACK_ACTIVITY_ERROR),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally) {
+          Text("Error: Dashboard cannot function without an Activity context.")
+        }
+    return
   }
 
-  // When inactivity detection turned off, automatic SMS also turned off
-  LaunchedEffect(inactivityDetection) {
-    if (!inactivityDetection) {
-      automaticSms = false
-    }
+  val uiState by viewModel.uiState.collectAsState()
+
+  val launcher =
+      rememberLauncherForActivityResult(
+          contract = ActivityResultContracts.RequestMultiplePermissions(),
+          onResult = { viewModel.onPermissionsResult(activity = activity) })
+
+  fun requestPermission(perms: AppPermissions) {
+    println("Requesting permissions: $perms")
+    viewModel.onPermissionsRequestStart()
+    println("Launching permissions request: $perms")
+    launcher.launch(perms.permissions)
+  }
+
+  fun openAppSettings() {
+    val intent =
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+          data = Uri.fromParts("package", context.packageName, null)
+        }
+    context.startActivity(intent)
   }
 
   Column(
@@ -52,8 +77,19 @@ fun DangerModePreferencesScreen() {
             title = "Alert Mode automatic",
             description =
                 "If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions",
-            checked = alertModeAutomatic,
-            onCheckedChange = { alertModeAutomatic = it })
+            checked = uiState.alertModeAutomaticEnabled,
+            onCheckedChange = { isChecked ->
+              if (isChecked) {
+                when (uiState.alertModePermissionResult) {
+                  is PermissionResult.Granted -> viewModel.onAlertModeToggled(true)
+                  is PermissionResult.Denied -> requestPermission(viewModel.alertModePermissions)
+                  is PermissionResult.PermanentlyDenied -> openAppSettings()
+                }
+              } else {
+                viewModel.onAlertModeToggled(false)
+              }
+            },
+            isRequestInFlight = uiState.isOsRequestInFlight)
 
         PreferenceItem(
             title = "Inactivity Detection",
@@ -61,17 +97,40 @@ fun DangerModePreferencesScreen() {
                 "If this option is enabled and you are in Danger Mode, your phone will detect your activity and send an SMS alert to your registered emergency contacts if you remain inactive for a certain period of time in a dangerous area.\n\nThis mode require fine location permissions",
             extraDescription =
                 "It is strongly recommended that you enable the automatic SMS feature with this functionality.",
-            checked = inactivityDetection,
-            onCheckedChange = { inactivityDetection = it },
-            enabled = alertModeAutomatic)
+            checked = uiState.inactivityDetectionEnabled,
+            onCheckedChange = { isChecked ->
+              if (isChecked) {
+                when (uiState.inactivityDetectionPermissionResult) {
+                  is PermissionResult.Granted -> viewModel.onInactivityDetectionToggled(true)
+                  is PermissionResult.Denied ->
+                      requestPermission(viewModel.inactivityDetectionPermissions)
+                  is PermissionResult.PermanentlyDenied -> openAppSettings()
+                }
+              } else {
+                viewModel.onInactivityDetectionToggled(false)
+              }
+            },
+            enabled = uiState.alertModeAutomaticEnabled,
+            isRequestInFlight = uiState.isOsRequestInFlight)
 
         PreferenceItem(
             title = "Automatic SMS",
             description =
                 "If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions",
-            checked = automaticSms,
-            onCheckedChange = { automaticSms = it },
-            enabled = inactivityDetection)
+            checked = uiState.automaticSmsEnabled,
+            onCheckedChange = { isChecked ->
+              if (isChecked) {
+                when (uiState.smsPermissionResult) {
+                  is PermissionResult.Granted -> viewModel.onAutomaticSmsToggled(true)
+                  is PermissionResult.Denied -> requestPermission(viewModel.smsPermissions)
+                  is PermissionResult.PermanentlyDenied -> openAppSettings()
+                }
+              } else {
+                viewModel.onAutomaticSmsToggled(false)
+              }
+            },
+            enabled = uiState.inactivityDetectionEnabled,
+            isRequestInFlight = uiState.isOsRequestInFlight)
       }
 }
 
@@ -83,7 +142,8 @@ private fun PreferenceItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    extraDescription: String? = null
+    extraDescription: String? = null,
+    isRequestInFlight: Boolean = false
 ) {
   val alpha = if (enabled) 1f else 0.5f
 
@@ -108,12 +168,9 @@ private fun PreferenceItem(
           }
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled && !isRequestInFlight)
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreferencesScreenPreview() {
-  MaterialTheme { DangerModePreferencesScreen() }
 }
