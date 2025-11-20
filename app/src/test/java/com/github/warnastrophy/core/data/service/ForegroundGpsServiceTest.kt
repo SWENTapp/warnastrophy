@@ -8,10 +8,13 @@ import com.github.warnastrophy.core.domain.model.ForegroundGpsService
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
+import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -85,5 +88,25 @@ class ForegroundGpsServiceTest {
     val result = service.onStartCommand(null, 0, 0)
 
     assertEquals(Service.START_STICKY, result)
+  }
+
+  @Test
+  fun `toggling on starts foreground service`() = runTest {
+    var invoked = false
+    var receivedContext: Context? = null
+
+    val vm =
+        DangerModeCardViewModel(
+            startService = { ctx ->
+              invoked = true
+              receivedContext = ctx
+            },
+            stopService = { _ -> })
+
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    vm.onDangerModeToggled(true, context)
+
+    assertTrue("startService should be invoked", invoked)
+    assertEquals("context passed to startService should match", context, receivedContext)
   }
 }
