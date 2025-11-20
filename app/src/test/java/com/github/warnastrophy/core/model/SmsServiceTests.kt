@@ -29,7 +29,7 @@ class SmsServiceTests {
           additionalInfo = "Sector 7G")
   val expectedString =
       buildString {
-            appendLine("🚨 EMERGENCY MESSAGE 🚨")
+            appendLine("EMERGENCY MESSAGE")
             appendLine()
             appendLine("Engine room is on fire")
             appendLine()

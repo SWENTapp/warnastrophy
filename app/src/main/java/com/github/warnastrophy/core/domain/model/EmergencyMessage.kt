@@ -52,7 +52,7 @@ data class EmergencyMessage(
             } ?: ""
 
     return buildString {
-          appendLine("🚨 EMERGENCY MESSAGE 🚨")
+          appendLine("EMERGENCY MESSAGE")
           appendLine()
           appendLine(text)
           appendLine()
@@ -72,6 +72,6 @@ data class EmergencyMessage(
 
   companion object {
     /** The default text used for emergency messages when none is provided. */
-    const val DEFAULT_TEXT = "EMERGENCY: I need immediate assistance! Call the emergency services!"
+    const val DEFAULT_TEXT = "I need immediate assistance! Call the emergency services!"
   }
 }
