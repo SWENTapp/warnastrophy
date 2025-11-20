@@ -161,8 +161,13 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
     if (jsonStr.isEmpty()) {
       return emptyList()
     }
+    val json =
+        try {
+          JSONArray(jsonStr)
+        } catch (e: Exception) {
+          return emptyList()
+        }
 
-    val json = JSONArray(jsonStr)
     val locations = mutableListOf<Location>()
     for (i in 0 until json.length()) {
       val obj = json.getJSONObject(i)
