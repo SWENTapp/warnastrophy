@@ -56,17 +56,6 @@ class GitHubCallbackActivity : ComponentActivity() {
   }
 
   /**
-   * Called when a new intent is received while the activity is already running. Processes the new
-   * intent and handles the callback from GitHub.
-   *
-   * @param intent The new intent that was received.
-   */
-  override fun onNewIntent(intent: Intent?) {
-    super.onNewIntent(intent)
-    handleIntent(intent)
-  }
-
-  /**
    * Handles the callback intent from GitHub OAuth.
    *
    * Validates the callback URL, checks for errors, and processes the authorization code. If valid,

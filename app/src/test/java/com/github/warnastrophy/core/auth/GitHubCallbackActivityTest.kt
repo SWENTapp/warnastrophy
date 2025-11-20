@@ -90,7 +90,7 @@ class GitHubCallbackActivityTest {
   }
 
   @Test
-  fun `onCreate with error parameter finishes with error`() {
+  fun `onCreate with error parameter access_denied finishes with error`() {
     val uri = Uri.parse("warnastrophy://github-callback?error=access_denied")
     val intent =
         Intent(Intent.ACTION_VIEW, uri).apply {
@@ -100,6 +100,108 @@ class GitHubCallbackActivityTest {
 
     every { mockHelper.isGitHubCallback(uri) } returns true
     every { mockHelper.extractError(uri) } returns "access_denied"
+
+    val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
+
+    assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onCreate with error parameter unauthorized_client finishes with error`() {
+    val uri = Uri.parse("warnastrophy://github-callback?error=unauthorized_client")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns "unauthorized_client"
+
+    val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
+
+    assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onCreate with error parameter unsupported_response_type finishes with error`() {
+    val uri = Uri.parse("warnastrophy://github-callback?error=unsupported_response_type")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns "unsupported_response_type"
+
+    val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
+
+    assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onCreate with error parameter invalid_scope finishes with error`() {
+    val uri = Uri.parse("warnastrophy://github-callback?error=invalid_scope")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns "invalid_scope"
+
+    val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
+
+    assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onCreate with error parameter server_error finishes with error`() {
+    val uri = Uri.parse("warnastrophy://github-callback?error=server_error")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns "server_error"
+
+    val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
+
+    assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onCreate with error parameter temporarily_unavailable finishes with error`() {
+    val uri = Uri.parse("warnastrophy://github-callback?error=temporarily_unavailable")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns "temporarily_unavailable"
+
+    val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
+
+    assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onCreate with unknown error parameter finishes with error`() {
+    val uri = Uri.parse("warnastrophy://github-callback?error=unknown_error")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns "unknown_error"
 
     val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
 
@@ -136,6 +238,25 @@ class GitHubCallbackActivityTest {
     every { mockHelper.isGitHubCallback(uri) } returns true
     every { mockHelper.extractError(uri) } returns null
     every { mockHelper.extractAuthorizationCode(uri) } returns null
+    every { mockHelper.validateState(uri) } just Runs
+
+    val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
+
+    assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onCreate with blank authorization code finishes with error`() {
+    val uri = Uri.parse("warnastrophy://github-callback?code=&state=test")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns null
+    every { mockHelper.extractAuthorizationCode(uri) } returns ""
     every { mockHelper.validateState(uri) } just Runs
 
     val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
@@ -211,5 +332,25 @@ class GitHubCallbackActivityTest {
     val scenario = ActivityScenario.launchActivityForResult<GitHubCallbackActivity>(intent)
 
     assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+  }
+
+  @Test
+  fun `onDestroy cancels coroutine scope`() {
+    val uri = Uri.parse("warnastrophy://github-callback?code=test&state=test")
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+          setClassName(
+              ApplicationProvider.getApplicationContext(), GitHubCallbackActivity::class.java.name)
+        }
+
+    every { mockHelper.isGitHubCallback(uri) } returns true
+    every { mockHelper.extractError(uri) } returns null
+    every { mockHelper.extractAuthorizationCode(uri) } returns "test"
+    every { mockHelper.validateState(uri) } just Runs
+    coEvery { mockHelper.exchangeCodeForAccessToken("test") } returns "token"
+
+    ActivityScenario.launch<GitHubCallbackActivity>(intent).use { scenario ->
+      scenario.onActivity { activity -> assertNotNull(activity) }
+    }
   }
 }
