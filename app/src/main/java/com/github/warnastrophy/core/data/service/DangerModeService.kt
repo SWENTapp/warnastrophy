@@ -1,6 +1,10 @@
 package com.github.warnastrophy.core.data.service
 
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
@@ -11,6 +15,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+
+enum class DangerLevel {
+  LOW,
+  MEDIUM,
+  HIGH,
+  CRITICAL
+}
 
 /**
  * Service responsible for managing the Danger Mode feature within the application.
@@ -28,6 +39,7 @@ class DangerModeService(
      * which is updated by [HazardChecker].
      */
     private val activeHazardFlow: StateFlow<Hazard?> = ServiceStateManager.activeHazardFlow,
+    private val permissionManager: PermissionManagerInterface,
 
     /** Scope used internally to collect flows and manage coroutines. */
     private val serviceScope: CoroutineScope =
@@ -51,13 +63,19 @@ class DangerModeService(
       /** Current preset mode for Danger Mode, dictates monitoring behavior */
       val preset: DangerModePreset? = DangerModePreset.DEFAULT_MODE,
       /** The capabilities (what can it monitor, take which actions) given to danger mode */
-      val capabilities: Set<String> = emptySet(),
+      val capabilities: Set<DangerModeCapability> = emptySet(),
       /** Current danger level, can be used in communication */
-      val dangerLevel: Int? = 0,
+      val dangerLevel: DangerLevel = DangerLevel.LOW
   )
+
+  sealed class DangerModeEvent {
+    object MissingSmsPermission : DangerModeEvent()
+  }
 
   private val _state = MutableStateFlow(DangerModeState())
   val state: StateFlow<DangerModeState> = _state.asStateFlow()
+  private val _events = MutableStateFlow<DangerModeEvent?>(null)
+  val events: StateFlow<DangerModeEvent?> = _events.asStateFlow()
 
   init {
     serviceScope.launch {
@@ -75,12 +93,50 @@ class DangerModeService(
   }
 
   /**
-   * Sets the capabilities for Danger Mode.
+   * This function sets the capabilities for Danger Mode after validating that the necessary
+   * permissions are granted.
+   *
+   * If any required permission is missing, it returns a failure [Result] with an
+   * [IllegalStateException] indicating which permission is missing.
+   *
+   * If all permissions are granted, it updates the Danger Mode state with the new capabilities and
+   * returns a successful [Result].
+   *
+   * Note: The CALL capability is currently not supported and will always result in a failure.
    *
    * @param capabilities The set of capabilities to enable.
    */
-  fun setCapabilities(capabilities: Set<String>) {
-    _state.value = _state.value.copy(capabilities = capabilities)
+  fun setCapabilities(capabilities: Set<DangerModeCapability>): Result<Unit> {
+    val validated = mutableSetOf<DangerModeCapability>()
+
+    for (cap in capabilities) {
+
+      // CALL capability is not supported yet
+      if (cap == DangerModeCapability.CALL) {
+        return Result.failure(IllegalStateException("CALL capability is not supported yet."))
+      }
+
+      val requiredPermission =
+          when (cap) {
+            DangerModeCapability.LOCATION -> AppPermissions.LocationFine
+            DangerModeCapability.SMS -> AppPermissions.SendEmergencySms
+            DangerModeCapability.CALL -> null
+          }
+
+      requiredPermission?.let { perm ->
+        val result = permissionManager.getPermissionResult(perm)
+        if (result != PermissionResult.Granted) {
+          return Result.failure(
+              IllegalStateException("Missing permission for ${cap.label}: ${perm.key}"))
+        }
+      }
+
+      validated.add(cap)
+    }
+
+    _state.value = _state.value.copy(capabilities = validated)
+
+    return Result.success(Unit)
   }
 
   /**
@@ -88,8 +144,9 @@ class DangerModeService(
    *
    * @param level The danger level to set, coerced to be in [0, 3]
    */
-  fun setDangerLevel(level: Int) {
-    _state.value = _state.value.copy(dangerLevel = level.coerceIn(0, 3))
+  fun setDangerLevel(level: DangerLevel) {
+    _state.value =
+        _state.value.copy(dangerLevel = level.coerceIn(DangerLevel.LOW, DangerLevel.CRITICAL))
   }
 
   /** Manually activates Danger Mode. */
