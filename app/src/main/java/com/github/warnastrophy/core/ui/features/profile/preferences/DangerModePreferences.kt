@@ -25,9 +25,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.permissions.PermissionResult
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.util.findActivity
 import com.github.warnastrophy.core.util.openAppSettings
+
+object DangerModePreferencesScreenTestTags {
+  const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
+}
 
 @Composable
 fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
@@ -37,7 +40,9 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
   if (activity == null) {
     // A fallback UI to prevent crashes and inform developers.
     Column(
-        modifier = Modifier.fillMaxSize().testTag(DashboardScreenTestTags.FALLBACK_ACTIVITY_ERROR),
+        modifier =
+            Modifier.fillMaxSize()
+                .testTag(DangerModePreferencesScreenTestTags.FALLBACK_ACTIVITY_ERROR),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
           Text("Error: Dashboard cannot function without an Activity context.")
