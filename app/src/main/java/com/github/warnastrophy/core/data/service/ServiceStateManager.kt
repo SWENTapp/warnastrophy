@@ -10,14 +10,16 @@ import com.github.warnastrophy.core.domain.usecase.HazardChecker
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 object ServiceStateManager {
-  val serviceScope = CoroutineScope(Dispatchers.IO)
+  private val serviceScope = CoroutineScope(Dispatchers.IO)
+  private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
+
   lateinit var gpsService: GpsService
   lateinit var hazardsService: HazardsDataService
   lateinit var dangerModeService: DangerModeService
@@ -78,12 +80,18 @@ object ServiceStateManager {
 
   private fun startHazardSubscription() {
     serviceScope.launch {
-      hazardsService.fetcherState.collectLatest {
-        HazardChecker(it.hazards, Dispatchers.IO, serviceScope)
-            .checkAndPublishAlert(
-                gpsService.positionState.value.position.longitude,
-                gpsService.positionState.value.position.latitude)
-      }
+      kotlinx.coroutines.flow
+          .combine(hazardsService.fetcherState, gpsService.positionState) {
+              fetcherState,
+              positionState ->
+            fetcherState to positionState
+          }
+          .collect { (fetcherState, positionState) ->
+            hazardCheckerScope.cancel()
+            HazardChecker(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
+                .checkAndPublishAlert(
+                    positionState.position.longitude, positionState.position.latitude)
+          }
     }
 
     dangerModeService = DangerModeService()

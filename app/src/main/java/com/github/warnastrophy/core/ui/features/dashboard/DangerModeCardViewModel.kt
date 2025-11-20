@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -67,6 +68,7 @@ class DangerModeCardViewModel : ViewModel() {
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
     if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
       // TODO
+      Log.e("DangerModeCardViewModel", "Failed to set capabilities: $newCapabilities")
     }
   }
 

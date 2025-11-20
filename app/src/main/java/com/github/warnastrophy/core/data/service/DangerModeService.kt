@@ -82,6 +82,7 @@ class DangerModeService(
    */
   fun setCapabilities(capabilities: Set<DangerModeCapability>): Result<Unit> {
     _state.value = _state.value.copy(capabilities = capabilities)
+    // TODO: The new capabilities should be validated against permissions
     return Result.success(Unit)
   }
 
