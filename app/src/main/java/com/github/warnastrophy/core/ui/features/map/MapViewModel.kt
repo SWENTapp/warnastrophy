@@ -223,16 +223,13 @@ class MapViewModel(
 /**
  * Defines a composable for the map route (Map.route).
  *
- * @param backStackEntryForMap The navigation back stack entry associated with the current route.
- *   Used to bind the ViewModel's lifecycle to this destination.
- *
  * Features:
  * - Creates an instance of `MapViewModel` using `viewModel` and a `MapViewModelFactory`.
  * - Associates the `MapViewModel` with the lifecycle of the `Map.route` destination.
  * - If `mockMapScreen` is provided (non-null), it is invoked for testing or overrides. Otherwise,
  *   the `MapScreen` composable is displayed with the `mapViewModel` as a parameter.
  *
- * @see viewModel
+ * @see ViewModel
  * @see MapViewModelFactory
  */
 class MapViewModelFactory(
@@ -242,6 +239,7 @@ class MapViewModelFactory(
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
+      @Suppress("UNCHECKED_CAST")
       return MapViewModel(gpsService, hazardsService, permissionManager) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class: $modelClass")

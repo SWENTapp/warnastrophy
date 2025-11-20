@@ -70,7 +70,6 @@ fun MapScreen(
   }
 
   val uiState by viewModel.uiState.collectAsState()
-  val hazards = uiState.hazardState.hazards
 
   val launcher =
       rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
