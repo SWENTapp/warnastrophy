@@ -27,8 +27,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.warnastrophy.core.domain.model.GpsPositionState
-import com.github.warnastrophy.core.domain.model.startBackgroundLocationService
-import com.github.warnastrophy.core.domain.model.stopBackgroundLocationService
+import com.github.warnastrophy.core.domain.model.startForegroundGpsService
+import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
@@ -236,11 +236,11 @@ fun BoxScope.MapTrackingToggle(viewModel: MapViewModel) {
         }
 
         if (!uiState.isTrackingInBackground) {
-          startBackgroundLocationService(context)
+          startForegroundGpsService(context)
           viewModel.setBackgroundTracking(true)
           Log.d("MapTrackingToggle", "Background location tracking started.")
         } else {
-          stopBackgroundLocationService(context)
+          stopForegroundGpsService(context)
           viewModel.setBackgroundTracking(false)
           Log.d("MapTrackingToggle", "Background location tracking stopped.")
         }
