@@ -97,6 +97,7 @@ fun ContactListScreen(
     contactListViewModel: ContactListViewModel = viewModel(),
     onContactClick: (Contact) -> Unit = {},
     onAddButtonClick: () -> Unit = {},
+    userId: String
 ) {
   val context = LocalContext.current
   val uiState by contactListViewModel.uiState.collectAsState()

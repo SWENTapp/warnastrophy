@@ -22,6 +22,8 @@ object AppConfig {
 
   val windowMillisMotion = 120000
 
+  val GOOGLE_MAP_LINK = "https://www.google.com/maps"
+
   object Endpoints {
     const val EVENTS_BY_AREA = "https://www.gdacs.org/gdacsapi/api/Events/geteventlist/eventsbyarea"
     const val EMM_NEWS_BY_KEY = "https://www.gdacs.org/gdacsapi/api/Emm/getemmnewsbykey"
@@ -29,4 +31,6 @@ object AppConfig {
   }
 
   const val PREF_FILE_NAME = "warnastrophy_app_prefs"
+
+  const val defaultUserId = "default_user"
 }

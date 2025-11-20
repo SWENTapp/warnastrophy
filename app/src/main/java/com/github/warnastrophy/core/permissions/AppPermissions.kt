@@ -43,6 +43,14 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
   object LocationCoarse :
       AppPermissions(key = "location_coarse", Manifest.permission.ACCESS_COARSE_LOCATION)
 
+  /** Permissions required to send emergency messages */
+  object SendEmergencySms :
+      AppPermissions(
+          key = "send_sms",
+          Manifest.permission.SEND_SMS,
+          Manifest.permission.ACCESS_FINE_LOCATION,
+      )
+
   companion object {
     /** A reusable check for SDK versions, annotated to help the compiler with smart casting. */
     @ChecksSdkIntAtLeast(parameter = 0)

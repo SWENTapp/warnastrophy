@@ -10,6 +10,7 @@ import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTa
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactViewModel
+import com.github.warnastrophy.core.util.AppConfig
 import org.junit.Before
 import org.junit.Test
 
@@ -20,8 +21,11 @@ class EditContactScreenTest : UITest() {
   override fun setUp() {
     super.setUp()
     repository = MockContactRepository()
-    val mockViewModel = EditContactViewModel(repository)
-    composeTestRule.setContent { EditContactScreen(editContactViewModel = mockViewModel) }
+    val userId = AppConfig.defaultUserId
+    val mockViewModel = EditContactViewModel(repository, userId)
+    composeTestRule.setContent {
+      EditContactScreen(editContactViewModel = mockViewModel, userId = userId)
+    }
   }
 
   @Test
