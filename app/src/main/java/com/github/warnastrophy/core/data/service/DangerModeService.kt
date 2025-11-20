@@ -3,8 +3,14 @@ package com.github.warnastrophy.core.data.service
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import kotlin.time.TimeSource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 /**
  * Service responsible for managing the Danger Mode feature within the application.
@@ -16,7 +22,17 @@ import kotlinx.coroutines.flow.asStateFlow
  * closely, and take appropriate actions to ensure user safety (contact emergency contacts, send
  * alerts, etc.).
  */
-class DangerModeService {
+class DangerModeService(
+    /**
+     * Source of the current active hazard. By default, uses [ServiceStateManager.activeHazardFlow],
+     * which is updated by [HazardChecker].
+     */
+    private val activeHazardFlow: StateFlow<Hazard?> = ServiceStateManager.activeHazardFlow,
+
+    /** Scope used internally to collect flows and manage coroutines. */
+    private val serviceScope: CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.Default),
+) {
   /* TODO: Define any dependencies, ideally as state flows, that DangerModeService might need
   /!\ Add them with default values to minimize complicated conflicts */
 
@@ -41,11 +57,12 @@ class DangerModeService {
   )
 
   private val _state = MutableStateFlow(DangerModeState())
-  val state = _state.asStateFlow()
+  val state: StateFlow<DangerModeState> = _state.asStateFlow()
 
   init {
-    // TODO: Initialize any required resources or listeners for Danger Mode
-    // Add logic to automatically activate/deactivate Danger Mode based on hazards
+    serviceScope.launch {
+      activeHazardFlow.collectLatest { activeHazard -> handleActiveHazardChanged(activeHazard) }
+    }
   }
 
   /**
@@ -87,5 +104,43 @@ class DangerModeService {
   /** Manually deactivates Danger Mode. */
   fun manualDeactivate() {
     _state.value = DangerModeState()
+  }
+
+  private fun handleActiveHazardChanged(activeHazard: Hazard?) {
+    val current = _state.value
+
+    val isManuallyActive = current.isActive && current.activatingHazard == null
+    if (isManuallyActive) {
+      return
+    }
+
+    if (activeHazard != null) {
+      if (!current.isActive || current.activatingHazard?.id != activeHazard.id) {
+        autoActivate(activeHazard)
+      }
+    } else {
+      if (current.isActive) {
+        autoDeactivate()
+      }
+    }
+  }
+
+  private fun autoActivate(hazard: Hazard) {
+    _state.value =
+        _state.value.copy(
+            isActive = true,
+            activationTime = TimeSource.Monotonic.markNow(),
+            activatingHazard = hazard,
+        )
+  }
+
+  private fun autoDeactivate() {
+    val current = _state.value
+    _state.value =
+        current.copy(
+            isActive = false,
+            activationTime = null,
+            activatingHazard = null,
+        )
   }
 }

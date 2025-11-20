@@ -1,8 +1,8 @@
+package com.github.warnastrophy
+
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.MainActivity
-import com.github.warnastrophy.WarnastrophyAppTestTags
 import org.junit.Rule
 import org.junit.Test
 
