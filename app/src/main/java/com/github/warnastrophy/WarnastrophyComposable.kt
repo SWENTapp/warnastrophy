@@ -28,6 +28,7 @@ import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -68,6 +69,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
         SignIn.route -> SignIn
+        Screen.DangerModePreferences.route -> Screen.DangerModePreferences
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
         else -> Dashboard
@@ -133,7 +135,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                 ProfileScreen(
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
-                    onLogout = { navigationActions.navigateTo(SignIn) })
+                    onLogout = { navigationActions.navigateTo(SignIn) },
+                    onDangerModePreferencesClick = {
+                      navigationActions.navigateTo(Screen.DangerModePreferences)
+                    })
               }
               composable(Screen.ContactList.route) {
                 ContactListScreen(
@@ -156,6 +161,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                       Toast.makeText(context, "Contact ID is null", Toast.LENGTH_SHORT).show()
                     }
               }
+              composable(Screen.DangerModePreferences.route) { DangerModePreferencesScreen() }
             }
       }
 }

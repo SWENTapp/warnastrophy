@@ -10,6 +10,7 @@
     <string name="edit_contact_screen_title">Edit Contact</string>
     <string name="health_card_screen_title">Emergency Card</string>
     <string name="sign_in_title">Sign In</string>
+    <string name="danger_mode_preferences_title">Danger Mode Preferences</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
 
     <!-- Dashboard Strings -->

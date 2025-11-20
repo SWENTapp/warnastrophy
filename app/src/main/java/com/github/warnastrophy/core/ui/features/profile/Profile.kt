@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,7 +62,8 @@ fun ProfileScreen(
     viewModel: SignInViewModel = viewModel(),
     onHealthCardClick: () -> Unit = {},
     onEmergencyContactsClick: () -> Unit = {},
-    onLogout: () -> Unit = {}
+    onLogout: () -> Unit = {},
+    onDangerModePreferencesClick: () -> Unit = {}
 ) {
 
   val uiState by viewModel.uiState.collectAsState()
@@ -96,6 +98,13 @@ fun ProfileScreen(
         onClick = { showLogoutDialog = true },
         modifier = Modifier.testTag(NavigationTestTags.LOGOUT),
         tintColor = MaterialTheme.colorScheme.error)
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    ProfileListItem(
+        icon = Icons.Default.Settings,
+        label = "Danger Mode Preferences",
+        onClick = onDangerModePreferencesClick)
   }
 
   if (showLogoutDialog) {
@@ -185,10 +194,9 @@ private fun ProfileListItem(
         modifier =
             Modifier.fillMaxWidth()
                 .clickable(onClick = onClick) // Makes the entire row clickable
-                .padding(vertical = 12.dp, horizontal = 0.dp),
+                .padding(vertical = 12.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween // Pushes the arrow to the end
-        ) {
+        horizontalArrangement = Arrangement.SpaceBetween) {
           // Left side: Icon and Label
           Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -208,7 +216,6 @@ private fun ProfileListItem(
     HorizontalDivider(
         color = MaterialTheme.colorScheme.outlineVariant,
         thickness = 1.dp,
-        modifier = Modifier.padding(top = 4.dp) // Adjust padding as needed
-        )
+        modifier = Modifier.padding(top = 4.dp, start = 16.dp, end = 16.dp))
   }
 }
