@@ -21,7 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 class MainActivity : ComponentActivity() {
 
   private fun showUI() {
-    setContent { MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyApp() } } }
+    setContent { MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyComposable() } } }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {

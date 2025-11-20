@@ -110,8 +110,13 @@ fun MapScreen(
   val requestPermissions: () -> Unit = {
     viewModel.onPermissionsRequestStart()
     launcher.launch(viewModel.locationPermissions.permissions)
+    launcher.launch(viewModel.foregroundPermissions.permissions)
   }
 
+  /**
+   * This effect starts or stops location updates based on whether the location permission has been
+   * granted.
+   */
   LaunchedEffect(uiState.isGranted) {
     if (uiState.isGranted) {
       viewModel.startLocationUpdate()
@@ -120,12 +125,20 @@ fun MapScreen(
     }
   }
 
+  /**
+   * When tracking is enabled, this effect is triggered by changes in the user's location. It
+   * animates the camera to center on the new position.
+   */
   LaunchedEffect(uiState.isTrackingLocation, uiState.positionState.position, uiState.isGranted) {
     if (uiState.isGranted && !uiState.isLoading && uiState.isTrackingLocation) {
       defaultAnimate(cameraPositionState, uiState.positionState.position)
     }
   }
 
+  /**
+   * Triggered when the user starts moving the map, which stops tracking the user's location. This
+   * allows the user to freely explore the map.
+   */
   LaunchedEffect(cameraPositionState.isMoving, cameraPositionState.cameraMoveStartedReason) {
     if (cameraPositionState.isMoving &&
         cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) {
@@ -153,6 +166,7 @@ fun MapScreen(
           }
         }
 
+        // Permission request card
         if (!uiState.isGranted) {
           if (uiState.isOsRequestInFlight) {
             Text(
@@ -160,16 +174,18 @@ fun MapScreen(
                 modifier = Modifier.testTag(PermissionUiTags.OS_PERMISSION_TEXT))
           } else {
             val (title, msg, showAllow) =
-                when (uiState.permissionResult) {
+                when (uiState.locationPermissionResult) {
                   is PermissionResult.PermanentlyDenied ->
                       Triple(
                           "Location blocked",
-                          "You selected 'Don't ask again'. To enable location, open Android Settings and grant permission.",
+                          "You selected “Don’t ask again”. To enable location, " +
+                              "open Android Settings and grant permission.",
                           false)
                   is PermissionResult.Denied ->
                       Triple(
                           "Location disabled",
-                          "Map require fine location permissions. You can allow location now or later in Android Settings.",
+                          "Map require fine location permissions. " +
+                              "You can allow location now or later in Android Settings.",
                           true)
                   else -> Triple("", "", false)
                 }
@@ -185,6 +201,7 @@ fun MapScreen(
                                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                                 "package:${activity.packageName}".toUri())
                             .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                    // Use the activity to start the new activity.
                     activity.startActivity(intent)
                   },
                   modifier =

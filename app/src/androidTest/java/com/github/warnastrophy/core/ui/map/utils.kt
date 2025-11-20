@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
+import android.app.Service
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.domain.model.FetcherState
 import com.github.warnastrophy.core.domain.model.GpsPositionState
@@ -97,6 +98,15 @@ class GpsServiceMock(initial: LatLng = pos) : PositionService {
 
   override fun stopLocationUpdates() {
     isLocationUpdated = false
+  }
+
+  override fun startForegroundLocationUpdates(
+      service: Service,
+      channelId: String,
+      channelName: String,
+      notificationId: Int
+  ) {
+    // No-op for mock
   }
 }
 
