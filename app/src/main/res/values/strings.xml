@@ -17,7 +17,7 @@
     <string name="no_news_yet">No news yet !</string>
     <string name="read">read</string>
     <string name="event_image_description">Event Image</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading…</string>
 
     <!-- Logout strings -->
     <string name="logout_string">Logout</string>
