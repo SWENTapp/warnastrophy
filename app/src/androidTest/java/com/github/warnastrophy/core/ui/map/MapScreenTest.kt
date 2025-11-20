@@ -13,11 +13,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -43,6 +44,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
+import kotlin.text.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
 import org.junit.Assume.assumeTrue
@@ -377,8 +379,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
     setContent()
     applyPerm(PermissionResult.Granted)
     waitForMapReadyAndAssertVisibility()
-
     composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR).assertIsDisplayed()
+
+    val dropdownbox = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN)
+    dropdownbox.assertIsNotDisplayed()
   }
 
   @Test
@@ -398,17 +402,36 @@ class MapScreenTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun searchBarShowsResultsOnInput() {
+  fun searchBarShowsResultsOnInput_verifyItemsMatchHardcodedLocations() {
     setContent()
     applyPerm(PermissionResult.Granted)
     waitForMapReadyAndAssertVisibility()
-
+    val repo = nominatimRepository as MockNominatimRepository
+    val hardcodedlocs = repo.locations
     val testInput = "Test Location"
-    val inputBarNode = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD)
-    inputBarNode.performClick()
-    inputBarNode.performTextInput(testInput)
+    val searchBarNode = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD)
 
-    val dropdown = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN)
-    dropdown.isDisplayed()
+    searchBarNode.assertIsDisplayed()
+    searchBarNode.performClick()
+    searchBarNode.performTextInput(testInput)
+
+    searchBarNode.assert(hasText(testInput))
+    val dropdownbox = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN)
+    composeTestRule.waitForIdle()
+    dropdownbox.assertIsDisplayed()
+
+    val items = composeTestRule.onAllNodesWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM)
+    items.assertCountEquals(hardcodedlocs.size)
+
+    // Fetch semantics nodes and compare text one by one with hardcoded locations
+    val semanticsList = items.fetchSemanticsNodes()
+    for (i in hardcodedlocs.indices) {
+      val nodeText =
+          semanticsList[i]
+              .config
+              .getOrNull(androidx.compose.ui.semantics.SemanticsProperties.Text)
+              ?.joinToString { it.text } ?: ""
+      org.junit.Assert.assertEquals(hardcodedlocs[i].name, nodeText)
+    }
   }
 }

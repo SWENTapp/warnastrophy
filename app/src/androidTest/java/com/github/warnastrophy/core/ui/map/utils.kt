@@ -172,8 +172,13 @@ class MockPermissionManager(
 
 class MockNominatimRepository : GeocodeRepository {
 
+  val locations =
+      listOf(
+          Location(40.7128, -74.0060, "Suvy"),
+          Location(40.0583, -74.4057, "Tolar"),
+          Location(-40.9006, 174.8860, "New Zok"))
+
   override suspend fun reverseGeocode(location: String): List<Location> {
-    return listOf(
-        Location(40.7128, -74.0060), Location(40.0583, -74.4057), Location(-40.9006, 174.8860))
+    return locations
   }
 }

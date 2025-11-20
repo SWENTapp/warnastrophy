@@ -312,19 +312,16 @@ fun SearchBar(
               focusManager.clearFocus()
             },
             modifier =
-                Modifier.fillMaxWidth()
+                Modifier.fillMaxWidth(0.75f)
                     .background(Color.White)
                     .testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN),
             properties =
                 PopupProperties(
-                    focusable = false, // <-- garder le focus sur le champ texte
-                    dismissOnClickOutside = true,
-                    dismissOnBackPress = true)) {
+                    focusable = false, dismissOnClickOutside = true, dismissOnBackPress = true)) {
               suggestions.forEachIndexed { index, item ->
                 item.name?.let { name ->
                   DropdownMenuItem(
-                      modifier =
-                          Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM + "_$index"),
+                      modifier = Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM),
                       text = { Text(name) },
                       onClick = {
                         text = name

@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.features.map
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -201,10 +202,33 @@ class MapViewModel(
         .toMap()
   }
 
+  /**
+   * Perform an asynchronous search for locations using the configured geocode repository.
+   *
+   * This function launches a coroutine in the ViewModel's scope to call
+   * [nominatimRepository.reverseGeocode] with the provided [query]. The call is logged before and
+   * after execution. If the repository call succeeds, the resulting list of locations is written to
+   * the ViewModel UI state by updating `_uiState.nominatimState`. If an exception occurs, it is
+   * caught and logged and the coroutine returns without modifying the UI state.
+   *
+   * @param query The textual search query (typically user input).
+   * @see GeocodeRepository.reverseGeocode
+   */
   fun searchLocations(query: String) {
+    Log.d("MapViewModel", "searchLocations: query = $query")
     viewModelScope.launch {
-      val results = nominatimRepository.reverseGeocode(query)
+      Log.d("MapViewModel", "searchLocations: launching search")
+
+      val results =
+          try {
+            nominatimRepository.reverseGeocode(query)
+          } catch (e: Exception) {
+            Log.d("MapViewModel", "searchLocations: error during search", e)
+            return@launch
+          }
+      Log.d("MapViewModel", "searchLocations: results = $results")
       _uiState.update { it.copy(nominatimState = results) }
+      Log.d("MapViewModel", "searchLocations: results = ${uiState.value.nominatimState}")
     }
   }
 }
