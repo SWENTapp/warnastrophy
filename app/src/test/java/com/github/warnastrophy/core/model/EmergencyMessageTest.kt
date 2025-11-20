@@ -3,12 +3,21 @@ package com.github.warnastrophy.core.model
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
 import com.github.warnastrophy.core.domain.model.Location
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import org.junit.Assert.*
 import org.junit.Test
 
 class EmergencyMessageTest {
   private val location = Location(11.0, 22.0)
+
+  private fun expectedTime(timestamp: Instant): String {
+    val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' HH:mm", Locale.ENGLISH)
+    val formattedTime = formatter.withZone(ZoneId.systemDefault()).format(timestamp)
+    return "Time: $formattedTime"
+  }
 
   @Test
   fun secondary_constructor_should_use_default_text_and_current_timestamp() {
@@ -71,7 +80,7 @@ class EmergencyMessageTest {
               appendLine()
               appendLine("Engine room is on fire")
               appendLine()
-              appendLine("Time: October 27, 2023 at 12:30")
+              appendLine(expectedTime(timestamp))
               appendLine()
               appendLine("Location:")
               appendLine("- Latitude: 48.8584")
@@ -102,7 +111,7 @@ class EmergencyMessageTest {
               appendLine()
               appendLine("Medical assistance required")
               appendLine()
-              appendLine("Time: October 27, 2023 at 12:30")
+              appendLine(expectedTime(timestamp))
               appendLine()
               appendLine("Location:")
               appendLine("- Latitude: 48.8584")
