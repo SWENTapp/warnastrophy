@@ -11,7 +11,6 @@
  */
 package com.github.warnastrophy.core.ui.repository
 
-import android.util.Log
 import com.github.warnastrophy.core.domain.model.Location
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -119,7 +118,6 @@ class NominatimRepository() : GeocodeRepository {
   private suspend fun httpGet(urlStr: String): String =
       withContext(Dispatchers.IO) {
         val bool = isRateLimited()
-        Log.d(TAG, "httpGet: isRateLimited = $bool")
 
         if (bool) {
           return@withContext ""
@@ -130,7 +128,6 @@ class NominatimRepository() : GeocodeRepository {
             (url.openConnection() as HttpURLConnection).apply {
               requestMethod = "GET"
               setRequestProperty("Accept-Language", "en")
-              // Identifie explicitement l'application (éviter les User-Agents génériques)
               setRequestProperty(
                   "User-Agent", "WarnAStrophyApp/1.0 (+https://github.com/ssidimoh694)")
               setRequestProperty("Referer", referer)
@@ -157,7 +154,6 @@ class NominatimRepository() : GeocodeRepository {
    * @return A list of parsed [Location] objects.
    */
   private fun decodeLocation(jsonStr: String): List<Location> {
-    Log.d(TAG, "decodeLocation: jsonStr = $jsonStr")
     if (jsonStr.isEmpty()) {
       return emptyList()
     }
@@ -194,10 +190,9 @@ class NominatimRepository() : GeocodeRepository {
       return false
     }
     val timeSinceLastQuery = currentTimestamp - lastQueryTimestamp!!
-    lastQueryTimestamp = currentTimestamp
 
-    Log.d(TAG, "isRateLimited: timeSinceLastQuery = $timeSinceLastQuery ms")
     if (timeSinceLastQuery < maxRateMs) {
+      lastQueryTimestamp = currentTimestamp
       return true
     } else {
       return false

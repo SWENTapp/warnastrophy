@@ -132,8 +132,6 @@ fun MapScreen(
       viewModel.setTracking(false)
     }
   }
-
-  // Box parent capte les taps partout et clearFocus() — focusManager lu ici (composable)
   Box(
       modifier =
           Modifier.fillMaxSize().pointerInput(Unit) {
