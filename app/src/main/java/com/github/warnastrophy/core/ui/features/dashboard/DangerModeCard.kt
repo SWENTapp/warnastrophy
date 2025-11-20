@@ -100,7 +100,7 @@ fun DangerModeCard(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp)
 
-            Switch(
+            DangerModeSwitch(
                 checked = isDangerModeEnabled,
                 viewModel = viewModel,
                 modifier = modifier.testTag(DangerModeTestTags.SWITCH))
@@ -223,7 +223,7 @@ private fun DangerColorBox(
 }
 
 @Composable
-private fun Switch(
+private fun DangerModeSwitch(
     checked: Boolean,
     viewModel: DangerModeCardViewModel,
     modifier: Modifier = Modifier

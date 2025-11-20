@@ -189,7 +189,7 @@ class GpsService(
       channelName: String,
       notificationId: Int
   ) {
-    // create channel for O+
+    // Create notification channel for foreground service
     val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
     val nm = service.getSystemService(NotificationManager::class.java)
     nm?.createNotificationChannel(channel)
