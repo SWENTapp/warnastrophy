@@ -29,12 +29,20 @@ class SmsServiceTests {
           additionalInfo = "Sector 7G")
   val expectedString =
       """
-            Engine room is on fire
-            
-            - Time: 2023-10-27T10:30:00Z
-            - Location: 48.8584, 2.2945
-            - Additional Info: Sector 7G
-        """
+                🚨 EMERGENCY MESSAGE 🚨
+    
+                Engine room is on fire
+    
+                Time: October 27, 2023 at 12:30
+    
+                Location:
+                - Latitude: 48.8584
+                - Longitude: 2.2945
+                Map: https://www.google.com/maps?q=48.8584,2.2945
+    
+                Additional information:
+                Sector 7G
+            """
           .trimIndent()
 
   @Before
@@ -55,6 +63,7 @@ class SmsServiceTests {
   }
 
   @Test
+  @Suppress("DEPRECATION")
   @Config(sdk = [Build.VERSION_CODES.R]) // API 30
   fun sendSms_callsSendTextMessage_API_below_S() {
     val mockedStaticSmsManager = Mockito.mockStatic(SmsManager::class.java)
