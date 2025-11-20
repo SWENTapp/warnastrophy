@@ -28,22 +28,22 @@ class SmsServiceTests {
           location = Location(48.8584, 2.2945),
           additionalInfo = "Sector 7G")
   val expectedString =
-      """
-                🚨 EMERGENCY MESSAGE 🚨
-    
-                Engine room is on fire
-    
-                Time: October 27, 2023 at 12:30
-    
-                Location:
-                - Latitude: 48.8584
-                - Longitude: 2.2945
-                Map: https://www.google.com/maps?q=48.8584,2.2945
-    
-                Additional information:
-                Sector 7G
-            """
-          .trimIndent()
+      buildString {
+            appendLine("🚨 EMERGENCY MESSAGE 🚨")
+            appendLine()
+            appendLine("Engine room is on fire")
+            appendLine()
+            appendLine("Time: October 27, 2023 at 12:30")
+            appendLine()
+            appendLine("Location:")
+            appendLine("- Latitude: 48.8584")
+            appendLine("- Longitude: 2.2945")
+            appendLine("Map: https://www.google.com/maps?q=48.8584,2.2945")
+            appendLine()
+            appendLine("Additional information:")
+            appendLine("Sector 7G")
+          }
+          .trimEnd()
 
   @Before
   fun setUp() {
