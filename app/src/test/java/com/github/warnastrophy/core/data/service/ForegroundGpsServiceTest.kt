@@ -17,7 +17,6 @@ import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewMode
 import com.google.android.gms.location.FusedLocationProviderClient
 import io.mockk.mockk
 import io.mockk.verify
-import kotlin.text.compareTo
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -165,7 +164,6 @@ class ForegroundGpsServiceTest {
       val shadowClass = shadowSvc::class.java
       val intFields = shadowClass.declaredFields.filter { it.type == Int::class.javaPrimitiveType }
 
-      var found = false
       for (f in intFields) {
         try {
           f.isAccessible = true
@@ -175,7 +173,6 @@ class ForegroundGpsServiceTest {
                 "Service should be started with LOCATION foreground type",
                 expectedType,
                 f.getInt(shadowSvc))
-            found = true
             break
           }
         } catch (_: Exception) {
