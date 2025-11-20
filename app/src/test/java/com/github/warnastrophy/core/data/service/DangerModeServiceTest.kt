@@ -215,7 +215,7 @@ class DangerModeServiceTest {
 
     val state = service.state.value
     assertTrue(state.isActive)
-    assertNull( service.events.value)
+    assertNull(service.events.value)
   }
 
   /**
