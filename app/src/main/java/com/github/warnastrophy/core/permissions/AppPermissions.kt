@@ -43,6 +43,20 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
   object LocationCoarse :
       AppPermissions(key = "location_coarse", Manifest.permission.ACCESS_COARSE_LOCATION)
 
+  /**
+   * Foreground service location permission introduced on Android 14 (API 34). Request this
+   * separately when starting a location foreground service on SDK 34+.
+   */
+  object ForegroundServiceLocation :
+      AppPermissions(
+          key = "foreground_service_location",
+          if (isAtLeastSdkVersion(34)) {
+            Manifest.permission.FOREGROUND_SERVICE_LOCATION
+            Manifest.permission.POST_NOTIFICATIONS
+          } else {
+            null
+          })
+
   companion object {
     /** A reusable check for SDK versions, annotated to help the compiler with smart casting. */
     @ChecksSdkIntAtLeast(parameter = 0)

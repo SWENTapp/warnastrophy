@@ -1,13 +1,23 @@
 package com.github.warnastrophy.core.domain.model
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat.startForeground
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
+import kotlin.text.compareTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -48,9 +58,19 @@ interface PositionService {
 
   /** Releases resources used by this service. Call when the service is no longer needed. */
   fun stopLocationUpdates()
+
+  fun startForegroundLocationUpdates(
+      service: Service,
+      channelId: String = DEFAULT_CHANNEL_ID,
+      channelName: String = DEFAULT_CHANNEL_NAME,
+      notificationId: Int = DEFAULT_NOTIFICATION_ID
+  )
 }
 
 const val TAG = "GpsService"
+private const val DEFAULT_CHANNEL_ID = "gps_foreground_channel"
+private const val DEFAULT_CHANNEL_NAME = "GPS tracking"
+private const val DEFAULT_NOTIFICATION_ID = 101
 
 /**
  * Implementation of the PositionService interface, handling GPS position updates and state.
@@ -162,6 +182,44 @@ class GpsService(
 
   override fun stopLocationUpdates() {
     close()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.Q)
+  @SuppressLint("MissingPermission")
+  override fun startForegroundLocationUpdates(
+      service: Service,
+      channelId: String,
+      channelName: String,
+      notificationId: Int
+  ) {
+    // create channel for O+
+    val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
+    val nm = service.getSystemService(NotificationManager::class.java)
+    nm?.createNotificationChannel(channel)
+    Log.d("MapTrackingToggle", "Notification channel created for foreground GPS service.")
+
+    // Pending intent to open app when the user taps the notification
+    val launchIntent = service.packageManager.getLaunchIntentForPackage(service.packageName)
+    val pendingIntent =
+        PendingIntent.getActivity(
+            service,
+            0,
+            launchIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+    val notification =
+        NotificationCompat.Builder(service, channelId)
+            .setContentTitle("Location tracking active")
+            .setContentText("Your location is being monitored")
+            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .build()
+
+    // Promote the provided Service to foreground
+    startForeground(
+        service, notificationId, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
   }
 
   /**

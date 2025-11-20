@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.ui.features.map
 
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.warnastrophy.core.domain.model.GpsPositionState
+import com.github.warnastrophy.core.domain.model.startBackgroundLocationService
+import com.github.warnastrophy.core.domain.model.stopBackgroundLocationService
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
@@ -77,6 +80,7 @@ fun MapScreen(
   val requestPermissions: () -> Unit = {
     viewModel.onPermissionsRequestStart()
     launcher.launch(viewModel.locationPermissions.permissions)
+    launcher.launch(viewModel.foregroundPermissions.permissions)
   }
 
   /**
@@ -120,6 +124,7 @@ fun MapScreen(
       TrackLocationButton(uiState.isTrackingLocation) {
         viewModel.onTrackLocationClicked(cameraPositionState)
       }
+      MapTrackingToggle(viewModel)
     }
 
     // Permission request card
@@ -130,7 +135,7 @@ fun MapScreen(
             modifier = Modifier.testTag(PermissionUiTags.OS_PERMISSION_TEXT))
       } else {
         val (title, msg, showAllow) =
-            when (uiState.permissionResult) {
+            when (uiState.locationPermissionResult) {
               is PermissionResult.PermanentlyDenied ->
                   Triple(
                       "Location blocked",
@@ -209,6 +214,49 @@ fun HazardsGoogleMap(
               mapToolbarEnabled = false),
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
         hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
+      }
+}
+
+/**
+ * A button that toggles background location tracking.
+ *
+ * @param viewModel The ViewModel managing the map state and background tracking.
+ */
+@Composable
+fun BoxScope.MapTrackingToggle(viewModel: MapViewModel) {
+  val context = LocalContext.current
+  val uiState by viewModel.uiState.collectAsState()
+
+  FloatingActionButton(
+      onClick = {
+        if (!uiState.isGranted) {
+          // trigger permission flow from Activity/host (ViewModel only signals state)
+          viewModel.onPermissionsRequestStart()
+          return@FloatingActionButton
+        }
+
+        if (!uiState.isTrackingInBackground) {
+          startBackgroundLocationService(context)
+          viewModel.setBackgroundTracking(true)
+          Log.d("MapTrackingToggle", "Background location tracking started.")
+        } else {
+          stopBackgroundLocationService(context)
+          viewModel.setBackgroundTracking(false)
+          Log.d("MapTrackingToggle", "Background location tracking stopped.")
+        }
+      },
+      modifier =
+          Modifier.align(Alignment.BottomStart)
+              .padding(16.dp)
+              .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
+        Icon(
+            imageVector = Icons.Outlined.LocationOn,
+            contentDescription =
+                if (!uiState.isTrackingInBackground) {
+                  "Start background location tracking"
+                } else {
+                  "Stop background location tracking"
+                })
       }
 }
 
