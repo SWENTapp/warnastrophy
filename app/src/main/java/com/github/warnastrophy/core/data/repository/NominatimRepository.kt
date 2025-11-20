@@ -16,11 +16,11 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.text.compareTo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import kotlin.text.compareTo
 
 val TAG = "NominatimLocationRepository : "
 
@@ -191,15 +191,16 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
     val currentTimestamp = System.currentTimeMillis()
     val last = lastQueryTimestamp
 
-    val isLimited = if (last == null) {
-      lastQueryTimestamp = currentTimestamp
-      false
-    } else {
-      val timeSinceLastQuery = currentTimestamp - last
-      val limited = timeSinceLastQuery < maxRateMs
-      if (limited) lastQueryTimestamp = currentTimestamp
-      limited
-    }
+    val isLimited =
+        if (last == null) {
+          lastQueryTimestamp = currentTimestamp
+          false
+        } else {
+          val timeSinceLastQuery = currentTimestamp - last
+          val limited = timeSinceLastQuery < maxRateMs
+          if (limited) lastQueryTimestamp = currentTimestamp
+          limited
+        }
 
     return isLimited
   }
