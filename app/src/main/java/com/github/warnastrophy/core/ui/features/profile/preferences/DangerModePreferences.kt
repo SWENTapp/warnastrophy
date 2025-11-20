@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.util.findActivity
@@ -55,11 +54,16 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
           contract = ActivityResultContracts.RequestMultiplePermissions(),
           onResult = { viewModel.onPermissionsResult(activity = activity) })
 
-  fun requestPermission(perms: AppPermissions) {
-    println("Requesting permissions: $perms")
-    viewModel.onPermissionsRequestStart()
-    println("Launching permissions request: $perms")
-    launcher.launch(perms.permissions)
+  fun requestPermission(action: PendingAction) {
+    val permSet =
+        when (action) {
+          PendingAction.TOGGLE_ALERT_MODE -> viewModel.alertModePermissions
+          PendingAction.TOGGLE_INACTIVITY_DETECTION -> viewModel.inactivityDetectionPermissions
+          PendingAction.TOGGLE_AUTOMATIC_SMS -> viewModel.smsPermissions
+        }
+
+    viewModel.onPermissionsRequestStart(action = action)
+    launcher.launch(permSet.permissions)
   }
 
   fun openAppSettings() {
@@ -82,7 +86,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
               if (isChecked) {
                 when (uiState.alertModePermissionResult) {
                   is PermissionResult.Granted -> viewModel.onAlertModeToggled(true)
-                  is PermissionResult.Denied -> requestPermission(viewModel.alertModePermissions)
+                  is PermissionResult.Denied -> requestPermission(PendingAction.TOGGLE_ALERT_MODE)
                   is PermissionResult.PermanentlyDenied -> openAppSettings()
                 }
               } else {
@@ -103,7 +107,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                 when (uiState.inactivityDetectionPermissionResult) {
                   is PermissionResult.Granted -> viewModel.onInactivityDetectionToggled(true)
                   is PermissionResult.Denied ->
-                      requestPermission(viewModel.inactivityDetectionPermissions)
+                      requestPermission(PendingAction.TOGGLE_INACTIVITY_DETECTION)
                   is PermissionResult.PermanentlyDenied -> openAppSettings()
                 }
               } else {
@@ -122,7 +126,8 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
               if (isChecked) {
                 when (uiState.smsPermissionResult) {
                   is PermissionResult.Granted -> viewModel.onAutomaticSmsToggled(true)
-                  is PermissionResult.Denied -> requestPermission(viewModel.smsPermissions)
+                  is PermissionResult.Denied ->
+                      requestPermission(PendingAction.TOGGLE_AUTOMATIC_SMS)
                   is PermissionResult.PermanentlyDenied -> openAppSettings()
                 }
               } else {
@@ -134,6 +139,24 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
       }
 }
 
+/**
+ * A composable that displays a preference item with a title, description, and a switch. This is
+ * used to create toggleable settings within a preferences screen.
+ *
+ * @param title The main title of the preference item.
+ * @param description The detailed description explaining what the preference does.
+ * @param checked The current state of the switch (true for on, false for off).
+ * @param onCheckedChange A lambda function that is invoked when the user toggles the switch. It
+ *   receives the new checked state as a boolean.
+ * @param modifier The modifier to be applied to the `Row` container of the preference item.
+ * @param enabled A boolean to control the enabled state of the entire preference item. If false,
+ *   the item will be visually faded and the switch will be disabled. Defaults to true.
+ * @param extraDescription An optional string for an additional description, which is displayed in
+ *   bold below the main description. Useful for warnings or important notes.
+ * @param isRequestInFlight A boolean to indicate if an asynchronous operation (like a permission
+ *   request) is in progress. When true, the switch is disabled to prevent conflicting user actions,
+ *   but the text remains fully opaque if `enabled` is true.
+ */
 @Composable
 private fun PreferenceItem(
     title: String,

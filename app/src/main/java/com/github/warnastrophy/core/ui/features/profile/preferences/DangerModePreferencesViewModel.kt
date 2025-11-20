@@ -9,6 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+enum class PendingAction {
+  TOGGLE_ALERT_MODE,
+  TOGGLE_INACTIVITY_DETECTION,
+  TOGGLE_AUTOMATIC_SMS
+}
+
 /**
  * UI state for the Danger Mode Preferences screen.
  *
@@ -25,8 +31,12 @@ data class DangerModePreferencesUiState(
     val alertModePermissionResult: PermissionResult,
     val inactivityDetectionPermissionResult: PermissionResult,
     val smsPermissionResult: PermissionResult,
-    val isOsRequestInFlight: Boolean = false
-)
+    val pendingPermissionAction: PendingAction? = null
+) {
+  /** A computed property that is true if a permission request is in flight. */
+  val isOsRequestInFlight: Boolean
+    get() = pendingPermissionAction != null
+}
 
 /**
  * ViewModel for the Danger Mode Preferences screen. It handles the business logic for toggling
@@ -35,6 +45,7 @@ data class DangerModePreferencesUiState(
 class DangerModePreferencesViewModel(private val permissionManager: PermissionManager) :
     ViewModel() {
   val alertModePermissions = AppPermissions.AlertModePermission
+
   // TODO Add set for Inactivity Detection if necessary or remove this one. For the moment it uses
   // alertModePermissions.
   val inactivityDetectionPermissions = alertModePermissions
@@ -71,23 +82,48 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
     _uiState.update { it.copy(automaticSmsEnabled = enabled) }
   }
 
-  fun onPermissionsRequestStart() {
-    _uiState.update { it.copy(isOsRequestInFlight = true) }
+  fun onPermissionsRequestStart(action: PendingAction) {
+    _uiState.update { it.copy(pendingPermissionAction = action) }
   }
 
   /**
    * Updates the permission results in the UI state after a system permission dialog has been shown.
    */
   fun onPermissionsResult(activity: Activity) {
+    val newAlertModeResult = permissionManager.getPermissionResult(alertModePermissions, activity)
+    val newInactivityResult =
+        permissionManager.getPermissionResult(inactivityDetectionPermissions, activity)
+    val newSmsResult = permissionManager.getPermissionResult(smsPermissions, activity)
+
     _uiState.update {
       it.copy(
-          alertModePermissionResult =
-              permissionManager.getPermissionResult(alertModePermissions, activity),
-          inactivityDetectionPermissionResult =
-              permissionManager.getPermissionResult(inactivityDetectionPermissions, activity),
-          smsPermissionResult =
-              permissionManager.getPermissionResult(AppPermissions.SendEmergencySms, activity),
-          isOsRequestInFlight = false)
+          alertModePermissionResult = newAlertModeResult,
+          inactivityDetectionPermissionResult = newInactivityResult,
+          smsPermissionResult = newSmsResult,
+      )
     }
+
+    when (_uiState.value.pendingPermissionAction) {
+      PendingAction.TOGGLE_ALERT_MODE -> {
+        if (newAlertModeResult is PermissionResult.Granted) {
+          onAlertModeToggled(true)
+        }
+      }
+      PendingAction.TOGGLE_INACTIVITY_DETECTION -> {
+        if (newInactivityResult is PermissionResult.Granted) {
+          onInactivityDetectionToggled(true)
+        }
+      }
+      PendingAction.TOGGLE_AUTOMATIC_SMS -> {
+        if (newSmsResult is PermissionResult.Granted) {
+          onAutomaticSmsToggled(true)
+        }
+      }
+      null -> {
+        // No action was pending
+      }
+    }
+
+    _uiState.update { it.copy(pendingPermissionAction = null) }
   }
 }
