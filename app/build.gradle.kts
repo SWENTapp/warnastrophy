@@ -8,6 +8,9 @@ plugins {
     alias(libs.plugins.sonar)
     id("com.google.gms.google-services")
     id("jacoco")
+    id("com.google.devtools.ksp")
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 val localProps = Properties()
@@ -40,12 +43,19 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.github.warnastrophy.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
 
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = project.findProperty("GOOGLE_MAPS_API_KEY") ?: ""
+
+        // Add GitHub client ID as BuildConfig Field
+        buildConfigField(
+            "String",
+            "GITHUB_CLIENT_ID",
+            "\"${localProps.getProperty("github.client.id", "")}\""
+        )
 
         setProperty("archivesBaseName", "$applicationId-v$versionName($versionCode)")
     }
@@ -108,6 +118,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -199,6 +210,9 @@ dependencies {
     testImplementation(libs.junit)
     globalTestImplementation(libs.androidx.junit)
     globalTestImplementation(libs.androidx.espresso.core)
+    globalTestImplementation(libs.hamcrest)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
 
     // ------------- Jetpack Compose ------------------
     val composeBom = platform(libs.compose.bom)
@@ -257,6 +271,12 @@ dependencies {
     // --------------- DataStore -------------------
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    // --------------- OkHttp -------------------
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.okhttp.mockwebserver)
+
+
     // test mock
     androidTestImplementation("io.mockk:mockk-android:1.13.8")
     testImplementation(libs.mockk)
@@ -280,6 +300,15 @@ dependencies {
     testImplementation("androidx.test.espresso:espresso-intents:3.5.0")
     androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.0")
     testImplementation(kotlin("test"))
+
+    // Hilt
+    implementation(libs.dagger.hilt.android)
+    kapt(libs.dagger.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.51.1")
+    testImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    kaptTest("com.google.dagger:hilt-android-compiler:2.51.1")
 }
 
 tasks.withType<Test> {
