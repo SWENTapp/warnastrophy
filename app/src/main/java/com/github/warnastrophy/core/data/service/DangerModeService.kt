@@ -16,6 +16,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+enum class DangerLevel {
+  LOW,
+  MEDIUM,
+  HIGH,
+  CRITICAL
+}
+
 /**
  * Service responsible for managing the Danger Mode feature within the application.
  *
@@ -58,7 +65,7 @@ class DangerModeService(
       /** The capabilities (what can it monitor, take which actions) given to danger mode */
       val capabilities: Set<DangerModeCapability> = emptySet(),
       /** Current danger level, can be used in communication */
-      val dangerLevel: Int? = 0,
+      val dangerLevel: DangerLevel = DangerLevel.LOW
   )
 
   sealed class DangerModeEvent {
@@ -86,7 +93,16 @@ class DangerModeService(
   }
 
   /**
-   * Sets the capabilities for Danger Mode.
+   * This function sets the capabilities for Danger Mode after validating that the necessary
+   * permissions are granted.
+   *
+   * If any required permission is missing, it returns a failure [Result] with an
+   * [IllegalStateException] indicating which permission is missing.
+   *
+   * If all permissions are granted, it updates the Danger Mode state with the new capabilities and
+   * returns a successful [Result].
+   *
+   * Note: The CALL capability is currently not supported and will always result in a failure.
    *
    * @param capabilities The set of capabilities to enable.
    */
@@ -104,7 +120,7 @@ class DangerModeService(
           when (cap) {
             DangerModeCapability.LOCATION -> AppPermissions.LocationFine
             DangerModeCapability.SMS -> AppPermissions.SendEmergencySms
-            DangerModeCapability.CALL -> null // already blocked
+            DangerModeCapability.CALL -> null
           }
 
       requiredPermission?.let { perm ->
@@ -128,8 +144,9 @@ class DangerModeService(
    *
    * @param level The danger level to set, coerced to be in [0, 3]
    */
-  fun setDangerLevel(level: Int) {
-    _state.value = _state.value.copy(dangerLevel = level.coerceIn(0, 3))
+  fun setDangerLevel(level: DangerLevel) {
+    _state.value =
+        _state.value.copy(dangerLevel = level.coerceIn(DangerLevel.LOW, DangerLevel.CRITICAL))
   }
 
   /** Manually activates Danger Mode. */
@@ -182,9 +199,5 @@ class DangerModeService(
             activationTime = null,
             activatingHazard = null,
         )
-  }
-
-  private fun sendEvent(event: DangerModeEvent) {
-    _events.value = event
   }
 }

@@ -6,7 +6,6 @@ import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
-import junit.framework.TestCase
 import kotlin.test.assertNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,8 +67,8 @@ class DangerModeServiceTest {
 
   @Test
   fun basicSetsWork() {
-    service.setDangerLevel(3)
-    assertEquals(3, service.state.value.dangerLevel)
+    service.setDangerLevel(DangerLevel.CRITICAL)
+    assertEquals(DangerLevel.CRITICAL, service.state.value.dangerLevel)
 
     service.setPreset(DangerModePreset.CLIMBING_MODE)
     assertEquals(DangerModePreset.CLIMBING_MODE, service.state.value.preset)
@@ -113,8 +112,8 @@ class DangerModeServiceTest {
     advanceUntilIdle()
 
     val state = service.state.value
-    TestCase.assertTrue(state.isActive)
-    TestCase.assertEquals(hazard, state.activatingHazard)
+    assertTrue(state.isActive)
+    assertEquals(hazard, state.activatingHazard)
   }
 
   /**
@@ -129,14 +128,14 @@ class DangerModeServiceTest {
     val hazard = Hazard(id = 1, alertLevel = 3.0)
     hazardFlow.value = hazard
     advanceUntilIdle()
-    TestCase.assertTrue(service.state.value.isActive)
+    assertTrue(service.state.value.isActive)
 
     hazardFlow.value = null
     advanceUntilIdle()
 
     val state = service.state.value
-    TestCase.assertFalse(state.isActive)
-    TestCase.assertEquals(null, state.activatingHazard)
+    assertFalse(state.isActive)
+    assertNull(state.activatingHazard)
   }
 
   /**
@@ -150,23 +149,23 @@ class DangerModeServiceTest {
 
     service.manualActivate()
     advanceUntilIdle()
-    TestCase.assertTrue(service.state.value.isActive)
-    TestCase.assertEquals(null, service.state.value.activatingHazard)
+    assertTrue(service.state.value.isActive)
+    assertNull(service.state.value.activatingHazard)
 
     val hazard = Hazard(id = 1, alertLevel = 3.0)
     hazardFlow.value = hazard
     advanceUntilIdle()
 
     val stateAfterHazard = service.state.value
-    TestCase.assertTrue(stateAfterHazard.isActive)
-    TestCase.assertEquals(null, stateAfterHazard.activatingHazard)
+    assertTrue(stateAfterHazard.isActive)
+    assertNull(stateAfterHazard.activatingHazard)
 
     hazardFlow.value = null
     advanceUntilIdle()
 
     val finalState = service.state.value
-    TestCase.assertTrue(finalState.isActive)
-    TestCase.assertEquals(null, finalState.activatingHazard)
+    assertTrue(finalState.isActive)
+    assertNull(finalState.activatingHazard)
   }
 
   /**
@@ -187,14 +186,14 @@ class DangerModeServiceTest {
     val caps = setOf(DangerModeCapability.LOCATION)
     service.setCapabilities(caps)
 
-    service.setDangerLevel(5) // coerced to 3
+    service.setDangerLevel(DangerLevel.CRITICAL) // coerced to 3
 
     advanceUntilIdle()
     val state = service.state.value
 
-    TestCase.assertEquals(DangerModePreset.HIKING_MODE, state.preset)
+    assertEquals(DangerModePreset.HIKING_MODE, state.preset)
     assertEquals(caps, state.capabilities)
-    TestCase.assertEquals(3, state.dangerLevel)
+    assertEquals(DangerLevel.CRITICAL, state.dangerLevel)
   }
 
   /**
@@ -215,8 +214,8 @@ class DangerModeServiceTest {
     advanceUntilIdle()
 
     val state = service.state.value
-    TestCase.assertTrue(state.isActive)
-    TestCase.assertEquals(null, service.events.value)
+    assertTrue(state.isActive)
+    assertNull( service.events.value)
   }
 
   /**
@@ -239,9 +238,9 @@ class DangerModeServiceTest {
     advanceUntilIdle()
 
     val state = service.state.value
-    TestCase.assertTrue(state.isActive)
-    TestCase.assertEquals(hazard, state.activatingHazard)
-    TestCase.assertEquals(null, service.events.value)
+    assertTrue(state.isActive)
+    assertEquals(hazard, state.activatingHazard)
+    assertNull(service.events.value)
   }
 
   /**
