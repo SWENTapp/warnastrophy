@@ -3,12 +3,21 @@ package com.github.warnastrophy.core.model
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
 import com.github.warnastrophy.core.domain.model.Location
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import org.junit.Assert.*
 import org.junit.Test
 
 class EmergencyMessageTest {
   private val location = Location(11.0, 22.0)
+
+  private fun expectedTime(timestamp: Instant): String {
+    val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' HH:mm", Locale.ENGLISH)
+    val formattedTime = formatter.withZone(ZoneId.systemDefault()).format(timestamp)
+    return "Time: $formattedTime"
+  }
 
   @Test
   fun secondary_constructor_should_use_default_text_and_current_timestamp() {
@@ -66,14 +75,22 @@ class EmergencyMessageTest {
             location = Location(48.8584, 2.2945),
             additionalInfo = "Sector 7G")
     val expectedString =
-        """
-            Engine room is on fire
-            
-            - Time: 2023-10-27T10:30:00Z
-            - Location: 48.8584, 2.2945
-            - Additional Info: Sector 7G
-        """
-            .trimIndent()
+        buildString {
+              appendLine("EMERGENCY MESSAGE")
+              appendLine()
+              appendLine("Engine room is on fire")
+              appendLine()
+              appendLine(expectedTime(timestamp))
+              appendLine()
+              appendLine("Location:")
+              appendLine("- Latitude: 48.8584")
+              appendLine("- Longitude: 2.2945")
+              appendLine("Map: https://www.google.com/maps?q=48.8584,2.2945")
+              appendLine()
+              appendLine("Additional information:")
+              appendLine("Sector 7G")
+            }
+            .trimEnd()
 
     assertEquals(expectedString, message.toStringMessage())
   }
@@ -89,14 +106,19 @@ class EmergencyMessageTest {
             additionalInfo = null // Explicitly null
             )
     val expectedString =
-        """
-            Medical assistance required
-            
-            - Time: 2023-10-27T10:30:00Z
-            - Location: 48.8584, 2.2945
-            
-        """
-            .trimIndent()
+        buildString {
+              appendLine("EMERGENCY MESSAGE")
+              appendLine()
+              appendLine("Medical assistance required")
+              appendLine()
+              appendLine(expectedTime(timestamp))
+              appendLine()
+              appendLine("Location:")
+              appendLine("- Latitude: 48.8584")
+              appendLine("- Longitude: 2.2945")
+              appendLine("Map: https://www.google.com/maps?q=48.8584,2.2945")
+            }
+            .trimEnd()
 
     assertEquals(expectedString, message.toStringMessage())
   }

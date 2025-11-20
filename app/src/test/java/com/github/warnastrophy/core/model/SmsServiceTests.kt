@@ -5,6 +5,9 @@ import com.github.warnastrophy.core.domain.model.EmergencyMessage
 import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.SmsManagerSender
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,15 +30,28 @@ class SmsServiceTests {
           timestamp = Instant.parse("2023-10-27T10:30:00Z"),
           location = Location(48.8584, 2.2945),
           additionalInfo = "Sector 7G")
+
+  private val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' HH:mm", Locale.ENGLISH)
+  private val formattedTime = formatter.withZone(ZoneId.systemDefault()).format(message.timestamp)
+  private val expectedTimeLine = "Time: $formattedTime"
+
   val expectedString =
-      """
-            Engine room is on fire
-            
-            - Time: 2023-10-27T10:30:00Z
-            - Location: 48.8584, 2.2945
-            - Additional Info: Sector 7G
-        """
-          .trimIndent()
+      buildString {
+            appendLine("EMERGENCY MESSAGE")
+            appendLine()
+            appendLine("Engine room is on fire")
+            appendLine()
+            appendLine(expectedTimeLine)
+            appendLine()
+            appendLine("Location:")
+            appendLine("- Latitude: 48.8584")
+            appendLine("- Longitude: 2.2945")
+            appendLine("Map: https://www.google.com/maps?q=48.8584,2.2945")
+            appendLine()
+            appendLine("Additional information:")
+            appendLine("Sector 7G")
+          }
+          .trimEnd()
 
   @Before
   fun setUp() {
@@ -55,6 +71,7 @@ class SmsServiceTests {
   }
 
   @Test
+  @Suppress("DEPRECATION")
   @Config(sdk = [Build.VERSION_CODES.R]) // API 30
   fun sendSms_callsSendTextMessage_API_below_S() {
     val mockedStaticSmsManager = Mockito.mockStatic(SmsManager::class.java)
