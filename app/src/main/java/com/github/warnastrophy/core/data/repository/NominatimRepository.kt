@@ -16,6 +16,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -23,12 +24,12 @@ import org.json.JSONArray
 val TAG = "NominatimLocationRepository : "
 
 /**
- * Simple abstraction for a geocoding repository.
+ * Functional abstraction for a geocoding repository.
  *
  * Implementations should provide means to resolve a textual location query into a list of
  * [Location] domain objects.
  */
-interface GeocodeRepository {
+fun interface GeocodeRepository {
   /**
    * Perform a reverse geocode or search for the given textual [location] and return a list of
    * matching [Location] objects.
@@ -51,8 +52,11 @@ interface GeocodeRepository {
  * - Applies a simple local rate limiter controlled by [maxRateMs].
  *
  * Note: This class performs synchronous network operations inside a coroutine context.
+ *
+ * @param ioDispatcher Dispatcher used for IO-bound work (injectable for tests).
  */
-class NominatimRepository() : GeocodeRepository {
+class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO) :
+    GeocodeRepository {
 
   /** HTTP Referer header value to identify the application source. */
   private val referer = "https://github.com/ssidimoh694"
@@ -106,7 +110,7 @@ class NominatimRepository() : GeocodeRepository {
   }
 
   /**
-   * Perform an HTTP GET request to the provided [urlStr] on the IO dispatcher.
+   * Perform an HTTP GET request to the provided [urlStr] on the injected IO dispatcher.
    *
    * This method checks the local rate limiter via [isRateLimited]. If the call is rate limited, it
    * returns an empty string immediately. Otherwise it opens a connection, sets appropriate request
@@ -116,7 +120,7 @@ class NominatimRepository() : GeocodeRepository {
    * @return The response body as a string, or an empty string if rate limited.
    */
   private suspend fun httpGet(urlStr: String): String =
-      withContext(Dispatchers.IO) {
+      withContext(ioDispatcher) {
         val bool = isRateLimited()
 
         if (bool) {
@@ -128,8 +132,7 @@ class NominatimRepository() : GeocodeRepository {
             (url.openConnection() as HttpURLConnection).apply {
               requestMethod = "GET"
               setRequestProperty("Accept-Language", "en")
-              setRequestProperty(
-                  "User-Agent", "WarnAStrophyApp/1.0 (+https://github.com/ssidimoh694)")
+              setRequestProperty("User-Agent", "WarnAStrophyApp/1.0 (+${referer}")
               setRequestProperty("Referer", referer)
             }
         val message: String

@@ -240,6 +240,7 @@ fun HazardsGoogleMap(
       }
 }
 
+// kotlin
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
@@ -264,84 +265,110 @@ fun SearchBar(
 
   Box(modifier = modifier.fillMaxWidth(0.75f).testTag(MapScreenTestTags.SEARCH_BAR)) {
     Column {
-      Row(
-          modifier =
-              Modifier.fillMaxWidth()
-                  .background(Color.White, RoundedCornerShape(16.dp))
-                  .padding(horizontal = 8.dp, vertical = 6.dp),
-          verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = "Search Icon",
-                tint = Color.Black,
-                modifier = Modifier.padding(start = 8.dp))
+      SearchTextField(
+          text = text,
+          onTextChange = { newText ->
+            text = newText
+            viewModel.searchLocations(newText)
+          },
+          focusRequester = focusRequester,
+          onFocusChanged = { focused ->
+            isTextFocused = focused
+            if (!focused) expanded = false
+          },
+          modifier = Modifier.fillMaxWidth())
 
-            Spacer(Modifier.width(12.dp))
-
-            BasicTextField(
-                value = text,
-                onValueChange = { newText ->
-                  text = newText
-                  viewModel.searchLocations(newText)
-                },
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .focusRequester(focusRequester)
-                        .onFocusChanged { state ->
-                          isTextFocused = state.isFocused
-                          if (!state.isFocused) expanded = false
-                        }
-                        .testTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD),
-                singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.Black),
-                decorationBox = { innerTextField ->
-                  if (text.isEmpty()) {
-                    Text("Search", color = Color.Black.copy(alpha = 0.6f))
-                  }
-                  innerTextField()
-                })
-          }
-
-      if (expanded && suggestions.isNotEmpty()) {
-        DropdownMenu(
-            expanded = true,
-            onDismissRequest = {
-              expanded = false
-              focusManager.clearFocus()
-            },
-            modifier =
-                Modifier.fillMaxWidth(0.75f)
-                    .background(Color.White)
-                    .testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN),
-            properties =
-                PopupProperties(
-                    focusable = false, dismissOnClickOutside = true, dismissOnBackPress = true)) {
-              suggestions.forEachIndexed { index, item ->
-                item.name?.let { name ->
-                  DropdownMenuItem(
-                      modifier = Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM),
-                      text = { Text(name) },
-                      onClick = {
-                        text = name
-                        selectedItem = item
-                        expanded = false
-                        focusManager.clearFocus()
-                        coroutineScope.launch {
-                          selectedItem?.let { loc ->
-                            defaultAnimate(cameraPositionState, toLatLng(loc))
-                          }
-                        }
-                      })
-
-                  if (index < suggestions.size - 1) {
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFD3F4FF))
-                  }
-                }
-              }
-            }
-      }
+      SuggestionsDropdown(
+          expanded = expanded,
+          suggestions = suggestions,
+          modifier = Modifier.fillMaxWidth(0.75f).background(Color.White),
+          onDismiss = {
+            expanded = false
+            focusManager.clearFocus()
+          },
+          onSelect = { loc ->
+            val name = loc.name ?: ""
+            text = name
+            selectedItem = loc
+            expanded = false
+            focusManager.clearFocus()
+            coroutineScope.launch { defaultAnimate(cameraPositionState, toLatLng(loc)) }
+          })
     }
   }
+}
+
+@Composable
+private fun SearchTextField(
+    text: String,
+    onTextChange: (String) -> Unit,
+    focusRequester: FocusRequester,
+    onFocusChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+  Row(
+      modifier =
+          modifier
+              .background(Color.White, RoundedCornerShape(16.dp))
+              .padding(horizontal = 8.dp, vertical = 6.dp),
+      verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = Icons.Outlined.Search,
+            contentDescription = "Search Icon",
+            tint = Color.Black,
+            modifier = Modifier.padding(start = 8.dp))
+
+        Spacer(Modifier.width(12.dp))
+
+        BasicTextField(
+            value = text,
+            onValueChange = onTextChange,
+            modifier =
+                Modifier.fillMaxWidth()
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { state -> onFocusChanged(state.isFocused) }
+                    .testTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD),
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(color = Color.Black),
+            decorationBox = { innerTextField ->
+              if (text.isEmpty()) {
+                Text("Search", color = Color.Black.copy(alpha = 0.6f))
+              }
+              innerTextField()
+            })
+      }
+}
+
+@Composable
+private fun SuggestionsDropdown(
+    expanded: Boolean,
+    suggestions: List<Location>,
+    onDismiss: () -> Unit,
+    onSelect: (Location) -> Unit,
+    modifier: Modifier = Modifier
+) {
+  if (!expanded || suggestions.isEmpty()) return
+
+  DropdownMenu(
+      expanded = true,
+      onDismissRequest = onDismiss,
+      modifier = modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN),
+      properties =
+          PopupProperties(
+              focusable = false, dismissOnClickOutside = true, dismissOnBackPress = true)) {
+        suggestions.forEachIndexed { index, item ->
+          val name = item.name
+          if (name != null) {
+            DropdownMenuItem(
+                modifier = Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM),
+                text = { Text(name) },
+                onClick = { onSelect(item) })
+            if (index < suggestions.size - 1) {
+              HorizontalDivider(thickness = 1.dp, color = Color(0xFFD3F4FF))
+            }
+          }
+        }
+      }
 }
 
 suspend fun defaultAnimate(cameraPositionState: CameraPositionState, position: LatLng) {
