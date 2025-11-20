@@ -4,6 +4,7 @@ package com.github.warnastrophy.core.ui.dangerModeLogic
 
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
@@ -113,14 +114,15 @@ class DangerModeServiceTest {
     val (service, _) = createService()
 
     service.setPreset(DangerModePreset.HIKING_MODE)
-    service.setCapabilities(setOf("CALL", "LOCATION"))
+    service.setCapabilities(setOf(DangerModeCapability.CALL, DangerModeCapability.LOCATION))
     service.setDangerLevel(5) // coerced to 3
 
     advanceUntilIdle()
     val state = service.state.value
 
     assertEquals(DangerModePreset.HIKING_MODE, state.preset)
-    assertEquals(setOf("CALL", "LOCATION"), state.capabilities)
+    assertEquals(
+        setOf(DangerModeCapability.CALL, DangerModeCapability.LOCATION), state.capabilities)
     assertEquals(3, state.dangerLevel)
   }
 }

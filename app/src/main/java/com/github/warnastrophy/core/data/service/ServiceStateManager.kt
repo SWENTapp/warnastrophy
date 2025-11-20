@@ -58,7 +58,25 @@ object ServiceStateManager {
             gpsService,
         )
 
-    // Subscribe to hazard updates to keep the active hazard flow current
+    dangerModeService = DangerModeService()
+
+    startHazardSubscription()
+  }
+
+  /** Overload for tests or DI where services are provided directly. */
+  fun init(
+      gpsService: GpsService,
+      hazardsService: HazardsDataService,
+      dangerModeService: DangerModeService
+  ) {
+    this.gpsService = gpsService
+    this.hazardsService = hazardsService
+    this.dangerModeService = dangerModeService
+
+    startHazardSubscription()
+  }
+
+  private fun startHazardSubscription() {
     serviceScope.launch {
       hazardsService.fetcherState.collectLatest {
         HazardChecker(it.hazards, Dispatchers.IO, serviceScope)
