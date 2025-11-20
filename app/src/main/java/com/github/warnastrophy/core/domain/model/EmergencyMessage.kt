@@ -1,10 +1,10 @@
 package com.github.warnastrophy.core.domain.model
 
-import com.github.warnastrophy.R
 import com.github.warnastrophy.core.util.AppConfig
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * Represents an emergency message containing location, time, and contextual info.
@@ -36,30 +36,38 @@ data class EmergencyMessage(
    * display in UI components, logs, or notifications.
    */
   fun toStringMessage(): String {
-    val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' HH:mm")
+    val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy 'at' HH:mm", Locale.ENGLISH)
     val formattedTime = formatter.withZone(ZoneId.systemDefault()).format(timestamp)
 
-    val mapLink = "${AppConfig.GOOGLE_MAP_LINK}?q=${location.latitude},${location.longitude}"
+    val mapUrl = "${AppConfig.GOOGLE_MAP_LINK}?q=${location.latitude},${location.longitude}"
 
     val extraInfoBlock =
         additionalInfo
             ?.takeIf { it.isNotBlank() }
-            ?.let { "\n${R.string.emergency_message_additional_info_header}\n$it" } ?: ""
+            ?.let {
+              buildString {
+                appendLine("Additional information:")
+                appendLine(it)
+              }
+            } ?: ""
 
-    return """
-        ${R.string.emergency_message_header}
-      
-      $text
-
-      ${R.string.emergency_message_time} $formattedTime
-      
-      ${R.string.emergency_message_location_header}
-      ${R.string.emergency_message_latitude} ${location.latitude}
-      ${R.string.emergency_message_longitude} ${location.longitude}
-      ${R.string.emergency_message_map} $mapLink
-      $extraInfoBlock
-    """
-        .trimIndent()
+    return buildString {
+          appendLine("🚨 EMERGENCY MESSAGE 🚨")
+          appendLine()
+          appendLine(text)
+          appendLine()
+          appendLine("Time: $formattedTime")
+          appendLine()
+          appendLine("Location:")
+          appendLine("- Latitude: ${location.latitude}")
+          appendLine("- Longitude: ${location.longitude}")
+          appendLine("Map: $mapUrl")
+          if (extraInfoBlock.isNotEmpty()) {
+            appendLine()
+            append(extraInfoBlock)
+          }
+        }
+        .trimEnd()
   }
 
   companion object {

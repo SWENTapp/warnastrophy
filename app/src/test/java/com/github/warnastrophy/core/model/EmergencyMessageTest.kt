@@ -67,12 +67,20 @@ class EmergencyMessageTest {
             additionalInfo = "Sector 7G")
     val expectedString =
         """
-            Engine room is on fire
-            
-            - Time: 2023-10-27T10:30:00Z
-            - Location: 48.8584, 2.2945
-            - Additional Info: Sector 7G
-        """
+                🚨 EMERGENCY MESSAGE 🚨
+    
+                Engine room is on fire
+    
+                Time: October 27, 2023 at 12:30
+    
+                Location:
+                - Latitude: 48.8584
+                - Longitude: 2.2945
+                Map: https://www.google.com/maps?q=48.8584,2.2945
+    
+                Additional information:
+                Sector 7G
+            """
             .trimIndent()
 
     assertEquals(expectedString, message.toStringMessage())
@@ -90,12 +98,17 @@ class EmergencyMessageTest {
             )
     val expectedString =
         """
-            Medical assistance required
-            
-            - Time: 2023-10-27T10:30:00Z
-            - Location: 48.8584, 2.2945
-            
-        """
+                🚨 EMERGENCY MESSAGE 🚨
+
+                Medical assistance required
+
+                Time: October 27, 2023 at 12:30
+
+                Location:
+                - Latitude: 48.8584
+                - Longitude: 2.2945
+                Map: https://www.google.com/maps?q=48.8584,2.2945
+            """
             .trimIndent()
 
     assertEquals(expectedString, message.toStringMessage())
