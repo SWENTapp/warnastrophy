@@ -254,7 +254,6 @@ fun SearchBar(
   var text by remember { mutableStateOf("") }
   var expanded by remember { mutableStateOf(false) }
   var isTextFocused by remember { mutableStateOf(false) }
-  var selectedItem by remember { mutableStateOf<Location?>(null) }
 
   val uiState by viewModel.uiState.collectAsState()
   val suggestions = uiState.nominatimState
@@ -289,7 +288,6 @@ fun SearchBar(
           onSelect = { loc ->
             val name = loc.name ?: ""
             text = name
-            selectedItem = loc
             expanded = false
             focusManager.clearFocus()
             coroutineScope.launch { defaultAnimate(cameraPositionState, toLatLng(loc)) }

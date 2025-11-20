@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import kotlin.text.compareTo
 
 val TAG = "NominatimLocationRepository : "
 
@@ -188,17 +189,18 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
    */
   fun isRateLimited(): Boolean {
     val currentTimestamp = System.currentTimeMillis()
-    if (lastQueryTimestamp == null) {
-      lastQueryTimestamp = currentTimestamp
-      return false
-    }
-    val timeSinceLastQuery = currentTimestamp - lastQueryTimestamp!!
+    val last = lastQueryTimestamp
 
-    if (timeSinceLastQuery < maxRateMs) {
+    val isLimited = if (last == null) {
       lastQueryTimestamp = currentTimestamp
-      return true
+      false
     } else {
-      return false
+      val timeSinceLastQuery = currentTimestamp - last
+      val limited = timeSinceLastQuery < maxRateMs
+      if (limited) lastQueryTimestamp = currentTimestamp
+      limited
     }
+
+    return isLimited
   }
 }
