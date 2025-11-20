@@ -1,11 +1,13 @@
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context
+import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.domain.model.HazardsService
+import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.domain.usecase.HazardChecker
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +22,7 @@ object ServiceStateManager {
   private val serviceScope = CoroutineScope(Dispatchers.IO)
   private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
 
-  lateinit var gpsService: GpsService
+  lateinit var gpsService: PositionService
   lateinit var hazardsService: HazardsDataService
   lateinit var dangerModeService: DangerModeService
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
@@ -67,7 +69,7 @@ object ServiceStateManager {
 
   /** Overload for tests or DI where services are provided directly. */
   fun init(
-      gpsService: GpsService,
+      gpsService: PositionService,
       hazardsService: HazardsDataService,
       dangerModeService: DangerModeService
   ) {
@@ -87,6 +89,9 @@ object ServiceStateManager {
             fetcherState to positionState
           }
           .collect { (fetcherState, positionState) ->
+            Log.d("ServiceStateManager", "${fetcherState.hazards}")
+            Log.d("ServiceStateManager", "$positionState")
+            Log.d("ServiceStateManager", "Checking hazards for position update")
             hazardCheckerScope.cancel()
             HazardChecker(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
                 .checkAndPublishAlert(

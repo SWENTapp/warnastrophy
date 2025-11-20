@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.domain.usecase
 
+import android.util.Log
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.domain.model.Hazard
 import kotlinx.coroutines.CoroutineDispatcher
@@ -58,9 +59,11 @@ class HazardChecker(
 
     // 2. Handle Entry for the currently active (highest priority) hazard
     if (activeHazard != null) {
+      Log.d("HazardChecker", "User is inside hazard ID: ${activeHazard.id}")
       handleHazardEntry(activeHazard)
     } else {
       // No active hazard, clear any existing alert
+      Log.d("HazardChecker", "User is safe, no active hazards.")
       ServiceStateManager.clearActiveAlert()
     }
   }
@@ -119,6 +122,7 @@ class HazardChecker(
     if (currentEntryTime != null) {
       // If we reach here, the time has passed AND we haven't been canceled,
       // so the user has been stable inside the zone.
+      Log.d("HazardChecker", "User has dwelled inside hazard ID: $hazardId")
       ServiceStateManager.updateActiveHazard(hazard)
     }
 

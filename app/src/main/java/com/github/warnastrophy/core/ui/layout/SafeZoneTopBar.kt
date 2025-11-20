@@ -27,12 +27,13 @@ fun SafeZoneTopBar(modifier: Modifier = Modifier) {
   val colorScheme = MaterialTheme.colorScheme
   Box(
       modifier =
-          Modifier.fillMaxWidth()
+          modifier
+              .fillMaxWidth()
               .background(if (safe) colorScheme.primary else colorScheme.error)
               .padding(vertical = 8.dp),
       contentAlignment = Alignment.Center) {
         Text(
-            text = "You are in a safe zone",
+            text = if (safe) "You are in a safe zone" else "Danger Mode is Active",
             color = if (safe) colorScheme.onPrimary else colorScheme.onError,
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.sp)
