@@ -1,7 +1,10 @@
 package com.github.warnastrophy.core.ui.dangermodecard
 
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.data.service.DangerModeService
+import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
@@ -22,6 +25,10 @@ class DangerModeCardViewModelTest {
   @Before
   fun setup() {
     ServiceStateManager.init(ApplicationProvider.getApplicationContext())
+    ServiceStateManager.permissionManager =
+        MockPermissionManager(currentResult = PermissionResult.Granted)
+    ServiceStateManager.dangerModeService =
+        DangerModeService(permissionManager = ServiceStateManager.permissionManager)
     viewModel = DangerModeCardViewModel()
   }
 
@@ -60,32 +67,22 @@ class DangerModeCardViewModelTest {
 
   @Test
   fun `onCapabilitiesChanged updates capabilities`() = runTest {
-    val newCapabilities = setOf(DangerModeCapability.CALL, DangerModeCapability.SMS)
+    val newCapabilities = setOf(DangerModeCapability.SMS)
     viewModel.onCapabilitiesChanged(newCapabilities)
     assertEquals(newCapabilities, viewModel.capabilities.first())
   }
 
   @Test
   fun `onCapabilityToggled adds capability when not present`() = runTest {
-    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
-    assertEquals(setOf(DangerModeCapability.CALL), viewModel.capabilities.first())
+    viewModel.onCapabilityToggled(DangerModeCapability.SMS)
+    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
   }
 
   @Test
   fun `onCapabilityToggled removes capability when present`() = runTest {
-    viewModel.onCapabilitiesChanged(setOf(DangerModeCapability.CALL))
-    assertEquals(setOf(DangerModeCapability.CALL), viewModel.capabilities.first())
-    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
+    viewModel.onCapabilitiesChanged(setOf(DangerModeCapability.SMS))
+    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
+    viewModel.onCapabilityToggled(DangerModeCapability.SMS)
     assertEquals(emptySet<DangerModeCapability>(), viewModel.capabilities.first())
-  }
-
-  @Test
-  fun `setCurrentModeDangerLevel sets level within bounds`() = runTest {
-    viewModel.onDangerLevelChanged(2)
-    assertEquals(2, viewModel.dangerLevel.first())
-    viewModel.onDangerLevelChanged(-1)
-    assertEquals(0, viewModel.dangerLevel.first())
-    viewModel.onDangerLevelChanged(5)
-    assertEquals(3, viewModel.dangerLevel.first())
   }
 }

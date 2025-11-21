@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -29,6 +30,12 @@ import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
 class ForegroundGpsServiceTest {
+  @Before
+  fun setup() {
+    // Ensure ServiceStateManager is initialized for tests
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    ServiceStateManager.init(context)
+  }
 
   @Test
   fun onStartCommand_callsStartForegroundLocationUpdatesOnGpsService() {
