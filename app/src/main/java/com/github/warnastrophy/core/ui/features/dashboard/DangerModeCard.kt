@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 
@@ -78,9 +79,10 @@ fun DangerModeCard(
     viewModel: DangerModeCardViewModel = viewModel(),
     onOpenClick: () -> Unit = {}
 ) {
-  val isDangerModeEnabled = viewModel.isDangerModeEnabled
-  val currentModeName = viewModel.currentMode
-  val capabilities by viewModel.capabilities.collectAsState()
+  val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
+  val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
+  val capabilities by viewModel.capabilities.collectAsState(emptySet())
+  val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
   val colorScheme = MaterialTheme.colorScheme
 
   StandardDashboardCard(
@@ -100,10 +102,7 @@ fun DangerModeCard(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp)
 
-            DangerModeSwitch(
-                checked = isDangerModeEnabled,
-                viewModel = viewModel,
-                modifier = modifier.testTag(DangerModeTestTags.SWITCH))
+            DangerModeSwitch(checked = isDangerModeEnabled, viewModel = viewModel)
           }
       Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -156,11 +155,11 @@ fun DangerModeCard(
                       Color(0xFFD32F2F) // red
                       )
                   .forEachIndexed { index, it ->
-                    val alpha = if (index == viewModel.dangerLevel) 1f else 0.1f
+                    val alpha = if (index == dangerLevel.ordinal) 1f else 0.1f
                     DangerColorBox(
                         it,
                         modifier = Modifier.testTag(DangerModeTestTags.dangerLevelTag(index)),
-                        onClick = { viewModel.onDangerLevelChanged(index) },
+                        onClick = { viewModel.onDangerLevelChanged(DangerLevel.entries[index]) },
                         borderColor = colorScheme.onError.copy(alpha = alpha))
                   }
             }

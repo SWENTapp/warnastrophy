@@ -17,10 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
-import com.github.warnastrophy.core.domain.model.GpsServiceFactory
-import com.github.warnastrophy.core.domain.model.HazardsServiceFactory
-import com.github.warnastrophy.core.permissions.PermissionManager
+import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
@@ -102,17 +99,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
 
   val errorHandler = ErrorHandler()
 
-  val gpsServiceFactory = remember { GpsServiceFactory(locationClient, errorHandler) }
-  val gpsService = remember { gpsServiceFactory.create() }
+  val gpsService = remember { ServiceStateManager.gpsService }
+  val hazardsService = remember { ServiceStateManager.hazardsService }
+  val permissionManager = remember { ServiceStateManager.permissionManager }
 
-  val hazardsRepository = HazardRepositoryProvider.repository
-
-  val hazardsServiceFactory = remember {
-    HazardsServiceFactory(hazardsRepository, gpsService, errorHandler)
-  }
-  val hazardsService = remember { hazardsServiceFactory.create() }
-
-  val permissionManager = PermissionManager(context)
   val contactListViewModel = ContactListViewModel(userId = userId)
   val editContactViewModel = EditContactViewModel(userId = userId)
   val addContactViewModel = AddContactViewModel(userId = userId)
