@@ -15,6 +15,7 @@ import com.github.warnastrophy.core.ui.features.auth.SignInViewModel
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.google.firebase.auth.FirebaseUser
+import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -40,6 +41,8 @@ class SignInScreenTest : BaseAndroidComposeTest() {
     mockViewModel = mockk(relaxed = true)
 
     every { mockViewModel.uiState } returns MutableStateFlow(AuthUIState())
+
+    every { mockViewModel.startGitHubSignIn(any(), any()) } just Runs
   }
 
   @After
@@ -86,14 +89,14 @@ class SignInScreenTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun signInScreen_githubButtonClick_showsNotImplementedMessage() {
+  fun signInScreen_githubButtonClick_triggersStartGitHubSignIn() {
     setUpSignInScreen()
     composeTestRule.waitForIdleWithTimeout()
 
     composeTestRule.onNodeWithTag(SignInScreenTestTags.GITHUB_SIGN_IN_BUTTON).performClick()
     composeTestRule.waitForIdleWithTimeout()
 
-    verify(exactly = 0) { mockViewModel.signInWithGithub(any()) }
+    verify(exactly = 1) { mockViewModel.startGitHubSignIn(any(), any()) }
   }
 
   @Test
