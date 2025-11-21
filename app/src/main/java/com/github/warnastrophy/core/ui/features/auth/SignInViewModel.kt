@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.auth
 
+import android.app.Activity
 import android.content.Context
 import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
@@ -11,6 +12,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.auth.AuthProvider
 import com.github.warnastrophy.core.auth.AuthRepository
 import com.github.warnastrophy.core.auth.AuthRepositoryFirebase
+import com.github.warnastrophy.core.auth.GitHubAuthManager
+import com.github.warnastrophy.core.auth.startGitHubSignIn
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CoroutineDispatcher
@@ -50,6 +53,12 @@ class SignInViewModel(
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(AuthUIState())
   val uiState: StateFlow<AuthUIState> = _uiState.asStateFlow()
+
+  init {
+    GitHubAuthManager.onCredentialReady { credential ->
+      viewModelScope.launch(dispatcher) { performSignIn(credential, AuthProvider.GITHUB) }
+    }
+  }
 
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
@@ -112,17 +121,45 @@ class SignInViewModel(
   }
 
   /**
-   * Signs in the user with GitHub credentials.
+   * Initiates the GitHub sign-in flow by requesting a credential from the [Activity].
    *
-   * @param credential The GitHub credential used for signing in.
+   * If the sign-in request fails, the UI state is updated to reflect the error message. The sign-in
+   * helper is set in the GitHubAuthManager for handling the response.
+   *
+   * @param activity The activity used for starting the GitHub sign-in flow.
+   * @param scope The requested scope for GitHub authentication (default is "user:email").
    */
-  fun signInWithGithub(credential: Credential) {
+  fun startGitHubSignIn(activity: Activity, scope: String = "user:email") {
     if (_uiState.value.isLoading) return
 
-    viewModelScope.launch(dispatcher) {
-      _uiState.update { it.copy(isLoading = true, errorMsg = null) }
-      performSignIn(credential, AuthProvider.GITHUB)
+    _uiState.update { it.copy(isLoading = true, errorMsg = null) }
+
+    try {
+      val helper = activity.startGitHubSignIn(scope)
+      GitHubAuthManager.setHelper(helper)
+    } catch (e: Exception) {
+      _uiState.update {
+        it.copy(
+            isLoading = false,
+            errorMsg = "Failed to start GitHub sign-in",
+            signedOut = true,
+            user = null)
+      }
     }
+  }
+
+  /**
+   * Handles the cancellation of GitHub sign-in.
+   *
+   * This method updates the UI state to indicate that the GitHub sign-in process was cancelled and
+   * clears the sign-in helper from the GitHubAuthManager.
+   */
+  fun onGitHubSignInCancelled() {
+    _uiState.update {
+      it.copy(
+          isLoading = false, errorMsg = "GitHub sign-in cancelled", signedOut = true, user = null)
+    }
+    GitHubAuthManager.clearHelper()
   }
 
   /**
@@ -142,10 +179,10 @@ class SignInViewModel(
                   it.copy(isLoading = false, user = user, errorMsg = null, signedOut = false)
                 }
               },
-              onFailure = {
+              onFailure = { throwable ->
+                val errorMessage = throwable.localizedMessage ?: "Sign-in failed (Unknown Reason)"
                 _uiState.update {
-                  it.copy(
-                      isLoading = false, errorMsg = "Sign-in failed", signedOut = true, user = null)
+                  it.copy(isLoading = false, errorMsg = errorMessage, signedOut = true, user = null)
                 }
               })
     } catch (e: Exception) {
@@ -170,5 +207,15 @@ class SignInViewModel(
               },
               onFailure = { _uiState.update { it.copy(errorMsg = "Sign-out failed") } })
     }
+  }
+
+  /**
+   * Clears resources when the ViewModel is destroyed.
+   *
+   * This method clears the GitHub authentication callback.
+   */
+  override fun onCleared() {
+    super.onCleared()
+    GitHubAuthManager.clearCallback()
   }
 }
