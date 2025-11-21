@@ -96,7 +96,7 @@ class GpsServiceMock(initial: LatLng = pos) : PositionService {
     isLocationUpdated = true
   }
 
-  override fun stopLocationUpdates() {
+  override fun close() {
     isLocationUpdated = false
   }
 

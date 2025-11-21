@@ -186,8 +186,8 @@ class GpsServiceTests {
   }
 
   @Test
-  fun testSetAndClearErrorMsg() {
-    gpsService.clearErrorMsg()
+  fun testSetAndClose() {
+    gpsService.close()
     assertNull(gpsService.positionState.value.errorMessage)
   }
 
@@ -199,7 +199,7 @@ class GpsServiceTests {
     field.isAccessible = true
     val callback = field.get(gpsService) as CoroutineScope
 
-    gpsService.stopLocationUpdates()
+    gpsService.close()
 
     assertFalse("serviceScope should be active before cancellation", callback.isActive)
 

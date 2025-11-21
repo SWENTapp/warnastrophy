@@ -153,7 +153,7 @@ constructor(
 
   /** Stop location updates. */
   fun stopLocationUpdate() {
-    viewModelScope.launch { gpsService.stopLocationUpdates() }
+    viewModelScope.launch { gpsService.close() }
   }
 
   fun onTrackLocationClicked(cameraPositionState: CameraPositionState) {
@@ -188,15 +188,6 @@ constructor(
    */
   fun setTracking(enabled: Boolean) {
     _uiState.update { it.copy(isTrackingLocation = enabled) }
-  }
-
-  /**
-   * Sets the background location tracking state for the UI.
-   *
-   * @param enabled True to enable background tracking, false to disable it.
-   */
-  fun setBackgroundTracking(enabled: Boolean) {
-    _uiState.update { it.copy(isTrackingInBackground = enabled) }
   }
 
   /**

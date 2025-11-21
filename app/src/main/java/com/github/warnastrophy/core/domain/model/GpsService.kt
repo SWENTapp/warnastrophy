@@ -57,7 +57,7 @@ interface PositionService {
   fun startLocationUpdates()
 
   /** Releases resources used by this service. Call when the service is no longer needed. */
-  fun stopLocationUpdates()
+  fun close()
 
   fun startForegroundLocationUpdates(
       service: Service,
@@ -180,10 +180,6 @@ constructor(
     }
   }
 
-  override fun stopLocationUpdates() {
-    close()
-  }
-
   @RequiresApi(Build.VERSION_CODES.Q)
   @SuppressLint("MissingPermission")
   override fun startForegroundLocationUpdates(
@@ -267,14 +263,15 @@ constructor(
   }
 
   /** Releases resources used by this service. Call when the service is no longer needed. */
-  fun close() {
+  override fun close() {
     serviceScope.cancel()
     locationClient.removeLocationUpdates(locationCallBack)
     setLoading(false)
+      clearErrorMsg()
   }
 
   /** Clears the error message in the state. */
-  fun clearErrorMsg() {
+  private fun clearErrorMsg() {
     _positionState.value = positionState.value.copy(errorMessage = null)
   }
 }

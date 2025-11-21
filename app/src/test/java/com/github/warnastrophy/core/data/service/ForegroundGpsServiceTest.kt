@@ -8,11 +8,11 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.domain.error.ErrorDisplayHandlerImpl
 import com.github.warnastrophy.core.domain.model.ForegroundGpsService
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
-import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import io.mockk.mockk
@@ -39,7 +39,6 @@ class ForegroundGpsServiceTest {
     val context = ApplicationProvider.getApplicationContext<Context>()
     startForegroundGpsService(context)
 
-    service.onCreate()
     service.onStartCommand(null, 0, 0)
 
     verify { mockGps.startForegroundLocationUpdates(service) }
@@ -84,17 +83,7 @@ class ForegroundGpsServiceTest {
     // call lifecycle method under test
     service.onDestroy()
 
-    verify { mockGps.clearErrorMsg() }
     verify { mockGps.close() }
-  }
-
-  @Test
-  fun onStartCommand_returnsStartSticky_whenNoGpsInjected() {
-    val service = ForegroundGpsService()
-
-    val result = service.onStartCommand(null, 0, 0)
-
-    assertEquals(Service.START_STICKY, result)
   }
 
   @Test
@@ -132,7 +121,7 @@ class ForegroundGpsServiceTest {
   @Test
   fun startForegroundLocationUpdates_createsChannel_and_startsForeground_with_location_type() {
     val locationClient = mockk<FusedLocationProviderClient>(relaxed = true)
-    val errorHandler = ErrorHandler()
+    val errorHandler = ErrorDisplayHandlerImpl()
     val gpsService = GpsService(locationClient, errorHandler)
 
     // Create a Service instance via Robolectric so mBase is attached
