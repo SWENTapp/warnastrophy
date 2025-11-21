@@ -57,6 +57,13 @@ android {
             "\"${localProps.getProperty("github.client.id", "")}\""
         )
 
+        // Add GitHub client secret as BuildConfig Field
+        buildConfigField(
+            "String",
+            "GITHUB_CLIENT_SECRET",
+            "\"${localProps.getProperty("github.client.secret", "")}\""
+        )
+
         setProperty("archivesBaseName", "$applicationId-v$versionName($versionCode)")
     }
 
