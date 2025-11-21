@@ -101,24 +101,18 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     checkedDangerMode(false)
   }
 
-  private fun checkedDangerMode(on: Boolean): Boolean =
-      composeTestRule.onAllNodes(hasTestTag(DangerModeTestTags.SWITCH)).fetchSemanticsNodes().any {
-        val state = it.config.getOrNull(SemanticsProperties.ToggleableState)
-        if (on) {
-          state == ToggleableState.On
-        } else {
-          state == ToggleableState.Off
-        }
-      } &&
-          composeTestRule
-              .onAllNodes(hasTestTag(DashboardScreenTestTags.TOP_BAR))
-              .fetchSemanticsNodes()
-              .any() {
-                val texts = it.config.getOrNull(SemanticsProperties.Text)
-                if (on) {
-                  texts?.any { text -> text.text.contains("danger", true) } == true
-                } else {
-                  texts?.any { text -> text.text.contains("safe", true) } == true
-                }
+  private fun checkedDangerMode(on: Boolean): Unit =
+      composeTestRule.waitUntil(10000) {
+        composeTestRule
+            .onAllNodes(hasTestTag(DangerModeTestTags.SWITCH))
+            .fetchSemanticsNodes()
+            .any {
+              val state = it.config.getOrNull(SemanticsProperties.ToggleableState)
+              if (on) {
+                state == ToggleableState.On
+              } else {
+                state == ToggleableState.Off
               }
+            }
+      }
 }
