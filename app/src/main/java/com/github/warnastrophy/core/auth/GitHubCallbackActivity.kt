@@ -66,6 +66,7 @@ class GitHubCallbackActivity : ComponentActivity() {
         GitHubAuthManager.getHelper()
             ?: GitHubOAuthHelper(
                 clientId = BuildConfig.GITHUB_CLIENT_ID,
+                clientSecret = BuildConfig.GITHUB_CLIENT_SECRET,
                 redirectUri = "warnastrophy://github-callback")
 
     handleIntent(intent)
@@ -192,10 +193,6 @@ class GitHubCallbackActivity : ComponentActivity() {
         val credential = CustomCredential(type = CredentialTypes.TYPE_GITHUB, data = credentialData)
 
         GitHubAuthManager.setCredential(credential)
-
-        Toast.makeText(
-                this@GitHubCallbackActivity, "GitHub authentication successful", Toast.LENGTH_LONG)
-            .show()
 
         finishWithSuccess()
       } catch (e: AuthenticationException) {
