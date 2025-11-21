@@ -11,7 +11,6 @@ import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.ServiceStateManager
-import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
@@ -19,10 +18,10 @@ import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTag
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
+import com.github.warnastrophy.core.ui.map.dangerHazard
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.google.android.gms.maps.model.LatLng
 import org.junit.Test
-import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 
 class DashboardScreenTest : BaseAndroidComposeTest() {
@@ -67,30 +66,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
 
     val geometryFactory = GeometryFactory()
     // Put a dangerous hazard and the user in it's affectedArea to activate danger mode
-    mockHazardService.setHazards(
-        listOf(
-            Hazard(
-                id = 1,
-                type = "EQ",
-                description = "Dangerous Hazard",
-                country = "Testland",
-                date = "2024-01-01",
-                severity = 9.0,
-                severityUnit = "unit",
-                alertLevel = 5.0,
-                centroid = geometryFactory.createPoint(Coordinate(0.0, 0.0)),
-                bbox = listOf(-1.0, -1.0, 1.0, 1.0),
-                affectedZone =
-                    geometryFactory.createPolygon(
-                        arrayOf(
-                            Coordinate(-1.0, -1.0),
-                            Coordinate(1.0, -1.0),
-                            Coordinate(1.0, 1.0),
-                            Coordinate(-1.0, 1.0),
-                            Coordinate(-1.0, -1.0) // Close the ring
-                            ),
-                    ),
-            )))
+    mockHazardService.setHazards(listOf(dangerHazard))
 
     // Set user location inside the hazard's affected zone
     mockGpsService.positionState.value = mockGpsService.positionState.value.copy(LatLng(0.0, 0.0))

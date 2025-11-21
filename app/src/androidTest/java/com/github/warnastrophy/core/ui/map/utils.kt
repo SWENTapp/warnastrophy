@@ -40,6 +40,31 @@ val hazardList =
             // coordinates = listOf(Location(18.61, -72.22), Location(18.64, -72.10))
             centroid = factory.createPoint(Coordinate(location_b.longitude, location_b.latitude))))
 
+/** To test danger mode related features, centered on (0,0) */
+val dangerHazard =
+    Hazard(
+        id = 1,
+        type = "EQ",
+        description = "Dangerous Hazard",
+        country = "Testland",
+        date = "2024-01-01",
+        severity = 9.0,
+        severityUnit = "unit",
+        alertLevel = 5.0,
+        centroid = factory.createPoint(Coordinate(0.0, 0.0)),
+        bbox = listOf(-1.0, -1.0, 1.0, 1.0),
+        affectedZone =
+            factory.createPolygon(
+                arrayOf(
+                    Coordinate(-1.0, -1.0),
+                    Coordinate(1.0, -1.0),
+                    Coordinate(1.0, 1.0),
+                    Coordinate(-1.0, 1.0),
+                    Coordinate(-1.0, -1.0) // Close the ring
+                    ),
+            ),
+    )
+
 val pos: LatLng = LatLng(18.61, -72.22)
 
 fun createHazard(

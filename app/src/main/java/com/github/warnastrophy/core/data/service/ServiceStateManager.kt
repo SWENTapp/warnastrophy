@@ -85,6 +85,14 @@ object ServiceStateManager {
     startHazardSubscription()
   }
 
+  /**
+   * Starts a coroutine to monitor hazard and GPS position updates, checking for hazard alerts
+   * whenever either changes.
+   *
+   * This function combines the hazard fetcher state and GPS position state flows, and on each
+   * update, it cancels any ongoing hazard checks and initiates a new check using the
+   * [HazardChecker].
+   */
   private fun startHazardSubscription() {
     serviceScope.launch {
       kotlinx.coroutines.flow

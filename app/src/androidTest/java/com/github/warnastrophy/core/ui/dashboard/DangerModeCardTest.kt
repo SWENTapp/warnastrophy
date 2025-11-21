@@ -16,12 +16,15 @@ import androidx.compose.ui.test.performClick
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.service.DangerLevel
+import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCard
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
+import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import org.junit.Before
 import org.junit.Test
@@ -30,6 +33,10 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
   @Before
   fun setup() {
     ServiceStateManager.init(composeTestRule.activity.applicationContext)
+    ServiceStateManager.permissionManager =
+        MockPermissionManager(currentResult = PermissionResult.Granted)
+    ServiceStateManager.dangerModeService =
+        DangerModeService(permissionManager = ServiceStateManager.permissionManager)
   }
 
   private val testViewModel by lazy {

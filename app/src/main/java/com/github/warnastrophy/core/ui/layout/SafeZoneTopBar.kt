@@ -11,9 +11,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 
 /**
@@ -33,7 +35,9 @@ fun SafeZoneTopBar(modifier: Modifier = Modifier) {
               .padding(vertical = 8.dp),
       contentAlignment = Alignment.Center) {
         Text(
-            text = if (safe) "You are in a safe zone" else "Danger Mode is Active",
+            text =
+                if (safe) stringResource(R.string.safe_zone_message)
+                else stringResource(R.string.danger_mode_active_message),
             color = if (safe) colorScheme.onPrimary else colorScheme.onError,
             fontWeight = FontWeight.SemiBold,
             fontSize = 16.sp)
