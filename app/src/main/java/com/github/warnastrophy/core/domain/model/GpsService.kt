@@ -9,10 +9,10 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Looper
 import android.util.Log
-import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat.startForeground
+import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.*
