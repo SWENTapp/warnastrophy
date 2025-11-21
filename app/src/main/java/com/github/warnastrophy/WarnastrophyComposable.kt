@@ -161,7 +161,6 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               }
               composable(Screen.ContactList.route) {
                 ContactListScreen(
-                    userId = userId,
                     contactListViewModel = contactListViewModel,
                     onContactClick = { navigationActions.navigateTo(Screen.EditContact(it.id)) },
                     onAddButtonClick = { navigationActions.navigateTo(Screen.AddContact) })
@@ -180,7 +179,6 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
 
                 id?.let {
                   EditContactScreen(
-                      userId = userId,
                       editContactViewModel = editContactViewModel,
                       onDone = { navigationActions.goBack() },
                       contactID = id)
