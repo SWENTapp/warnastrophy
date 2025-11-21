@@ -50,6 +50,20 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
 
   // TODO Add permissions object for Inactivity Detection if necessary
 
+  /**
+   * Foreground service location permission introduced on Android 14 (API 34). Request this
+   * separately when starting a location foreground service on SDK 34+.
+   */
+  object ForegroundServiceLocation :
+      AppPermissions(
+          key = "foreground_service_location",
+          if (isAtLeastSdkVersion(34)) {
+            Manifest.permission.FOREGROUND_SERVICE_LOCATION
+            Manifest.permission.POST_NOTIFICATIONS
+          } else {
+            null
+          })
+
   /** Permissions required to send emergency messages */
   object SendEmergencySms :
       AppPermissions(

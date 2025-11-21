@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.features.map
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,10 +10,13 @@ import com.github.warnastrophy.core.domain.model.FetcherState
 import com.github.warnastrophy.core.domain.model.GpsPositionState
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
+import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
@@ -34,7 +38,8 @@ import kotlinx.coroutines.launch
 /**
  * Represents the UI state for the map screen.
  *
- * @property permissionResult The current state of the location permission. See [PermissionResult].
+ * @property locationPermissionResult The current state of the location permission. See
+ *   [PermissionResult].
  * @property isTrackingLocation True if the app is actively tracking the user's location, false
  *   otherwise.
  * @property isOsRequestInFlight True if a system permission dialog is currently being shown to the
@@ -44,16 +49,19 @@ import kotlinx.coroutines.launch
  * @property hazardState The state of the hazard data fetching. See [FetcherState].
  */
 data class MapUIState(
-    val permissionResult: PermissionResult,
+    val locationPermissionResult: PermissionResult,
+    val foregroundPermissionResult: PermissionResult,
     val isTrackingLocation: Boolean = false,
+    val isTrackingInBackground: Boolean = false,
     val isOsRequestInFlight: Boolean = false,
     val severitiesByType: Map<String, Pair<Double, Double>> = emptyMap(),
     val positionState: GpsPositionState = GpsPositionState(isLoading = true),
-    val hazardState: FetcherState = FetcherState(isLoading = true)
+    val hazardState: FetcherState = FetcherState(isLoading = true),
+    val nominatimState: List<Location> = emptyList()
 ) {
   /** A computed property that is true if the permission is granted. */
   val isGranted: Boolean
-    get() = permissionResult is PermissionResult.Granted
+    get() = locationPermissionResult is PermissionResult.Granted
 
   /** A computed property that is true if any of the sub-states are loading. */
   val isLoading: Boolean
@@ -64,12 +72,17 @@ class MapViewModel(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
     private val permissionManager: PermissionManagerInterface,
+    val nominatimRepository: GeocodeRepository = NominatimRepository()
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
+  val foregroundPermissions = AppPermissions.ForegroundServiceLocation
 
   private val _uiState =
       MutableStateFlow(
-          MapUIState(permissionResult = permissionManager.getPermissionResult(locationPermissions)))
+          MapUIState(
+              locationPermissionResult = permissionManager.getPermissionResult(locationPermissions),
+              foregroundPermissionResult =
+                  permissionManager.getPermissionResult(foregroundPermissions)))
   val uiState: StateFlow<MapUIState> = _uiState.asStateFlow()
 
   init {
@@ -119,9 +132,16 @@ class MapViewModel(
    * @param activity The current activity, used as context to check for rationales.
    */
   fun applyPermissionsResult(activity: Activity) {
-    val result = permissionManager.getPermissionResult(locationPermissions, activity)
+    val locationResult = permissionManager.getPermissionResult(locationPermissions, activity)
     permissionManager.markPermissionsAsAsked(locationPermissions)
-    _uiState.update { it.copy(permissionResult = result, isOsRequestInFlight = false) }
+    val foregroundResult = permissionManager.getPermissionResult(foregroundPermissions, activity)
+    permissionManager.markPermissionsAsAsked(foregroundPermissions)
+    _uiState.update {
+      it.copy(
+          locationPermissionResult = locationResult,
+          foregroundPermissionResult = foregroundResult,
+          isOsRequestInFlight = false)
+    }
   }
 
   /** Request a single location update and start location updates. */
@@ -172,6 +192,15 @@ class MapViewModel(
   }
 
   /**
+   * Sets the background location tracking state for the UI.
+   *
+   * @param enabled True to enable background tracking, false to disable it.
+   */
+  fun setBackgroundTracking(enabled: Boolean) {
+    _uiState.update { it.copy(isTrackingInBackground = enabled) }
+  }
+
+  /**
    * Computes a map of severities from a list of hazards.
    *
    * This function processes a list of `Hazard` objects and groups them by their `severity` level.
@@ -195,13 +224,40 @@ class MapViewModel(
         }
         .toMap()
   }
+
+  /**
+   * Perform an asynchronous search for locations using the configured geocode repository.
+   *
+   * This function launches a coroutine in the ViewModel's scope to call
+   * [nominatimRepository.reverseGeocode] with the provided [query]. The call is logged before and
+   * after execution. If the repository call succeeds, the resulting list of locations is written to
+   * the ViewModel UI state by updating `_uiState.nominatimState`. If an exception occurs, it is
+   * caught and logged and the coroutine returns without modifying the UI state.
+   *
+   * @param query The textual search query (typically user input).
+   * @see GeocodeRepository.reverseGeocode
+   */
+  fun searchLocations(query: String) {
+    Log.d("MapViewModel", "searchLocations: query = $query")
+    viewModelScope.launch {
+      Log.d("MapViewModel", "searchLocations: launching search")
+
+      val results =
+          try {
+            nominatimRepository.reverseGeocode(query)
+          } catch (e: Exception) {
+            Log.d("MapViewModel", "searchLocations: error during search", e)
+            return@launch
+          }
+      Log.d("MapViewModel", "searchLocations: results = $results")
+      _uiState.update { it.copy(nominatimState = results) }
+      Log.d("MapViewModel", "searchLocations: results = ${uiState.value.nominatimState}")
+    }
+  }
 }
 
 /**
  * Defines a composable for the map route (Map.route).
- *
- * @param backStackEntryForMap The navigation back stack entry associated with the current route.
- *   Used to bind the ViewModel's lifecycle to this destination.
  *
  * Features:
  * - Creates an instance of `MapViewModel` using `viewModel` and a `MapViewModelFactory`.
@@ -209,7 +265,7 @@ class MapViewModel(
  * - If `mockMapScreen` is provided (non-null), it is invoked for testing or overrides. Otherwise,
  *   the `MapScreen` composable is displayed with the `mapViewModel` as a parameter.
  *
- * @see viewModel
+ * @see ViewModel
  * @see MapViewModelFactory
  */
 class MapViewModelFactory(
@@ -219,6 +275,7 @@ class MapViewModelFactory(
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
+      @Suppress("UNCHECKED_CAST")
       return MapViewModel(gpsService, hazardsService, permissionManager) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class: $modelClass")

@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.domain.usecase
 
+import android.util.Log
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.domain.model.Hazard
 import kotlinx.coroutines.CoroutineDispatcher
@@ -7,7 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.locationtech.jts.geom.Coordinate
@@ -51,17 +51,20 @@ class HazardChecker(
    * @param userLat The user's current latitude.
    * @param userLng The user's current longitude.
    */
-  fun checkAndPublishAlert(userLng: Double, userLat: Double) {
-    scope.launch(dispatcher) {
-      val activeHazard: Hazard? = findHighestPriorityActiveHazard(userLng, userLat)
+  suspend fun checkAndPublishAlert(userLng: Double, userLat: Double) {
+    val activeHazard: Hazard? = findHighestPriorityActiveHazard(userLng, userLat)
 
-      // 1. Clean up ALL inactive/lower-priority hazards first
-      cleanUpInactiveHazards(activeHazard)
+    // 1. Clean up ALL inactive/lower-priority hazards first
+    cleanUpInactiveHazards(activeHazard)
 
-      // 2. Handle Entry for the currently active (highest priority) hazard
-      if (activeHazard != null) {
-        handleHazardEntry(activeHazard)
-      }
+    // 2. Handle Entry for the currently active (highest priority) hazard
+    if (activeHazard != null) {
+      Log.d("HazardChecker", "User is inside hazard ID: ${activeHazard.id}")
+      handleHazardEntry(activeHazard)
+    } else {
+      // No active hazard, clear any existing alert
+      Log.d("HazardChecker", "User is safe, no active hazards.")
+      ServiceStateManager.clearActiveAlert()
     }
   }
 
@@ -106,29 +109,25 @@ class HazardChecker(
         }
       }
 
-  private fun scheduleAlertCheck(hazard: Hazard) {
+  private suspend fun scheduleAlertCheck(hazard: Hazard) {
     // Cancel any existing job for this hazard to avoid duplicates (though rare here)
     val hazardId = hazard.id ?: return
     pendingAlertJobs[hazardId]?.cancel()
 
-    // Schedule a job to run after the time threshold
-    val job =
-        scope.launch(dispatcher) {
-          delay(HAZARD_TIME_THRESHOLD_MS)
+    delay(HAZARD_TIME_THRESHOLD_MS)
 
-          // Check if the user is *still* inside the hazard zone
-          // This final check confirms GPS stability (removes drift)
-          val currentEntryTime = hazardEntryTimes[hazardId]
-          if (currentEntryTime != null) {
-            // If we reach here, the time has passed AND we haven't been canceled,
-            // so the user has been stable inside the zone.
-            ServiceStateManager.updateActiveHazard(hazard)
-          }
+    // Check if the user is *still* inside the hazard zone
+    // This final check confirms GPS stability (removes drift)
+    val currentEntryTime = hazardEntryTimes[hazardId]
+    if (currentEntryTime != null) {
+      // If we reach here, the time has passed AND we haven't been canceled,
+      // so the user has been stable inside the zone.
+      Log.d("HazardChecker", "User has dwelled inside hazard ID: $hazardId")
+      ServiceStateManager.updateActiveHazard(hazard)
+    }
 
-          // Clean up the job entry after execution
-          pendingAlertJobs.remove(hazard.id)
-        }
-    pendingAlertJobs[hazardId] = job
+    // Clean up the job entry after execution
+    pendingAlertJobs.remove(hazard.id)
   }
 
   /** Helper function for the efficient Bounding Box (BBox) check */

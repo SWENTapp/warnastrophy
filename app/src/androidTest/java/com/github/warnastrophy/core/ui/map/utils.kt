@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
+import android.app.Service
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.domain.model.FetcherState
 import com.github.warnastrophy.core.domain.model.GpsPositionState
@@ -14,6 +15,7 @@ import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +40,31 @@ val hazardList =
             type = "EQ", // will map to HUE_RED
             // coordinates = listOf(Location(18.61, -72.22), Location(18.64, -72.10))
             centroid = factory.createPoint(Coordinate(location_b.longitude, location_b.latitude))))
+
+/** To test danger mode related features, centered on (0,0) */
+val dangerHazard =
+    Hazard(
+        id = 1,
+        type = "EQ",
+        description = "Dangerous Hazard",
+        country = "Testland",
+        date = "2024-01-01",
+        severity = 9.0,
+        severityUnit = "unit",
+        alertLevel = 5.0,
+        centroid = factory.createPoint(Coordinate(0.0, 0.0)),
+        bbox = listOf(-1.0, -1.0, 1.0, 1.0),
+        affectedZone =
+            factory.createPolygon(
+                arrayOf(
+                    Coordinate(-1.0, -1.0),
+                    Coordinate(1.0, -1.0),
+                    Coordinate(1.0, 1.0),
+                    Coordinate(-1.0, 1.0),
+                    Coordinate(-1.0, -1.0) // Close the ring
+                    ),
+            ),
+    )
 
 val pos: LatLng = LatLng(18.61, -72.22)
 
@@ -96,6 +123,15 @@ class GpsServiceMock(initial: LatLng = pos) : PositionService {
 
   override fun stopLocationUpdates() {
     isLocationUpdated = false
+  }
+
+  override fun startForegroundLocationUpdates(
+      service: Service,
+      channelId: String,
+      channelName: String,
+      notificationId: Int
+  ) {
+    // No-op for mock
   }
 }
 
@@ -166,5 +202,18 @@ class MockPermissionManager(
   override fun isPermissionAskedBefore(permissionType: AppPermissions): Boolean {
     // Optional: you can simulate “has been asked” logic
     return true
+  }
+}
+
+class MockNominatimRepository : GeocodeRepository {
+
+  val locations =
+      listOf(
+          Location(40.7128, -74.0060, "Suvy"),
+          Location(40.0583, -74.4057, "Tolar"),
+          Location(-40.9006, 174.8860, "New Zok"))
+
+  override suspend fun reverseGeocode(location: String): List<Location> {
+    return locations
   }
 }
