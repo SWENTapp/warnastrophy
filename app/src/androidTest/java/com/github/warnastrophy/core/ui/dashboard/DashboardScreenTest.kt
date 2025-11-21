@@ -11,6 +11,7 @@ import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
@@ -43,7 +44,9 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   fun dashboardScreen_dangerMode_influences_dashboard() {
     val mockHazardService = HazardServiceMock()
     val mockGpsService = GpsServiceMock()
-    val dangerModeService = DangerModeService(permissionManager = MockPermissionManager())
+    val dangerModeService =
+        DangerModeService(
+            permissionManager = MockPermissionManager(currentResult = PermissionResult.Granted))
 
     ServiceStateManager.init(
         gpsService = mockGpsService,
