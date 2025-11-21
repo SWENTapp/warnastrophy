@@ -56,7 +56,7 @@ class SignInViewModel(
 
   init {
     GitHubAuthManager.onCredentialReady { credential ->
-      viewModelScope.launch(dispatcher) { performSignIn(credential, AuthProvider.GITHUB) }
+      viewModelScope.launch { performSignIn(credential, AuthProvider.GITHUB) }
     }
   }
 
