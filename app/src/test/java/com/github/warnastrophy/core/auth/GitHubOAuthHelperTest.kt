@@ -32,6 +32,7 @@ class GitHubOAuthHelperTest {
   private lateinit var helper: GitHubOAuthHelper
   private lateinit var mockServer: MockWebServer
   private val testClientId = "test_client_id"
+  private val testClientSecret = "test_client_secret"
   private val testRedirectUri = "warnastrophy://github-callback"
 
   @Before
@@ -40,7 +41,10 @@ class GitHubOAuthHelperTest {
     mockServer.start()
     helper =
         GitHubOAuthHelper(
-            clientId = testClientId, redirectUri = testRedirectUri, httpClient = OkHttpClient())
+            clientId = testClientId,
+            clientSecret = testClientSecret,
+            redirectUri = testRedirectUri,
+            httpClient = OkHttpClient())
   }
 
   @After
@@ -165,27 +169,50 @@ class GitHubOAuthHelperTest {
   // ==================== exchangeCodeForAccessToken Tests ====================
 
   @Test
-  fun `exchangeCodeForAccessToken returns token on success with PKCE`() = runTest {
+  fun `exchangeCodeForAccessToken returns token on success with PKCE and client_secret`() =
+      runTest {
+        val mockActivity = mockk<Activity>(relaxed = true)
+        every { mockActivity.startActivity(any()) } just Runs
+
+        val testToken = "gho_test_token"
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody("""{"access_token": "$testToken", "token_type": "bearer"}""")
+                .addHeader("Content-Type", "application/json"))
+
+        val testHelper = createHelperWithMockServer()
+        testHelper.startOAuthFlow(mockActivity)
+
+        val token = testHelper.exchangeCodeForAccessToken("test_code")
+
+        assertEquals(testToken, token)
+        val request = mockServer.takeRequest()
+        val body = request.body.readUtf8()
+        assertTrue(body.contains("code_verifier"))
+        assertTrue(body.contains("client_secret"))
+        assertTrue(body.contains("client_id"))
+        assertTrue(body.contains("redirect_uri"))
+      }
+
+  @Test
+  fun `exchangeCodeForAccessToken includes correct headers`() = runTest {
     val mockActivity = mockk<Activity>(relaxed = true)
     every { mockActivity.startActivity(any()) } just Runs
 
-    val testToken = "gho_test_token"
     mockServer.enqueue(
         MockResponse()
             .setResponseCode(200)
-            .setBody("""{"access_token": "$testToken", "token_type": "bearer"}""")
+            .setBody("""{"access_token": "token"}""")
             .addHeader("Content-Type", "application/json"))
 
     val testHelper = createHelperWithMockServer()
     testHelper.startOAuthFlow(mockActivity)
+    testHelper.exchangeCodeForAccessToken("test_code")
 
-    val token = testHelper.exchangeCodeForAccessToken("test_code")
-
-    assertEquals(testToken, token)
     val request = mockServer.takeRequest()
-    val body = request.body.readUtf8()
-    assertTrue(body.contains("code_verifier"))
-    assertFalse(body.contains("client_secret"))
+    assertEquals("application/json", request.getHeader("Accept"))
+    assertEquals("Warnastrophy", request.getHeader("User-Agent"))
   }
 
   @Test
@@ -207,7 +234,7 @@ class GitHubOAuthHelperTest {
 
   @Test
   fun `exchangeCodeForAccessToken throws AuthenticationException on 4xx errors`() = runTest {
-    mockServer.enqueue(MockResponse().setResponseCode(401))
+    mockServer.enqueue(MockResponse().setResponseCode(401).setBody("""{"error": "unauthorized"}"""))
     val testHelper = createHelperWithMockServer()
     initializeHelper(testHelper)
 
@@ -221,6 +248,7 @@ class GitHubOAuthHelperTest {
 
     assertNotNull(exception)
     assertTrue(exception is AuthenticationException)
+    assertTrue(exception.message?.contains("Authentication failed") == true)
   }
 
   @Test
@@ -239,6 +267,7 @@ class GitHubOAuthHelperTest {
 
     assertNotNull(exception)
     assertTrue(exception is NetworkException)
+    assertTrue(exception.message?.contains("temporarily unavailable") == true)
   }
 
   @Test
@@ -257,6 +286,7 @@ class GitHubOAuthHelperTest {
 
     assertNotNull(exception)
     assertTrue(exception is NetworkException)
+    assertTrue(exception.message?.contains("Empty response") == true)
   }
 
   @Test
@@ -280,6 +310,7 @@ class GitHubOAuthHelperTest {
 
     assertNotNull(exception)
     assertTrue(exception is AuthenticationException)
+    assertTrue(exception.message?.contains("Access token not found") == true)
   }
 
   @Test
@@ -332,11 +363,59 @@ class GitHubOAuthHelperTest {
     assertTrue(exception.message?.contains("not initialized") == true)
   }
 
+  @Test
+  fun `exchangeCodeForAccessToken clears sensitive data after failure`() = runTest {
+    mockServer.enqueue(MockResponse().setResponseCode(401))
+    val testHelper = createHelperWithMockServer()
+    initializeHelper(testHelper)
+
+    try {
+      testHelper.exchangeCodeForAccessToken("code")
+    } catch (e: Exception) {
+      // Expected
+    }
+
+    val exception =
+        try {
+          testHelper.exchangeCodeForAccessToken("code2")
+          null
+        } catch (e: Exception) {
+          e
+        }
+
+    assertNotNull(exception)
+    assertTrue(exception is IllegalStateException)
+  }
+
+  // ==================== clearState Tests ====================
+
+  @Test
+  fun `clearState clears all sensitive data`() = runTest {
+    val mockActivity = mockk<Activity>(relaxed = true)
+    every { mockActivity.startActivity(any()) } just Runs
+
+    val testHelper = createHelperWithMockServer()
+    testHelper.startOAuthFlow(mockActivity)
+    testHelper.clearState()
+
+    val exception =
+        try {
+          testHelper.exchangeCodeForAccessToken("code")
+          null
+        } catch (e: Exception) {
+          e
+        }
+
+    assertNotNull(exception)
+    assertTrue(exception is IllegalStateException)
+  }
+
   // ==================== Helper Methods ====================
 
   private fun createHelperWithMockServer() =
       GitHubOAuthHelper(
           clientId = testClientId,
+          clientSecret = testClientSecret,
           redirectUri = testRedirectUri,
           tokenUrl = mockServer.url("/login/oauth/access_token").toString(),
           httpClient = OkHttpClient())

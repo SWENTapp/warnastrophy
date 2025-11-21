@@ -4,8 +4,11 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -23,8 +26,11 @@ import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.AddContactViewModel
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListViewModel
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.EditContactViewModel
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -33,6 +39,7 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
+import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 
@@ -46,6 +53,20 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
   val context = LocalContext.current
 
   val credentialManager = CredentialManager.create(context)
+  val firebaseAuth = remember { FirebaseAuth.getInstance() }
+
+  var userId by remember {
+    mutableStateOf(firebaseAuth.currentUser?.uid ?: AppConfig.defaultUserId)
+  }
+
+  DisposableEffect(Unit) {
+    val listener =
+        FirebaseAuth.AuthStateListener { auth ->
+          userId = auth.currentUser?.uid ?: AppConfig.defaultUserId
+        }
+    firebaseAuth.addAuthStateListener(listener)
+    onDispose { firebaseAuth.removeAuthStateListener(listener) }
+  }
 
   val navController = rememberNavController()
   val navigationActions = NavigationActions(navController)
@@ -80,8 +101,11 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
 
   val gpsService = remember { ServiceStateManager.gpsService }
   val hazardsService = remember { ServiceStateManager.hazardsService }
-
   val permissionManager = remember { ServiceStateManager.permissionManager }
+
+  val contactListViewModel = ContactListViewModel(userId = userId)
+  val editContactViewModel = EditContactViewModel(userId = userId)
+  val addContactViewModel = AddContactViewModel(userId = userId)
 
   val mapScreen =
       @Composable {
@@ -127,20 +151,27 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               }
               composable(Screen.ContactList.route) {
                 ContactListScreen(
+                    contactListViewModel = contactListViewModel,
                     onContactClick = { navigationActions.navigateTo(Screen.EditContact(it.id)) },
                     onAddButtonClick = { navigationActions.navigateTo(Screen.AddContact) })
               }
               composable(Screen.AddContact.route) {
-                AddContactScreen(onDone = { navigationActions.goBack() })
+                AddContactScreen(
+                    userId = userId,
+                    addContactViewModel = addContactViewModel,
+                    onDone = { navigationActions.goBack() })
               }
               composable(Screen.HealthCard.route) {
-                HealthCardScreen(onDone = { navController.popBackStack() })
+                HealthCardScreen(userId = userId, onDone = { navController.popBackStack() })
               }
               composable(route = Screen.EditContact.route) { navBackStackEntry ->
                 val id = navBackStackEntry.arguments?.getString("id")
 
                 id?.let {
-                  EditContactScreen(onDone = { navigationActions.goBack() }, contactID = id)
+                  EditContactScreen(
+                      editContactViewModel = editContactViewModel,
+                      onDone = { navigationActions.goBack() },
+                      contactID = id)
                 }
                     ?: run {
                       Toast.makeText(context, "Contact ID is null", Toast.LENGTH_SHORT).show()

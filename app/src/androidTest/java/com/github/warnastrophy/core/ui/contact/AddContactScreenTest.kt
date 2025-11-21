@@ -9,18 +9,22 @@ import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactViewModel
+import com.github.warnastrophy.core.util.AppConfig
 import org.junit.Before
 import org.junit.Test
 
 class AddContactScreenTest : UITest() {
   private val contact1 = Contact(id = "a", "Ronaldo", "+41", "Friend")
+  private val userId = AppConfig.defaultUserId
 
   @Before
   override fun setUp() {
     super.setUp()
     repository = MockContactRepository()
-    val mockViewModel = AddContactViewModel(repository = repository)
-    composeTestRule.setContent { AddContactScreen(addContactViewModel = mockViewModel) }
+    val mockViewModel = AddContactViewModel(repository = repository, userId = userId)
+    composeTestRule.setContent {
+      AddContactScreen(addContactViewModel = mockViewModel, userId = userId)
+    }
   }
 
   @Test
@@ -108,17 +112,20 @@ class AddContactScreenTest : UITest() {
   }
 
   @Test
-  fun savingWithEmptyFullNameShouldDoNothing() = checkNoContactWereAdded {
-    composeTestRule.enterAddFullName(" ")
+  fun savingWithEmptyFullNameShouldDoNothing() =
+      checkNoContactWereAdded(
+          {
+            composeTestRule.enterAddFullName(" ")
 
-    composeTestRule.enterAddPhoneNumber("+41678234566")
+            composeTestRule.enterAddPhoneNumber("+41678234566")
 
-    composeTestRule.enterAddRelationship(contact1.relationship)
+            composeTestRule.enterAddRelationship(contact1.relationship)
 
-    composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
+            composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
 
-    composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
-  }
+            composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
+          },
+          userId)
 
   @Test
   fun savingWithEmptyRelationshipShouldDoNothing() {

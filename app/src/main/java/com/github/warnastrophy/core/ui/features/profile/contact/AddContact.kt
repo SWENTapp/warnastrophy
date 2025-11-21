@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.util.AppConfig
 
 object AddContactTestTags {
   const val INPUT_FULL_NAME = "inputFullName"
@@ -47,7 +48,8 @@ object AddContactTestTags {
 fun AddContactScreen(
     // Optional: Add a callback to handle the save action and pass the contact data
     addContactViewModel: AddContactViewModel = viewModel(),
-    onDone: () -> Unit = {}
+    onDone: () -> Unit = {},
+    userId: String
 ) {
   val contactUIState by addContactViewModel.uiState.collectAsState()
   val errorMsg = contactUIState.errorMsg
@@ -142,5 +144,5 @@ fun AddContactScreen(
 @Composable
 fun AddContactScreenPreview() {
   // Assuming you have a MainAppTheme or just use the system default
-  MaterialTheme { AddContactScreen() }
+  MaterialTheme { AddContactScreen(userId = AppConfig.defaultUserId) }
 }

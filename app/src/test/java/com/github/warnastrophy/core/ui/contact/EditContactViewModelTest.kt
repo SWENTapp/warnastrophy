@@ -4,6 +4,7 @@ import com.github.warnastrophy.core.data.repository.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.EditContactViewModel
+import com.github.warnastrophy.core.util.AppConfig
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
@@ -36,10 +37,13 @@ class EditContactViewModelTest {
     Dispatchers.setMain(testDispatcher)
     repository = MockContactRepository()
     // Add some contacts to the repository
-    repository.addContact(contact1)
-    repository.addContact(contact2)
+    repository.addContact(
+        AppConfig.defaultUserId,
+        contact1,
+    )
+    repository.addContact(AppConfig.defaultUserId, contact2)
 
-    viewModel = EditContactViewModel(repository)
+    viewModel = EditContactViewModel(repository, AppConfig.defaultUserId)
   }
 
   @After
@@ -84,7 +88,7 @@ class EditContactViewModelTest {
 
     advanceUntilIdle()
 
-    val updated = repository.getContact("1").getOrNull()!!
+    val updated = repository.getContact(AppConfig.defaultUserId, "1").getOrNull()!!
 
     assertEquals("Alice Updated", updated.fullName)
     assertEquals("+11111111111", updated.phoneNumber)
@@ -108,7 +112,7 @@ class EditContactViewModelTest {
     viewModel.deleteContact("2")
     advanceUntilIdle()
 
-    val result = repository.getContact("2")
+    val result = repository.getContact(AppConfig.defaultUserId, "2")
     assertEquals(true, result.isFailure)
 
     assertNotNull(navigateBackEvent.await())

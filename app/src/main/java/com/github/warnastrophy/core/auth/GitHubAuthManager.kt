@@ -19,7 +19,9 @@ import com.github.warnastrophy.BuildConfig
 fun Activity.startGitHubSignIn(scope: String = "user:email"): GitHubOAuthHelper {
   val helper =
       GitHubOAuthHelper(
-          clientId = BuildConfig.GITHUB_CLIENT_ID, redirectUri = "warnastrophy://github-callback")
+          clientId = BuildConfig.GITHUB_CLIENT_ID,
+          clientSecret = BuildConfig.GITHUB_CLIENT_SECRET,
+          redirectUri = "warnastrophy://github-callback")
   helper.startOAuthFlow(this, scope)
   return helper
 }
