@@ -37,6 +37,7 @@ import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.components.Loading
+import com.github.warnastrophy.core.util.findActivity
 
 /** Object containing test tag constants for the SignInScreen composable UI elements. */
 object SignInScreenTestTags {
@@ -64,6 +65,7 @@ fun SignInScreen(
     onSignedIn: () -> Unit = {}
 ) {
   val context = LocalContext.current
+  val activity = context.findActivity()
   val uiState by authViewModel.uiState.collectAsState()
 
   val serverClientId = stringResource(id = R.string.default_web_client_id)
@@ -120,9 +122,12 @@ fun SignInScreen(
 
                 GitHubSignInButton(
                     onSignInClick = {
-                      Toast.makeText(
-                              context, "This feature is not implemented yet!", Toast.LENGTH_LONG)
-                          .show()
+                      if (activity != null) {
+                        authViewModel.startGitHubSignIn(activity)
+                      } else {
+                        Toast.makeText(context, "Activity context not found.", Toast.LENGTH_LONG)
+                            .show()
+                      }
                     })
               }
             }
