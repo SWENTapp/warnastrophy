@@ -17,6 +17,10 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class ContactsRepositoryLocalTests {
+  companion object {
+    private const val TEST_USER_ID = "test_user"
+  }
+
   private lateinit var repositoryLocal: ContactsRepositoryLocal
   private lateinit var datastore: DataStore<Preferences>
 
@@ -33,8 +37,8 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("1", "Alice", "1234567890", "Sister")
 
     runBlocking {
-      assert(repositoryLocal.addContact(contact).isSuccess)
-      val r = repositoryLocal.getContact("1")
+      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact).isSuccess)
+      val r = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "1")
       assert(r.isSuccess)
       assertEquals(contact, r.getOrNull())
     }
@@ -46,9 +50,9 @@ class ContactsRepositoryLocalTests {
     val contact2 = Contact("2", "Robert", "1112223333", "Colleague")
 
     runBlocking {
-      assert(repositoryLocal.addContact(contact1).isSuccess)
+      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact1).isSuccess)
       // Attempt to save another contact with the same id
-      val result = repositoryLocal.addContact(contact2)
+      val result = repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact2)
       assert(result.isFailure)
     }
   }
@@ -56,7 +60,7 @@ class ContactsRepositoryLocalTests {
   @Test
   fun `reading inexisting contact should fail`() {
     runBlocking {
-      val result = repositoryLocal.getContact("nonexistent_id")
+      val result = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "nonexistent_id")
       assert(result.isFailure)
     }
   }
@@ -66,14 +70,14 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("corrupt", "Mallory", "0001112222", "Intruder")
     runBlocking {
       // Save a valid contact
-      assert(repositoryLocal.addContact(contact).isSuccess)
+      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact).isSuccess)
       // Corrupt the stored data directly
       datastore.edit {
-        val key = repositoryLocal.keyFor(contact)
+        val key = repositoryLocal.keyFor(userId = TEST_USER_ID, contact = contact)
         it[key] = "not_a_valid_ciphertext"
       }
       // Try to read the corrupted contact
-      val result = repositoryLocal.getContact("corrupt")
+      val result = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "corrupt")
       assert(result.isFailure)
     }
   }
@@ -83,14 +87,14 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("badjson", "Mallory", "0001112222", "Intruder")
     runBlocking {
       // Save a valid contact
-      assert(repositoryLocal.addContact(contact).isSuccess)
+      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact).isSuccess)
       // Overwrite with valid ciphertext but invalid JSON
       datastore.edit {
-        val key = repositoryLocal.keyFor(contact)
+        val key = repositoryLocal.keyFor(userId = TEST_USER_ID, contact = contact)
         it[key] = com.github.warnastrophy.core.util.CryptoUtils.encrypt("not_a_valid_json")
       }
       // Try to read the corrupted contact
-      val result = repositoryLocal.getContact("badjson")
+      val result = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "badjson")
       assert(result.isFailure)
     }
   }
@@ -100,9 +104,13 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("3", "Charlie", "5556667777", "Neighbor")
     val updatedContact = contact.copy(phoneNumber = "9998887777")
     runBlocking {
-      assert(repositoryLocal.addContact(contact).isSuccess)
-      assert(repositoryLocal.editContact(contact.id, updatedContact).isSuccess)
-      val r = repositoryLocal.getContact("3")
+      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact).isSuccess)
+      assert(
+          repositoryLocal
+              .editContact(
+                  userId = TEST_USER_ID, contactID = contact.id, newContact = updatedContact)
+              .isSuccess)
+      val r = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "3")
       assert(r.isSuccess)
       assertEquals(updatedContact, r.getOrNull())
     }
@@ -112,7 +120,9 @@ class ContactsRepositoryLocalTests {
   fun `update unexisting contact should fail`() {
     val contact = Contact("4", "Diana", "4445556666", "Aunt")
     runBlocking {
-      val result = repositoryLocal.editContact(contact.id, contact)
+      val result =
+          repositoryLocal.editContact(
+              userId = TEST_USER_ID, contactID = contact.id, newContact = contact)
       assert(result.isFailure)
     }
   }
@@ -121,16 +131,17 @@ class ContactsRepositoryLocalTests {
   fun `delete contact`() {
     val contact = Contact("5", "Eve", "2223334444", "Cousin")
     runBlocking {
-      assert(repositoryLocal.addContact(contact).isSuccess)
-      assert(repositoryLocal.deleteContact("5").isSuccess)
-      assert(repositoryLocal.getContact("5").isFailure)
+      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact).isSuccess)
+      assert(repositoryLocal.deleteContact(userId = TEST_USER_ID, contactID = "5").isSuccess)
+      assert(repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "5").isFailure)
     }
   }
 
   @Test
   fun `delete unexisting contact should fail`() {
     runBlocking {
-      val result = repositoryLocal.deleteContact("nonexistent_id")
+      val result =
+          repositoryLocal.deleteContact(userId = TEST_USER_ID, contactID = "nonexistent_id")
       assert(result.isFailure)
     }
   }
@@ -140,8 +151,8 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("6", "Frank", "7778889999", "Uncle")
 
     runBlocking {
-      repositoryLocal.addContact(contact)
-      val fetched = repositoryLocal.getContact("6")
+      repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact)
+      val fetched = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "6")
       assert(fetched.isSuccess)
       assertEquals(contact, fetched.getOrThrow())
     }
@@ -149,7 +160,9 @@ class ContactsRepositoryLocalTests {
 
   @Test
   fun `getContact with invalid id should fail`() {
-    runBlocking { assert(repositoryLocal.getContact("invalid_id").isFailure) }
+    runBlocking {
+      assert(repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "invalid_id").isFailure)
+    }
   }
 
   @Test
@@ -158,9 +171,9 @@ class ContactsRepositoryLocalTests {
     val contact2 = Contact("8", "Heidi", "4564564567", "Friend")
 
     runBlocking {
-      repositoryLocal.addContact(contact1)
-      repositoryLocal.addContact(contact2)
-      val allContactsRes = repositoryLocal.getAllContacts()
+      repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact1)
+      repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact2)
+      val allContactsRes = repositoryLocal.getAllContacts(userId = TEST_USER_ID)
       assert(allContactsRes.isSuccess)
       val allContacts = allContactsRes.getOrNull()!!
       assert(allContacts.contains(contact1))
@@ -173,13 +186,13 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("9", "Ivan", "3213214321", "Colleague")
 
     runBlocking {
-      repositoryLocal.addContact(contact)
-      repositoryLocal.deleteContact("9")
+      repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact)
+      repositoryLocal.deleteContact(userId = TEST_USER_ID, contactID = "9")
 
-      assert(repositoryLocal.getContact("9").isFailure)
+      assert(repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "9").isFailure)
 
       // Deleting again should throw
-      assert(repositoryLocal.deleteContact("9").isFailure)
+      assert(repositoryLocal.deleteContact(userId = TEST_USER_ID, contactID = "9").isFailure)
     }
   }
 
@@ -189,8 +202,11 @@ class ContactsRepositoryLocalTests {
     val updatedContact = contact.copy(id = "different_id")
 
     runBlocking {
-      repositoryLocal.addContact(contact)
-      assert(repositoryLocal.editContact("10", updatedContact).isFailure)
+      repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact)
+      assert(
+          repositoryLocal
+              .editContact(userId = TEST_USER_ID, contactID = "10", newContact = updatedContact)
+              .isFailure)
     }
   }
 }

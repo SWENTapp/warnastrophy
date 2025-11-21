@@ -124,6 +124,22 @@ fun SignInScreen(
                               context, "This feature is not implemented yet!", Toast.LENGTH_LONG)
                           .show()
                     })
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { onSignedIn() },
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.padding(8.dp).height(48.dp)) {
+                      Text(
+                          text = "Continue as Guest",
+                          color = Color.White,
+                          fontSize = 16.sp,
+                          fontWeight = FontWeight.Medium)
+                    }
               }
             }
       })
