@@ -9,6 +9,8 @@ import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.domain.model.HazardsService
 import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.domain.usecase.HazardChecker
+import com.github.warnastrophy.core.permissions.PermissionManager
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +26,7 @@ object ServiceStateManager {
 
   lateinit var gpsService: PositionService
   lateinit var hazardsService: HazardsDataService
+  lateinit var permissionManager: PermissionManagerInterface
   lateinit var dangerModeService: DangerModeService
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
@@ -62,7 +65,9 @@ object ServiceStateManager {
             gpsService,
         )
 
-    dangerModeService = DangerModeService()
+    permissionManager = PermissionManager(context)
+
+    dangerModeService = DangerModeService(permissionManager = permissionManager)
 
     startHazardSubscription()
   }
@@ -98,7 +103,5 @@ object ServiceStateManager {
                     positionState.position.longitude, positionState.position.latitude)
           }
     }
-
-    dangerModeService = DangerModeService()
   }
 }

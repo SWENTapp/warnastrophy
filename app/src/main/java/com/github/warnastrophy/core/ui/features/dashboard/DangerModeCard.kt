@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 
@@ -80,7 +82,7 @@ fun DangerModeCard(
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
   val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
   val capabilities by viewModel.capabilities.collectAsState(emptySet())
-  val dangerLevel by viewModel.dangerLevel.collectAsState(0)
+  val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
   val colorScheme = MaterialTheme.colorScheme
 
   StandardDashboardCard(
@@ -100,12 +102,12 @@ fun DangerModeCard(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp)
 
-            Switch(
+            DangerModeSwitch(
                 checked = isDangerModeEnabled,
-                onCheckedChange = { viewModel.onDangerModeToggled(it) },
-                modifier = Modifier.testTag(DangerModeTestTags.SWITCH))
+                viewModel = viewModel,
+                modifier = modifier.testTag(DangerModeTestTags.SWITCH))
           }
-      Column() {
+      Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(text = "Mode", color = colorScheme.onError, fontSize = 13.sp)
           var expanded by remember { mutableStateOf(false) }
@@ -156,11 +158,11 @@ fun DangerModeCard(
                       Color(0xFFD32F2F) // red
                       )
                   .forEachIndexed { index, it ->
-                    val alpha = if (index == dangerLevel) 1f else 0.1f
+                    val alpha = if (index == dangerLevel.ordinal) 1f else 0.1f
                     DangerColorBox(
                         it,
                         modifier = Modifier.testTag(DangerModeTestTags.dangerLevelTag(index)),
-                        onClick = { viewModel.onDangerLevelChanged(index) },
+                        onClick = { viewModel.onDangerLevelChanged(DangerLevel.entries[index]) },
                         borderColor = colorScheme.onError.copy(alpha = alpha))
                   }
             }
@@ -220,4 +222,18 @@ private fun DangerColorBox(
       modifier = modifier.size(width = 28.dp, height = 28.dp),
       border = BorderStroke(width = 2.dp, color = borderColor),
   ) {}
+}
+
+@Composable
+private fun DangerModeSwitch(
+    checked: Boolean,
+    viewModel: DangerModeCardViewModel,
+    modifier: Modifier = Modifier
+) {
+  val context = LocalContext.current
+
+  Switch(
+      checked = checked,
+      onCheckedChange = { viewModel.onDangerModeToggled(it, context) },
+      modifier = modifier.testTag(DangerModeTestTags.SWITCH))
 }

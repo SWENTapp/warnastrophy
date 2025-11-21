@@ -16,6 +16,7 @@ import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
+import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.google.android.gms.maps.model.LatLng
 import org.junit.Test
@@ -42,7 +43,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   fun dashboardScreen_dangerMode_influences_dashboard() {
     val mockHazardService = HazardServiceMock()
     val mockGpsService = GpsServiceMock()
-    val dangerModeService = DangerModeService()
+    val dangerModeService = DangerModeService(permissionManager = MockPermissionManager())
 
     ServiceStateManager.init(
         gpsService = mockGpsService,

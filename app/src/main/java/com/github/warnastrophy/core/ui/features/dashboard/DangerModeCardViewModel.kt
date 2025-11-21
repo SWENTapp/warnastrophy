@@ -1,11 +1,16 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.service.ServiceStateManager.dangerModeService
+import com.github.warnastrophy.core.domain.model.startForegroundGpsService
+import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import kotlin.collections.emptySet
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -25,8 +30,18 @@ enum class DangerModePreset(val label: String) {
   DEFAULT_MODE("Default mode")
 }
 
-/** ViewModel for managing the state of the Danger Mode card in the dashboard UI. */
-class DangerModeCardViewModel : ViewModel() {
+/**
+ * ViewModel for managing the state of the Danger Mode card in the dashboard UI.
+ *
+ * @param startService Lambda function to start the foreground GPS service (can be overridden for
+ *   testing).
+ * @param stopService Lambda function to stop the foreground GPS service (can be overridden for
+ *   testing).
+ */
+class DangerModeCardViewModel(
+    private val startService: (Context) -> Unit = { ctx -> startForegroundGpsService(ctx) },
+    private val stopService: (Context) -> Unit = { ctx -> stopForegroundGpsService(ctx) }
+) : ViewModel() {
   private val dangerModeService = ServiceStateManager.dangerModeService
 
   val isDangerModeEnabled =
@@ -42,28 +57,44 @@ class DangerModeCardViewModel : ViewModel() {
   val dangerLevel =
       dangerModeService.state
           .map { it.dangerLevel }
-          .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+          .stateIn(viewModelScope, SharingStarted.Lazily, DangerLevel.LOW)
 
   val capabilities =
       dangerModeService.state
           .map { it.capabilities }
           .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
 
-  /** Toggles the Danger Mode on or off. */
-  fun onDangerModeToggled(enabled: Boolean) {
+  /**
+   * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
+   * accordingly.
+   *
+   * @param enabled True to enable Danger Mode, false to disable it.
+   * @param context The context used to start or stop the GPS service.
+   */
+  fun onDangerModeToggled(enabled: Boolean, context: Context? = null) {
     if (enabled) {
+      context?.let { startService(it) }
       dangerModeService.manualActivate()
     } else {
+      context?.let { stopService(it) }
       dangerModeService.manualDeactivate()
     }
   }
 
-  /** Sets the selected Danger Mode preset. */
+  /**
+   * Sets the selected Danger Mode preset
+   *
+   * @param mode The selected Danger Mode preset.
+   */
   fun onModeSelected(mode: DangerModePreset) {
     dangerModeService.setPreset(mode)
   }
 
-  /** Updates the set of enabled capabilities for Danger Mode. */
+  /**
+   * Updates the set of enabled capabilities for Danger Mode.
+   *
+   * @param newCapabilities The new set of enabled capabilities.
+   */
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
     if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
       // TODO
@@ -71,7 +102,11 @@ class DangerModeCardViewModel : ViewModel() {
     }
   }
 
-  /** Toggles a specific capability for Danger Mode. */
+  /**
+   * Toggles a specific capability for Danger Mode.
+   *
+   * @param capability The capability to be toggled.
+   */
   fun onCapabilityToggled(capability: DangerModeCapability) {
     val current = dangerModeService.state.value.capabilities
     val future =
@@ -84,8 +119,12 @@ class DangerModeCardViewModel : ViewModel() {
     onCapabilitiesChanged(future)
   }
 
-  /** Sets the danger level, ensuring it stays within the valid range of 0 to 3. */
-  fun onDangerLevelChanged(level: Int) {
+  /**
+   * Sets the danger level, ensuring it stays within the valid range of 0 to 3.
+   *
+   * @param level The new danger level to be set.
+   */
+  fun onDangerLevelChanged(level: DangerLevel) {
     dangerModeService.setDangerLevel(level)
   }
 }
