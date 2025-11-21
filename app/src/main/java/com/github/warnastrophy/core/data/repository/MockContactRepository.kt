@@ -2,13 +2,14 @@ package com.github.warnastrophy.core.data.repository
 
 import com.github.warnastrophy.core.domain.model.Contact
 import java.util.UUID
+import kotlin.collections.containsKey
+import kotlin.text.set
 
+/** A mock implementation of the ContactsRepository for testing purposes. */
 class MockContactRepository : ContactsRepository {
 
-  // Espace de noms par utilisateur: userId -> (contactId -> Contact)
   private val contactsByUser = mutableMapOf<String, MutableMap<String, Contact>>()
 
-  /** Si `true`, `getAllContacts(userId)` lèvera une exception (simulation d'échec). */
   var shouldThrowException: Boolean = false
 
   private fun bucket(userId: String): MutableMap<String, Contact> =
@@ -18,8 +19,8 @@ class MockContactRepository : ContactsRepository {
 
   override suspend fun addContact(userId: String, contact: Contact): Result<Unit> = runCatching {
     val userMap = bucket(userId)
-    if (userMap.containsKey(contact.id)) {
-      throw IllegalArgumentException("Contact ${contact.id} already exists for user $userId")
+    require(!userMap.containsKey(contact.id)) {
+      "Contact ${contact.id} already exists for user $userId"
     }
     userMap[contact.id] = contact
   }
@@ -42,9 +43,7 @@ class MockContactRepository : ContactsRepository {
       contactID: String,
       newContact: Contact
   ): Result<Unit> = runCatching {
-    if (contactID != newContact.id) {
-      throw IllegalArgumentException("Contact ID mismatch")
-    }
+    require(contactID == newContact.id) { "Contact ID mismatch" }
     val userMap = bucket(userId)
     if (!userMap.containsKey(contactID)) {
       throw NoSuchElementException("Contact $contactID not found for user $userId")

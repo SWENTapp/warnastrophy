@@ -52,7 +52,6 @@ fun EditContactScreen(
     contactID: String = "1", // just for testing purpose
     editContactViewModel: EditContactViewModel = viewModel(),
     onDone: () -> Unit = {},
-    userId: String
 ) {
   LaunchedEffect(contactID) { editContactViewModel.loadContact(contactID) }
 
