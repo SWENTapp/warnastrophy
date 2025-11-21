@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.isDisplayed
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
@@ -105,18 +106,20 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     checkedDangerMode(false)
   }
 
-  private fun checkedDangerMode(on: Boolean): Unit =
-      composeTestRule.waitUntil(10000) {
-        composeTestRule
-            .onAllNodes(hasTestTag(DangerModeTestTags.SWITCH))
-            .fetchSemanticsNodes()
-            .any {
-              val state = it.config.getOrNull(SemanticsProperties.ToggleableState)
-              if (on) {
-                state == ToggleableState.On
-              } else {
-                state == ToggleableState.Off
-              }
-            }
+  private fun checkedDangerMode(on: Boolean): Unit {
+    composeTestRule.waitUntilWithTimeout {
+      composeTestRule.onNode(hasTestTag(DangerModeTestTags.SWITCH)).isDisplayed()
+    }
+
+    composeTestRule.waitUntil(10000) {
+      composeTestRule.onAllNodes(hasTestTag(DangerModeTestTags.SWITCH)).fetchSemanticsNodes().any {
+        val state = it.config.getOrNull(SemanticsProperties.ToggleableState)
+        if (on) {
+          state == ToggleableState.On
+        } else {
+          state == ToggleableState.Off
+        }
       }
+    }
+  }
 }

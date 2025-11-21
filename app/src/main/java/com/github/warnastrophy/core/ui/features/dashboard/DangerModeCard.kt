@@ -102,10 +102,7 @@ fun DangerModeCard(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp)
 
-            DangerModeSwitch(
-                checked = isDangerModeEnabled,
-                viewModel = viewModel,
-                modifier = modifier.testTag(DangerModeTestTags.SWITCH))
+            DangerModeSwitch(checked = isDangerModeEnabled, viewModel = viewModel)
           }
       Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
