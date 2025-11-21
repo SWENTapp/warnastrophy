@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.features.map
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,10 +10,13 @@ import com.github.warnastrophy.core.domain.model.FetcherState
 import com.github.warnastrophy.core.domain.model.GpsPositionState
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
+import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
@@ -52,7 +56,8 @@ data class MapUIState(
     val isOsRequestInFlight: Boolean = false,
     val severitiesByType: Map<String, Pair<Double, Double>> = emptyMap(),
     val positionState: GpsPositionState = GpsPositionState(isLoading = true),
-    val hazardState: FetcherState = FetcherState(isLoading = true)
+    val hazardState: FetcherState = FetcherState(isLoading = true),
+    val nominatimState: List<Location> = emptyList()
 ) {
   /** A computed property that is true if the permission is granted. */
   val isGranted: Boolean
@@ -67,6 +72,7 @@ class MapViewModel(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
     private val permissionManager: PermissionManagerInterface,
+    val nominatimRepository: GeocodeRepository = NominatimRepository()
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
   val foregroundPermissions = AppPermissions.ForegroundServiceLocation
@@ -217,6 +223,36 @@ class MapViewModel(
           (group.key ?: "Unknown") to Pair(minSev, maxSev)
         }
         .toMap()
+  }
+
+  /**
+   * Perform an asynchronous search for locations using the configured geocode repository.
+   *
+   * This function launches a coroutine in the ViewModel's scope to call
+   * [nominatimRepository.reverseGeocode] with the provided [query]. The call is logged before and
+   * after execution. If the repository call succeeds, the resulting list of locations is written to
+   * the ViewModel UI state by updating `_uiState.nominatimState`. If an exception occurs, it is
+   * caught and logged and the coroutine returns without modifying the UI state.
+   *
+   * @param query The textual search query (typically user input).
+   * @see GeocodeRepository.reverseGeocode
+   */
+  fun searchLocations(query: String) {
+    Log.d("MapViewModel", "searchLocations: query = $query")
+    viewModelScope.launch {
+      Log.d("MapViewModel", "searchLocations: launching search")
+
+      val results =
+          try {
+            nominatimRepository.reverseGeocode(query)
+          } catch (e: Exception) {
+            Log.d("MapViewModel", "searchLocations: error during search", e)
+            return@launch
+          }
+      Log.d("MapViewModel", "searchLocations: results = $results")
+      _uiState.update { it.copy(nominatimState = results) }
+      Log.d("MapViewModel", "searchLocations: results = ${uiState.value.nominatimState}")
+    }
   }
 }
 
