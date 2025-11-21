@@ -13,11 +13,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
@@ -28,6 +33,7 @@ import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.github.warnastrophy.core.util.AppConfig
@@ -38,6 +44,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
+import kotlin.text.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
 import org.junit.Assume.assumeTrue
@@ -52,6 +59,8 @@ class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
+
+  private lateinit var nominatimRepository: GeocodeRepository
   /**
    * An idling resource to wait for camera animations to complete during tests. This is crucial for
    * Espresso tests involving map camera movements, as it prevents test actions from executing
@@ -71,10 +80,11 @@ class MapScreenTest : BaseAndroidComposeTest() {
     gpsService = GpsServiceMock()
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
+    nominatimRepository = MockNominatimRepository()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager)
+    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimRepository)
     IdlingRegistry.getInstance().register(animationIdlingResource)
   }
 
@@ -345,7 +355,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
       MapScreen(viewModel = viewModel, cameraPositionState = cameraPositionState)
       applyPerm(PermissionResult.Granted)
     }
-
     composeTestRule.waitForIdle()
 
     // It's good practice to wait until the camera is not moving from its initial setup
@@ -362,6 +371,67 @@ class MapScreenTest : BaseAndroidComposeTest() {
     // Wait for animation to finish using the idling resource
     composeTestRule.waitUntil(timeoutMillis = 10_000) {
       !cameraPositionState.isMoving && initialPosition != cameraPositionState.position.target
+    }
+  }
+
+  @Test
+  fun searchBarIsDisplayed() {
+    setContent()
+    applyPerm(PermissionResult.Granted)
+    waitForMapReadyAndAssertVisibility()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR).assertIsDisplayed()
+
+    val dropdownbox = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN)
+    dropdownbox.assertIsNotDisplayed()
+  }
+
+  @Test
+  fun searchBarAllowsInput() {
+    setContent()
+    applyPerm(PermissionResult.Granted)
+    waitForMapReadyAndAssertVisibility()
+
+    val testInput = "Test Location"
+    val searchBarNode = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD)
+
+    searchBarNode.assertIsDisplayed()
+    searchBarNode.performClick()
+    searchBarNode.performTextInput(testInput)
+
+    searchBarNode.assert(hasText(testInput))
+  }
+
+  @Test
+  fun searchBarShowsResultsOnInput_verifyItemsMatchHardcodedLocations() {
+    setContent()
+    applyPerm(PermissionResult.Granted)
+    waitForMapReadyAndAssertVisibility()
+    val repo = nominatimRepository as MockNominatimRepository
+    val hardcodedlocs = repo.locations
+    val testInput = "Test Location"
+    val searchBarNode = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD)
+
+    searchBarNode.assertIsDisplayed()
+    searchBarNode.performClick()
+    searchBarNode.performTextInput(testInput)
+
+    searchBarNode.assert(hasText(testInput))
+    val dropdownbox = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN)
+    composeTestRule.waitForIdle()
+    dropdownbox.assertIsDisplayed()
+
+    val items = composeTestRule.onAllNodesWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM)
+    items.assertCountEquals(hardcodedlocs.size)
+
+    // Fetch semantics nodes and compare text one by one with hardcoded locations
+    val semanticsList = items.fetchSemanticsNodes()
+    for (i in hardcodedlocs.indices) {
+      val nodeText =
+          semanticsList[i]
+              .config
+              .getOrNull(androidx.compose.ui.semantics.SemanticsProperties.Text)
+              ?.joinToString { it.text } ?: ""
+      org.junit.Assert.assertEquals(hardcodedlocs[i].name, nodeText)
     }
   }
 }

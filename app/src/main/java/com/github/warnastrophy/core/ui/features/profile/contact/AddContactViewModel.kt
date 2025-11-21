@@ -56,7 +56,8 @@ data class AddContactUIState(
  * @property repository The data source dependency used for contact persistence.
  */
 class AddContactViewModel(
-    private val repository: ContactsRepository = ContactRepositoryProvider.repository
+    private val repository: ContactsRepository = ContactRepositoryProvider.repository,
+    private val userId: String
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(AddContactUIState())
   val uiState: StateFlow<AddContactUIState> = _uiState.asStateFlow()
@@ -90,7 +91,7 @@ class AddContactViewModel(
 
   private fun addContactToRepository(contact: Contact) {
     viewModelScope.launch {
-      val result = repository.addContact(contact)
+      val result = repository.addContact(userId, contact)
       result
           .onSuccess {
             clearErrorMsg()

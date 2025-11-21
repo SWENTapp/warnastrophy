@@ -102,6 +102,17 @@ interface PermissionManagerInterface {
 class PermissionManager(private val context: Context) : PermissionManagerInterface {
   private val prefs = context.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
 
+  companion object {
+    @Volatile private var instance: PermissionManager? = null
+
+    fun getInstance(context: Context): PermissionManager {
+      return instance
+          ?: synchronized(this) {
+            instance ?: PermissionManager(context.applicationContext).also { instance = it }
+          }
+    }
+  }
+
   override fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
     val permissions = permissionType.permissions
     if (permissions.isEmpty()) return PermissionResult.Granted

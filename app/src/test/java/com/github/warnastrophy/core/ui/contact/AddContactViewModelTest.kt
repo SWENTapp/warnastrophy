@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.ui.contact
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.ui.features.profile.contact.AddContactViewModel
+import com.github.warnastrophy.core.util.AppConfig
 import junit.framework.TestCase
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +34,7 @@ class AddContactViewModelTest {
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
     repository = MockContactRepository()
-    viewModel = AddContactViewModel(repository = repository)
+    viewModel = AddContactViewModel(repository = repository, AppConfig.defaultUserId)
   }
 
   @After

@@ -31,4 +31,6 @@ object AppConfig {
   }
 
   const val PREF_FILE_NAME = "warnastrophy_app_prefs"
+
+  const val defaultUserId = "default_user"
 }

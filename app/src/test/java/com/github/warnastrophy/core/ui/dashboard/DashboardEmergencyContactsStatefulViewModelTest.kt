@@ -35,7 +35,7 @@ class DashboardEmergencyContactsStatefulViewModelTest {
 
     mockRepository = MockContactRepository()
 
-    mockContactList.forEach { contact -> mockRepository.addContact(contact) }
+    mockContactList.forEach { contact -> mockRepository.addContact(contact = contact) }
 
     viewModel = DashboardEmergencyContactsStatefulViewModel(mockRepository)
   }

@@ -39,7 +39,8 @@ data class ContactListUIState(
  *   contacts data.
  */
 class ContactListViewModel(
-    private val contactsRepository: ContactsRepository = ContactRepositoryProvider.repository
+    private val contactsRepository: ContactsRepository = ContactRepositoryProvider.repository,
+    private val userId: String
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(ContactListUIState())
   val uiState: StateFlow<ContactListUIState> = _uiState.asStateFlow()
@@ -65,7 +66,7 @@ class ContactListViewModel(
 
   private fun getAllContacts() {
     viewModelScope.launch {
-      val result = contactsRepository.getAllContacts()
+      val result = contactsRepository.getAllContacts(userId)
 
       result.fold(
           onSuccess = { contacts -> _uiState.value = ContactListUIState(contacts = contacts) },

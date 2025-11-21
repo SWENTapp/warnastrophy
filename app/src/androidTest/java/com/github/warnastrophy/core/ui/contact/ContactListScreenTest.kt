@@ -13,6 +13,7 @@ import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScree
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
 import com.github.warnastrophy.core.ui.features.profile.contact.ContactListViewModel
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.AppConfig
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -33,8 +34,9 @@ class ContactListScreenTest : BaseAndroidComposeTest() {
   private val repository: ContactsRepository = MockContactRepository()
 
   private fun setContent(withInitialContacts: List<Contact> = emptyList()) {
-    runTest { withInitialContacts.forEach { repository.addContact(it) } }
-    val mockViewModel = ContactListViewModel(contactsRepository = repository)
+    val userId = AppConfig.defaultUserId
+    runTest { withInitialContacts.forEach { repository.addContact(contact = it) } }
+    val mockViewModel = ContactListViewModel(contactsRepository = repository, userId = userId)
     composeTestRule.setContent { ContactListScreen(contactListViewModel = mockViewModel) }
   }
 

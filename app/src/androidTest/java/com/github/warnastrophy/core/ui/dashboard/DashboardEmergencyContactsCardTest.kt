@@ -17,6 +17,7 @@ import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyCont
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.AppConfig
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -24,6 +25,8 @@ import org.junit.Test
 class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   private lateinit var mockRepository: MockContactRepository
   private var originalRepository: ContactsRepository? = null
+
+  private var userId = AppConfig.defaultUserId
 
   private val sampleContact1 =
       Contact(
@@ -63,8 +66,8 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   @Test
   fun dashboardEmergencyContactsCard_statefulVersion_displaysContactsFromRepository() {
     runBlocking {
-      mockRepository.addContact(sampleContact1)
-      mockRepository.addContact(sampleContact2)
+      mockRepository.addContact(userId, sampleContact1)
+      mockRepository.addContact(userId, sampleContact2)
     }
 
     composeTestRule.setContent {
@@ -119,9 +122,9 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   @Test
   fun dashboardEmergencyContactsCard_statefulVersion_displaysMaxTwoContacts() {
     runBlocking {
-      mockRepository.addContact(sampleContact1)
-      mockRepository.addContact(sampleContact2)
-      mockRepository.addContact(sampleContact3)
+      mockRepository.addContact(userId, sampleContact1)
+      mockRepository.addContact(userId, sampleContact2)
+      mockRepository.addContact(userId, sampleContact3)
     }
 
     composeTestRule.setContent {
@@ -148,7 +151,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   @Test
   fun dashboardEmergencyContactsCard_manageButtonTriggersCallback() {
     var callbackTriggered = false
-    runBlocking { mockRepository.addContact(sampleContact1) }
+    runBlocking { mockRepository.addContact(userId, sampleContact1) }
 
     composeTestRule.setContent {
       MainAppTheme {
@@ -172,8 +175,8 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
   @Test
   fun dashboardEmergencyContactsCard_cardIsVisibleAndScrollable() {
     runBlocking {
-      mockRepository.addContact(sampleContact1)
-      mockRepository.addContact(sampleContact2)
+      mockRepository.addContact(userId, sampleContact1)
+      mockRepository.addContact(userId, sampleContact2)
     }
 
     composeTestRule.setContent {
@@ -195,7 +198,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun dashboardEmergencyContactsCard_displaysCorrectContactFormat() {
-    runBlocking { mockRepository.addContact(sampleContact1) }
+    runBlocking { mockRepository.addContact(userId, sampleContact1) }
 
     composeTestRule.setContent {
       MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
@@ -267,7 +270,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun dashboardEmergencyContactsCard_handlesSingleContact() {
-    runBlocking { mockRepository.addContact(sampleContact1) }
+    runBlocking { mockRepository.addContact(userId, sampleContact1) }
 
     composeTestRule.setContent {
       MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
@@ -324,21 +327,25 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun dashboardEmergencyContactsCard_repositoryFailure_displaysEmptyState() {
+
     val failingRepository =
         object : ContactsRepository {
-          override suspend fun getAllContacts(): Result<List<Contact>> =
+          override suspend fun getAllContacts(userId: String): Result<List<Contact>> =
               Result.failure(Exception("Repository error"))
 
-          override suspend fun addContact(contact: Contact): Result<Unit> =
+          override suspend fun addContact(userId: String, contact: Contact): Result<Unit> =
               Result.failure(Exception("Not implemented"))
 
-          override suspend fun getContact(contactID: String): Result<Contact> =
+          override suspend fun getContact(userId: String, contactID: String): Result<Contact> =
               Result.failure(Exception("Not implemented"))
 
-          override suspend fun editContact(contactID: String, newContact: Contact): Result<Unit> =
-              Result.failure(Exception("Not implemented"))
+          override suspend fun editContact(
+              userId: String,
+              contactID: String,
+              newContact: Contact
+          ): Result<Unit> = Result.failure(Exception("Not implemented"))
 
-          override suspend fun deleteContact(contactID: String): Result<Unit> =
+          override suspend fun deleteContact(userId: String, contactID: String): Result<Unit> =
               Result.failure(Exception("Not implemented"))
 
           override fun getNewUid(): String = ""

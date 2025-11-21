@@ -24,6 +24,7 @@ import org.json.JSONObject
  * handling authorization state, and exchanging the authorization code for an access token.
  *
  * @param clientId The GitHub OAuth client ID.
+ * @param clientSecret The GitHub OAuth secret.
  * @param redirectUri The URI to which GitHub will redirect after authorization. Default is
  *   "warnastrophy://github-callback".
  * @param tokenUrl The URL used to exchange the authorization code for an access token. Default is
@@ -34,6 +35,7 @@ import org.json.JSONObject
  */
 class GitHubOAuthHelper(
     private val clientId: String,
+    private val clientSecret: String,
     private val redirectUri: String = "warnastrophy://github-callback",
     private val tokenUrl: String = TOKEN_URL,
     private val timeout: Long = DEFAULT_TIMEOUT,
@@ -169,6 +171,7 @@ class GitHubOAuthHelper(
         val requestBody =
             FormBody.Builder()
                 .add("client_id", clientId)
+                .add("client_secret", clientSecret)
                 .add("code", code)
                 .add("redirect_uri", redirectUri)
                 .add("code_verifier", currentVerifier) // PKCE

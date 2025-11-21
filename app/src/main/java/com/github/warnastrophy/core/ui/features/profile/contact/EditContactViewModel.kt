@@ -29,7 +29,8 @@ data class EditContactUIState(
 }
 
 class EditContactViewModel(
-    private val repository: ContactsRepository = ContactRepositoryProvider.repository
+    private val repository: ContactsRepository = ContactRepositoryProvider.repository,
+    private val userId: String
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(EditContactUIState())
   val uiState: StateFlow<EditContactUIState> = _uiState.asStateFlow()
@@ -53,7 +54,7 @@ class EditContactViewModel(
    */
   fun loadContact(contactId: String) {
     viewModelScope.launch {
-      val res = repository.getContact(contactId)
+      val res = repository.getContact(userId, contactId)
       res.fold(
           onSuccess = { contact ->
             _uiState.value =
@@ -110,7 +111,7 @@ class EditContactViewModel(
             relationship = state.relationship,
             id = id)
     executeRepositoryOperation(
-        operation = { repository.editContact(id, newContact) }, actionName = "edit contact")
+        operation = { repository.editContact(userId, id, newContact) }, actionName = "edit contact")
   }
 
   /**
@@ -120,7 +121,7 @@ class EditContactViewModel(
    */
   fun deleteContact(contactID: String) {
     executeRepositoryOperation(
-        operation = { repository.deleteContact(contactID) }, actionName = "delete contact")
+        operation = { repository.deleteContact(userId, contactID) }, actionName = "delete contact")
   }
 
   /*

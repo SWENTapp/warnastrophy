@@ -105,14 +105,14 @@ abstract class UITest : BaseAndroidComposeTest() {
    *
    * @param action The block of code representing the operation that should *fail* to add a contact.
    */
-  fun checkNoContactWereAdded(action: () -> Unit) {
+  fun checkNoContactWereAdded(action: () -> Unit, userId: String) {
     val beforeNumberOfContacts = runBlocking {
-      val result = repository.getAllContacts()
+      val result = repository.getAllContacts(userId)
       result.getOrNull()?.size ?: 0
     }
     action()
     runTest {
-      val afterNumberOfContacts = repository.getAllContacts().getOrThrow().size
+      val afterNumberOfContacts = repository.getAllContacts(userId).getOrThrow().size
       assertEquals(beforeNumberOfContacts, afterNumberOfContacts)
     }
   }
