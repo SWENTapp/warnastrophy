@@ -3,7 +3,7 @@ package com.github.warnastrophy.core.ui.features.profile.preferences
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import com.github.warnastrophy.core.permissions.AppPermissions
-import com.github.warnastrophy.core.permissions.PermissionManager
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +42,7 @@ data class DangerModePreferencesUiState(
  * ViewModel for the Danger Mode Preferences screen. It handles the business logic for toggling
  * preferences and managing required permissions (location and SMS).
  */
-class DangerModePreferencesViewModel(private val permissionManager: PermissionManager) :
+class DangerModePreferencesViewModel(private val permissionManager: PermissionManagerInterface) :
     ViewModel() {
   val alertModePermissions = AppPermissions.AlertModePermission
 
