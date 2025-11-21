@@ -35,11 +35,9 @@ class ContactListScreenTest : BaseAndroidComposeTest() {
 
   private fun setContent(withInitialContacts: List<Contact> = emptyList()) {
     val userId = AppConfig.defaultUserId
-    runTest { withInitialContacts.forEach { repository.addContact(contact = it, userId = userId) } }
+    runTest { withInitialContacts.forEach { repository.addContact(contact = it) } }
     val mockViewModel = ContactListViewModel(contactsRepository = repository, userId = userId)
-    composeTestRule.setContent {
-      ContactListScreen(contactListViewModel = mockViewModel, userId = userId)
-    }
+    composeTestRule.setContent { ContactListScreen(contactListViewModel = mockViewModel) }
   }
 
   @Test

@@ -23,9 +23,7 @@ class EditContactScreenTest : UITest() {
     repository = MockContactRepository()
     val userId = AppConfig.defaultUserId
     val mockViewModel = EditContactViewModel(repository, userId)
-    composeTestRule.setContent {
-      EditContactScreen(editContactViewModel = mockViewModel, userId = userId)
-    }
+    composeTestRule.setContent { EditContactScreen(editContactViewModel = mockViewModel) }
   }
 
   @Test
