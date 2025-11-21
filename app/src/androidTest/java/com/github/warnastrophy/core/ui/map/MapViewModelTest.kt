@@ -8,6 +8,7 @@ import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
@@ -29,8 +30,9 @@ class MapViewModelTest {
   private lateinit var gpsService: GpsServiceMock
   private lateinit var hazardsService: HazardServiceMock
   private lateinit var permissionManager: MockPermissionManager
-  private lateinit var viewModel: MapViewModel
 
+  private lateinit var nominatimRepository: GeocodeRepository
+  private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
   private val mockPos = LatLng(54.23, 23.23)
 
@@ -41,8 +43,9 @@ class MapViewModelTest {
     gpsService = GpsServiceMock()
     hazardsService = HazardServiceMock()
     permissionManager = MockPermissionManager()
+    nominatimRepository = MockNominatimRepository()
 
-    viewModel = MapViewModel(gpsService, hazardsService, permissionManager)
+    viewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimRepository)
     println(viewModel.uiState.value.hazardState.hazards)
   }
 
@@ -259,5 +262,16 @@ class MapViewModelTest {
 
     assertTrue(vmBefore === vmAfter)
     assertEquals(posBefore, vmAfter.uiState.value.positionState.position)
+  }
+
+  @Test
+  fun nominatim_search_returns_results() = runTest {
+    val query = "Test Location"
+    viewModel.searchLocations(query)
+    testDispatcher.scheduler.advanceUntilIdle()
+    val nominatimState = viewModel.uiState.value.nominatimState
+    val repo = nominatimRepository as MockNominatimRepository
+    val expectedResults = repo.locations
+    assertEquals(expectedResults.size, nominatimState.size)
   }
 }
