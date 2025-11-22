@@ -34,7 +34,7 @@ jobs:
           LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-        run:
+        run: |
           echo "$LOCAL_PROPERTIES" | base64 --decode > ./local.properties
           echo "github.client.id=$CLIENT_ID" >> ./local.properties
           echo "github.client.secret=$CLIENT_SECRET" >> ./local.properties
