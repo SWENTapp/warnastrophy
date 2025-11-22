@@ -74,6 +74,9 @@ sealed class Screen(
 
   object SignIn :
       Screen(R.string.sign_in_title, route = "sign-in", hasBottomBar = false, hasTopBar = false)
+
+  object DangerModePreferences :
+      Screen(R.string.danger_mode_preferences_title, route = "danger_mode_preferences")
 }
 
 val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Dashboard, Screen.Map, Screen.Profile)
