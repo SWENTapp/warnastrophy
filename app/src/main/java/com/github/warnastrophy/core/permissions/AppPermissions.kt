@@ -44,11 +44,11 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
       AppPermissions(key = "location_coarse", Manifest.permission.ACCESS_COARSE_LOCATION)
 
   /** Permissions required to enable alert mode */
-  // TODO Add more permissions if necessary later (background, notifications, etc)
+  // !!! Add more permissions if necessary later (background, notifications, etc) !!!
   object AlertModePermission :
       AppPermissions(key = "alert_mode_permissions", Manifest.permission.ACCESS_FINE_LOCATION)
 
-  // TODO Add permissions object for Inactivity Detection if necessary
+  // !!! Add permissions object for Inactivity Detection if necessary !!!
 
   /**
    * Foreground service location permission introduced on Android 14 (API 34). Request this

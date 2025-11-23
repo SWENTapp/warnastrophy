@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.util.findActivity
 
 object DangerModePreferencesScreenTestTags {
@@ -90,113 +89,123 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
       modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 24.dp),
       verticalArrangement = Arrangement.spacedBy(24.dp)) {
         PreferenceItem(
-            title = "Alert Mode automatic",
-            description =
-                "If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions",
-            checked = uiState.alertModeAutomaticEnabled,
-            onCheckedChange = { isChecked ->
-              if (isChecked) {
-                when (uiState.alertModePermissionResult) {
-                  is PermissionResult.Granted -> viewModel.onAlertModeToggled(true)
-                  is PermissionResult.Denied -> requestPermission(PendingAction.TOGGLE_ALERT_MODE)
-                  is PermissionResult.PermanentlyDenied -> openAppSettings()
-                }
-              } else {
-                viewModel.onAlertModeToggled(false)
-              }
-            },
-            isRequestInFlight = uiState.isOsRequestInFlight)
+            data =
+                PreferenceItemData(
+                    title = "Alert Mode automatic",
+                    description =
+                        "If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions",
+                    checked = uiState.alertModeAutomaticEnabled,
+                    onCheckedChange = { isChecked ->
+                      viewModel.handlePreferenceChange(
+                          isChecked = isChecked,
+                          permissionResult = uiState.alertModePermissionResult,
+                          onToggle = { viewModel.onAlertModeToggled(it) },
+                          onPermissionDenied = {
+                            requestPermission(PendingAction.TOGGLE_ALERT_MODE)
+                          },
+                          onPermissionPermDenied = { openAppSettings() },
+                      )
+                    },
+                    isRequestInFlight = uiState.isOsRequestInFlight))
 
         PreferenceItem(
-            title = "Inactivity Detection",
-            description =
-                "If this option is enabled and you are in Danger Mode, your phone will detect your activity and send an SMS alert to your registered emergency contacts if you remain inactive for a certain period of time in a dangerous area.\n\nThis mode require fine location permissions",
-            extraDescription =
-                "It is strongly recommended that you enable the automatic SMS feature with this functionality.",
-            checked = uiState.inactivityDetectionEnabled,
-            onCheckedChange = { isChecked ->
-              if (isChecked) {
-                when (uiState.inactivityDetectionPermissionResult) {
-                  is PermissionResult.Granted -> viewModel.onInactivityDetectionToggled(true)
-                  is PermissionResult.Denied ->
-                      requestPermission(PendingAction.TOGGLE_INACTIVITY_DETECTION)
-                  is PermissionResult.PermanentlyDenied -> openAppSettings()
-                }
-              } else {
-                viewModel.onInactivityDetectionToggled(false)
-              }
-            },
-            enabled = uiState.alertModeAutomaticEnabled,
-            isRequestInFlight = uiState.isOsRequestInFlight)
+            data =
+                PreferenceItemData(
+                    title = "Inactivity Detection",
+                    description =
+                        "If this option is enabled and you are in Danger Mode, your phone will detect your activity and send an SMS alert to your registered emergency contacts if you remain inactive for a certain period of time in a dangerous area.\n\nThis mode require fine location permissions",
+                    extraDescription =
+                        "It is strongly recommended that you enable the automatic SMS feature with this functionality.",
+                    checked = uiState.inactivityDetectionEnabled,
+                    onCheckedChange = { isChecked ->
+                      viewModel.handlePreferenceChange(
+                          isChecked = isChecked,
+                          permissionResult = uiState.inactivityDetectionPermissionResult,
+                          onToggle = { viewModel.onInactivityDetectionToggled(it) },
+                          onPermissionDenied = {
+                            requestPermission(PendingAction.TOGGLE_INACTIVITY_DETECTION)
+                          },
+                          onPermissionPermDenied = { openAppSettings() },
+                      )
+                    },
+                    enabled = uiState.alertModeAutomaticEnabled,
+                    isRequestInFlight = uiState.isOsRequestInFlight))
 
         PreferenceItem(
-            title = "Automatic SMS",
-            description =
-                "If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions",
-            checked = uiState.automaticSmsEnabled,
-            onCheckedChange = { isChecked ->
-              if (isChecked) {
-                when (uiState.smsPermissionResult) {
-                  is PermissionResult.Granted -> viewModel.onAutomaticSmsToggled(true)
-                  is PermissionResult.Denied ->
-                      requestPermission(PendingAction.TOGGLE_AUTOMATIC_SMS)
-                  is PermissionResult.PermanentlyDenied -> openAppSettings()
-                }
-              } else {
-                viewModel.onAutomaticSmsToggled(false)
-              }
-            },
-            enabled = uiState.inactivityDetectionEnabled,
-            isRequestInFlight = uiState.isOsRequestInFlight)
+            data =
+                PreferenceItemData(
+                    title = "Automatic SMS",
+                    description =
+                        "If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions",
+                    checked = uiState.automaticSmsEnabled,
+                    onCheckedChange = { isChecked ->
+                      viewModel.handlePreferenceChange(
+                          isChecked = isChecked,
+                          permissionResult = uiState.smsPermissionResult,
+                          onToggle = { viewModel.onAutomaticSmsToggled(it) },
+                          onPermissionDenied = {
+                            requestPermission(PendingAction.TOGGLE_AUTOMATIC_SMS)
+                          },
+                          onPermissionPermDenied = { openAppSettings() },
+                      )
+                    },
+                    enabled = uiState.inactivityDetectionEnabled,
+                    isRequestInFlight = uiState.isOsRequestInFlight))
       }
 }
 
 /**
- * A composable that displays a preference item with a title, description, and a switch. This is
- * used to create toggleable settings within a preferences screen.
+ * Data class representing the state and configuration for a single preference item.
+ *
+ * This class is used to abstract the details of a preference, such as its title, description,
+ * current state, and the logic to handle its changes, including permission checks.
  *
  * @param title The main title of the preference item.
- * @param description The detailed description explaining what the preference does.
- * @param checked The current state of the switch (true for on, false for off).
- * @param onCheckedChange A lambda function that is invoked when the user toggles the switch. It
- *   receives the new checked state as a boolean.
- * @param modifier The modifier to be applied to the `Row` container of the preference item.
- * @param enabled A boolean to control the enabled state of the entire preference item. If false,
- *   the item will be visually faded and the switch will be disabled. Defaults to true.
- * @param extraDescription An optional string for an additional description, which is displayed in
- *   bold below the main description. Useful for warnings or important notes.
- * @param isRequestInFlight A boolean to indicate if an asynchronous operation (like a permission
- *   request) is in progress. When true, the switch is disabled to prevent conflicting user actions,
- *   but the text remains fully opaque if `enabled` is true.
+ * @param description A detailed explanation of what the preference does.
+ * @param checked The current state of the preference (true for enabled, false for disabled).
+ * @param onCheckedChange A lambda function that is invoked when the user interacts with the
+ *   preference's switch.
+ * @param enabled A boolean indicating whether the preference item is interactable. If false, the
+ *   item is visually disabled. Defaults to true.
+ * @param extraDescription An optional, additional piece of text displayed with emphasis (e.g.,
+ *   bold).
+ * @param isRequestInFlight A boolean to indicate if a permission request. This is used to
+ *   temporarily disable interaction to prevent race conditions.
+ */
+private data class PreferenceItemData(
+    val title: String,
+    val description: String,
+    val checked: Boolean,
+    val onCheckedChange: (Boolean) -> Unit,
+    val enabled: Boolean = true,
+    val extraDescription: String? = null,
+    val isRequestInFlight: Boolean = false
+)
+
+/**
+ * Displays a preference item with a title, description, and a switch.
+ *
+ * @param data The data to display in the preference item.
+ * @param modifier The modifier to be applied to the `Row` container.
  */
 @Composable
-private fun PreferenceItem(
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    extraDescription: String? = null,
-    isRequestInFlight: Boolean = false
-) {
-  val alpha = if (enabled) 1f else 0.5f
-
+private fun PreferenceItem(data: PreferenceItemData, modifier: Modifier = Modifier) {
+  val alpha = if (data.enabled) 1f else 0.5f
   Row(
       modifier = modifier.fillMaxWidth(),
       verticalAlignment = Alignment.Top,
       horizontalArrangement = Arrangement.SpaceBetween) {
         Column(modifier = Modifier.weight(1f).alpha(alpha)) {
-          Text(text = title, style = MaterialTheme.typography.titleLarge)
+          Text(text = data.title, style = MaterialTheme.typography.titleLarge)
           Spacer(modifier = Modifier.height(8.dp))
           Text(
-              text = description,
+              text = data.description,
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant)
-          if (extraDescription != null) {
+          if (data.extraDescription != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = extraDescription,
+                text = data.extraDescription,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -204,8 +213,8 @@ private fun PreferenceItem(
         }
         Spacer(modifier = Modifier.width(16.dp))
         Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled && !isRequestInFlight)
+            checked = data.checked,
+            onCheckedChange = data.onCheckedChange,
+            enabled = data.enabled && !data.isRequestInFlight)
       }
 }

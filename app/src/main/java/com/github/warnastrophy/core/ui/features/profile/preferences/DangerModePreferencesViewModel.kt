@@ -152,4 +152,32 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
 
     _uiState.update { it.copy(pendingPermissionAction = null) }
   }
+
+  /**
+   * Handles the logic for a preference change, checking permissions and dispatching actions.
+   *
+   * @param isChecked The new state of the preference toggle.
+   * @param permissionResult The current permission status for this feature.
+   * @param onToggle The ViewModel function to call when the toggle state changes.
+   * @param onPermissionDenied Callback invoked if the necessary permissions were denied.
+   * @param onPermissionPermDenied Callback invoked if the necessary permissions were permanently
+   *   denied.
+   */
+  fun handlePreferenceChange(
+      isChecked: Boolean,
+      permissionResult: PermissionResult,
+      onToggle: (Boolean) -> Unit,
+      onPermissionDenied: () -> Unit,
+      onPermissionPermDenied: () -> Unit
+  ) {
+    if (isChecked) {
+      when (permissionResult) {
+        PermissionResult.Granted -> onToggle(true)
+        is PermissionResult.Denied -> onPermissionDenied()
+        is PermissionResult.PermanentlyDenied -> onPermissionPermDenied()
+      }
+    } else {
+      onToggle(false)
+    }
+  }
 }
