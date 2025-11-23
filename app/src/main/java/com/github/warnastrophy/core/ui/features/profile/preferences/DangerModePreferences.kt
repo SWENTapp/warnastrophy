@@ -33,6 +33,12 @@ import com.github.warnastrophy.core.util.findActivity
 
 object DangerModePreferencesScreenTestTags {
   const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
+  const val ALERT_MODE_ITEM = "alertModeItem"
+  const val INACTIVITY_DETECTION_ITEM = "inactivityDetectionItem"
+  const val AUTOMATIC_SMS_ITEM = "automaticSmsItem"
+  const val ALERT_MODE_SWITCH = "alertModeSwitch"
+  const val INACTIVITY_DETECTION_SWITCH = "inactivitySwitch"
+  const val AUTOMATIC_SMS_SWITCH = "automaticSmsSwitch"
 }
 
 /** Composable screen for managing "Danger Mode" preferences. */
@@ -91,6 +97,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
       modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 24.dp),
       verticalArrangement = Arrangement.spacedBy(24.dp)) {
         PreferenceItem(
+            modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.ALERT_MODE_ITEM),
             data =
                 PreferenceItemData(
                     title = stringResource(R.string.danger_mode_alert_mode_title),
@@ -107,9 +114,13 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                           onPermissionPermDenied = { openAppSettings() },
                       )
                     },
-                    isRequestInFlight = uiState.isOsRequestInFlight))
+                    isRequestInFlight = uiState.isOsRequestInFlight,
+                ),
+            switchTestTag = DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
 
         PreferenceItem(
+            modifier =
+                Modifier.testTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_ITEM),
             data =
                 PreferenceItemData(
                     title = stringResource(R.string.danger_mode_inactivity_detection_title),
@@ -130,9 +141,11 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                       )
                     },
                     enabled = uiState.alertModeAutomaticEnabled,
-                    isRequestInFlight = uiState.isOsRequestInFlight))
+                    isRequestInFlight = uiState.isOsRequestInFlight),
+            switchTestTag = DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
 
         PreferenceItem(
+            modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_ITEM),
             data =
                 PreferenceItemData(
                     title = stringResource(R.string.danger_mode_automatic_sms_title),
@@ -150,7 +163,8 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                       )
                     },
                     enabled = uiState.inactivityDetectionEnabled,
-                    isRequestInFlight = uiState.isOsRequestInFlight))
+                    isRequestInFlight = uiState.isOsRequestInFlight),
+            switchTestTag = DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
       }
 }
 
@@ -189,7 +203,11 @@ private data class PreferenceItemData(
  * @param modifier The modifier to be applied to the `Row` container.
  */
 @Composable
-private fun PreferenceItem(data: PreferenceItemData, modifier: Modifier = Modifier) {
+private fun PreferenceItem(
+    data: PreferenceItemData,
+    modifier: Modifier = Modifier,
+    switchTestTag: String
+) {
   val alpha = if (data.enabled) 1f else 0.5f
   Row(
       modifier = modifier.fillMaxWidth(),
@@ -213,6 +231,7 @@ private fun PreferenceItem(data: PreferenceItemData, modifier: Modifier = Modifi
         }
         Spacer(modifier = Modifier.width(16.dp))
         Switch(
+            modifier = Modifier.testTag(switchTestTag),
             checked = data.checked,
             onCheckedChange = data.onCheckedChange,
             enabled = data.enabled && !data.isRequestInFlight)

@@ -95,7 +95,8 @@ fun ProfileScreen(
     ProfileListItem(
         icon = Icons.Default.Settings,
         label = "Danger Mode Preferences",
-        onClick = onDangerModePreferencesClick)
+        onClick = onDangerModePreferencesClick,
+        modifier = Modifier.testTag(NavigationTestTags.DANGER_MODE_PREFERENCES))
 
     Spacer(modifier = Modifier.height(8.dp))
 

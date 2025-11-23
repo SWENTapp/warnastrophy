@@ -24,6 +24,7 @@ object NavigationTestTags {
   const val BUTTON_BACK = "buttonBack"
   const val CONTACT_LIST = "contactList"
   const val HEALTH_CARD = "healthCard"
+  const val DANGER_MODE_PREFERENCES = "dangerModePreferences"
   const val LOGOUT = "logout"
   const val SIGN_IN = "signIn"
 }
