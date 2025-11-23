@@ -21,8 +21,12 @@ enum class PendingAction {
  * @property alertModeAutomaticEnabled State of the "Alert Mode Automatic" switch.
  * @property inactivityDetectionEnabled State of the "Inactivity Detection" switch.
  * @property automaticSmsEnabled State of the "Automatic SMS" switch.
- * @property locationPermissionResult The current status of the fine location permission.
- * @property smsPermissionResult The current status of the send SMS permission.
+ * @property alertModePermissionResult The current status of the permissions required for Alert
+ *   Mode.
+ * @property inactivityDetectionPermissionResult The current status of the permissions required for
+ *   Inactivity Detection.
+ * @property smsPermissionResult The current status of the permission required for sending SMS.
+ * @property pendingPermissionAction The action that is waiting for a permission result.
  */
 data class DangerModePreferencesUiState(
     val alertModeAutomaticEnabled: Boolean = false,
@@ -46,8 +50,8 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
     ViewModel() {
   val alertModePermissions = AppPermissions.AlertModePermission
 
-  // TODO Add set for Inactivity Detection if necessary or remove this one. For the moment it uses
-  // alertModePermissions.
+  // !!! Add set for Inactivity Detection if necessary or remove this one. For the moment it uses
+  // alertModePermissions. !!!
   val inactivityDetectionPermissions = alertModePermissions
   val smsPermissions = AppPermissions.SendEmergencySms
 
@@ -62,6 +66,12 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
 
   val uiState = _uiState.asStateFlow()
 
+  /**
+   * Handles the toggling of the "Alert Mode Automatic" feature. If turned off, it also disables
+   * related features like "Inactivity Detection" and "Automatic SMS".
+   *
+   * @param enabled The new state of the "Alert Mode Automatic" switch.
+   */
   fun onAlertModeToggled(enabled: Boolean) {
     _uiState.update { it.copy(alertModeAutomaticEnabled = enabled) }
     // If "Alert Mode" is turned off, also turn off others
@@ -70,6 +80,12 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
     }
   }
 
+  /**
+   * Handles the toggling of the "Inactivity Detection" feature. If turned off, it also disables
+   * "Automatic SMS".
+   *
+   * @param enabled The new state of the "Inactivity Detection" switch.
+   */
   fun onInactivityDetectionToggled(enabled: Boolean) {
     _uiState.update { it.copy(inactivityDetectionEnabled = enabled) }
     // If "Inactivity Detection" is turned off, also turn off "Automatic SMS"
@@ -78,10 +94,20 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
     }
   }
 
+  /**
+   * Handles the toggling of the "Automatic SMS" feature.
+   *
+   * @param enabled The new state of the "Automatic SMS" switch.
+   */
   fun onAutomaticSmsToggled(enabled: Boolean) {
     _uiState.update { it.copy(automaticSmsEnabled = enabled) }
   }
 
+  /**
+   * Records that a permission request has been initiated for a specific action.
+   *
+   * @param action The action that is waiting for a permission result.
+   */
   fun onPermissionsRequestStart(action: PendingAction) {
     _uiState.update { it.copy(pendingPermissionAction = action) }
   }

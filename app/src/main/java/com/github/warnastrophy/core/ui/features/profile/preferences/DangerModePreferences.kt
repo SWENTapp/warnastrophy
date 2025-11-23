@@ -34,6 +34,7 @@ object DangerModePreferencesScreenTestTags {
   const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
 }
 
+/** Composable screen for managing "Danger Mode" preferences. */
 @Composable
 fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
   val context = LocalContext.current
@@ -59,6 +60,11 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
           contract = ActivityResultContracts.RequestMultiplePermissions(),
           onResult = { viewModel.onPermissionsResult(activity = activity) })
 
+  /**
+   * Requests the necessary permissions for a given [PendingAction].
+   *
+   * @param action The pending action that requires permissions.
+   */
   fun requestPermission(action: PendingAction) {
     val permSet =
         when (action) {
@@ -71,6 +77,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
     launcher.launch(permSet.permissions)
   }
 
+  /** Opens the application's settings screen in the Android system settings. */
   fun openAppSettings() {
     val intent =
         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
