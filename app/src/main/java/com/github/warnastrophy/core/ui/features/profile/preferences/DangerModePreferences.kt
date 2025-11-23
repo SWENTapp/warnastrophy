@@ -25,8 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource // <-- Import this
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.R // <-- Import your R file
 import com.github.warnastrophy.core.util.findActivity
 
 object DangerModePreferencesScreenTestTags {
@@ -47,7 +49,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                 .testTag(DangerModePreferencesScreenTestTags.FALLBACK_ACTIVITY_ERROR),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
-          Text("Error: Dashboard cannot function without an Activity context.")
+          Text(stringResource(R.string.danger_mode_error_no_activity))
         }
     return
   }
@@ -91,9 +93,8 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
         PreferenceItem(
             data =
                 PreferenceItemData(
-                    title = "Alert Mode automatic",
-                    description =
-                        "If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions",
+                    title = stringResource(R.string.danger_mode_alert_mode_title),
+                    description = stringResource(R.string.danger_mode_alert_mode_description),
                     checked = uiState.alertModeAutomaticEnabled,
                     onCheckedChange = { isChecked ->
                       viewModel.handlePreferenceChange(
@@ -111,11 +112,11 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
         PreferenceItem(
             data =
                 PreferenceItemData(
-                    title = "Inactivity Detection",
+                    title = stringResource(R.string.danger_mode_inactivity_detection_title),
                     description =
-                        "If this option is enabled and you are in Danger Mode, your phone will detect your activity and send an SMS alert to your registered emergency contacts if you remain inactive for a certain period of time in a dangerous area.\n\nThis mode require fine location permissions",
+                        stringResource(R.string.danger_mode_inactivity_detection_description),
                     extraDescription =
-                        "It is strongly recommended that you enable the automatic SMS feature with this functionality.",
+                        stringResource(R.string.danger_mode_inactivity_detection_extra_description),
                     checked = uiState.inactivityDetectionEnabled,
                     onCheckedChange = { isChecked ->
                       viewModel.handlePreferenceChange(
@@ -134,9 +135,8 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
         PreferenceItem(
             data =
                 PreferenceItemData(
-                    title = "Automatic SMS",
-                    description =
-                        "If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions",
+                    title = stringResource(R.string.danger_mode_automatic_sms_title),
+                    description = stringResource(R.string.danger_mode_automatic_sms_description),
                     checked = uiState.automaticSmsEnabled,
                     onCheckedChange = { isChecked ->
                       viewModel.handlePreferenceChange(
