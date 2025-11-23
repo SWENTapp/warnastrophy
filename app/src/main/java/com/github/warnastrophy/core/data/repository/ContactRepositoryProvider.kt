@@ -10,7 +10,10 @@ object ContactRepositoryProvider {
    * application startup.
    */
   fun init(context: Context) {
-    repository = ContactsRepositoryLocal(context.contactDataStore)
+    val localRepo = ContactsRepositoryLocal(context.contactDataStore)
+    val remoteRepo = ContactsRepositoryImpl()
+
+    repository = HybridContactRepository(local = localRepo, remote = remoteRepo)
     // repository = NavigationMockContactRepository()
   }
 }
