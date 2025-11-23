@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.domain.model.GpsServiceFactory
 import com.github.warnastrophy.core.domain.model.HazardsServiceFactory
+import com.github.warnastrophy.core.domain.model.NominatimService
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
@@ -42,6 +43,7 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
+import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
@@ -117,10 +119,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
   val editContactViewModel = EditContactViewModel(userId = userId)
   val addContactViewModel = AddContactViewModel(userId = userId)
 
-  val mapScreen =
-      @Composable {
-        MapScreen(viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
-      }
+  val nominatimRepository = NominatimRepository()
+  val nominatimService = NominatimService(nominatimRepository)
+
+  val mapViewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
 
   Scaffold(
       modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
@@ -144,14 +146,15 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,
-                    mapScreen = { mockMapScreen?.invoke() ?: mapScreen() },
+                    mapScreen = {
+                      mockMapScreen?.invoke()
+                          ?: MapScreen(viewModel = mapViewModel, isPreview = true)
+                    },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) })
               }
               composable(Map.route) {
-                mockMapScreen?.invoke()
-                    ?: MapScreen(
-                        viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
+                mockMapScreen?.invoke() ?: MapScreen(viewModel = mapViewModel)
               }
               composable(Profile.route) {
                 ProfileScreen(

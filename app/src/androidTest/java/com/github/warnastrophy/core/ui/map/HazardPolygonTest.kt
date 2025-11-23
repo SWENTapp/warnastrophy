@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.domain.model.MockNominatimService
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
@@ -83,7 +84,7 @@ class HazardPolygonTest : BaseAndroidComposeTest() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager)
+    viewModel = MapViewModel(gpsService, hazardService, permissionManager, MockNominatimService())
     IdlingRegistry.getInstance().register(animationIdlingResource)
   }
 

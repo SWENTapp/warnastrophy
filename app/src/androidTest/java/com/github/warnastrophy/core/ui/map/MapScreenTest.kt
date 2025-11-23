@@ -27,6 +27,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
+import com.github.warnastrophy.core.domain.model.MockNominatimService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
@@ -84,7 +85,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimRepository)
+    viewModel = MapViewModel(gpsService, hazardService, permissionManager, MockNominatimService())
     IdlingRegistry.getInstance().register(animationIdlingResource)
   }
 

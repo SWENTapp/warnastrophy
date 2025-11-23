@@ -191,4 +191,8 @@ class MockNominatimRepository : GeocodeRepository {
   override suspend fun reverseGeocode(location: String): List<Location> {
     return locations
   }
+
+  override fun delayForNextQuery(): Long {
+    return 0L
+  }
 }

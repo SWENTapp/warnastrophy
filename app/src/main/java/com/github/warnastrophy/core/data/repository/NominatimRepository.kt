@@ -16,13 +16,9 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.text.compareTo
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import kotlin.math.max
+import kotlin.text.compareTo
+import org.json.JSONArray
 
 val TAG = "NominatimLocationRepository : "
 
@@ -32,7 +28,7 @@ val TAG = "NominatimLocationRepository : "
  * Implementations should provide means to resolve a textual location query into a list of
  * [Location] domain objects.
  */
-fun interface GeocodeRepository {
+interface GeocodeRepository {
   /**
    * Perform a reverse geocode or search for the given textual [location] and return a list of
    * matching [Location] objects.
@@ -43,6 +39,8 @@ fun interface GeocodeRepository {
    * @return A list of matching [Location] results; empty list if none or on error.
    */
   suspend fun reverseGeocode(location: String): List<Location>
+
+  fun delayForNextQuery(): Long
 }
 
 /**
@@ -58,8 +56,7 @@ fun interface GeocodeRepository {
  *
  * @param ioDispatcher Dispatcher used for IO-bound work (injectable for tests).
  */
-class NominatimRepository() :
-    GeocodeRepository {
+class NominatimRepository() : GeocodeRepository {
 
   /** HTTP Referer header value to identify the application source. */
   private val referer = "https://github.com/ssidimoh694"
@@ -125,12 +122,13 @@ class NominatimRepository() :
   private fun httpGet(urlStr: String): String {
     lastQueryTimestamp = System.currentTimeMillis()
     val url = URL(urlStr)
-    val conn = (url.openConnection() as HttpURLConnection).apply {
-      requestMethod = "GET"
-      setRequestProperty("Accept-Language", "en")
-      setRequestProperty("User-Agent", "WarnAStrophyApp/1.0 (+$referer)")
-      setRequestProperty("Referer", referer)
-    }
+    val conn =
+        (url.openConnection() as HttpURLConnection).apply {
+          requestMethod = "GET"
+          setRequestProperty("Accept-Language", "en")
+          setRequestProperty("User-Agent", "WarnAStrophyApp/1.0 (+$referer)")
+          setRequestProperty("Referer", referer)
+        }
 
     return try {
       val code = conn.responseCode
@@ -170,7 +168,7 @@ class NominatimRepository() :
           Location(
               latitude = obj.getDouble("lat"),
               longitude = obj.getDouble("lon"),
-              name = obj.optString("name", "Unknown"),
+              name = obj.optString("display_name", "Unknown"),
           )
       locations.add(location)
     }
@@ -187,7 +185,7 @@ class NominatimRepository() :
    * @return `true` if the repository should consider the next request as rate limited; `false`
    *   otherwise.
    */
-  fun DelayForNextQuery(): Long {
+  override fun delayForNextQuery(): Long {
     val last = lastQueryTimestamp
     if (last == null) {
       return 0L
@@ -195,5 +193,17 @@ class NominatimRepository() :
       val timeSinceLastQuery = System.currentTimeMillis() - last
       return max(maxRateMs - timeSinceLastQuery, 0L)
     }
+  }
+}
+
+class MockNominatimRepo(private val returnList: List<Location> = emptyList<Location>()) :
+    GeocodeRepository {
+
+  override suspend fun reverseGeocode(location: String): List<Location> {
+    return returnList
+  }
+
+  override fun delayForNextQuery(): Long {
+    return 0L
   }
 }

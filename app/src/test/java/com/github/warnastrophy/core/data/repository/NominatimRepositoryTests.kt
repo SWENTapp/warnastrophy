@@ -43,15 +43,15 @@ class NominatimRepositoryTests {
     val repo = NominatimRepository()
     repo.maxRateMs = 2000
     repo.reverseGeocode("Tokyo") // simulate a request
-    val isRateLimited = repo.isRateLimited()
-    Assert.assertTrue(isRateLimited)
+    val delay = repo.delayForNextQuery()
+    Assert.assertTrue(delay > 0)
   }
 
   @Test
   fun `isRateLimited returns false when requests respect the delay`() = runBlocking {
     val repo = NominatimRepository()
     Thread.sleep(600) // wait longer than maxRateMs
-    val isRateLimited = repo.isRateLimited()
-    Assert.assertTrue(!isRateLimited)
+    val delay = repo.delayForNextQuery()
+    Assert.assertTrue(delay <= 0)
   }
 }

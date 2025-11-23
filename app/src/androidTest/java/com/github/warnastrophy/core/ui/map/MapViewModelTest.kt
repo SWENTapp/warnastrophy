@@ -4,10 +4,10 @@ import android.app.Activity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import com.github.warnastrophy.core.domain.model.MockNominatimService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.mockk
@@ -45,7 +45,7 @@ class MapViewModelTest {
     permissionManager = MockPermissionManager()
     nominatimRepository = MockNominatimRepository()
 
-    viewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimRepository)
+    viewModel = MapViewModel(gpsService, hazardsService, permissionManager, MockNominatimService())
     println(viewModel.uiState.value.hazardState.hazards)
   }
 
@@ -248,7 +248,7 @@ class MapViewModelTest {
           override val viewModelStore: ViewModelStore = viewModelStore
         }
 
-    val factory = MapViewModelFactory(gpsService, hazardsService, permissionManager)
+    val factory = MapViewModel.MapViewModelFactory(gpsService, hazardsService, permissionManager)
 
     // Avant rotation
     val vmBefore = ViewModelProvider(owner, factory)[MapViewModel::class.java]
