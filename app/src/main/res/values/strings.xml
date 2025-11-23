@@ -39,6 +39,6 @@
     <string name="danger_mode_automatic_sms_title">Automatic SMS</string>
     <string name="danger_mode_automatic_sms_description">If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions</string>
 
-    <string name="danger_mode_error_no_activity">Error: Dashboard cannot function without an Activity context.</string>
+    <string name="danger_mode_error_no_activity">Error: Screen cannot function without an Activity context.</string>
 
 </resources>
