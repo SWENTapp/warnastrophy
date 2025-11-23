@@ -1,4 +1,3 @@
-// kotlin
 /**
  * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
  *

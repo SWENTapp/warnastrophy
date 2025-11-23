@@ -11,6 +11,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/**
+ * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
+ *
+ * Author: Anas Sidi Mohamed Assistance: ChatGPT
+ */
 class NominatimServiceTest {
 
   private lateinit var repository: GeocodeRepository
