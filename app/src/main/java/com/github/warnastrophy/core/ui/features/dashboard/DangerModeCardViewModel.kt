@@ -1,16 +1,20 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.service.DangerLevel
+import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.service.ServiceStateManager.dangerModeService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import kotlin.collections.emptySet
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 /** Capabilities of the danger mode that can be enabled in Danger Mode with associated labels. */
 enum class DangerModeCapability(val label: String) {
@@ -38,19 +42,27 @@ class DangerModeCardViewModel(
     private val startService: (Context) -> Unit = { ctx -> startForegroundGpsService(ctx) },
     private val stopService: (Context) -> Unit = { ctx -> stopForegroundGpsService(ctx) }
 ) : ViewModel() {
-  var isDangerModeEnabled by mutableStateOf(false)
-    private set
+  private val dangerModeService = ServiceStateManager.dangerModeService
 
-  var currentMode by mutableStateOf(DangerModePreset.CLIMBING_MODE)
-    private set
+  val isDangerModeEnabled =
+      dangerModeService.state
+          .map { it.isActive }
+          .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
-  var dangerLevel by mutableIntStateOf(0)
-    private set
+  val currentMode =
+      dangerModeService.state
+          .map { it.preset }
+          .stateIn(viewModelScope, SharingStarted.Lazily, DangerModePreset.DEFAULT_MODE)
 
-  private val _capabilities = MutableStateFlow<Set<DangerModeCapability>>(emptySet())
+  val dangerLevel =
+      dangerModeService.state
+          .map { it.dangerLevel }
+          .stateIn(viewModelScope, SharingStarted.Lazily, DangerLevel.LOW)
 
-  /** Backing property to expose capabilities as an immutable StateFlow */
-  val capabilities = _capabilities.asStateFlow()
+  val capabilities =
+      dangerModeService.state
+          .map { it.capabilities }
+          .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
 
   /**
    * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
@@ -60,11 +72,12 @@ class DangerModeCardViewModel(
    * @param context The context used to start or stop the GPS service.
    */
   fun onDangerModeToggled(enabled: Boolean, context: Context? = null) {
-    isDangerModeEnabled = enabled
     if (enabled) {
       context?.let { startService(it) }
+      dangerModeService.manualActivate()
     } else {
       context?.let { stopService(it) }
+      dangerModeService.manualDeactivate()
     }
   }
 
@@ -74,7 +87,7 @@ class DangerModeCardViewModel(
    * @param mode The selected Danger Mode preset.
    */
   fun onModeSelected(mode: DangerModePreset) {
-    currentMode = mode
+    dangerModeService.setPreset(mode)
   }
 
   /**
@@ -83,7 +96,10 @@ class DangerModeCardViewModel(
    * @param newCapabilities The new set of enabled capabilities.
    */
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
-    _capabilities.value = newCapabilities
+    if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
+      // TODO
+      Log.e("DangerModeCardViewModel", "Failed to set capabilities: $newCapabilities")
+    }
   }
 
   /**
@@ -92,12 +108,15 @@ class DangerModeCardViewModel(
    * @param capability The capability to be toggled.
    */
   fun onCapabilityToggled(capability: DangerModeCapability) {
-    _capabilities.value =
-        if (capabilities.value.contains(capability)) {
-          capabilities.value - capability
+    val current = dangerModeService.state.value.capabilities
+    val future =
+        if (current.contains(capability)) {
+          current - capability
         } else {
-          capabilities.value + capability
+          current + capability
         }
+
+    onCapabilitiesChanged(future)
   }
 
   /**
@@ -105,7 +124,7 @@ class DangerModeCardViewModel(
    *
    * @param level The new danger level to be set.
    */
-  fun onDangerLevelChanged(level: Int) {
-    dangerLevel = level.coerceIn(0, 3)
+  fun onDangerLevelChanged(level: DangerLevel) {
+    dangerModeService.setDangerLevel(level)
   }
 }

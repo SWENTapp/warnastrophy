@@ -13,17 +13,31 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.warnastrophy.core.data.service.DangerLevel
+import com.github.warnastrophy.core.data.service.DangerModeService
+import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCard
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
+import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import org.junit.Before
 import org.junit.Test
 
 class DangerModeCardTest : BaseAndroidComposeTest() {
+  @Before
+  fun setup() {
+    ServiceStateManager.init(composeTestRule.activity.applicationContext)
+    ServiceStateManager.permissionManager =
+        MockPermissionManager(currentResult = PermissionResult.Granted)
+    ServiceStateManager.dangerModeService =
+        DangerModeService(permissionManager = ServiceStateManager.permissionManager)
+  }
 
   private val testViewModel by lazy {
     // provide no-op start/stop so tests do not attempt to start a real foreground service
@@ -137,6 +151,7 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
   /* Verify that toggles and dropdown selections update the DangerModeCard state in the view model */
   @Test
   fun dangerModeCard_interactions_updateViewModelState() {
+
     lateinit var viewModel: DangerModeCardViewModel
     composeTestRule.setContent {
       // Use a surface to get the background color
@@ -147,7 +162,7 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     val switchNode =
         composeTestRule.onNodeWithTag(DangerModeTestTags.SWITCH, useUnmergedTree = true)
     switchNode.performClick()
-    assert(viewModel.isDangerModeEnabled)
+    assert(viewModel.isDangerModeEnabled.value)
 
     val modeLabelNode =
         composeTestRule.onNodeWithTag(DangerModeTestTags.MODE_LABEL, useUnmergedTree = true)
@@ -156,7 +171,7 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.modeTag(selectedMode), useUnmergedTree = true)
         .performClick()
-    assert(viewModel.currentMode == selectedMode)
+    assert(viewModel.currentMode.value == selectedMode)
 
     val capability = DangerModeCapability.entries[1]
     val capabilityNode =
@@ -179,12 +194,12 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
       MaterialTheme { DangerModeCard(viewModel = viewModel) }
     }
 
-    assert(viewModel.dangerLevel == 0)
+    assert(viewModel.dangerLevel.value == DangerLevel.LOW)
 
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.dangerLevelTag(1), useUnmergedTree = true)
         .performClick()
 
-    assert(viewModel.dangerLevel > 0)
+    assert(viewModel.dangerLevel.value.ordinal > DangerLevel.LOW.ordinal)
   }
 }

@@ -61,7 +61,7 @@ class DangerModeService(
        */
       val activatingHazard: Hazard? = null,
       /** Current preset mode for Danger Mode, dictates monitoring behavior */
-      val preset: DangerModePreset? = DangerModePreset.DEFAULT_MODE,
+      val preset: DangerModePreset = DangerModePreset.DEFAULT_MODE,
       /** The capabilities (what can it monitor, take which actions) given to danger mode */
       val capabilities: Set<DangerModeCapability> = emptySet(),
       /** Current danger level, can be used in communication */

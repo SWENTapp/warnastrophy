@@ -24,4 +24,6 @@
     <string name="logout_message">Are you sure you want to logout?</string>
     <string name="cancel_logout">Cancel</string>
     <string name="logout_error">Error</string>
+    <string name="safe_zone_message">You are in a safe area</string>
+    <string name="danger_mode_active_message">Danger mode is enabled</string>
 </resources>
