@@ -18,9 +18,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.text.compareTo
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import kotlin.math.max
 
 val TAG = "NominatimLocationRepository : "
 
@@ -56,7 +58,7 @@ fun interface GeocodeRepository {
  *
  * @param ioDispatcher Dispatcher used for IO-bound work (injectable for tests).
  */
-class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO) :
+class NominatimRepository() :
     GeocodeRepository {
 
   /** HTTP Referer header value to identify the application source. */
@@ -120,33 +122,26 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
    * @param urlStr The full URL to fetch.
    * @return The response body as a string, or an empty string if rate limited.
    */
-  private suspend fun httpGet(urlStr: String): String =
-      withContext(ioDispatcher) {
-        val bool = isRateLimited()
+  private fun httpGet(urlStr: String): String {
+    lastQueryTimestamp = System.currentTimeMillis()
+    val url = URL(urlStr)
+    val conn = (url.openConnection() as HttpURLConnection).apply {
+      requestMethod = "GET"
+      setRequestProperty("Accept-Language", "en")
+      setRequestProperty("User-Agent", "WarnAStrophyApp/1.0 (+$referer)")
+      setRequestProperty("Referer", referer)
+    }
 
-        if (bool) {
-          return@withContext ""
-        }
-
-        val url = URL(urlStr)
-        val conn =
-            (url.openConnection() as HttpURLConnection).apply {
-              requestMethod = "GET"
-              setRequestProperty("Accept-Language", "en")
-              setRequestProperty("User-Agent", "WarnAStrophyApp/1.0 (+${referer}")
-              setRequestProperty("Referer", referer)
-            }
-        val message: String
-        try {
-          val code = conn.responseCode
-          val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-          message = BufferedReader(InputStreamReader(stream)).use { it.readText() }
-        } finally {
-          conn.disconnect()
-        }
-        return@withContext message
-      }
-
+    return try {
+      val code = conn.responseCode
+      val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+      BufferedReader(InputStreamReader(stream)).use { it.readText() }
+    } catch (e: Exception) {
+      ""
+    } finally {
+      conn.disconnect()
+    }
+  }
   /**
    * Decode the JSON array string [jsonStr] returned by Nominatim into a list of [Location].
    *
@@ -192,21 +187,13 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
    * @return `true` if the repository should consider the next request as rate limited; `false`
    *   otherwise.
    */
-  fun isRateLimited(): Boolean {
-    val currentTimestamp = System.currentTimeMillis()
+  fun DelayForNextQuery(): Long {
     val last = lastQueryTimestamp
-
-    val isLimited =
-        if (last == null) {
-          lastQueryTimestamp = currentTimestamp
-          false
-        } else {
-          val timeSinceLastQuery = currentTimestamp - last
-          val limited = timeSinceLastQuery < maxRateMs
-          if (limited) lastQueryTimestamp = currentTimestamp
-          limited
-        }
-
-    return isLimited
+    if (last == null) {
+      return 0L
+    } else {
+      val timeSinceLastQuery = System.currentTimeMillis() - last
+      return max(maxRateMs - timeSinceLastQuery, 0L)
+    }
   }
 }

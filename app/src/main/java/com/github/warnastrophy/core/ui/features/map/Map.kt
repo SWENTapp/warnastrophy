@@ -376,10 +376,10 @@ private fun SuggestionsDropdown(
           if (name != null) {
             DropdownMenuItem(
                 modifier = Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM),
-                text = { Text(name) },
+                text = { Text(name, maxLines = 2) },
                 onClick = { onSelect(item) })
             if (index < suggestions.size - 1) {
-              HorizontalDivider(thickness = 1.dp, color = Color(0xFFD3F4FF))
+              HorizontalDivider(thickness = 1.dp, color = Color(0xFF3B3B3B))
             }
           }
         }
