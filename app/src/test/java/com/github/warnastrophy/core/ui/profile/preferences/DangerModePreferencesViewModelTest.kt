@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.profile.preferences
 
 import com.github.warnastrophy.core.data.service.MockPermissionManager
+import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
 import com.github.warnastrophy.core.ui.features.profile.preferences.PendingAction
@@ -17,9 +18,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
+import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 class DangerModePreferencesViewModelTest {
   private val testDispatcher = StandardTestDispatcher()
   private lateinit var permissionManager: MockPermissionManager
@@ -28,7 +34,7 @@ class DangerModePreferencesViewModelTest {
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    permissionManager = MockPermissionManager()
+    permissionManager = spy(MockPermissionManager())
   }
 
   @After
@@ -114,5 +120,20 @@ class DangerModePreferencesViewModelTest {
     assertFalse(state.alertModeAutomaticEnabled)
     assertFalse(state.inactivityDetectionEnabled)
     assertFalse(state.automaticSmsEnabled)
+  }
+
+  @Test
+  fun onPermissionsResult_marksAllPermissionsAsAsked() {
+    permissionManager.setPermissionResult(
+        PermissionResult.Denied(AppPermissions.AlertModePermission.permissions.toList()))
+    createViewModel()
+
+    viewModel.onPermissionsResult(activity = mock())
+
+    verify(permissionManager).markPermissionsAsAsked(viewModel.alertModePermissions)
+
+    permissionManager.setPermissionResult(
+        PermissionResult.Denied(viewModel.smsPermissions.permissions.toList()))
+    verify(permissionManager).markPermissionsAsAsked(viewModel.smsPermissions)
   }
 }
