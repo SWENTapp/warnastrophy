@@ -1,27 +1,25 @@
 package com.github.warnastrophy.core.data.repository
 
-import android.util.Log
 import com.github.warnastrophy.core.domain.model.Contact
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class HybridContactRepository(
-    private val local: ContactsRepositoryLocal,
-    private val remote: ContactsRepositoryImpl,
+    private val local: ContactsRepository,
+    private val remote: ContactsRepository,
 ) : ContactsRepository {
-
-  private val ioScope = CoroutineScope(Dispatchers.IO)
 
   override fun getNewUid(): String = remote.getNewUid()
 
   override suspend fun getAllContacts(userId: String): Result<List<Contact>> {
 
-    val localResult = local.getAllContacts(userId)
+    val localList = local.getAllContacts(userId)
+    val remoteList = remote.getAllContacts(userId)
 
-    ioScope.launch { syncFromRemote(userId) }
+    if (remoteList.isSuccess) {
+      val remoteContacts = remoteList.getOrThrow()
+      localContactsMerge(userId, remoteContacts)
+    }
 
-    return localResult
+    return localList
   }
 
   override suspend fun getContact(userId: String, contactID: String): Result<Contact> {
@@ -31,20 +29,15 @@ class HybridContactRepository(
 
     val remoteFound = remote.getContact(userId, contactID)
 
-    remoteFound.onSuccess { remoteContact ->
-      ioScope.launch { local.addContact(userId, remoteContact) }
+    if (remoteFound.isSuccess) {
+      local.addContact(userId, remoteFound.getOrThrow())
     }
-
     return remoteFound
   }
 
   override suspend fun addContact(userId: String, contact: Contact): Result<Unit> {
     val localAdd = local.addContact(userId, contact)
-    if (localAdd.isFailure) return localAdd
-
-    ioScope.launch {
-      remote.addContact(userId, contact).onFailure { Log.e("Hybrid", "Failed remote add", it) }
-    }
+    if (localAdd.isSuccess) remote.addContact(userId, contact)
 
     return localAdd
   }
@@ -55,42 +48,25 @@ class HybridContactRepository(
       newContact: Contact
   ): Result<Unit> {
     val localEdit = local.editContact(userId, contactID, newContact)
-    if (localEdit.isFailure) return localEdit
-
-    ioScope.launch {
-      remote.editContact(userId, contactID, newContact).onFailure {
-        Log.e("Hybrid", "Failed remote edit", it)
-      }
-    }
+    if (localEdit.isSuccess) remote.editContact(userId, contactID, newContact)
 
     return localEdit
   }
 
   override suspend fun deleteContact(userId: String, contactID: String): Result<Unit> {
     val localDelete = local.deleteContact(userId, contactID)
-    if (localDelete.isFailure) return localDelete
-
-    ioScope.launch {
-      remote.deleteContact(userId, contactID).onFailure {
-        Log.e("Hybrid", "Failed remote delete", it)
-      }
-    }
+    if (localDelete.isSuccess) remote.deleteContact(userId, contactID)
 
     return localDelete
   }
 
-  private suspend fun syncFromRemote(userId: String) {
-    val remoteResult = remote.getAllContacts(userId)
-    if (remoteResult.isFailure) return
+  private suspend fun localContactsMerge(userId: String, remoteContacts: List<Contact>) {
+    val localContacts = local.getAllContacts(userId).getOrNull().orEmpty()
+    val localIds = localContacts.map { it.id }.toSet()
 
-    val remoteContacts = remoteResult.getOrThrow()
-    val localContacts = local.getAllContacts(userId).getOrDefault(emptyList())
-
-    val localMap = localContacts.associateBy { it.id }
-
-    for (remoteContact in remoteContacts) {
-      if (remoteContact.id !in localMap) {
-        local.addContact(userId, remoteContact)
+    for (c in remoteContacts) {
+      if (c.id !in localIds) {
+        local.addContact(userId, c)
       }
     }
   }
