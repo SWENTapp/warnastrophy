@@ -39,6 +39,7 @@ private class PermissionManagerMock(private val result: PermissionResult) :
   override fun isPermissionAskedBefore(permissionType: AppPermissions) = false
 }
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @RunWith(org.junit.runners.JUnit4::class)
 class DangerModeServiceTest {
   private lateinit var service: DangerModeService
