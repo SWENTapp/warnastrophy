@@ -1,16 +1,21 @@
 package com.github.warnastrophy.core.ui.profile.preferences
 
+import android.app.Activity
+import android.content.Context
+import android.content.SharedPreferences
 import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
 import com.github.warnastrophy.core.ui.features.profile.preferences.PendingAction
+import com.github.warnastrophy.core.util.AppConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.bouncycastle.crypto.params.Blake3Parameters.context
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -22,24 +27,32 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class DangerModePreferencesViewModelTest {
+  private lateinit var activity: Activity
+  private lateinit var context: Context
   private val testDispatcher = StandardTestDispatcher()
   private lateinit var permissionManager: MockPermissionManager
+  private lateinit var prefs: SharedPreferences
   private lateinit var viewModel: DangerModePreferencesViewModel
 
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
+    activity = Robolectric.buildActivity(Activity::class.java).get()
+    context = activity.applicationContext
+    prefs = context.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
     permissionManager = spy(MockPermissionManager())
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    prefs.edit().clear().apply()
   }
 
   /**
