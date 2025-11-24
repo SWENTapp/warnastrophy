@@ -283,6 +283,8 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.okhttp.mockwebserver)
 
+    // --------------- DataStore -------------------
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
 
     // test mock
     androidTestImplementation("io.mockk:mockk-android:1.13.8")
