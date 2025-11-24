@@ -13,14 +13,15 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
-import com.github.warnastrophy.core.ui.util.BaseSimpleComposeTest
+import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class DangerModePreferencesScreenTest : BaseSimpleComposeTest() {
+class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   private lateinit var mockPermissionManager: MockPermissionManager
   private lateinit var viewModel: DangerModePreferencesViewModel
 
@@ -128,11 +129,21 @@ class DangerModePreferencesScreenTest : BaseSimpleComposeTest() {
 
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .performClick()
+        .assertIsOff()
 
+    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_ALERT_MODE)
     composeTestRule.waitForIdle()
 
     assertTrue(viewModel.uiState.value.isOsRequestInFlight)
+
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    viewModel.onPermissionsResult(composeTestRule.activity)
+    composeTestRule.waitForIdle()
+
+    assertFalse(viewModel.uiState.value.isOsRequestInFlight)
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+        .assertIsOn()
   }
 
   @Test
@@ -141,7 +152,6 @@ class DangerModePreferencesScreenTest : BaseSimpleComposeTest() {
 
     setContent()
 
-    // Turn on all switches
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .performClick()
@@ -154,7 +164,6 @@ class DangerModePreferencesScreenTest : BaseSimpleComposeTest() {
 
     composeTestRule.waitForIdle()
 
-    // Check all ON
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .assertIsOn()
@@ -165,7 +174,6 @@ class DangerModePreferencesScreenTest : BaseSimpleComposeTest() {
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsOn()
 
-    // Turn off Alert Mode switch
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .performClick()
