@@ -6,6 +6,7 @@
 package com.github.warnastrophy.core.domain.model
 
 import com.github.warnastrophy.core.ui.repository.GeocodeRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -30,10 +31,13 @@ interface GeocodeService {
  *
  * @property repository The Nominatim repository used to perform geocoding queries.
  */
-class NominatimService(private val repository: GeocodeRepository) : GeocodeService {
+class NominatimService(
+    private val repository: GeocodeRepository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) : GeocodeService {
 
   private val rootJob = Job()
-  private val scope = CoroutineScope(Dispatchers.IO + rootJob)
+  private val scope = CoroutineScope(dispatcher + rootJob)
 
   private val _locations = MutableStateFlow<List<Location>>(emptyList())
   override val locations: StateFlow<List<Location>> = _locations.asStateFlow()

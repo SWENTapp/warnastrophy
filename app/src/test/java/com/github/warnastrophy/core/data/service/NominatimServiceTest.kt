@@ -60,7 +60,9 @@ class NominatimServiceTest {
             return if (location == "q2") mockLocations else listOf(Location(0.0, 0.0, "first"))
           }
         }
-    nominatimService = NominatimService(fakeRepo)
+
+    val testDispatcher = StandardTestDispatcher(testScheduler)
+    nominatimService = NominatimService(fakeRepo, dispatcher = testDispatcher)
 
     nominatimService.searchQuery("q1")
     nominatimService.searchQuery("q2")
