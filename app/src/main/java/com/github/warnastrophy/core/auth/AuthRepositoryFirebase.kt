@@ -6,6 +6,7 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.tasks.await
@@ -102,9 +103,17 @@ class AuthRepositoryFirebase(
             IllegalStateException("Login failed: Credential is not of type GitHub"))
       }
     } catch (e: Exception) {
-      Result.failure(
-          IllegalStateException(
-              "GitHub login failed: ${e.localizedMessage ?: UNEXPECTED_ERROR_MESSAGE}"))
+      val errorMessage =
+          when (e) {
+            is FirebaseAuthUserCollisionException -> {
+              "A user with this email already exists. Please sign in with your other method."
+            }
+            else -> {
+              "GitHub login failed: ${e.localizedMessage ?: UNEXPECTED_ERROR_MESSAGE}"
+            }
+          }
+
+      return Result.failure(IllegalStateException(errorMessage, e))
     }
   }
 

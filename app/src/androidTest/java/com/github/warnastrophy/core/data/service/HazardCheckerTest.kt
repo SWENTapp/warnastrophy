@@ -1,7 +1,11 @@
-package com.github.warnastrophy.core.data.service
+package com.github.warnastrophy.core.ui.map
 
+import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.domain.usecase.HazardCheckerService
 import com.github.warnastrophy.core.model.Hazard
-import junit.framework.TestCase
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -57,7 +61,8 @@ class HazardCheckerTest {
             alertLevel = 3.0, // HIGHER priority
             centroid = null,
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = geometryA)
+            affectedZone = geometryA
+        )
 
     val testHazardB =
         Hazard(
@@ -75,7 +80,7 @@ class HazardCheckerTest {
             affectedZone = geometryB // <-- Use WKT string
             )
 
-    val serviceStateManager = ServiceStateManager
+    val serviceStateManager = StateManagerService
     val testDispatcher = StandardTestDispatcher(testScheduler)
 
     serviceStateManager.updateActiveHazard(null)
@@ -88,10 +93,10 @@ class HazardCheckerTest {
     advanceTimeBy(HAZARD_TIME_THRESHOLD_MS)
     runCurrent()
 
-    val currentHazard = ServiceStateManager.activeHazardFlow.value
+    val currentHazard = StateManagerService.activeHazardFlow.value
 
-    TestCase.assertNotNull("The active hazard should not be null after delay.", currentHazard)
-    TestCase.assertEquals(testHazardA.id, currentHazard?.id)
+    assertNotNull("The active hazard should not be null after delay.", currentHazard)
+    assertEquals(testHazardA.id, currentHazard?.id)
   }
 
   @Test
@@ -120,12 +125,11 @@ class HazardCheckerTest {
             centroid = null,
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZone = geometryA)
-    val serviceStateManager = ServiceStateManager
+    val serviceStateManager = StateManagerService
     serviceStateManager.clearActiveAlert()
 
     val hazardChecker =
-        HazardCheckerService(
-            listOf(testHazardA), StandardTestDispatcher(testScheduler), scope = this)
+        HazardCheckerService(listOf(testHazardA), StandardTestDispatcher(testScheduler), scope = this)
 
     hazardChecker.checkAndPublishAlert(20.0, 20.0) // User outside hazard
 
@@ -133,7 +137,7 @@ class HazardCheckerTest {
     runCurrent()
 
     val currentHazard = serviceStateManager.activeHazardFlow.value
-    TestCase.assertNull("The active hazard should be null when user is outside.", currentHazard)
+    assertNull("The active hazard should be null when user is outside.", currentHazard)
   }
 
   @Test
@@ -170,13 +174,13 @@ class HazardCheckerTest {
     hazardChecker.checkAndPublishAlert(10.0, 10.0)
     advanceTimeBy(HAZARD_TIME_THRESHOLD_MS)
     runCurrent()
-    TestCase.assertEquals(hazardA.id, ServiceStateManager.activeHazardFlow.value?.id)
+    assertEquals(hazardA.id, StateManagerService.activeHazardFlow.value?.id)
 
     // User exits hazard
     hazardChecker.checkAndPublishAlert(20.0, 20.0) // outside
     advanceTimeBy(HAZARD_TIME_THRESHOLD_MS)
     runCurrent()
-    TestCase.assertNull(ServiceStateManager.activeHazardFlow.value)
+    assertNull(StateManagerService.activeHazardFlow.value)
   }
 
   @Test
@@ -221,8 +225,8 @@ class HazardCheckerTest {
     advanceTimeBy(HAZARD_TIME_THRESHOLD_MS)
     runCurrent() // process the cleanUpInactiveHazards()
 
-    val currentHazard = ServiceStateManager.activeHazardFlow.value
-    TestCase.assertNull(
+    val currentHazard = StateManagerService.activeHazardFlow.value
+    assertNull(
         "Active hazard should not be set because the user left before threshold.", currentHazard)
   }
 }

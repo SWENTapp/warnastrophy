@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextContains
@@ -18,13 +17,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
-import com.github.warnastrophy.WarnastrophyApp
+import com.github.warnastrophy.WarnastrophyComposable
 import com.github.warnastrophy.core.ui.contact.UITest
+import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
+import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
+import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.features.health.HealthCardTestTags
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -51,9 +50,9 @@ abstract class EndToEndUtils : UITest() {
   /** Sets the content of the test rule to the WarnastrophyApp, optionally using a fake map. */
   fun setContent(useFakeMap: Boolean = true) {
     if (useFakeMap) {
-      composeTestRule.setContent { WarnastrophyApp(mockMapScreen = { FakeMapComponent() }) }
+      composeTestRule.setContent { WarnastrophyComposable(mockMapScreen = { FakeMapComponent() }) }
     } else {
-      composeTestRule.setContent { WarnastrophyApp() }
+      composeTestRule.setContent { WarnastrophyComposable() }
     }
   }
 

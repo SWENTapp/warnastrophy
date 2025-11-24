@@ -6,15 +6,16 @@ import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
+
 import androidx.test.rule.GrantPermissionRule
-import com.github.warnastrophy.core.domain.model.Hazard
-import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.data.permissions.PermissionResult
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.github.warnastrophy.core.util.AppConfig.defaultPosition
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -63,23 +64,27 @@ class HazardPolygonTest : BaseAndroidComposeTest() {
             )
     val geometryA: Geometry = factory.createPolygon(factory.createLinearRing(coordsA))
 
-    hazardService.setHazards(
-        listOf(
-            Hazard(
-                id = 1001,
-                alertLevel = 3.0,
-                type = "TC",
-                description = "Test Hazard A",
-                country = "Testland",
-                date = "2025-01-01",
-                severity = 2.0,
-                severityUnit = "unit",
-                articleUrl = "http://example.test/A",
-                centroid = Coordinate(10.0, 10.0).let { point -> factory.createPoint(point) },
-                bbox = listOf(9.9, 9.9, 10.1, 10.1),
-                affectedZone = geometryA)))
+      hazardService.run {
+          setHazards(
+          listOf(
+              Hazard(
+                  id = 1001,
+                  alertLevel = 3.0,
+                  type = "TC",
+                  description = "Test Hazard A",
+                  country = "Testland",
+                  date = "2025-01-01",
+                  severity = 2.0,
+                  severityUnit = "unit",
+                  articleUrl = "http://example.test/A",
+                  centroid = Coordinate(10.0, 10.0).let { point -> factory.createPoint(point) },
+                  bbox = listOf(9.9, 9.9, 10.1, 10.1),
+                  affectedZone = geometryA
+              )
+          ))
+      }
 
-    permissionManager = MockPermissionManager()
+      permissionManager = MockPermissionManager()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 

@@ -2,9 +2,9 @@ package com.github.warnastrophy.core.ui.dashboard
 
 import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.github.warnastrophy.core.data.local.HealthCardStorage
-import com.github.warnastrophy.core.data.local.StorageException
-import com.github.warnastrophy.core.data.local.StorageResult
+import com.github.warnastrophy.core.data.localStorage.HealthCardStorage
+import com.github.warnastrophy.core.data.localStorage.StorageException
+import com.github.warnastrophy.core.data.localStorage.StorageResult
 import com.github.warnastrophy.core.data.repository.HealthCardRepository
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.features.health.HealthCardUiState

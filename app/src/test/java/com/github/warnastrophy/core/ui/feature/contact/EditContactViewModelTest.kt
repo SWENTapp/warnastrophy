@@ -1,10 +1,13 @@
-package com.github.warnastrophy.core.ui.feature.contact
+package com.github.warnastrophy.core.ui.contact
 
-import com.github.warnastrophy.core.data.repository.ContactsRepository
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.features.contact.EditContactViewModel
-import junit.framework.TestCase
+import com.github.warnastrophy.core.util.AppConfig
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -34,10 +37,13 @@ class EditContactViewModelTest {
     Dispatchers.setMain(testDispatcher)
     repository = MockContactRepository()
     // Add some contacts to the repository
-    repository.addContact(contact1)
-    repository.addContact(contact2)
+    repository.addContact(
+        AppConfig.defaultUserId,
+        contact1,
+    )
+    repository.addContact(AppConfig.defaultUserId, contact2)
 
-    viewModel = EditContactViewModel(repository)
+    viewModel = EditContactViewModel(repository, AppConfig.defaultUserId)
   }
 
   @After
@@ -56,10 +62,10 @@ class EditContactViewModelTest {
     viewModel.loadContact("1")
     advanceUntilIdle() // This ensures loadContact() completes and updates uiState.
     val uiState = viewModel.uiState.first()
-    TestCase.assertEquals(contact1.fullName, uiState.fullName)
-    TestCase.assertEquals(contact1.phoneNumber, uiState.phoneNumber)
-    TestCase.assertEquals(contact1.relationship, uiState.relationship)
-    TestCase.assertNull(uiState.errorMsg)
+    assertEquals(contact1.fullName, uiState.fullName)
+    assertEquals(contact1.phoneNumber, uiState.phoneNumber)
+    assertEquals(contact1.relationship, uiState.relationship)
+    assertNull(uiState.errorMsg)
   }
 
   @Test
@@ -82,13 +88,13 @@ class EditContactViewModelTest {
 
     advanceUntilIdle()
 
-    val updated = repository.getContact("1").getOrNull()!!
+    val updated = repository.getContact(AppConfig.defaultUserId, "1").getOrNull()!!
 
-    TestCase.assertEquals("Alice Updated", updated.fullName)
-    TestCase.assertEquals("+11111111111", updated.phoneNumber)
-    TestCase.assertEquals("Colleague", updated.relationship)
+    assertEquals("Alice Updated", updated.fullName)
+    assertEquals("+11111111111", updated.phoneNumber)
+    assertEquals("Colleague", updated.relationship)
 
-    TestCase.assertNotNull(navigateBackEvent.await())
+    assertNotNull(navigateBackEvent.await())
   }
 
   @Test
@@ -106,9 +112,9 @@ class EditContactViewModelTest {
     viewModel.deleteContact("2")
     advanceUntilIdle()
 
-    val result = repository.getContact("2")
-    TestCase.assertEquals(true, result.isFailure)
+    val result = repository.getContact(AppConfig.defaultUserId, "2")
+    assertEquals(true, result.isFailure)
 
-    TestCase.assertNotNull(navigateBackEvent.await())
+    assertNotNull(navigateBackEvent.await())
   }
 }

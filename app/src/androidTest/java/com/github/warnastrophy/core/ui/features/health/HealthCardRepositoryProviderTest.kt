@@ -3,9 +3,9 @@ package com.github.warnastrophy.core.ui.features.health
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.Provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HybridHealthCardRepository
-import com.github.warnastrophy.core.data.repository.LocalHealthCardRepository
+import com.github.warnastrophy.core.data.localStorage.LocalHealthCardRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import io.mockk.mockk

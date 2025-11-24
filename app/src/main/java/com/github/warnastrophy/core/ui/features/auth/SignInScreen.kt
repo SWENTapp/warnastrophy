@@ -37,6 +37,7 @@ import androidx.credentials.CredentialManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.components.Loading
+import com.github.warnastrophy.core.util.findActivity
 
 /** Object containing test tag constants for the SignInScreen composable UI elements. */
 object SignInScreenTestTags {
@@ -64,6 +65,7 @@ fun SignInScreen(
     onSignedIn: () -> Unit = {}
 ) {
   val context = LocalContext.current
+  val activity = context.findActivity()
   val uiState by authViewModel.uiState.collectAsState()
 
   val serverClientId = stringResource(id = R.string.default_web_client_id)
@@ -120,12 +122,29 @@ fun SignInScreen(
 
                 GitHubSignInButton(
                     onSignInClick = {
-                      Toast.makeText(
-                              context, "This feature is not implemented yet!", Toast.LENGTH_LONG)
-                          .show()
+                      if (activity != null) {
+                        authViewModel.startGitHubSignIn(activity)
+                      } else {
+                        Toast.makeText(context, "Activity context not found.", Toast.LENGTH_LONG)
+                            .show()
+                      }
                     })
 
-                GuestSignInButton(onSignInClick = { onSignedIn() })
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { onSignedIn() },
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.padding(8.dp).height(48.dp)) {
+                      Text(
+                          text = "Continue as Guest",
+                          color = Color.White,
+                          fontSize = 16.sp,
+                          fontWeight = FontWeight.Medium)
+                    }
               }
             }
       })
@@ -200,35 +219,6 @@ fun GitHubSignInButton(onSignInClick: () -> Unit) {
                   color = Color.Gray,
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Medium)
-            }
-      }
-}
-/**
- * Composable function that displays a button for signing in as a guest.
- *
- * @param onSignInClick The callback to invoke when the button is clicked.
- * @param modifier The [Modifier] to be applied to the button.
- * @param text The text to display on the button. Default is "Se connecter en invité".
- */
-@Composable
-fun GuestSignInButton(
-    onSignInClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    text: String = stringResource(R.string.sign_in_as_guest)
-) {
-  Button(
-      onClick = onSignInClick,
-      colors =
-          ButtonDefaults.buttonColors(
-              containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White),
-      shape = RoundedCornerShape(50),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-      modifier = modifier.padding(8.dp).height(48.dp).testTag("invitedSignInButton")) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()) {
-              Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
       }
 }

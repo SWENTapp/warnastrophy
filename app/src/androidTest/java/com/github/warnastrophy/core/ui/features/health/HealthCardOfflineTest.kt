@@ -3,7 +3,8 @@ package com.github.warnastrophy.core.ui.features.health
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.Provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.model.HealthCard
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -34,7 +35,7 @@ class HealthCardOfflineTest {
     val repo = HealthCardRepositoryProvider.repository
 
     val card =
-        HealthCard(fullName = "Offline User", dateOfBirthIso = "1999-12-31", idNumber = "OFF-1")
+      HealthCard(fullName = "Offline User", dateOfBirthIso = "1999-12-31", idNumber = "OFF-1")
 
     repo.upsertMyHealthCard(card)
 

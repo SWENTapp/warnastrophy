@@ -1,4 +1,9 @@
-package com.github.warnastrophy.core.data.repository
+/**
+ * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
+ *
+ * Author: Anas Sidi Mohamed Assistance: ChatGPT
+ */
+package com.github.warnastrophy.core
 
 import android.content.Context
 import android.hardware.Sensor
@@ -6,25 +11,25 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.data.repository.MotionData
+import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import kotlin.math.sqrt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.math.sqrt
 
-/**
- * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
- *
- * Author: Anas Sidi Mohamed Assistance: ChatGPT
- */
 class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
   private lateinit var repo: MouvementSensorRepository
   private lateinit var context: Context
@@ -119,15 +124,15 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
   @Test
   fun repository_initialization_succeeds() {
     repo = MouvementSensorRepository(context)
-    Assert.assertNotNull(repo)
-    Assert.assertNotNull(repo.data)
+    assertNotNull(repo)
+    assertNotNull(repo.data)
   }
 
   @Test
   fun data_flow_is_created_successfully() = runTest {
     repo = MouvementSensorRepository(context)
     val flow = repo.data
-    Assert.assertNotNull(flow)
+    assertNotNull(flow)
   }
 
   @Test
@@ -158,7 +163,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     job.cancel()
     delay(100)
 
-    Assert.assertTrue("The registered listener must be captured", listenerSlot.isCaptured)
+    assertTrue("The registered listener must be captured", listenerSlot.isCaptured)
 
     verify(atLeast = 1) { mockManager.unregisterListener(listenerSlot.captured) }
   }
@@ -181,10 +186,10 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     job.join()
 
-    Assert.assertTrue(receivedData.size >= 3)
+    assertTrue(receivedData.size >= 3)
     receivedData.forEach { data ->
-      Assert.assertNotNull(data.acceleration)
-      Assert.assertTrue(data.acceleration.first.isFinite())
+      assertNotNull(data.acceleration)
+      assertTrue(data.acceleration.first.isFinite())
     }
   }
 
@@ -204,11 +209,11 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     job.join()
 
-    Assert.assertTrue(receivedData.size >= 2)
+    assertTrue(receivedData.size >= 2)
     receivedData.forEach { data ->
-      Assert.assertEquals(1.5f, data.rotation.first, 0.01f)
-      Assert.assertEquals(-0.5f, data.rotation.second, 0.01f)
-      Assert.assertEquals(0.8f, data.rotation.third, 0.01f)
+      assertEquals(1.5f, data.rotation.first, 0.01f)
+      assertEquals(-0.5f, data.rotation.second, 0.01f)
+      assertEquals(0.8f, data.rotation.third, 0.01f)
     }
   }
 
@@ -226,14 +231,14 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     job.join()
 
-    Assert.assertTrue(receivedData.isNotEmpty())
+    assertTrue(receivedData.isNotEmpty())
     val data = receivedData.first()
     val expectedMagnitude =
         sqrt(
             data.acceleration.first * data.acceleration.first +
                 data.acceleration.second * data.acceleration.second +
                 data.acceleration.third * data.acceleration.third)
-    Assert.assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01f)
+    assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01f)
   }
 
   @Test
@@ -254,10 +259,10 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     val afterTime = System.currentTimeMillis()
 
-    Assert.assertTrue(receivedData.isNotEmpty())
+    assertTrue(receivedData.isNotEmpty())
     val data = receivedData.first()
-    Assert.assertTrue(data.timestamp >= beforeTime)
-    Assert.assertTrue(data.timestamp <= afterTime)
+    assertTrue(data.timestamp >= beforeTime)
+    assertTrue(data.timestamp <= afterTime)
   }
 
   @Test
@@ -282,9 +287,9 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     job.join()
 
-    Assert.assertTrue(receivedData.size >= 5)
+    assertTrue(receivedData.size >= 5)
     receivedData.forEach { data ->
-      Assert.assertTrue(
+      assertTrue(
           "Magnitude should be positive: ${data.accelerationMagnitude}",
           data.accelerationMagnitude >= 0f)
     }
@@ -300,7 +305,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     listener.onSensorChanged(null)
 
-    Assert.assertTrue(true)
+    assertTrue(true)
 
     job.cancel()
   }
@@ -315,7 +320,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     listener.onAccuracyChanged(mockAccelerometer, SensorManager.SENSOR_STATUS_ACCURACY_HIGH)
 
-    Assert.assertTrue(true)
+    assertTrue(true)
 
     job.cancel()
   }
@@ -340,10 +345,10 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     job.join()
 
-    Assert.assertTrue(receivedData.size >= 4)
+    assertTrue(receivedData.size >= 4)
     val lastData = receivedData.last()
-    Assert.assertEquals(0.8f, lastData.rotation.first, 0.01f)
-    Assert.assertEquals(0.9f, lastData.rotation.second, 0.01f)
-    Assert.assertEquals(1.0f, lastData.rotation.third, 0.01f)
+    assertEquals(0.8f, lastData.rotation.first, 0.01f)
+    assertEquals(0.9f, lastData.rotation.second, 0.01f)
+    assertEquals(1.0f, lastData.rotation.third, 0.01f)
   }
 }

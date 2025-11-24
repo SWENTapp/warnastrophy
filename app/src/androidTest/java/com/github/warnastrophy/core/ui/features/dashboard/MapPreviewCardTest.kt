@@ -10,17 +10,17 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
-import com.github.warnastrophy.WarnastrophyApp
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.WarnastrophyComposable
+import com.github.warnastrophy.core.data.Provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.map.GpsServiceMock
+import com.github.warnastrophy.core.ui.map.HazardServiceMock
+import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
-import com.github.warnastrophy.core.util.GpsServiceMock
-import com.github.warnastrophy.core.util.HazardServiceMock
-import com.github.warnastrophy.core.util.MockPermissionManager
 import com.google.android.gms.maps.MapsInitializer
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -112,7 +112,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     // Initialize Contact Repository (really important for first time app launch during tests)
     ContactRepositoryProvider.init(ApplicationProvider.getApplicationContext())
     composeTestRule.setContent {
-      WarnastrophyApp(mockMapScreen = { MapScreen(viewModel = viewModel) })
+      WarnastrophyComposable(mockMapScreen = { MapScreen(viewModel = viewModel) })
     }
 
     composeTestRule.waitUntil(

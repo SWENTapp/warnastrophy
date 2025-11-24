@@ -6,10 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.Provider.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.Provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 /**
  * `MainActivity` is the entry point of the application. It sets up the content view with the
@@ -19,20 +22,20 @@ import com.google.firebase.FirebaseApp
 class MainActivity : ComponentActivity() {
 
   private fun showUI() {
-    setContent { MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyApp() } } }
+    setContent { MainAppTheme { Surface(Modifier.fillMaxSize()) { WarnastrophyComposable() } } }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     FirebaseApp.initializeApp(this)
 
-    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-
-    auth.signOut()
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.init(applicationContext)
+    StateManagerService.init(applicationContext)
+
     showUI()
   }
 }

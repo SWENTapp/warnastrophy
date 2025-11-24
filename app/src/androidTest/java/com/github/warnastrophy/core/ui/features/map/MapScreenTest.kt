@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.features.map
+package com.github.warnastrophy.core.ui.map
 
 import android.Manifest
 import android.content.Context
@@ -13,11 +13,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
@@ -25,21 +30,23 @@ import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.data.permissions.AppPermissions
 import com.github.warnastrophy.core.data.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.ui.features.map.MapScreen
+import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
+import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.github.warnastrophy.core.util.AppConfig
+import com.github.warnastrophy.core.util.AppConfig.defaultPosition
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
-import com.github.warnastrophy.core.util.GpsServiceMock
-import com.github.warnastrophy.core.util.HazardServiceMock
-import com.github.warnastrophy.core.util.MockPermissionManager
 import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
-import junit.framework.TestCase
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
-import org.junit.Assume
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,6 +58,8 @@ class MapScreenTest : BaseAndroidComposeTest() {
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
+
+  private lateinit var nominatimRepository: GeocodeRepository
   /**
    * An idling resource to wait for camera animations to complete during tests. This is crucial for
    * Espresso tests involving map camera movements, as it prevents test actions from executing
@@ -70,10 +79,11 @@ class MapScreenTest : BaseAndroidComposeTest() {
     gpsService = GpsServiceMock()
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
+    nominatimRepository = MockNominatimRepository()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager)
+    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimRepository)
     IdlingRegistry.getInstance().register(animationIdlingResource)
   }
 
@@ -153,10 +163,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
     }
   }
 
-  /**
-   * Applies a given [com.github.warnastrophy.core.data.permissions.PermissionResult] to the view
-   * model.
-   */
+  /** Applies a given [PermissionResult] to the view model. */
   private fun applyPerm(permissionResult: PermissionResult) {
     // Use mock permission manager to simulate different permission states deterministically
     permissionManager.setPermissionResult(permissionResult)
@@ -168,7 +175,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
    */
   @Composable
   private fun FakeMapForTest() {
-    Box(modifier = Modifier.Companion.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN))
+    Box(modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN))
   }
 
   /** Verifies that a fallback error message is shown when the context is not an Activity. */
@@ -203,7 +210,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
    */
   @Test
   fun testPermissionRequestCardIsDisplayedOnFirstLaunch() {
-    Assume.assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
 
     // First launch
     setPref(firstLaunchDone = false, askedOnce = false)
@@ -218,7 +225,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
   /** Tests that the permission card is not shown when permission has been granted. */
   @Test
   fun testPermissionRequestCardIsNotDisplayedWhenPermissionGranted() {
-    Assume.assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
     // Set Preferences to simulate first launch
     setPref(firstLaunchDone = false, askedOnce = false)
     setContent()
@@ -234,7 +241,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
   /** Tests that if permission is granted, it remains granted across app relaunches. */
   @Test
   fun testLocationPermissionGrantedAlways() {
-    Assume.assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
 
     // 1) First "launch": first run
     setPref(firstLaunchDone = false, askedOnce = false)
@@ -263,7 +270,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
    */
   @Test
   fun testLocationPermissionDenied() {
-    Assume.assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
 
     // Permanent denial path: askedOnce=true and not granted
     setPref(firstLaunchDone = true, askedOnce = true)
@@ -290,7 +297,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
    */
   @Test
   fun testLocationPermissionAllowedOnce() {
-    Assume.assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+    assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
 
     // 1) First "launch": first run
     setPref(firstLaunchDone = false, askedOnce = false)
@@ -331,7 +338,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.waitForIdle()
     val uiState = viewModel.uiState.value
-    TestCase.assertTrue(uiState.isTrackingLocation)
+    assertTrue(uiState.isTrackingLocation)
   }
 
   /** Verifies that clicking the track location button triggers a camera animation. */
@@ -343,13 +350,10 @@ class MapScreenTest : BaseAndroidComposeTest() {
       cameraPositionState = rememberCameraPositionState()
       cameraPositionState.position =
           CameraPosition.fromLatLngZoom(
-              LatLng(
-                  AppConfig.defaultPosition.latitude + 1, AppConfig.defaultPosition.longitude + 1),
-              1f)
+              LatLng(defaultPosition.latitude + 1, defaultPosition.longitude + 1), 1f)
       MapScreen(viewModel = viewModel, cameraPositionState = cameraPositionState)
       applyPerm(PermissionResult.Granted)
     }
-
     composeTestRule.waitForIdle()
 
     // It's good practice to wait until the camera is not moving from its initial setup
@@ -366,6 +370,67 @@ class MapScreenTest : BaseAndroidComposeTest() {
     // Wait for animation to finish using the idling resource
     composeTestRule.waitUntil(timeoutMillis = 10_000) {
       !cameraPositionState.isMoving && initialPosition != cameraPositionState.position.target
+    }
+  }
+
+  @Test
+  fun searchBarIsDisplayed() {
+    setContent()
+    applyPerm(PermissionResult.Granted)
+    waitForMapReadyAndAssertVisibility()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR).assertIsDisplayed()
+
+    val dropdownbox = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN)
+    dropdownbox.assertIsNotDisplayed()
+  }
+
+  @Test
+  fun searchBarAllowsInput() {
+    setContent()
+    applyPerm(PermissionResult.Granted)
+    waitForMapReadyAndAssertVisibility()
+
+    val testInput = "Test Location"
+    val searchBarNode = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD)
+
+    searchBarNode.assertIsDisplayed()
+    searchBarNode.performClick()
+    searchBarNode.performTextInput(testInput)
+
+    searchBarNode.assert(hasText(testInput))
+  }
+
+  @Test
+  fun searchBarShowsResultsOnInput_verifyItemsMatchHardcodedLocations() {
+    setContent()
+    applyPerm(PermissionResult.Granted)
+    waitForMapReadyAndAssertVisibility()
+    val repo = nominatimRepository as MockNominatimRepository
+    val hardcodedlocs = repo.locations
+    val testInput = "Test Location"
+    val searchBarNode = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD)
+
+    searchBarNode.assertIsDisplayed()
+    searchBarNode.performClick()
+    searchBarNode.performTextInput(testInput)
+
+    searchBarNode.assert(hasText(testInput))
+    val dropdownbox = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN)
+    composeTestRule.waitForIdle()
+    dropdownbox.assertIsDisplayed()
+
+    val items = composeTestRule.onAllNodesWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM)
+    items.assertCountEquals(hardcodedlocs.size)
+
+    // Fetch semantics nodes and compare text one by one with hardcoded locations
+    val semanticsList = items.fetchSemanticsNodes()
+    for (i in hardcodedlocs.indices) {
+      val nodeText =
+          semanticsList[i]
+              .config
+              .getOrNull(androidx.compose.ui.semantics.SemanticsProperties.Text)
+              ?.joinToString { it.text } ?: ""
+      org.junit.Assert.assertEquals(hardcodedlocs[i].name, nodeText)
     }
   }
 }

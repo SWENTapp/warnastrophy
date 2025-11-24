@@ -1,8 +1,9 @@
-package com.github.warnastrophy.core.data.service
+package com.github.warnastrophy.core.ui.map
 
+import com.github.warnastrophy.core.data.service.RefreshHazardsIfMovedService
 import com.github.warnastrophy.core.model.Location
-import com.github.warnastrophy.core.util.HazardServiceMock
-import org.junit.Assert
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -23,15 +24,14 @@ class RefreshHazardsIfMovedUseCaseTest {
   @Before
   fun setup() {
     hazardsService = HazardServiceMock()
-    useCase =
-        RefreshHazardsIfMovedService(hazardsService, distanceThreshold, distanceCalculatorStub)
+    useCase = RefreshHazardsIfMovedService(hazardsService, distanceThreshold, distanceCalculatorStub)
   }
 
   @Test
   fun shouldFetchHazardsReturnTrueAtBeginning() {
     val result = useCase.shouldFetchHazards(initialLocation)
 
-    Assert.assertTrue("Should fetch hazards when location has not been set yet.", result)
+    assertTrue("Should fetch hazards when location has not been set yet.", result)
   }
 
   @Test
@@ -43,7 +43,7 @@ class RefreshHazardsIfMovedUseCaseTest {
 
     val result = useCase.shouldFetchHazards(farAwayLocation)
 
-    Assert.assertFalse(
+    assertFalse(
         "Should not fetch if distance is exactly the threshold (5.0 > 5.0 is false)", result)
   }
 
@@ -55,7 +55,7 @@ class RefreshHazardsIfMovedUseCaseTest {
 
     val result = useCase.shouldFetchHazards(farAwayLocation)
 
-    Assert.assertFalse("Should not fetch if movement is within the threshold", result)
+    assertFalse("Should not fetch if movement is within the threshold", result)
   }
 
   @Test
@@ -66,7 +66,7 @@ class RefreshHazardsIfMovedUseCaseTest {
 
     val result = useCase.shouldFetchHazards(farAwayLocation)
 
-    Assert.assertTrue("Should fetch if movement exceeds the threshold", result)
+    assertTrue("Should fetch if movement exceeds the threshold", result)
   }
 
   @Test

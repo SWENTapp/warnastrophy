@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.features.contact
+package com.github.warnastrophy.core.ui.contact
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -6,6 +6,11 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
+import com.github.warnastrophy.core.ui.features.contact.EditContactScreen
+import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
+import com.github.warnastrophy.core.ui.features.contact.EditContactViewModel
+import com.github.warnastrophy.core.util.AppConfig
 import org.junit.Before
 import org.junit.Test
 
@@ -16,7 +21,8 @@ class EditContactScreenTest : UITest() {
   override fun setUp() {
     super.setUp()
     repository = MockContactRepository()
-    val mockViewModel = EditContactViewModel(repository)
+    val userId = AppConfig.defaultUserId
+    val mockViewModel = EditContactViewModel(repository, userId)
     composeTestRule.setContent { EditContactScreen(editContactViewModel = mockViewModel) }
   }
 

@@ -24,6 +24,7 @@ object NavigationTestTags {
   const val BUTTON_BACK = "buttonBack"
   const val CONTACT_LIST = "contactList"
   const val HEALTH_CARD = "healthCard"
+  const val LOGOUT = "logout"
   const val SIGN_IN = "signIn"
 }
 
@@ -57,8 +58,6 @@ sealed class Screen(
           route = "profile",
           isTopLevelDestination = true)
 
-  object SignIn : Screen(R.string.sign_in_title, route = "sign-in")
-
   object AddContact :
       Screen(R.string.add_contact_screen_title, icon = Icons.Filled.Add, route = "add_contact")
 
@@ -72,6 +71,9 @@ sealed class Screen(
       const val route = "edit_contact/{id}"
     }
   }
+
+  object SignIn :
+      Screen(R.string.sign_in_title, route = "sign-in", hasBottomBar = false, hasTopBar = false)
 }
 
 val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Dashboard, Screen.Map, Screen.Profile)

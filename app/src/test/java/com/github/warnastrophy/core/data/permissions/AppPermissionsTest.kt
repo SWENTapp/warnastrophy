@@ -2,6 +2,8 @@ package com.github.warnastrophy.core.data.permissions
 
 import android.Manifest
 import android.os.Build
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,5 +42,13 @@ class AppPermissionsTest {
     val perms = AppPermissions.LocationFine.permissions
     Assert.assertTrue(perms.contains(Manifest.permission.ACCESS_FINE_LOCATION))
     Assert.assertFalse(perms.contains(Manifest.permission.ACCESS_COARSE_LOCATION))
+  }
+
+  @Test
+  fun SendSms_should_contain_correct_permission() {
+    val perms = AppPermissions.SendEmergencySms.permissions
+    assertEquals(2, perms.size)
+    assertTrue(perms.contains(Manifest.permission.SEND_SMS))
+    assertTrue(perms.contains(Manifest.permission.ACCESS_FINE_LOCATION))
   }
 }

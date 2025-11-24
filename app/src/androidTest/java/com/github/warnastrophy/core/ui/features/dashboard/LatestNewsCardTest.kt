@@ -13,6 +13,7 @@ import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsTestTags
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.ui.util.hazards
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.MapsInitializer
 import org.junit.Before
@@ -168,5 +169,25 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
         .onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true)
         .assertIsDisplayed()
         .assert(hasText("read"))
+  }
+
+  @Test
+  fun news_index_out_of_range() {
+    hazardService.setHazards(hazards)
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+
+    // Go to last hazard
+    for (i in 1 until hazards.size) {
+      composeTestRule.onNodeWithTag(LatestNewsTestTags.RIGHT_BUTTON).performClick()
+    }
+
+    // Now the last hazard is no longer reported
+    hazardService.setHazards(hazards.take(hazards.size - 1))
+
+    // index should adjust to new size
+    composeTestRule
+        .onNodeWithTag(LatestNewsTestTags.HEADLINE, useUnmergedTree = true)
+        .assertIsDisplayed()
+        .assert(hasText(hazards[hazards.size - 2].description!!))
   }
 }

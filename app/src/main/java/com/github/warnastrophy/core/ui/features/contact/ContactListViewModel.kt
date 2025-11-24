@@ -3,8 +3,8 @@ package com.github.warnastrophy.core.ui.features.contact
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.repository.ContactsRepository
+import com.github.warnastrophy.core.data.Provider.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +39,8 @@ data class ContactListUIState(
  *   contacts data.
  */
 class ContactListViewModel(
-    private val contactsRepository: ContactsRepository = ContactRepositoryProvider.repository
+    private val contactsRepository: ContactsRepository = ContactRepositoryProvider.repository,
+    private val userId: String
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(ContactListUIState())
   val uiState: StateFlow<ContactListUIState> = _uiState.asStateFlow()
@@ -65,7 +66,7 @@ class ContactListViewModel(
 
   private fun getAllContacts() {
     viewModelScope.launch {
-      val result = contactsRepository.getAllContacts()
+      val result = contactsRepository.getAllContacts(userId)
 
       result.fold(
           onSuccess = { contacts -> _uiState.value = ContactListUIState(contacts = contacts) },

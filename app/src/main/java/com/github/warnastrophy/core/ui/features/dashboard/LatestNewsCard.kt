@@ -72,7 +72,8 @@ object LatestNewsCardColors {
 fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
   val state = fetcherState.value
-  var currentIndex by remember { mutableStateOf(0) }
+  var currentIndex by remember { mutableIntStateOf(0) }
+  currentIndex = currentIndex.coerceIn(0, (state.hazards.size - 1).coerceAtLeast(0))
   val context = LocalContext.current
 
   val currentHazard =

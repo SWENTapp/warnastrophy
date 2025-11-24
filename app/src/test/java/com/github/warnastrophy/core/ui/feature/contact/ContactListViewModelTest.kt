@@ -1,7 +1,8 @@
-package com.github.warnastrophy.core.ui.feature.contact
+package com.github.warnastrophy.core.ui.contact
 
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.ui.features.contact.ContactListViewModel
+import com.github.warnastrophy.core.util.AppConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,7 +26,7 @@ class ContactListViewModelTest {
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
     repository = MockContactRepository()
-    viewModel = ContactListViewModel(repository)
+    viewModel = ContactListViewModel(repository, AppConfig.defaultUserId)
   }
 
   @After

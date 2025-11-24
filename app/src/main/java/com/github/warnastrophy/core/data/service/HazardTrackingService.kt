@@ -16,15 +16,15 @@ import kotlinx.coroutines.launch
  * [RefreshHazardsIfMovedService].
  *
  * @property gpsService The service providing the continuous stream of user position data via Flow.
- * @property refreshHazardsIfMovedUseCase The use case responsible for checking distance moved and
+ * @property refreshHazardsIfMoved The use case responsible for checking distance moved and
  *   executing the hazard data network fetch.
  * @property serviceScope The [CoroutineScope] used to launch and manage the tracking coroutine. It
  *   should typically be tied to the application's process lifecycle (e.g., [Application] scope).
  */
 class HazardTrackingService(
-    private val gpsService: PositionService? = null,
-    private val refreshHazardsIfMovedUseCase: RefreshHazardsIfMovedService? = null,
-    private val serviceScope: CoroutineScope =
+  private val gpsService: PositionService? = null,
+  private val refreshHazardsIfMoved: RefreshHazardsIfMovedService? = null,
+  private val serviceScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {
   private var isTracking = false
@@ -42,7 +42,7 @@ class HazardTrackingService(
       gpsService?.positionState?.collectLatest { positionState ->
         positionState.position.let { currentLocation ->
           val hazardLocation = Location(currentLocation.latitude, currentLocation.longitude)
-          refreshHazardsIfMovedUseCase?.execute(hazardLocation)
+          refreshHazardsIfMoved?.execute(hazardLocation)
         }
       }
     }

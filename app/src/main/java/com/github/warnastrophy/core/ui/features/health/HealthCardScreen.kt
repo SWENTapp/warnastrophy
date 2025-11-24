@@ -39,6 +39,7 @@ import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+import com.github.warnastrophy.core.util.AppConfig
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
@@ -169,7 +170,7 @@ data class HealthCardFormState(
  */
 @Composable
 fun HealthCardScreen(
-    userId: String = "John Doe",
+    userId: String,
     viewModel: HealthCardViewModel = viewModel(),
     onDone: () -> Unit = {}
 ) {
@@ -579,5 +580,5 @@ private fun LabeledRequiredTextField(
 @Preview(showBackground = true)
 @Composable
 private fun HealthCardScreenPreview() {
-  MainAppTheme { HealthCardScreen() }
+  MainAppTheme { HealthCardScreen(AppConfig.defaultUserId) }
 }

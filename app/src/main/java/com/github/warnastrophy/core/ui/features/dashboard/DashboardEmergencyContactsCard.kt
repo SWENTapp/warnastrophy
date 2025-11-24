@@ -25,12 +25,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.Provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+import com.github.warnastrophy.core.util.AppConfig
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 /**
@@ -185,7 +187,8 @@ private fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
 @Composable
 fun DashboardEmergencyContactsCardStateful(
     onManageContactsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    userId: String = FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId,
 ) {
   var contacts by remember { mutableStateOf<List<Contact>>(emptyList()) }
   var isLoading by remember { mutableStateOf(true) }
@@ -194,7 +197,7 @@ fun DashboardEmergencyContactsCardStateful(
   LaunchedEffect(Unit) {
     scope.launch {
       ContactRepositoryProvider.repository
-          .getAllContacts()
+          .getAllContacts(userId)
           .onSuccess { contactList ->
             contacts = contactList
             isLoading = false

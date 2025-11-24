@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.features.contact
+package com.github.warnastrophy.core.ui.contact
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -6,9 +6,18 @@ import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.data.repository.ContactsRepository
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
+import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
+import com.github.warnastrophy.core.ui.features.contact.ContactListViewModel
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
+import com.github.warnastrophy.core.ui.features.profile.contact.ContactListViewModel
+import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -30,8 +39,9 @@ class ContactListScreenTest : BaseAndroidComposeTest() {
   private val repository: ContactsRepository = MockContactRepository()
 
   private fun setContent(withInitialContacts: List<Contact> = emptyList()) {
-    runTest { withInitialContacts.forEach { repository.addContact(it) } }
-    val mockViewModel = ContactListViewModel(contactsRepository = repository)
+    val userId = AppConfig.defaultUserId
+    runTest { withInitialContacts.forEach { repository.addContact(contact = it) } }
+    val mockViewModel = ContactListViewModel(contactsRepository = repository, userId = userId)
     composeTestRule.setContent { ContactListScreen(contactListViewModel = mockViewModel) }
   }
 

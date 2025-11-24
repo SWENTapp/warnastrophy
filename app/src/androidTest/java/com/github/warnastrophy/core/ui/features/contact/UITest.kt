@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.features.contact
+package com.github.warnastrophy.core.ui.contact
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.ComposeTestRule
@@ -7,9 +7,11 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
-import com.github.warnastrophy.core.data.repository.ContactsRepository
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
+import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
+import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
-import junit.framework.TestCase
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 
@@ -103,15 +105,15 @@ abstract class UITest : BaseAndroidComposeTest() {
    *
    * @param action The block of code representing the operation that should *fail* to add a contact.
    */
-  fun checkNoContactWereAdded(action: () -> Unit) {
+  fun checkNoContactWereAdded(action: () -> Unit, userId: String) {
     val beforeNumberOfContacts = runBlocking {
-      val result = repository.getAllContacts()
+      val result = repository.getAllContacts(userId)
       result.getOrNull()?.size ?: 0
     }
     action()
     runTest {
-      val afterNumberOfContacts = repository.getAllContacts().getOrThrow().size
-      TestCase.assertEquals(beforeNumberOfContacts, afterNumberOfContacts)
+      val afterNumberOfContacts = repository.getAllContacts(userId).getOrThrow().size
+      assertEquals(beforeNumberOfContacts, afterNumberOfContacts)
     }
   }
 }
