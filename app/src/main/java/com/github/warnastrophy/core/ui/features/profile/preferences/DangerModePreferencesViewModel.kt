@@ -179,7 +179,6 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
       onPermissionDenied: () -> Unit,
       onPermissionPermDenied: () -> Unit
   ) {
-    println(permissionResult)
     if (isChecked) {
       when (permissionResult) {
         PermissionResult.Granted -> onToggle(true)
