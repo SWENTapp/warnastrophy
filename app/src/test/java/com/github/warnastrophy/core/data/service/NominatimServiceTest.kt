@@ -4,6 +4,7 @@ import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.NominatimService
 import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.github.warnastrophy.core.ui.repository.MockNominatimRepo
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
 import org.junit.Assert.assertEquals
@@ -32,12 +33,12 @@ class NominatimServiceTest {
   }
 
   @Test
-  fun `service correctly initialised`() = runTest {
+  fun serviceCorrectlyInitialised() = runTest {
     assertTrue(nominatimService.locations.value.isEmpty())
   }
 
   @Test
-  fun `searchQuery updates locations with results`() = runTest {
+  fun searchQueryUpdatesWithLocResult() = runTest {
     nominatimService.searchQuery("query")
     advanceUntilIdle()
 
@@ -45,21 +46,20 @@ class NominatimServiceTest {
     assertEquals(mockLocations, result)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun `searchQuery cancels previous search if still running`() = runTest {
+  fun searchQueryCancelSearchIfStillRunning() = runTest {
     val calls = mutableListOf<String>()
     var delayCall = 0
     val fakeRepo =
         object : GeocodeRepository {
+          override fun delayForNextQuery(): Long = if (delayCall++ == 0) Long.MAX_VALUE else 0L
 
-          override fun delayForNextQuery(): Long = if (delayCall++ == 0) 10000L else 0L
-
-          override suspend fun reverseGeocode(query: String): List<Location> {
-            calls.add(query)
-            return if (query == "q2") mockLocations else listOf(Location(0.0, 0.0, "first"))
+          override suspend fun reverseGeocode(location: String): List<Location> {
+            calls.add(location)
+            return if (location == "q2") mockLocations else listOf(Location(0.0, 0.0, "first"))
           }
         }
-
     nominatimService = NominatimService(fakeRepo)
 
     nominatimService.searchQuery("q1")
