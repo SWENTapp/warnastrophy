@@ -136,17 +136,16 @@ class DangerModePreferencesViewModelTest {
   }
 
   @Test
-  fun onPermissionsResult_marksAllPermissionsAsAsked() {
+  fun onPermissionsResult_marksAllPermissionsAsAsked() = runTest {
     permissionManager.setPermissionResult(
         PermissionResult.Denied(AppPermissions.AlertModePermission.permissions.toList()))
     createViewModel()
 
-    viewModel.onPermissionsResult(activity = mock())
+    viewModel.onPermissionsResult(activity = activity)
+
+    testDispatcher.scheduler.advanceUntilIdle()
 
     verify(permissionManager).markPermissionsAsAsked(viewModel.alertModePermissions)
-
-    permissionManager.setPermissionResult(
-        PermissionResult.Denied(viewModel.smsPermissions.permissions.toList()))
     verify(permissionManager).markPermissionsAsAsked(viewModel.smsPermissions)
   }
 }
