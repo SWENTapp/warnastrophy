@@ -1,5 +1,7 @@
 package com.github.warnastrophy.core.ui.features.profile.preferences
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -8,9 +10,11 @@ import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.util.BaseSimpleComposeTest
+import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,6 +60,26 @@ class DangerModePreferencesScreenTest : BaseSimpleComposeTest() {
         .assertIsOff()
   }
 
+  // TODO Duplication from MapScreenTest -> need to generalize fallback
+  /** Verifies that a fallback error message is shown when the context is not an Activity. */
+  @Test
+  fun showsFallbackError_whenNoActivityContextAvailable() {
+    viewModel = DangerModePreferencesViewModel(mockPermissionManager)
+    // Arrange: use non-activity context to verify fallback UI is displayed
+    val applicationContext =
+        InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
+
+    composeTestRule.setContent {
+      // Temporarily override LocalContext
+      CompositionLocalProvider(LocalContext provides applicationContext) {
+        DangerModePreferencesScreen(viewModel = viewModel)
+      }
+    }
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.FALLBACK_ACTIVITY_ERROR)
+        .assertIsDisplayed()
+  }
+
   @Test
   fun allItems_areInitiallyDisabled_whenPermissionsAreDenied() {
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
@@ -94,6 +118,21 @@ class DangerModePreferencesScreenTest : BaseSimpleComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsNotEnabled()
+  }
+
+  @Test
+  fun isOsRequestInFlight_whenPermissionRequestIsPending_AlertMode() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+
+    setContent()
+
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+        .performClick()
+
+    composeTestRule.waitForIdle()
+
+    assertTrue(viewModel.uiState.value.isOsRequestInFlight)
   }
 
   @Test
