@@ -6,6 +6,7 @@ import com.github.warnastrophy.core.data.permissions.PermissionResult
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
+import kotlin.test.assertNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -18,10 +19,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.assertNull
 
 private class PermissionManagerMock(private val result: PermissionResult) :
-  PermissionManagerInterface {
+    PermissionManagerInterface {
 
   override fun getPermissionResult(permissionType: AppPermissions): PermissionResult {
     return result
@@ -84,8 +84,8 @@ class DangerModeServiceTest {
    * TestScheduler as this TestScope.
    */
   private fun TestScope.createService(
-    hazardFlow: MutableStateFlow<Hazard?> = MutableStateFlow(null),
-    permissionManager: PermissionManagerInterface
+      hazardFlow: MutableStateFlow<Hazard?> = MutableStateFlow(null),
+      permissionManager: PermissionManagerInterface
   ): Pair<DangerModeService, MutableStateFlow<Hazard?>> {
     // Use the testScheduler of this TestScope
     val dispatcher = StandardTestDispatcher(testScheduler)

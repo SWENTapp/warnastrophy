@@ -35,7 +35,7 @@ class HealthCardOfflineTest {
     val repo = HealthCardRepositoryProvider.repository
 
     val card =
-      HealthCard(fullName = "Offline User", dateOfBirthIso = "1999-12-31", idNumber = "OFF-1")
+        HealthCard(fullName = "Offline User", dateOfBirthIso = "1999-12-31", idNumber = "OFF-1")
 
     repo.upsertMyHealthCard(card)
 

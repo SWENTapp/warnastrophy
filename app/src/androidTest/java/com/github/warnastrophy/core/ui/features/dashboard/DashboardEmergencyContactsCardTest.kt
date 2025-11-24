@@ -33,8 +33,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
           id = "contact_1",
           fullName = "Jane Doe",
           phoneNumber = "+1 555-123-4567",
-          relationship = "Mom"
-      )
+          relationship = "Mom")
 
   private val sampleContact2 =
       Contact(

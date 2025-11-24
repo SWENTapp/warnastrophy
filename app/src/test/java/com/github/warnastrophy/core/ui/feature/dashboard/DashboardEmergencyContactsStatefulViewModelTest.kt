@@ -6,6 +6,7 @@ import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.features.dashboard.ContactCardState
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsStatefulViewModel
 import junit.framework.TestCase
+import kotlin.test.Test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -14,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
-import kotlin.test.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DashboardEmergencyContactsStatefulViewModelTest {
@@ -26,7 +26,7 @@ class DashboardEmergencyContactsStatefulViewModelTest {
 
   private val mockContactList =
       listOf(
-        Contact("1", "Alice", "+41567874201", "friend"),
+          Contact("1", "Alice", "+41567874201", "friend"),
           Contact("2", "Bob", "+41564812209", "work"))
 
   @Before

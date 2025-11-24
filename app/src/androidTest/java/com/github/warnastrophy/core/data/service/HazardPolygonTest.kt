@@ -6,7 +6,6 @@ import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
-
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.data.permissions.PermissionResult
 import com.github.warnastrophy.core.model.Hazard
@@ -64,8 +63,8 @@ class HazardPolygonTest : BaseAndroidComposeTest() {
             )
     val geometryA: Geometry = factory.createPolygon(factory.createLinearRing(coordsA))
 
-      hazardService.run {
-          setHazards(
+    hazardService.run {
+      setHazards(
           listOf(
               Hazard(
                   id = 1001,
@@ -79,12 +78,10 @@ class HazardPolygonTest : BaseAndroidComposeTest() {
                   articleUrl = "http://example.test/A",
                   centroid = Coordinate(10.0, 10.0).let { point -> factory.createPoint(point) },
                   bbox = listOf(9.9, 9.9, 10.1, 10.1),
-                  affectedZone = geometryA
-              )
-          ))
-      }
+                  affectedZone = geometryA)))
+    }
 
-      permissionManager = MockPermissionManager()
+    permissionManager = MockPermissionManager()
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 

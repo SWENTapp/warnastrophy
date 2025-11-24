@@ -2,8 +2,8 @@ package com.github.warnastrophy.core.data.service
 
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.model.Hazard
-import com.github.warnastrophy.core.util.GpsServiceMock
-import com.github.warnastrophy.core.util.HazardsRepositoryMock
+import com.github.warnastrophy.core.ui.map.GpsServiceMock
+import com.github.warnastrophy.core.ui.map.HazardsRepositoryMock
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking

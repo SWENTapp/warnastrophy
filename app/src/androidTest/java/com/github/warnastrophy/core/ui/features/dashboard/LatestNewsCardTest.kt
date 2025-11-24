@@ -11,8 +11,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsCard
 import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsTestTags
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
-import com.github.warnastrophy.core.ui.util.hazards
+import com.github.warnastrophy.core.ui.map.hazards
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.MapsInitializer

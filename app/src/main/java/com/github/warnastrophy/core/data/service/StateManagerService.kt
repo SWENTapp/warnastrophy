@@ -2,12 +2,11 @@ package com.github.warnastrophy.core.data.service
 
 import android.content.Context
 import android.util.Log
+import com.github.warnastrophy.core.data.Provider.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.permissions.PermissionManager
 import com.github.warnastrophy.core.data.permissions.PermissionManagerInterface
-import com.github.warnastrophy.core.data.Provider.HazardRepositoryProvider
 import com.github.warnastrophy.core.domain.usecase.HazardCheckerService
 import com.github.warnastrophy.core.model.Hazard
-
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

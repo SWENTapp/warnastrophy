@@ -24,7 +24,8 @@ class RefreshHazardsIfMovedUseCaseTest {
   @Before
   fun setup() {
     hazardsService = HazardServiceMock()
-    useCase = RefreshHazardsIfMovedService(hazardsService, distanceThreshold, distanceCalculatorStub)
+    useCase =
+        RefreshHazardsIfMovedService(hazardsService, distanceThreshold, distanceCalculatorStub)
   }
 
   @Test

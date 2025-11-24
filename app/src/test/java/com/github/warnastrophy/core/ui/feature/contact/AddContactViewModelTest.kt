@@ -5,6 +5,7 @@ import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
 import com.github.warnastrophy.core.util.AppConfig
 import junit.framework.TestCase
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -19,7 +20,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddContactViewModelTest {

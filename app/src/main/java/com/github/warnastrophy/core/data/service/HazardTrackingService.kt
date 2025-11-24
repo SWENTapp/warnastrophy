@@ -22,9 +22,9 @@ import kotlinx.coroutines.launch
  *   should typically be tied to the application's process lifecycle (e.g., [Application] scope).
  */
 class HazardTrackingService(
-  private val gpsService: PositionService? = null,
-  private val refreshHazardsIfMoved: RefreshHazardsIfMovedService? = null,
-  private val serviceScope: CoroutineScope =
+    private val gpsService: PositionService? = null,
+    private val refreshHazardsIfMoved: RefreshHazardsIfMovedService? = null,
+    private val serviceScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {
   private var isTracking = false

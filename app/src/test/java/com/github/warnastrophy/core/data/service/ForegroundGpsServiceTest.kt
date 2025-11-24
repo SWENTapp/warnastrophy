@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.data.service.ForegroundGpsService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import com.github.warnastrophy.core.ui.common.ErrorHandler

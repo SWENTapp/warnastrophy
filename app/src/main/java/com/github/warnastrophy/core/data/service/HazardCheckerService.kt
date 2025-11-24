@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.domain.usecase
 
-import com.github.warnastrophy.core.model.Hazard
 import android.util.Log
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.model.Hazard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

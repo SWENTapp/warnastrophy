@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * A Hilt ViewModel responsible for fetching and managing the state of emergency contacts in order

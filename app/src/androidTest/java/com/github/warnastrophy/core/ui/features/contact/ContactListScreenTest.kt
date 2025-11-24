@@ -8,15 +8,10 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.data.repository.MockContactRepository
-import com.github.warnastrophy.core.domain.model.Contact
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
 import com.github.warnastrophy.core.ui.features.contact.ContactListViewModel
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListViewModel
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import kotlinx.coroutines.test.runTest

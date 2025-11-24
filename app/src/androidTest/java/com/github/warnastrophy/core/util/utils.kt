@@ -61,7 +61,7 @@ val dangerHazard =
                     Coordinate(1.0, 1.0),
                     Coordinate(-1.0, 1.0),
                     Coordinate(-1.0, -1.0) // Close the ring
-                ),
+                    ),
             ),
     )
 
@@ -73,8 +73,7 @@ val hazards =
             severityText =
                 "A tropical cyclone has made landfall in Jamaica causing significant damage.",
             articleUrl = "https://example.com/cyclone.jpg",
-            date = "2024-06-15T10:00:00Z"
-        ),
+            date = "2024-06-15T10:00:00Z"),
         Hazard(
             id = 2,
             description = "Floods in Bangladesh",

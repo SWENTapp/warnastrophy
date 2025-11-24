@@ -43,8 +43,7 @@ object HealthCardRepositoryProvider {
             auth = null,
             db = db,
             collectionName = COLLECTION,
-            fallbackUidProvider = fallbackUidProvider
-        )
+            fallbackUidProvider = fallbackUidProvider)
 
     val local: HealthCardRepository = LocalHealthCardRepository(context.applicationContext)
 

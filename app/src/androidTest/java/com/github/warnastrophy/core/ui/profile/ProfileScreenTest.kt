@@ -10,7 +10,7 @@ import com.github.warnastrophy.core.ui.features.auth.AuthUIState
 import com.github.warnastrophy.core.ui.features.auth.SignInViewModel
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import com.github.warnastrophy.core.ui.util.BaseSimpleComposeTest
+import com.github.warnastrophy.core.util.BaseSimpleComposeTest
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just

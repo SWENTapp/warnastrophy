@@ -61,8 +61,7 @@ class HazardCheckerTest {
             alertLevel = 3.0, // HIGHER priority
             centroid = null,
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
-            affectedZone = geometryA
-        )
+            affectedZone = geometryA)
 
     val testHazardB =
         Hazard(
@@ -129,7 +128,8 @@ class HazardCheckerTest {
     serviceStateManager.clearActiveAlert()
 
     val hazardChecker =
-        HazardCheckerService(listOf(testHazardA), StandardTestDispatcher(testScheduler), scope = this)
+        HazardCheckerService(
+            listOf(testHazardA), StandardTestDispatcher(testScheduler), scope = this)
 
     hazardChecker.checkAndPublishAlert(20.0, 20.0) // User outside hazard
 

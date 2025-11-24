@@ -4,6 +4,10 @@ import android.telephony.SmsManager
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
 import com.github.warnastrophy.core.domain.model.SmsManagerSender
 import com.github.warnastrophy.core.model.Location
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -12,10 +16,6 @@ import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @RunWith(RobolectricTestRunner::class)
 class SmsServiceTests {

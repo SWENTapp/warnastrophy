@@ -2,7 +2,10 @@ package com.github.warnastrophy.core.data.Provider
 
 import com.github.warnastrophy.core.data.repository.HazardsRepository
 
-/** Provides a singleton instance of [com.github.warnastrophy.core.data.repository.HazardsRepository] and manages location polygon settings. */
+/**
+ * Provides a singleton instance of [com.github.warnastrophy.core.data.repository.HazardsRepository]
+ * and manages location polygon settings.
+ */
 object HazardRepositoryProvider {
   private val _repository: HazardsRepository by lazy { HazardsRepository() }
 
