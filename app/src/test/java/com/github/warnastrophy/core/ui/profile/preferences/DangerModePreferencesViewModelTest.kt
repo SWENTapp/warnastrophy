@@ -101,14 +101,13 @@ class DangerModePreferencesViewModelTest {
 
   @Test
   fun onAlertModeToggled_withFalse_disablesAlertModeAndDependencies() = runTest {
-    permissionManager.setPermissionResult(PermissionResult.Granted) // Start with granted perms
+    permissionManager.setPermissionResult(PermissionResult.Granted)
     createViewModel()
 
     viewModel.onAlertModeToggled(true)
     viewModel.onInactivityDetectionToggled(true)
     viewModel.onAutomaticSmsToggled(true)
 
-    // Disable alert mode
     viewModel.onAlertModeToggled(false)
 
     val state = viewModel.uiState.value

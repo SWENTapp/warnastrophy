@@ -43,8 +43,11 @@ data class DangerModePreferencesUiState(
 }
 
 /**
- * ViewModel for the Danger Mode Preferences screen. It handles the business logic for toggling
- * preferences and managing required permissions (location and SMS).
+ * ViewModel for the Danger Mode Preferences screen.
+ *
+ * This ViewModel manages the UI state and business logic for the Danger Mode settings.
+ *
+ * @param permissionManager An interface for checking and managing app permissions.
  */
 class DangerModePreferencesViewModel(private val permissionManager: PermissionManagerInterface) :
     ViewModel() {
@@ -113,7 +116,10 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
   }
 
   /**
-   * Updates the permission results in the UI state after a system permission dialog has been shown.
+   * Updates the permission results in the UI state after the user has responded to a system
+   * permission dialog.
+   *
+   * @param activity The current `Activity`, required to check the latest permission statuses.
    */
   fun onPermissionsResult(activity: Activity) {
     val newAlertModeResult = permissionManager.getPermissionResult(alertModePermissions, activity)
@@ -145,9 +151,7 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
           onAutomaticSmsToggled(true)
         }
       }
-      null -> {
-        // No action was pending
-      }
+      null -> {}
     }
 
     _uiState.update { it.copy(pendingPermissionAction = null) }

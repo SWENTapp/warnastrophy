@@ -136,7 +136,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     assertTrue(viewModel.uiState.value.isOsRequestInFlight)
 
-    // Grant permissions
     mockPermissionManager.setPermissionResult(PermissionResult.Granted)
     viewModel.onPermissionsResult(composeTestRule.activity)
     composeTestRule.waitForIdle()
@@ -153,7 +152,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     setContent()
 
-    // Turn on all switches
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .performClick()
@@ -166,7 +164,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.waitForIdle()
 
-    // Check all ON
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .assertIsOn()
@@ -177,7 +174,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsOn()
 
-    // Turn off Alert Mode switch
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .performClick()

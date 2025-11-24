@@ -25,10 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource // <-- Import this
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.R // <-- Import your R file
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.util.findActivity
 
 object DangerModePreferencesScreenTestTags {
@@ -41,7 +41,20 @@ object DangerModePreferencesScreenTestTags {
   const val AUTOMATIC_SMS_SWITCH = "automaticSmsSwitch"
 }
 
-/** Composable screen for managing "Danger Mode" preferences. */
+/**
+ * Composable screen for managing "Danger Mode" preferences.
+ *
+ * This screen displays a list of preferences related to Danger Mode, allowing the user to enable or
+ * disable features like "Alert Mode," "Inactivity Detection," and "Automatic SMS." It handles the
+ * necessary permission requests for each feature and directs the user to the app settings if
+ * permissions are permanently denied.
+ *
+ * The UI is composed of several [PreferenceItem]s, each representing a toggleable setting. The
+ * logic for handling state changes and permission flows is delegated to the provided [viewModel].
+ *
+ * @param viewModel The [DangerModePreferencesViewModel] that provides the state for the UI and
+ *   handles user interactions and business logic.
+ */
 @Composable
 fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
   val context = LocalContext.current
