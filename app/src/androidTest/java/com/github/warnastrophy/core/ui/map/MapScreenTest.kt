@@ -62,6 +62,8 @@ class MapScreenTest : BaseAndroidComposeTest() {
   private val mockPerm = AppPermissions.LocationFine
 
   private lateinit var nominatimRepository: GeocodeRepository
+
+  private lateinit var nominatimService: MockNominatimService
   /**
    * An idling resource to wait for camera animations to complete during tests. This is crucial for
    * Espresso tests involving map camera movements, as it prevents test actions from executing
@@ -82,10 +84,14 @@ class MapScreenTest : BaseAndroidComposeTest() {
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
     nominatimRepository = MockNominatimRepository()
+    nominatimService = MockNominatimService()
+    val repo = nominatimRepository as MockNominatimRepository
+    nominatimService.setLocations(repo.locations)
+
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager, MockNominatimService())
+    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimService)
     IdlingRegistry.getInstance().register(animationIdlingResource)
   }
 

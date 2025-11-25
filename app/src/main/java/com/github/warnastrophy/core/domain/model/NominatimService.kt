@@ -74,7 +74,9 @@ class MockNominatimService : GeocodeService {
   private val _locations = MutableStateFlow<List<Location>>(emptyList())
   override val locations: StateFlow<List<Location>> = _locations.asStateFlow()
 
-  override fun searchQuery(query: String) {
-    // No-op implementation for the mock service
+  override fun searchQuery(query: String) {}
+
+  fun setLocations(locations: List<Location>) {
+    _locations.value = locations
   }
 }

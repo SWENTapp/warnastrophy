@@ -32,6 +32,8 @@ class MapViewModelTest {
   private lateinit var permissionManager: MockPermissionManager
 
   private lateinit var nominatimRepository: GeocodeRepository
+
+  private lateinit var nominatimService: MockNominatimService
   private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
   private val mockPos = LatLng(54.23, 23.23)
@@ -44,8 +46,11 @@ class MapViewModelTest {
     hazardsService = HazardServiceMock()
     permissionManager = MockPermissionManager()
     nominatimRepository = MockNominatimRepository()
+    nominatimService = MockNominatimService()
+    val repo = nominatimRepository as MockNominatimRepository
+    nominatimService.setLocations(repo.locations)
 
-    viewModel = MapViewModel(gpsService, hazardsService, permissionManager, MockNominatimService())
+    viewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
     println(viewModel.uiState.value.hazardState.hazards)
   }
 
