@@ -93,13 +93,13 @@ class EditActivityViewModel(
   fun editActivity(id: String) {
     val state = _uiState.value
     if (!state.isValid) {
-      setErrorMsg("At least one field is not valid")
+      setErrorMsg("At least one field is not valid!")
       return
     }
     val newActivity = Activity(id = id, activityName = state.activityName)
     executeRepositoryOperation(
         operation = { repository.editActivity(id, userId, newActivity) },
-        actionName = "edit activtiy")
+        actionName = "edit activity")
   }
 
   /**

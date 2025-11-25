@@ -4,9 +4,12 @@ import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.domain.model.Activity
 import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityViewModel
 import com.github.warnastrophy.core.util.AppConfig
+import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -16,6 +19,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -38,6 +42,7 @@ class EditActivityViewModelTest {
 
   @After
   fun tearDown() {
+    repository.shouldThrowException = false
     Dispatchers.resetMain()
   }
 
@@ -74,5 +79,45 @@ class EditActivityViewModelTest {
     assertEquals(true, result.isFailure)
 
     assertNotNull(navigateBackEvent.await())
+  }
+
+  @Test
+  fun `edit activity with invalid UI state sets error message`() = runTest {
+    // Setup: Collect the navigateBack event flow concurrently with a timeout
+    val navigateBackEvent = async {
+      withTimeoutOrNull(100.milliseconds) {
+        viewModel.navigateBack.first() // first() throws if timeout reached before emission
+      }
+    }
+
+    viewModel.setActivityName("")
+
+    viewModel.editActivity("1")
+    advanceUntilIdle()
+
+    assertNull(navigateBackEvent.await())
+
+    TestCase.assertEquals("At least one field is not valid!", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun `set error message when load activity fails`() = runTest {
+    repository.shouldThrowException = true
+    viewModel.loadActivity("1")
+    advanceUntilIdle()
+    assertTrue(
+        viewModel.uiState.value.errorMsg?.startsWith("Failed to load contacts:") ?: false,
+        "Error message is not set")
+  }
+
+  @Test
+  fun `set error message when edit activity fails`() = runTest {
+    repository.shouldThrowException = true
+    viewModel.setActivityName("Football")
+    viewModel.editActivity("1")
+    advanceUntilIdle()
+    assertTrue(
+        viewModel.uiState.value.errorMsg?.startsWith("Failed to edit activity:") ?: false,
+        "Error message is not set")
   }
 }

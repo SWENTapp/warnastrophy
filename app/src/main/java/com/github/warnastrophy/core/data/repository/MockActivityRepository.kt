@@ -20,6 +20,7 @@ class MockActivityRepository : ActivityRepository {
 
   override suspend fun getActivity(activityId: String, userId: String): Result<Activity> =
       runCatching {
+        if (shouldThrowException) throw Exception("Forced failure")
         bucket(userId)[activityId]
             ?: throw NoSuchElementException("Activity $activityId not found for user $userId")
       }
@@ -29,6 +30,7 @@ class MockActivityRepository : ActivityRepository {
       userId: String,
       newActivity: Activity
   ): Result<Unit> = runCatching {
+    if (shouldThrowException) throw Exception("Forced failure")
     require(activityId == newActivity.id) { "Activity ID mismatch" }
     val userMap = bucket(userId)
     if (!userMap.containsKey(activityId)) {
@@ -39,6 +41,7 @@ class MockActivityRepository : ActivityRepository {
 
   override suspend fun deleteActivity(userId: String, activityId: String): Result<Unit> =
       runCatching {
+        if (shouldThrowException) throw Exception("Forced failure")
         val userMap = bucket(userId)
         if (userMap.remove(activityId) == null) {
           throw NoSuchElementException("Activity $activityId not found for user $userId")
@@ -46,6 +49,7 @@ class MockActivityRepository : ActivityRepository {
       }
 
   override suspend fun addActivity(userId: String, activity: Activity): Result<Unit> = runCatching {
+    if (shouldThrowException) throw Exception("Forced failure")
     val userMap = bucket(userId)
     require(!userMap.containsKey(activity.id)) {
       "Activity ${activity.id} already exists for user $userId"

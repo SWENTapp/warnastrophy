@@ -38,6 +38,7 @@ class AddActivityViewModelTest {
 
   @After
   fun tearDown() {
+    repository.shouldThrowException = false
     Dispatchers.resetMain()
   }
 
