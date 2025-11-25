@@ -3,6 +3,7 @@ package com.github.warnastrophy.core.data.service
 import android.content.Context
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.Hazard
@@ -58,7 +59,7 @@ object ServiceStateManager {
   }
 
   fun init(context: Context) {
-    userPreferencesRepository = UserPreferencesRepository(context.userPrefsDataStore)
+    userPreferencesRepository = UserPreferencesRepositoryLocal(context.userPrefsDataStore)
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
     gpsService = GpsService(locationClient)
 

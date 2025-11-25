@@ -82,9 +82,9 @@ class DangerModePreferencesViewModel(
         .onEach { prefs ->
           _uiState.update {
             it.copy(
-                alertModeAutomaticEnabled = prefs.alertMode,
-                inactivityDetectionEnabled = prefs.inactivityDetection,
-                automaticSmsEnabled = prefs.automaticSms)
+                alertModeAutomaticEnabled = prefs.dangerModePreferences.alertMode,
+                inactivityDetectionEnabled = prefs.dangerModePreferences.inactivityDetection,
+                automaticSmsEnabled = prefs.dangerModePreferences.automaticSms)
           }
         }
         .launchIn(viewModelScope)
