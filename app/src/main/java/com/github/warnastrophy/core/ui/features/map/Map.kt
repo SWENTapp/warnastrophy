@@ -55,6 +55,7 @@ import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.ui.theme.extendedColors
 import com.github.warnastrophy.core.util.findActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
@@ -64,7 +65,6 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
-import kotlin.text.compareTo
 import kotlinx.coroutines.launch
 
 object MapScreenTestTags {
@@ -324,13 +324,14 @@ private fun SearchTextField(
   Row(
       modifier =
           modifier
-              .background(Color.White, RoundedCornerShape(16.dp))
+              .background(
+                  MaterialTheme.extendedColors.mapPreview.background, RoundedCornerShape(16.dp))
               .padding(horizontal = 8.dp, vertical = 6.dp),
       verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Outlined.Search,
             contentDescription = "Search Icon",
-            tint = Color.Black,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(start = 8.dp))
 
         Spacer(Modifier.width(12.dp))
@@ -344,10 +345,10 @@ private fun SearchTextField(
                     .onFocusChanged { state -> onFocusChanged(state.isFocused) }
                     .testTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD),
             singleLine = true,
-            textStyle = LocalTextStyle.current.copy(color = Color.Black),
+            textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
             decorationBox = { innerTextField ->
               if (text.isEmpty()) {
-                Text("Search", color = Color.Black.copy(alpha = 0.6f))
+                Text("Search", color = MaterialTheme.colorScheme.onSurface)
               }
               innerTextField()
             })
@@ -364,6 +365,10 @@ private fun SuggestionsDropdown(
 ) {
   if (!expanded || suggestions.isEmpty()) return
 
+  val backgroundColor = MaterialTheme.extendedColors.mapPreview.background
+  val textColor = MaterialTheme.colorScheme.onSurface
+  val dividerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
+
   DropdownMenu(
       expanded = true,
       onDismissRequest = onDismiss,
@@ -375,11 +380,13 @@ private fun SuggestionsDropdown(
           val name = item.name
           if (name != null) {
             DropdownMenuItem(
-                modifier = Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM),
-                text = { Text(name) },
+                modifier =
+                    Modifier.testTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN_ITEM)
+                        .background(backgroundColor),
+                text = { Text(name, color = textColor) },
                 onClick = { onSelect(item) })
             if (index < suggestions.size - 1) {
-              HorizontalDivider(thickness = 1.dp, color = Color(0xFFD3F4FF))
+              HorizontalDivider(thickness = 1.dp, color = dividerColor)
             }
           }
         }
