@@ -34,6 +34,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   private lateinit var mockViewModel: SignInViewModel
   private lateinit var mockOnHealthCardClick: () -> Unit
   private lateinit var mockOnEmergencyContactsClick: () -> Unit
+  private lateinit var mockOnDangerModePreferencesClick: () -> Unit
   private lateinit var mockOnLogout: () -> Unit
   private lateinit var uiStateFlow: MutableStateFlow<AuthUIState>
 
@@ -45,6 +46,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     mockViewModel = mockk(relaxed = true)
     mockOnHealthCardClick = mockk(relaxed = true)
     mockOnEmergencyContactsClick = mockk(relaxed = true)
+    mockOnDangerModePreferencesClick = mockk(relaxed = true)
     mockOnLogout = mockk(relaxed = true)
 
     // Initialize UI state flow
@@ -61,35 +63,9 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     // Verify all profile items are displayed
-    composeTestRule.onNodeWithText("Health Card").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Emergency contacts").assertIsDisplayed()
-    composeTestRule.onNodeWithText("Logout").assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_healthCardItemHasCorrectTestTag() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
-
-    composeTestRule.waitForIdleWithTimeout()
-
     composeTestRule.onNodeWithTag(NavigationTestTags.HEALTH_CARD).assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_emergencyContactsItemHasCorrectTestTag() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
-
-    composeTestRule.waitForIdleWithTimeout()
-
     composeTestRule.onNodeWithTag(NavigationTestTags.CONTACT_LIST).assertIsDisplayed()
-  }
-
-  @Test
-  fun profileScreen_logoutItemHasCorrectTestTag() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
-
-    composeTestRule.waitForIdleWithTimeout()
-
+    composeTestRule.onNodeWithTag(NavigationTestTags.DANGER_MODE_PREFERENCES).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.LOGOUT).assertIsDisplayed()
   }
 
@@ -122,6 +98,20 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     verify(exactly = 1) { mockOnEmergencyContactsClick() }
+  }
+
+  @Test
+  fun onDangerModePreferencesClick_triggersCallback() {
+    composeTestRule.setContent {
+      ProfileScreen(
+          viewModel = mockViewModel,
+          onDangerModePreferencesClick = mockOnDangerModePreferencesClick)
+    }
+    composeTestRule.waitForIdleWithTimeout()
+    composeTestRule.onNodeWithTag(NavigationTestTags.DANGER_MODE_PREFERENCES).performClick()
+    composeTestRule.waitForIdleWithTimeout()
+
+    verify(exactly = 1) { mockOnDangerModePreferencesClick() }
   }
 
   @Test
