@@ -22,17 +22,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.warnastrophy.R
 import com.github.warnastrophy.core.domain.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
+import com.github.warnastrophy.core.ui.theme.extendedColors
 
 /** Object holding test tag constants for the Health Card UI. */
 object DashboardHealthCardTestTags {
@@ -44,10 +43,10 @@ object DashboardHealthCardTestTags {
 /** Object holding color definitions for the Health Card UI. */
 object DashboardHealthCardColors {
   val backgroundColor: Color
-    @Composable @ReadOnlyComposable get() = colorResource(id = R.color.light_green)
+    @Composable get() = MaterialTheme.extendedColors.backgroundLightGreen
 
   val textColor: Color
-    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onPrimaryContainer
+    @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurface
 }
 
 /**
