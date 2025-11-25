@@ -3,6 +3,8 @@ package com.github.warnastrophy.core.data.service
 import android.content.Context
 import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
+import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
@@ -28,6 +30,7 @@ object ServiceStateManager {
   lateinit var hazardsService: HazardsDataService
   lateinit var permissionManager: PermissionManagerInterface
   lateinit var dangerModeService: DangerModeService
+  lateinit var userPreferencesRepository: UserPreferencesRepository
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
   val activeHazardFlow: StateFlow<Hazard?> = _activeHazardFlow.asStateFlow()
@@ -56,6 +59,7 @@ object ServiceStateManager {
   }
 
   fun init(context: Context) {
+    userPreferencesRepository = UserPreferencesRepository(context.userPrefsDataStore)
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
     gpsService = GpsService(locationClient)
 
