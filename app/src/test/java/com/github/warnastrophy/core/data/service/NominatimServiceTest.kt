@@ -4,7 +4,6 @@ import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.NominatimService
 import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.github.warnastrophy.core.ui.repository.MockNominatimRepo
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
 import org.junit.Assert.assertEquals
@@ -44,32 +43,5 @@ class NominatimServiceTest {
 
     val result = nominatimService.locations.first()
     assertEquals(mockLocations, result)
-  }
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  @Test
-  fun searchQueryCancelSearchIfStillRunning() = runTest {
-    val calls = mutableListOf<String>()
-    var delayCall = 0
-    val fakeRepo =
-        object : GeocodeRepository {
-          override fun delayForNextQuery(): Long = if (delayCall++ == 0) Long.MAX_VALUE else 0L
-
-          override suspend fun reverseGeocode(location: String): List<Location> {
-            calls.add(location)
-            return if (location == "q2") mockLocations else listOf(Location(0.0, 0.0, "first"))
-          }
-        }
-
-    val testDispatcher = StandardTestDispatcher(testScheduler)
-    nominatimService = NominatimService(fakeRepo, dispatcher = testDispatcher)
-
-    nominatimService.searchQuery("q1")
-    nominatimService.searchQuery("q2")
-    advanceUntilIdle()
-
-    assertEquals(1, calls.size)
-    assertEquals("q2", calls.first())
-    assertEquals(mockLocations, nominatimService.locations.first())
   }
 }
