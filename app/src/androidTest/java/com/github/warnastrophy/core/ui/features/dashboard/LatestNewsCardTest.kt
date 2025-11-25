@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -12,6 +13,7 @@ import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsCard
 import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsTestTags
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.hazards
+import com.github.warnastrophy.core.ui.map.no_url_hazard
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.MapsInitializer
@@ -188,5 +190,14 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
         .onNodeWithTag(LatestNewsTestTags.HEADLINE, useUnmergedTree = true)
         .assertIsDisplayed()
         .assert(hasText(hazards[hazards.size - 2].description!!))
+  }
+
+  @Test
+  fun latestNewsCard_noHazards_no_article() {
+    hazardService.setHazards(listOf(no_url_hazard))
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule
+        .onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true)
+        .assertIsNotDisplayed()
   }
 }

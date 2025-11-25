@@ -55,16 +55,16 @@ object LatestNewsCardColors {
 }
 
 /**
- * Affiche une carte des dernières nouvelles liées aux dangers.
+ * Displays a card with the latest news related to hazards.
  *
- * @param hazardsService Une instance de `HazardsDataService` utilisée pour récupérer les données
- *   des dangers et gérer leur état.
+ * @param hazardsService An instance of `HazardsDataService` used to retrieve hazard data and manage
+ *   their state.
  *
- * Fonctionnalités :
- * - Affiche les informations sur le danger actuel, y compris la description, la gravité et la date.
- * - Permet de naviguer entre les dangers à l'aide de boutons gauche et droit.
- * - Inclut un lien cliquable pour lire plus d'informations sur le danger.
- * - Affiche une image associée au type de danger.
+ * Features:
+ * - Displays information about the current hazard, including its description, severity, and date.
+ * - Allows navigation between hazards using left and right buttons.
+ * - Includes a clickable link to read more information about the hazard.
+ * - Displays an image associated with the type of hazard.
  *
  * @see HazardsDataService
  */
@@ -235,11 +235,11 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
 }
 
 /**
- * Retourne l'identifiant de ressource d'image correspondant au type d'événement.
+ * Returns the image resource identifier corresponding to the event type.
  *
- * @param eventType Le type d'événement sous forme de chaîne (par exemple, "EQ", "TC", etc.).
- * @return L'identifiant de ressource de l'image associée à ce type d'événement. Si le type n'est
- *   pas reconnu, une image par défaut est retournée.
+ * @param eventType The event type as a string (for example, "EQ", "TC", etc.).
+ * @return The resource identifier of the image associated with that event type. If the type is not
+ *   recognized, a default image is returned.
  */
 fun getImageForEvent(eventType: String): Int {
   return when (eventType) {
@@ -249,6 +249,6 @@ fun getImageForEvent(eventType: String): Int {
     "VO" -> R.drawable.vo
     "DR" -> R.drawable.dr
     "WF" -> R.drawable.wf
-    else -> R.drawable.de // Une image par défaut
+    else -> R.drawable.de
   }
 }

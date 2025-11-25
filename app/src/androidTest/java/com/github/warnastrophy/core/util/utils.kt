@@ -86,6 +86,15 @@ val hazards =
             severityText = "Severe floods have affected thousands of people in Bangladesh.",
             articleUrl = "https://example.com/floods.jpg",
             date = "2024-06-15T10:00:00Z"))
+
+val no_url_hazard =
+    Hazard(
+        id = 3,
+        description = "Wildfire in California",
+        severityText = "A large wildfire is spreading rapidly in California.",
+        articleUrl = null,
+        date = "2024-06-15T10:00:00Z")
+
 val pos: LatLng = LatLng(18.61, -72.22)
 
 fun createHazard(
