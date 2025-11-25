@@ -3,9 +3,9 @@ package com.github.warnastrophy.core.ui.profile.preferences
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import com.github.warnastrophy.core.data.permissions.AppPermissions
+import com.github.warnastrophy.core.data.permissions.PermissionResult
 import com.github.warnastrophy.core.data.service.MockPermissionManager
-import com.github.warnastrophy.core.permissions.AppPermissions
-import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
 import com.github.warnastrophy.core.ui.features.profile.preferences.PendingAction
 import com.github.warnastrophy.core.util.AppConfig
