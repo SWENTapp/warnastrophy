@@ -3,8 +3,6 @@ package com.github.warnastrophy.core.data.repository
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
 import java.util.UUID
-import kotlin.collections.containsKey
-import kotlin.text.set
 
 /** A mock implementation of the ContactsRepository for testing purposes. */
 class MockContactRepository : ContactsRepository {

@@ -2,9 +2,9 @@ package com.github.warnastrophy.core.ui.features.profile.preferences
 
 import android.app.Activity
 import androidx.lifecycle.ViewModel
-import com.github.warnastrophy.core.permissions.AppPermissions
-import com.github.warnastrophy.core.permissions.PermissionManagerInterface
-import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.data.permissions.AppPermissions
+import com.github.warnastrophy.core.data.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.data.permissions.PermissionResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

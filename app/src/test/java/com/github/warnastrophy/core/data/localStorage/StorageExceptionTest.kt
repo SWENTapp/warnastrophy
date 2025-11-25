@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.data.localStorage
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Test
 
 class StorageExceptionTest {

@@ -20,12 +20,6 @@ import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
-import kotlin.collections.filter
-import kotlin.collections.groupBy
-import kotlin.collections.map
-import kotlin.collections.maxOf
-import kotlin.collections.minOf
-import kotlin.collections.toMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

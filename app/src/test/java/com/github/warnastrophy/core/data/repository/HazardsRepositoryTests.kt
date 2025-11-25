@@ -5,7 +5,10 @@ import com.github.warnastrophy.core.model.Hazard
 import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

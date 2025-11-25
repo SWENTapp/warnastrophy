@@ -7,12 +7,16 @@ import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
-import kotlin.text.set
 import kotlin.time.TimeSource
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /**
  * Service responsible for fetching and maintaining the current list of hazards based on the user's

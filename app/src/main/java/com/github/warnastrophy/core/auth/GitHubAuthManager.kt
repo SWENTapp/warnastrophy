@@ -3,6 +3,8 @@ package com.github.warnastrophy.core.auth
 import android.app.Activity
 import androidx.credentials.Credential
 import com.github.warnastrophy.BuildConfig
+import com.github.warnastrophy.core.auth.GitHubAuthManager.onCredentialReady
+import com.github.warnastrophy.core.auth.GitHubAuthManager.setCredential
 
 /**
  * Starts the GitHub OAuth sign-in flow.

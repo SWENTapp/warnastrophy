@@ -1,7 +1,10 @@
 package com.github.warnastrophy.core.util
 
 import androidx.test.espresso.IdlingResource
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
