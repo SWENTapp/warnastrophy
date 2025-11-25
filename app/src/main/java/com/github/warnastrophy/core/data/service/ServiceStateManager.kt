@@ -1,7 +1,6 @@
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context
-import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.di.userPrefsDataStore
@@ -106,9 +105,6 @@ object ServiceStateManager {
             fetcherState to positionState
           }
           .collect { (fetcherState, positionState) ->
-            Log.d("ServiceStateManager", "${fetcherState.hazards}")
-            Log.d("ServiceStateManager", "$positionState")
-            Log.d("ServiceStateManager", "Checking hazards for position update")
             hazardCheckerScope.cancel()
             HazardChecker(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
                 .checkAndPublishAlert(
