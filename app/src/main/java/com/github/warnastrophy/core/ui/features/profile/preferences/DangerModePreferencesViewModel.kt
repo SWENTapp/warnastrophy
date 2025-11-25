@@ -127,6 +127,11 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
         permissionManager.getPermissionResult(inactivityDetectionPermissions, activity)
     val newSmsResult = permissionManager.getPermissionResult(smsPermissions, activity)
 
+    permissionManager.markPermissionsAsAsked(alertModePermissions)
+    // permissionManager.markPermissionsAsAsked(inactivityDetectionPermissions)
+    // !!! Add if necessary !!!
+    permissionManager.markPermissionsAsAsked(smsPermissions)
+
     _uiState.update {
       it.copy(
           alertModePermissionResult = newAlertModeResult,
