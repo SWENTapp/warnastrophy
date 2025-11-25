@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
     val db = FirebaseFirestore.getInstance()
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
-    ContactRepositoryProvider.init(applicationContext)
+    ContactRepositoryProvider.initHybrid(applicationContext, db)
     ServiceStateManager.init(applicationContext)
 
     showUI()

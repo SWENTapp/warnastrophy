@@ -9,9 +9,7 @@ import com.google.gson.Gson
 import java.util.UUID
 import kotlinx.coroutines.tasks.await
 
-class ContactsRepositoryImpl(
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
-) : ContactsRepository {
+class ContactsRepositoryImpl(private val firestore: FirebaseFirestore) : ContactsRepository {
 
   private val gson = Gson()
 
