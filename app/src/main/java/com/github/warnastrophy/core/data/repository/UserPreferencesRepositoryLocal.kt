@@ -42,9 +42,6 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     // Add more keys for other preferences
   }
 
-  /**
-   * A flow of user preferences, which combines all settings into a single [UserPreferences] object.
-   */
   override val getUserPreferences: Flow<UserPreferences> =
       dataStore.data
           .catch { exception ->
@@ -56,21 +53,26 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
           }
           .map { preferences -> mapUserPreferences(preferences) }
 
-  /** Toggles the "alert mode" setting. */
   override suspend fun setAlertMode(enabled: Boolean) {
     dataStore.edit { preferences -> preferences[ALERT_MODE_KEY] = enabled }
   }
 
-  /** Toggles the "inactivity detection" setting. */
   override suspend fun setInactivityDetection(enabled: Boolean) {
     dataStore.edit { preferences -> preferences[INACTIVITY_DETECTION_KEY] = enabled }
   }
 
-  /** Toggles the "automatic SMS" setting. */
   override suspend fun setAutomaticSms(enabled: Boolean) {
     dataStore.edit { preferences -> preferences[AUTOMATIC_SMS_KEY] = enabled }
   }
 
+  /**
+   * Maps a [Preferences] object from DataStore to a [UserPreferences] data class. This function
+   * extracts individual preference values using their respective keys and constructs a structured
+   * [UserPreferences] object. If a preference key is not found, it defaults to `false`.
+   *
+   * @param preferences The [Preferences] object read from DataStore.
+   * @return A [UserPreferences] object populated with the values from the preferences.
+   */
   private fun mapUserPreferences(preferences: Preferences): UserPreferences {
     val alertMode = preferences[ALERT_MODE_KEY] ?: false
     val inactivityDetection = preferences[INACTIVITY_DETECTION_KEY] ?: false

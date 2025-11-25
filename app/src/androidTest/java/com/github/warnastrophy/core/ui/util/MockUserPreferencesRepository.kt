@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/** A mock implementation of [UserPreferencesRepository] for testing purposes. */
 class MockUserPreferencesRepository : UserPreferencesRepository {
 
   private val _preferences =
