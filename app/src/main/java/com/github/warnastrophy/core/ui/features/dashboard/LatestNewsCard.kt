@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.ui.theme.extendedColors
 import com.github.warnastrophy.core.util.formatDate
 
 object LatestNewsTestTags {
@@ -43,17 +45,6 @@ object LatestNewsTestTags {
   const val LEFT_BUTTON = "latestNewsCardLeftButton"
 
   const val LINK = "latestNewsLink"
-}
-
-object LatestNewsCardColors {
-  val BORDER_COLOR: Color = Color(0xFFBDBDBD) // Shadow Grey
-  val HEADER_BACKGROUND_COLOR: Color = Color(0xFFFFEBEE) // Light Red
-  val HEADER_TEXT_COLOR: Color = Color(0xFFD32F2F) // Dark Red
-  val BODY_BACKGROUND_COLOR: Color = Color(0xFFF6F4F4) // Off White
-  val WEATHER_TEXT_COLOR: Color = Color(0xFF616161) // Dark Grey
-
-  val IMAGE_TEXT_COLOR: Color = Color(0xFF9E9E9E) // Grey
-  val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
 }
 
 /**
@@ -84,6 +75,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
         state.hazards[currentIndex]
       } else Hazard()
 
+  val extendedColors = MaterialTheme.extendedColors
+
   Column(
       modifier =
           modifier
@@ -91,36 +84,34 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
               .clip(RoundedCornerShape(12.dp))
               .border(
                   width = 1.dp,
-                  color = LatestNewsCardColors.BORDER_COLOR.copy(alpha = 0.4f),
+                  color = extendedColors.newsCard.border.copy(alpha = 0.4f),
                   shape = RoundedCornerShape(12.dp))) {
         Row(
             modifier =
                 Modifier.fillMaxWidth()
                     .testTag(LatestNewsTestTags.HEADER_ROW)
-                    .background(LatestNewsCardColors.HEADER_BACKGROUND_COLOR)
+                    .background(extendedColors.newsCard.headerBackground)
                     .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Text(
                   text = stringResource(id = R.string.latest_news),
                   modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TITLE),
-                  color = LatestNewsCardColors.HEADER_TEXT_COLOR,
+                  color = extendedColors.newsCard.headerText,
                   fontWeight = FontWeight.Bold,
                   fontSize = 14.sp)
 
               Text(
                   text = formatDate(currentHazard.date ?: ""),
                   modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TIMESTAMP),
-                  color = LatestNewsCardColors.WEATHER_TEXT_COLOR,
+                  color = extendedColors.newsCard.weatherText,
                   fontSize = 12.sp)
             }
-
-        Spacer(Modifier.height(8.dp))
 
         Column(
             modifier =
                 Modifier.fillMaxWidth()
-                    .background(LatestNewsCardColors.BODY_BACKGROUND_COLOR)
+                    .background(extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))
                     .padding(3.dp)) {
               Row(
                   modifier = Modifier.fillMaxWidth(),
@@ -140,7 +131,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           contentPadding = PaddingValues(0.dp),
                           colors =
                               ButtonDefaults.buttonColors(
-                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                                  containerColor =
+                                      extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))) {
                             Text("<", fontSize = 14.sp, color = Color.Black)
                           }
                     }
@@ -177,7 +169,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                       if (state.hazards.isNotEmpty()) {
                         Text(
                             text = "read",
-                            color = LatestNewsCardColors.READ_ARTICLE_TEXT_COLOR,
+                            color = extendedColors.newsCard.readArticleText,
                             fontSize = 16.sp,
                             textDecoration = TextDecoration.Underline,
                             modifier =
@@ -197,7 +189,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                             Modifier.size(80.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = LatestNewsCardColors.BORDER_COLOR,
+                                    color = extendedColors.newsCard.border,
                                     shape = RoundedCornerShape(8.dp))
                                 .background(Color.White, RoundedCornerShape(8.dp))
                                 .testTag(LatestNewsTestTags.IMAGE_BOX),
@@ -227,7 +219,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           contentPadding = PaddingValues(0.dp),
                           colors =
                               ButtonDefaults.buttonColors(
-                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                                  containerColor =
+                                      extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))) {
                             Text(">", fontSize = 14.sp, color = Color.Black)
                           }
                     }
