@@ -26,9 +26,6 @@ class HybridContactRepositoryTest {
     hybrid = HybridContactRepository(local, remote)
   }
 
-  // ----------------------------------------------------
-  // GET CONTACT local hit
-  // ----------------------------------------------------
   @Test
   fun getContact_returns_local_contact_if_exists() = runTest {
     coEvery { local.getContact(userId, "c1") } returns Result.success(contact)
@@ -50,9 +47,6 @@ class HybridContactRepositoryTest {
     coVerify(exactly = 1) { remote.addContact(userId, contact) }
   }
 
-  // ----------------------------------------------------
-  // EDIT CONTACT
-  // ----------------------------------------------------
   @Test
   fun editContact_updates_local_then_remote() = runTest {
     coEvery { local.editContact(userId, "c1", contact) } returns Result.success(Unit)
@@ -64,9 +58,6 @@ class HybridContactRepositoryTest {
     coVerify { remote.editContact(userId, "c1", contact) }
   }
 
-  // ----------------------------------------------------
-  // DELETE CONTACT
-  // ----------------------------------------------------
   @Test
   fun deleteContact_deletes_locally_then_remote() = runTest {
     coEvery { local.deleteContact(userId, "c1") } returns Result.success(Unit)

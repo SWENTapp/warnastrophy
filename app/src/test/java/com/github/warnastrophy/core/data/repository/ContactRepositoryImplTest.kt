@@ -119,4 +119,43 @@ class ContactRepositoryImplTest {
     assertTrue(result.isSuccess)
     coVerify { doc.delete() }
   }
+
+  @Test
+  fun `editContact encrypts and updates firestore`() = runTest {
+    // Arrange
+    val encrypted = "ENCRYPTED_EDIT"
+    every { CryptoUtils.encrypt(any()) } returns encrypted
+
+    // contact.id == contactID -> no ID mismatch
+    val updatedContact = contact.copy(fullName = "John Updated") // same id = "c1"
+
+    coEvery { doc.set(any()) } returns Tasks.forResult(null)
+
+    // Act
+    val result = impl.editContact(userId, "c1", updatedContact)
+
+    // Assert
+    assertTrue(result.isSuccess)
+
+    coVerify {
+      // ensure we are writing the encrypted payload
+      doc.set(match<Map<String, String>> { map -> map["encrypted"] == encrypted })
+    }
+  }
+
+  @Test
+  fun `editContact fails when contact id does not match`() = runTest {
+    // Arrange: newContact.id != contactID
+    val mismatchedContact = contact.copy(id = "different-id")
+
+    // Act
+    val result = impl.editContact(userId, "c1", mismatchedContact)
+
+    // Assert
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+
+    // Firestore should never be called if IDs don't match
+    coVerify(exactly = 0) { doc.set(any()) }
+  }
 }
