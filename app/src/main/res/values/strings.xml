@@ -32,6 +32,7 @@
     <string name="search_bar_icon">Search Icon</string>
 
     <!-- Danger Mode Preferences -->
+    <string name="danger_mode_preferences_title">Danger Mode Preferences</string>
     <string name="danger_mode_alert_mode_title">Alert Mode automatic</string>
     <string name="danger_mode_alert_mode_description">If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions</string>
 
