@@ -128,10 +128,7 @@ fun AddContactScreen(
 
         // --- Save Button with Validation ---
         Button(
-            onClick = {
-              addContactViewModel.addContact()
-              // TODO: Add navigate back here
-            },
+            onClick = { addContactViewModel.addContact() },
             enabled = isSaveButtonValid,
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.SAVE_BUTTON)) {
