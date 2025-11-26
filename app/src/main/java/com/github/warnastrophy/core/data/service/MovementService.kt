@@ -9,13 +9,16 @@ import android.util.Log
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.util.AppConfig.windowMillisMotion
+import kotlin.compareTo
+import kotlin.text.compareTo
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource.Monotonic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 /**
@@ -56,6 +59,16 @@ class MovementService(private val repository: MovementSensorRepository) {
    */
   val recentData: StateFlow<List<MotionData>> = _recentData
 
+  /** Backing _StateFlow_ that emits the current movement state. */
+  private val _movementState =
+      MutableStateFlow<MovementState>(MovementState.Safe(Monotonic.markNow()))
+
+  /**
+   * Public read-only [StateFlow] that observers can collect to get continuous updates of the
+   * current movement state.
+   */
+  val movementState: StateFlow<MovementState> = _movementState
+
   /** Window duration in milliseconds used to keep only recent samples (default 2 minutes). */
   /**
    * Start collecting motion samples from the repository.
@@ -68,18 +81,44 @@ class MovementService(private val repository: MovementSensorRepository) {
    */
   fun startListening() {
     scope.launch {
-      repository.data
-          .distinctUntilChanged { old, new ->
-            old.acceleration.dot(new.acceleration) -
-                old.accelerationMagnitude * new.accelerationMagnitude < 0.5f
+      repository.data.collect { motion ->
+        // State update logic based on acceleration magnitude
+        // TODO: Allow configuring thresholds via parameters or settings
+        when (_movementState.value) {
+          is MovementState.Safe -> {
+            if (motion.accelerationMagnitude > 50.0) {
+              _movementState.value = MovementState.PreDanger(Monotonic.markNow())
+              Log.d("MovementService", "State changed to PRE_DANGER")
+            }
           }
-          .collect { motion ->
-            Log.d("MovementService", "Received motion data: ${motion.accelerationMagnitude}")
-            val now = System.currentTimeMillis()
-            samples.add(motion)
-            samples.removeIf { it.timestamp < now - windowMillisMotion }
-            _recentData.value = samples.toList()
+          is MovementState.PreDanger -> {
+            val preDangerState = _movementState.value as MovementState.PreDanger
+            preDangerState.accumulatedSamples.add(motion.accelerationMagnitude)
+
+            val elapsedTime = Monotonic.markNow().minus(preDangerState.timestamp)
+
+            if (elapsedTime >= 10.seconds) {
+              val averageAcceleration = preDangerState.accumulatedSamples.average()
+
+              if (averageAcceleration < 2.0) {
+                _movementState.value = MovementState.Danger(Monotonic.markNow())
+                Log.d("MovementService", "State changed to DANGER (avg: $averageAcceleration)")
+              } else {
+                _movementState.value = MovementState.Safe(Monotonic.markNow())
+                Log.d("MovementService", "State reverted to SAFE (avg: $averageAcceleration)")
+              }
+            }
           }
+          is MovementState.Danger -> {
+            // Remain in Danger state until externally reset
+          }
+        }
+
+        val now = System.currentTimeMillis()
+        samples.add(motion)
+        samples.removeIf { it.timestamp < now - windowMillisMotion }
+        _recentData.value = samples.toList()
+      }
     }
   }
 
@@ -111,12 +150,15 @@ class MovementService(private val repository: MovementSensorRepository) {
 /**
  * Represents the current state of the accident detection program.
  *
- * @property SAFE normal movement state
- * @property PRE_DANGER indicates potential accident, triggered by initial high acceleration
- * @property DANGER confirmed accident state, triggered by no further movement
+ * @property timestamp the time when this state was entered
  */
-private enum class MovementState {
-  SAFE,
-  PRE_DANGER,
-  DANGER,
+sealed class MovementState(val timestamp: Monotonic.ValueTimeMark) {
+  class Safe(timestamp: Monotonic.ValueTimeMark) : MovementState(timestamp)
+
+  class PreDanger(
+      timestamp: Monotonic.ValueTimeMark,
+      val accumulatedSamples: MutableList<Double> = mutableListOf()
+  ) : MovementState(timestamp)
+
+  class Danger(timestamp: Monotonic.ValueTimeMark) : MovementState(timestamp)
 }
