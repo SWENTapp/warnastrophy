@@ -24,11 +24,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.util.AppConfig
 
 object AddContactTestTags {
-  const val INPUT_FULL_NAME = "inputFullName"
-  const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
-  const val INPUT_RELATIONSHIP = "inputRelationship"
-  const val ERROR_MESSAGE = "errorMessage"
-  const val SAVE_BUTTON = "contactSave"
+    const val INPUT_FULL_NAME = "inputFullName"
+    const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
+    const val INPUT_RELATIONSHIP = "inputRelationship"
+    const val ERROR_MESSAGE = "errorMessage"
+    const val SAVE_BUTTON = "contactSave"
 }
 
 /**
@@ -51,26 +51,26 @@ fun AddContactScreen(
     onDone: () -> Unit = {},
     userId: String
 ) {
-  val contactUIState by addContactViewModel.uiState.collectAsState()
-  val errorMsg = contactUIState.errorMsg
-  val isSaveButtonValid = contactUIState.isValid
+    val contactUIState by addContactViewModel.uiState.collectAsState()
+    val errorMsg = contactUIState.errorMsg
+    val isSaveButtonValid = contactUIState.isValid
 
-  val context = LocalContext.current
-  LaunchedEffect(errorMsg) {
-    if (errorMsg != null) {
-      Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-      addContactViewModel.clearErrorMsg()
+    val context = LocalContext.current
+    LaunchedEffect(errorMsg) {
+        if (errorMsg != null) {
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+            addContactViewModel.clearErrorMsg()
+        }
     }
-  }
 
-  LaunchedEffect(Unit) {
-    // 1. Collect the flow of navigation events
-    addContactViewModel.navigateBack.collect { onDone() }
-  }
+    LaunchedEffect(Unit) {
+        // 1. Collect the flow of navigation events
+        addContactViewModel.navigateBack.collect { onDone() }
+    }
 
-  Column(
-      modifier = Modifier.fillMaxSize().padding(16.dp),
-      horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Add Contact Form",
             style = MaterialTheme.typography.headlineMedium,
@@ -83,9 +83,9 @@ fun AddContactScreen(
             label = { Text("Full Name") },
             isError = contactUIState.invalidFullNameMsg != null,
             supportingText = {
-              contactUIState.invalidFullNameMsg?.let {
-                Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
-              }
+                contactUIState.invalidFullNameMsg?.let {
+                    Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
+                }
             },
             modifier =
                 Modifier.fillMaxWidth()
@@ -101,9 +101,9 @@ fun AddContactScreen(
             // keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             isError = contactUIState.invalidPhoneNumberMsg != null,
             supportingText = {
-              contactUIState.invalidPhoneNumberMsg?.let {
-                Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
-              }
+                contactUIState.invalidPhoneNumberMsg?.let {
+                    Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
+                }
             },
             modifier =
                 Modifier.fillMaxWidth()
@@ -117,9 +117,9 @@ fun AddContactScreen(
             label = { Text("Relationship (e.g., family, friend, doctor, etc.)") },
             isError = contactUIState.invalidRelationshipMsg != null,
             supportingText = {
-              contactUIState.invalidRelationshipMsg?.let {
-                Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
-              }
+                contactUIState.invalidRelationshipMsg?.let {
+                    Text(it, modifier = Modifier.testTag(AddContactTestTags.ERROR_MESSAGE))
+                }
             },
             modifier =
                 Modifier.fillMaxWidth()
@@ -128,18 +128,21 @@ fun AddContactScreen(
 
         // --- Save Button with Validation ---
         Button(
-            onClick = { addContactViewModel.addContact() },
+            onClick = {
+                addContactViewModel.addContact()
+                // TODO: Add navigate back here
+            },
             enabled = isSaveButtonValid,
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.SAVE_BUTTON)) {
-              Text("Save Contact")
-            }
-      }
+            Text("Save Contact")
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AddContactScreenPreview() {
-  // Assuming you have a MainAppTheme or just use the system default
-  MaterialTheme { AddContactScreen(userId = AppConfig.defaultUserId) }
+    // Assuming you have a MainAppTheme or just use the system default
+    MaterialTheme { AddContactScreen(userId = AppConfig.defaultUserId) }
 }
