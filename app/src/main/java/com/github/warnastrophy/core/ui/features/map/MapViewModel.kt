@@ -1,22 +1,21 @@
 package com.github.warnastrophy.core.ui.features.map
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.service.FetcherState
+import com.github.warnastrophy.core.data.service.GeocodeService
 import com.github.warnastrophy.core.data.service.GpsPositionState
 import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.data.service.MockNominatimService
 import com.github.warnastrophy.core.data.service.PositionService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
-import com.github.warnastrophy.core.ui.repository.GeocodeRepository
-import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
@@ -51,7 +50,8 @@ data class MapUIState(
     val severitiesByType: Map<String, Pair<Double, Double>> = emptyMap(),
     val positionState: GpsPositionState = GpsPositionState(isLoading = true),
     val hazardState: FetcherState = FetcherState(isLoading = true),
-    val nominatimState: List<Location> = emptyList()
+    val nominatimState: List<Location> = emptyList(),
+    val selectedLocation: Location? = null
 ) {
   /** A computed property that is true if the permission is granted. */
   val isGranted: Boolean
@@ -66,7 +66,7 @@ class MapViewModel(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
     private val permissionManager: PermissionManagerInterface,
-    val nominatimRepository: GeocodeRepository = NominatimRepository()
+    val nominatimService: GeocodeService = MockNominatimService()
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
   val foregroundPermissions = AppPermissions.ForegroundServiceLocation
@@ -94,18 +94,21 @@ class MapViewModel(
    * launched in the `viewModelScope` to manage its lifecycle automatically.
    */
   private fun observeDataSources() {
-    combine(gpsService.positionState, hazardsService.fetcherState) {
-            newPositionState,
-            newHazardState ->
-          val severities = computeSeverities(newHazardState.hazards)
+    combine(
+            gpsService.positionState,
+            hazardsService.fetcherState,
+            nominatimService.nominatimState) { newPositionState, newHazardState, newNominatimState
+              ->
+              val severities = computeSeverities(newHazardState.hazards)
 
-          _uiState.update {
-            it.copy(
-                positionState = newPositionState,
-                hazardState = newHazardState,
-                severitiesByType = severities)
-          }
-        }
+              _uiState.update {
+                it.copy(
+                    positionState = newPositionState,
+                    hazardState = newHazardState,
+                    severitiesByType = severities,
+                    nominatimState = newNominatimState)
+              }
+            }
         .launchIn(viewModelScope)
   }
 
@@ -232,46 +235,36 @@ class MapViewModel(
    * @see GeocodeRepository.reverseGeocode
    */
   fun searchLocations(query: String) {
-    Log.d("MapViewModel", "searchLocations: query = $query")
-    viewModelScope.launch {
-      Log.d("MapViewModel", "searchLocations: launching search")
-
-      val results =
-          try {
-            nominatimRepository.reverseGeocode(query)
-          } catch (e: Exception) {
-            Log.d("MapViewModel", "searchLocations: error during search", e)
-            return@launch
-          }
-      Log.d("MapViewModel", "searchLocations: results = $results")
-      _uiState.update { it.copy(nominatimState = results) }
-      Log.d("MapViewModel", "searchLocations: results = ${uiState.value.nominatimState}")
-    }
+    nominatimService.searchQuery(query)
   }
-}
 
-/**
- * Defines a composable for the map route (Map.route).
- *
- * Features:
- * - Creates an instance of `MapViewModel` using `viewModel` and a `MapViewModelFactory`.
- * - Associates the `MapViewModel` with the lifecycle of the `Map.route` destination.
- * - If `mockMapScreen` is provided (non-null), it is invoked for testing or overrides. Otherwise,
- *   the `MapScreen` composable is displayed with the `mapViewModel` as a parameter.
- *
- * @see ViewModel
- * @see MapViewModelFactory
- */
-class MapViewModelFactory(
-    private val gpsService: PositionService,
-    private val hazardsService: HazardsDataService,
-    private val permissionManager: PermissionManagerInterface
-) : ViewModelProvider.Factory {
-  override fun <T : ViewModel> create(modelClass: Class<T>): T {
-    if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
-      @Suppress("UNCHECKED_CAST")
-      return MapViewModel(gpsService, hazardsService, permissionManager) as T
+  fun setSelectedLocation(location: Location) {
+    _uiState.update { it.copy(selectedLocation = location) }
+  }
+  /**
+   * Defines a composable for the map route (Map.route).
+   *
+   * Features:
+   * - Creates an instance of `MapViewModel` using `viewModel` and a `MapViewModelFactory`.
+   * - Associates the `MapViewModel` with the lifecycle of the `Map.route` destination.
+   * - If `mockMapScreen` is provided (non-null), it is invoked for testing or overrides. Otherwise,
+   *   the `MapScreen` composable is displayed with the `mapViewModel` as a parameter.
+   *
+   * @see ViewModel
+   * @see MapViewModelFactory
+   */
+  class MapViewModelFactory(
+      private val gpsService: PositionService,
+      private val hazardsService: HazardsDataService,
+      private val permissionManager: PermissionManagerInterface
+  ) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+      if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
+        @Suppress("UNCHECKED_CAST")
+        return MapViewModel(gpsService, hazardsService, permissionManager, MockNominatimService())
+            as T
+      }
+      throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
     }
-    throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
   }
 }
