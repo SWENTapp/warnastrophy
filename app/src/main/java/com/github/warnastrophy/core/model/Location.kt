@@ -1,8 +1,5 @@
 package com.github.warnastrophy.core.model
 
-import com.github.warnastrophy.core.model.Location.Companion.kmToLonVariation
-import com.github.warnastrophy.core.model.Location.Companion.normalizeLat
-import com.github.warnastrophy.core.model.Location.Companion.normalizeLon
 import com.google.android.gms.maps.model.LatLng
 import java.util.Locale
 import kotlin.math.atan2

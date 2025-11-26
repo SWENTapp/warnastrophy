@@ -3,7 +3,6 @@ package com.github.warnastrophy.core.data.localStorage
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Log
-import com.github.warnastrophy.core.data.localStorage.KeyStoreProvider.KEY_ALIAS
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey

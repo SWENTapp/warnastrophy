@@ -1,7 +1,6 @@
 package com.github.warnastrophy.core.util
 
 import com.github.warnastrophy.core.data.localStorage.KeyStoreProvider
-import com.github.warnastrophy.core.util.CryptoUtils.encrypt
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
