@@ -1,8 +1,10 @@
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context
-import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
+import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
@@ -30,6 +32,7 @@ object ServiceStateManager {
   lateinit var permissionManager: PermissionManagerInterface
   lateinit var errorHandler: ErrorHandler
   lateinit var dangerModeService: DangerModeService
+  lateinit var userPreferencesRepository: UserPreferencesRepository
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
   val activeHazardFlow: StateFlow<Hazard?> = _activeHazardFlow.asStateFlow()
@@ -58,6 +61,7 @@ object ServiceStateManager {
   }
 
   fun init(context: Context) {
+    userPreferencesRepository = UserPreferencesRepositoryLocal(context.userPrefsDataStore)
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
     errorHandler = ErrorHandler()
@@ -105,9 +109,6 @@ object ServiceStateManager {
             fetcherState to positionState
           }
           .collect { (fetcherState, positionState) ->
-            Log.d("ServiceStateManager", "${fetcherState.hazards}")
-            Log.d("ServiceStateManager", "$positionState")
-            Log.d("ServiceStateManager", "Checking hazards for position update")
             hazardCheckerScope.cancel()
             HazardChecker(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
                 .checkAndPublishAlert(

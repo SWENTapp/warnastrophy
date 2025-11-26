@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.ui.common.Error
+import com.github.warnastrophy.core.ui.theme.extendedColors
 
 /** Object containing test tags for the ErrorScreen composable. */
 object ErrorScreenTestTags {
@@ -59,7 +60,12 @@ fun ErrorScreen(
 
   androidx.compose.ui.window.Dialog(onDismissRequest = { onDismiss() }) {
     Surface(
-        modifier = Modifier.fillMaxWidth().widthIn(max = 360.dp),
+        modifier =
+            Modifier.fillMaxWidth()
+                .widthIn(max = 360.dp)
+                .background(
+                    MaterialTheme.extendedColors.backgroundOffWhite,
+                    shape = RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp) {
