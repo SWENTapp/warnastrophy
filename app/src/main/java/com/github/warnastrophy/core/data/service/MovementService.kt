@@ -145,6 +145,11 @@ class MovementService(private val repository: MovementSensorRepository) {
     job.cancel()
     scope.cancel()
   }
+
+  fun setSafe() {
+    _movementState.value = MovementState.Safe(Monotonic.markNow())
+    Log.d("MovementService", "State manually set to SAFE")
+  }
 }
 
 /**
