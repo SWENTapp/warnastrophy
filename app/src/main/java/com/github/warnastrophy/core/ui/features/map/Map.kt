@@ -30,7 +30,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.Location.Companion.toLatLng
+import com.github.warnastrophy.core.model.Location.Companion.toLatLng
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard

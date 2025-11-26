@@ -10,7 +10,7 @@
  */
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.domain.model.Location
+import com.github.warnastrophy.core.model.Location
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -193,6 +193,23 @@ class NominatimRepository() : GeocodeRepository {
       val timeSinceLastQuery = System.currentTimeMillis() - last
       return max(maxRateMs - timeSinceLastQuery, 0L)
     }
+  }
+}
+
+class MockNominatimRepository : GeocodeRepository {
+
+  val locations =
+      listOf(
+          Location(40.7128, -74.0060, "Suvy"),
+          Location(40.0583, -74.4057, "Tolar"),
+          Location(-40.9006, 174.8860, "New Zok"))
+
+  override suspend fun reverseGeocode(location: String): List<Location> {
+    return locations
+  }
+
+  override fun delayForNextQuery(): Long {
+    return 0L
   }
 }
 

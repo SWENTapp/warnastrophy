@@ -1,13 +1,14 @@
 package com.github.warnastrophy.core.model
 
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
-import com.github.warnastrophy.core.domain.model.Location
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EmergencyMessageTest {

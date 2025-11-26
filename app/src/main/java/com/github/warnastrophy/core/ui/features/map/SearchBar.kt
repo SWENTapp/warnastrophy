@@ -37,8 +37,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.Location
-import com.github.warnastrophy.core.domain.model.Location.Companion.toLatLng
+import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.model.Location.Companion.toLatLng
 import com.github.warnastrophy.core.ui.features.map.Colors.horizontalDividerColor
 import com.google.maps.android.compose.CameraPositionState
 import kotlinx.coroutines.launch

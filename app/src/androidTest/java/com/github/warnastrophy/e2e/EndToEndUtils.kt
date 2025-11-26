@@ -19,11 +19,11 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.warnastrophy.WarnastrophyComposable
 import com.github.warnastrophy.core.ui.contact.UITest
+import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
+import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
+import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.features.health.HealthCardTestTags
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.AddContactTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreenTestTags
-import com.github.warnastrophy.core.ui.features.profile.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth

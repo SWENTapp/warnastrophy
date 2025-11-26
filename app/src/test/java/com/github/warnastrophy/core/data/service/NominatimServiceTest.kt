@@ -1,9 +1,8 @@
 package com.github.warnastrophy.core.data.service
 
 import com.github.warnastrophy.core.data.repository.GeocodeRepository
-import com.github.warnastrophy.core.data.repository.MockNominatimRepo
-import com.github.warnastrophy.core.domain.model.Location
-import com.github.warnastrophy.core.domain.model.NominatimService
+import com.github.warnastrophy.core.data.repository.MockNominatimRepository
+import com.github.warnastrophy.core.model.Location
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
@@ -24,13 +23,15 @@ class NominatimServiceTest {
 
   private val testDispatcher = StandardTestDispatcher()
 
-  private val mockLocations = listOf(Location(1.0, 2.0, "Mock Location"))
+  private lateinit var mockLocations: List<Location>
 
   @Before
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
-    repository = MockNominatimRepo(mockLocations)
-    nominatimService = NominatimService(repository)
+    repository = MockNominatimRepository()
+    nominatimService = NominatimService(repository, testDispatcher)
+    val repo = repository as MockNominatimRepository
+    mockLocations = repo.locations
   }
 
   @Test

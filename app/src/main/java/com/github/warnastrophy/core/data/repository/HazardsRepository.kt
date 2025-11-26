@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.data.repository
 
 import android.util.Log
-import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.Endpoints
 import com.github.warnastrophy.core.util.AppConfig.HTTP_TIMEOUT

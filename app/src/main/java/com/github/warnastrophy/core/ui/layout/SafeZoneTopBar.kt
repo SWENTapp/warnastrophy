@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.service.StateManagerService
 
 /**
  * This Composable displays a top bar indicating that the user is in a safe zone. It features a
@@ -24,7 +24,7 @@ import com.github.warnastrophy.core.data.service.ServiceStateManager
  */
 @Composable
 fun SafeZoneTopBar(modifier: Modifier = Modifier) {
-  val state by ServiceStateManager.dangerModeService.state.collectAsState()
+  val state by StateManagerService.dangerModeService.state.collectAsState()
   val safe = !state.isActive
   val colorScheme = MaterialTheme.colorScheme
   Box(

@@ -43,7 +43,7 @@
             android:value="${GOOGLE_MAPS_API_KEY}" />
 
         <service
-            android:name=".core.domain.model.ForegroundGpsService"
+            android:name=".core.data.service.ForegroundGpsService"
             android:foregroundServiceType="location"
             android:exported="false" />
 

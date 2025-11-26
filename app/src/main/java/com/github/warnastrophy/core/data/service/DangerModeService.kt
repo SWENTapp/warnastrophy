@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
@@ -35,10 +35,10 @@ enum class DangerLevel {
  */
 class DangerModeService(
     /**
-     * Source of the current active hazard. By default, uses [ServiceStateManager.activeHazardFlow],
+     * Source of the current active hazard. By default, uses [StateManagerService.activeHazardFlow],
      * which is updated by [HazardChecker].
      */
-    private val activeHazardFlow: StateFlow<Hazard?> = ServiceStateManager.activeHazardFlow,
+    private val activeHazardFlow: StateFlow<Hazard?> = StateManagerService.activeHazardFlow,
     private val permissionManager: PermissionManagerInterface,
 
     /** Scope used internally to collect flows and manage coroutines. */
