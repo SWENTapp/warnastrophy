@@ -13,11 +13,33 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Represents the mutable state of the UI for the screen where a user can see activities list. This
+ * state is typically exposed by a ViewModel to be observed by a Composable function.
+ *
+ * @property activities The current list of Activity objects to be displayed. Defaults to an empty
+ *   list.
+ * @property errorMsg A general error message to display, usually for repository/network failures.
+ */
 data class ActivityListUIState(
     val activities: List<Activity> = emptyList(),
     val errorMsg: String? = null,
 )
 
+/**
+ * ViewModel responsible for managing the UI state of the Activity List screen.
+ *
+ * This class acts as a communication bridge between the UI (View) and the data layer (Repository).
+ * It loads contact data from the repository, handles asynchronous operations, applies business
+ * logic, and exposes the result as an observable
+ * [com.github.warnastrophy.core.ui.features.dashboard.activity.ActivityListUIState] that the UI
+ * consumes.
+ *
+ * @property repository The dependency responsible for fetching, caching, and persisting activities
+ *   data.
+ *     @property userId id of user using the app
+ *     @property dispatcher dispatcher defaut to [Dispatchers.IO]
+ */
 class ActivityListViewModel(
     private val repository: ActivityRepository = ActivityRepositoryProvider.repository,
     private val userId: String,

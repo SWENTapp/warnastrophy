@@ -42,6 +42,7 @@ data class EditActivityUIState(
  *
  * @property repository The data source dependency used for activity persistence.
  * @property userId id of user using the app
+ * @property dispatcher dispatcher defaut to [Dispatchers.IO]
  */
 class EditActivityViewModel(
     private val repository: ActivityRepository = ActivityRepositoryProvider.repository,
