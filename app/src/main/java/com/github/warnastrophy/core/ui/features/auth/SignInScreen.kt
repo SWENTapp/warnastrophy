@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -141,7 +142,7 @@ fun SignInScreen(
                     modifier = Modifier.padding(8.dp).height(48.dp)) {
                       Text(
                           text = "Continue as Guest",
-                          color = Color.White,
+                          color = MaterialTheme.colorScheme.surfaceContainer,
                           fontSize = 16.sp,
                           fontWeight = FontWeight.Medium)
                     }
@@ -161,7 +162,8 @@ fun SignInScreen(
 fun GoogleSignInButton(onSignInClick: () -> Unit) {
   Button(
       onClick = onSignInClick,
-      colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+      colors =
+          ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
       shape = RoundedCornerShape(50),
       border = BorderStroke(1.dp, Color.LightGray),
       modifier =
@@ -179,7 +181,7 @@ fun GoogleSignInButton(onSignInClick: () -> Unit) {
 
               Text(
                   text = "Sign in with Google",
-                  color = Color.Gray,
+                  color = MaterialTheme.colorScheme.onSurface,
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Medium)
             }
@@ -198,7 +200,8 @@ fun GoogleSignInButton(onSignInClick: () -> Unit) {
 fun GitHubSignInButton(onSignInClick: () -> Unit) {
   Button(
       onClick = onSignInClick,
-      colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+      colors =
+          ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
       shape = RoundedCornerShape(50),
       border = BorderStroke(1.dp, Color.LightGray),
       modifier =
@@ -212,11 +215,12 @@ fun GitHubSignInButton(onSignInClick: () -> Unit) {
               Image(
                   painter = painterResource(id = R.drawable.github_logo),
                   contentDescription = "GitHub Logo",
+                  colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                   modifier = Modifier.size(30.dp).padding(end = 8.dp))
 
               Text(
                   text = "Sign in with GitHub",
-                  color = Color.Gray,
+                  color = MaterialTheme.colorScheme.onSurface,
                   fontSize = 16.sp,
                   fontWeight = FontWeight.Medium)
             }

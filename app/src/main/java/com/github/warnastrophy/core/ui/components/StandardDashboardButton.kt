@@ -30,12 +30,12 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun StandardDashboardButton(
-    color: Color = Color(0xFFF5F5F5), // light gray
     label: String,
     modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.secondaryContainer,
     onClick: () -> Unit = {},
-    textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    borderColor: Color = MaterialTheme.colorScheme.onError,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    borderColor: Color = MaterialTheme.colorScheme.surface,
     icon: @Composable () -> Unit = {}
 ) {
   Surface(
