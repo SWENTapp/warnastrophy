@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.repository.ActivityRepositoryProvider
 import com.github.warnastrophy.core.domain.model.Activity
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +20,8 @@ data class ActivityListUIState(
 
 class ActivityListViewModel(
     private val repository: ActivityRepository = ActivityRepositoryProvider.repository,
-    private val userId: String
+    private val userId: String,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(ActivityListUIState())
@@ -34,7 +37,7 @@ class ActivityListViewModel(
   }
 
   private fun getAllActivities() {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       val result = repository.getAllActivities(userId)
 
       result.fold(

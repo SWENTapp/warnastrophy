@@ -8,6 +8,7 @@ interface ActivityRepository {
    * Adds a new Activity item to the repository.
    *
    * @param activity The Activity item to add.
+   * @param userId user ID that is using the app. The default value is [AppConfig.defaultUserId]
    * @return A [Result] containing Unit on success or a failure with the exception on error.
    */
   suspend fun addActivity(
@@ -21,6 +22,7 @@ interface ActivityRepository {
   /**
    * Retrieves all Activity items from the repository.
    *
+   * @param userId user ID that is using the app. The default value is [AppConfig.defaultUserId]
    * @return A [Result] containing a list of all Activity items on success, or a failure with the
    *   error.
    */
@@ -30,6 +32,7 @@ interface ActivityRepository {
    * Retrieves a specific Activity item by its unique identifier.
    *
    * @param activityId The unique identifier of the Activity item to retrieve.
+   * @param userId user ID that is using the app. The default value is [AppConfig.defaultUserId]
    * @return A [Result] containing the Activity item with the specified identifier on success, or a
    *   failure if not found or on error.
    */
@@ -42,6 +45,7 @@ interface ActivityRepository {
    * Edits an existing Activity item in the repository.
    *
    * @param activityId The unique identifier of the Activity item to edit.
+   * @param userId user ID that is using the app. The default value is [AppConfig.defaultUserId]
    * @param newActivity The new value for the Activity item.
    * @return A [Result] containing Unit on success or a failure with the exception if the edit
    *   failed.
@@ -54,6 +58,7 @@ interface ActivityRepository {
   /**
    * Deletes a Activity item from the repository.
    *
+   * @param userId user ID that is using the app. The default value is [AppConfig.defaultUserId]
    * @param activityId The unique identifier of the Contact item to delete.
    * @return A [Result] containing Unit on success or a failure with the exception if deletion
    *   failed.

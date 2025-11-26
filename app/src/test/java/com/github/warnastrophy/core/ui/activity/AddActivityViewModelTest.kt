@@ -33,21 +33,16 @@ class AddActivityViewModelTest {
   fun setUp() {
     Dispatchers.setMain(testDispatcher)
     repository = MockActivityRepository()
-    viewModel = AddActivityViewModel(repository = repository, AppConfig.defaultUserId)
+    viewModel =
+        AddActivityViewModel(repository = repository, AppConfig.defaultUserId, testDispatcher)
   }
 
   @After
   fun tearDown() {
-    repository.shouldThrowException = false
     Dispatchers.resetMain()
   }
 
   @Test
-  /**
-   * Tests that [addActivity] successfully adds a valid activity to the repository, emits
-   * [navigateBack] event, and ensures that any previous error message in [uiState] is cleared upon
-   * success.
-   */
   fun `add activity successfully emits navigateBack and clears error`() = runTest {
     val navigateBackEvent = async { viewModel.navigateBack.firstOrNull() }
     viewModel.setActivityName(activity.activityName)
@@ -65,16 +60,9 @@ class AddActivityViewModelTest {
   }
 
   @Test
-  /**
-   * Tests that [addActivity] correctly handles an invalid UI state (e.g., missing required field).
-   * It should set an appropriate error message in [uiState].
-   */
   fun `add activity with invalid UI state sets error message`() = runTest {
-    // Setup: Collect the navigateBack event flow concurrently with a timeout
     val navigateBackEvent = async {
-      withTimeoutOrNull(100.milliseconds) {
-        viewModel.navigateBack.first() // first() throws if timeout reached before emission
-      }
+      withTimeoutOrNull(100.milliseconds) { viewModel.navigateBack.first() }
     }
 
     viewModel.setActivityName("")
@@ -88,16 +76,7 @@ class AddActivityViewModelTest {
   }
 
   @Test
-  /**
-   * Tests the core principle of using [MutableSharedFlow] for navigation events.
-   * * It ensures that after the ViewModel successfully emits the [navigateBack] event upon activity
-   *   creation (consuming the first event), no subsequent event remains buffered or is immediately
-   *   re-emitted to a new collector. This validates that the event is truly **transient**
-   *   (fire-and-forget) and confirms that the separate [resetNavigation] call is correctly obsolete
-   *   for this pattern.
-   */
   fun `MapsBack event is transient (no need for reset)`() = runTest {
-    // 1. Setup: Collect the first event
     val firstEvent = async {
       withTimeoutOrNull(100.milliseconds) { viewModel.navigateBack.first() }
     }

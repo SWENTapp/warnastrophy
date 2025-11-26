@@ -30,17 +30,19 @@ class ActivityListViewModelTest() {
   fun setUp() = runTest {
     Dispatchers.setMain(testDispatcher)
     repository = MockActivityRepository()
-    viewModel = ActivityListViewModel(repository, AppConfig.defaultUserId)
-    repository.addActivity(AppConfig.defaultUserId, activity)
+    viewModel = ActivityListViewModel(repository, AppConfig.defaultUserId, testDispatcher)
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    repository.shouldThrowException = false
   }
 
   @Test
-  fun init_handles_repository_failure() = runTest {
+  fun `init handles repository failure`() = runTest {
+    repository.addActivity(AppConfig.defaultUserId, activity)
+    advanceUntilIdle()
     repository.shouldThrowException = true
 
     viewModel.refreshUIState()
@@ -52,7 +54,10 @@ class ActivityListViewModelTest() {
   }
 
   @Test
-  fun `initialization_loadsActivitiesOnSuccess`() = runTest {
+  fun `initialization loadsActivities On Success`() = runTest {
+    repository.addActivity(AppConfig.defaultUserId, activity)
+    advanceUntilIdle()
+    viewModel.refreshUIState()
     val expectedActivities = listOf(activity)
     advanceUntilIdle()
     val finalState = viewModel.uiState.value

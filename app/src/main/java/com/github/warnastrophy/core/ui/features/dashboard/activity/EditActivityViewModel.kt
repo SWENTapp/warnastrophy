@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.repository.ActivityRepositoryProvider
 import com.github.warnastrophy.core.domain.model.Activity
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -14,6 +16,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Represents the mutable state of the UI for the screen where a user can edit an activity. This
+ * state is typically exposed by a ViewModel to be observed by a Composable function.
+ *
+ * @property activityName The current text input for the activity's name.
+ * @property errorMsg A general error message to display, usually for repository/network failures.
+ * @property invalidActivityName A specific error message for input validation failure on the
+ *   activity name field.
+ */
 data class EditActivityUIState(
     val activityName: String = "",
     val errorMsg: String? = null,
@@ -23,9 +34,19 @@ data class EditActivityUIState(
     get() = activityName.isNotBlank()
 }
 
+/**
+ * ViewModel responsible for managing the state and logic for the Edit Activity screen.
+ *
+ * It handles form input changes, validates fields, and manages the asynchronous operation of
+ * persisting a new activity via the repository.
+ *
+ * @property repository The data source dependency used for activity persistence.
+ * @property userId id of user using the app
+ */
 class EditActivityViewModel(
     private val repository: ActivityRepository = ActivityRepositoryProvider.repository,
-    private val userId: String
+    private val userId: String,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(EditActivityUIState())
   val uiState: StateFlow<EditActivityUIState> = _uiState.asStateFlow()
@@ -43,12 +64,11 @@ class EditActivityViewModel(
     _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
   }
 
-  // Helper function
   private fun <T> executeRepositoryOperation(
       operation: suspend () -> Result<T>,
       actionName: String // e.g., "edit Contact" or "delete Contact"
   ) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       val result = operation()
 
       result
@@ -72,7 +92,7 @@ class EditActivityViewModel(
    * @param activityId The ID of the Contact to be loaded.
    */
   fun loadActivity(activityId: String) {
-    viewModelScope.launch {
+    viewModelScope.launch(dispatcher) {
       val res = repository.getActivity(activityId, userId)
       res.fold(
           onSuccess = { activity ->
@@ -113,7 +133,6 @@ class EditActivityViewModel(
         actionName = "delete activity")
   }
 
-  // Functions to update the UI state.
   fun setActivityName(activityName: String) {
     _uiState.value =
         _uiState.value.copy(
