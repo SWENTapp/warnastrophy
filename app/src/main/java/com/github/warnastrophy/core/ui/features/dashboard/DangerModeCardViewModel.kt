@@ -2,13 +2,10 @@ package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.ServiceStateManager
-import com.github.warnastrophy.core.data.service.ServiceStateManager.dangerModeService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import kotlin.collections.emptySet
