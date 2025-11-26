@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.di
 
-import com.github.warnastrophy.core.domain.model.GpsService
-import com.github.warnastrophy.core.domain.model.PositionService
+import com.github.warnastrophy.core.data.service.GpsService
+import com.github.warnastrophy.core.data.service.PositionService
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

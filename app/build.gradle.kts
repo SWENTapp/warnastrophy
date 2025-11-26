@@ -42,8 +42,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "com.github.warnastrophy.HiltTestRunner"
+        testInstrumentationRunner = "com.github.warnastrophy.core.util.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -276,13 +275,15 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     // --------------- DataStore -------------------
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.datastore.preferences)
 
     // --------------- OkHttp -------------------
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.okhttp.mockwebserver)
 
+    // --------------- DataStore -------------------
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
 
     // test mock
     androidTestImplementation("io.mockk:mockk-android:1.13.8")

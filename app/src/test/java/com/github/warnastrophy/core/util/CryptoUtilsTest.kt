@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.util
 
-import com.github.warnastrophy.core.data.local.KeyStoreProvider
+import com.github.warnastrophy.core.data.localStorage.KeyStoreProvider
 import java.util.Base64
 import junit.framework.TestCase
 import org.junit.Assert
