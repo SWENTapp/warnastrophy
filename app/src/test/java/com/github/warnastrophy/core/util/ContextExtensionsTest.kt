@@ -2,7 +2,8 @@ package com.github.warnastrophy.core.util
 
 import android.app.Activity
 import android.content.ContextWrapper
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric

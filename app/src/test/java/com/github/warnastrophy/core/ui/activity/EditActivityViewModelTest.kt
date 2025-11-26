@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.ui.activity
 
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
-import com.github.warnastrophy.core.domain.model.Activity
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityViewModel
 import com.github.warnastrophy.core.util.AppConfig
 import junit.framework.TestCase

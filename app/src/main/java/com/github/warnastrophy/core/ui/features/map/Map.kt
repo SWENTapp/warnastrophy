@@ -46,8 +46,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
-import com.github.warnastrophy.core.domain.model.Location
-import com.github.warnastrophy.core.domain.model.Location.Companion.toLatLng
+import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.model.Location.Companion.toLatLng
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.ui.components.Loading

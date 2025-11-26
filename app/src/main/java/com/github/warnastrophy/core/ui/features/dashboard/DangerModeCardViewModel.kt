@@ -5,10 +5,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.service.DangerLevel
-import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
-import kotlin.collections.emptySet
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -39,7 +38,7 @@ class DangerModeCardViewModel(
     private val startService: (Context) -> Unit = { ctx -> startForegroundGpsService(ctx) },
     private val stopService: (Context) -> Unit = { ctx -> stopForegroundGpsService(ctx) }
 ) : ViewModel() {
-  private val dangerModeService = ServiceStateManager.dangerModeService
+  private val dangerModeService = StateManagerService.dangerModeService
 
   val isDangerModeEnabled =
       dangerModeService.state

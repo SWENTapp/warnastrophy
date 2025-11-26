@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.HazardsDataService
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.extendedColors
 

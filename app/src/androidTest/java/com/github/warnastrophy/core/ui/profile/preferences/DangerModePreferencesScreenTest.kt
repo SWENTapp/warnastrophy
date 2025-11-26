@@ -19,8 +19,8 @@ import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePr
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
 import com.github.warnastrophy.core.ui.features.profile.preferences.PendingAction
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.ui.util.MockUserPreferencesRepository
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull

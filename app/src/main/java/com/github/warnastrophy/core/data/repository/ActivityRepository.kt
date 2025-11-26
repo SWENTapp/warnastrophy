@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.domain.model.Activity
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.util.AppConfig
 
 interface ActivityRepository {

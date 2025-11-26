@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.domain.model.Activity
+import com.github.warnastrophy.core.model.Activity
 import java.util.UUID
 
 /** A mock repository for testing purpose */
