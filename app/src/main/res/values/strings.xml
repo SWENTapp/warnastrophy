@@ -26,4 +26,8 @@
     <string name="logout_error">Error</string>
     <string name="safe_zone_message">You are in a safe area</string>
     <string name="danger_mode_active_message">Danger mode is enabled</string>
+
+    <!-- Search Bar Strings -->
+    <string name="search_bar_search">Search</string>
+    <string name="search_bar_icon">Search Icon</string>
 </resources>

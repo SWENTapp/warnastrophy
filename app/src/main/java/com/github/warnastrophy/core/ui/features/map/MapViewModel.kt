@@ -12,12 +12,10 @@ import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.MockNominatimService
-import com.github.warnastrophy.core.domain.model.NominatimService
 import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
-import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.CameraPositionState
@@ -58,7 +56,8 @@ data class MapUIState(
     val severitiesByType: Map<String, Pair<Double, Double>> = emptyMap(),
     val positionState: GpsPositionState = GpsPositionState(isLoading = true),
     val hazardState: FetcherState = FetcherState(isLoading = true),
-    val nominatimState: List<Location> = emptyList()
+    val nominatimState: List<Location> = emptyList(),
+    val selectedLocation: Location? = null
 ) {
   /** A computed property that is true if the permission is granted. */
   val isGranted: Boolean
@@ -73,7 +72,7 @@ class MapViewModel(
     private val gpsService: PositionService,
     private val hazardsService: HazardsDataService,
     private val permissionManager: PermissionManagerInterface,
-    val NominatimService: GeocodeService = MockNominatimService()
+    val nominatimService: GeocodeService = MockNominatimService()
 ) : ViewModel() {
   val locationPermissions = AppPermissions.LocationFine
   val foregroundPermissions = AppPermissions.ForegroundServiceLocation
@@ -101,20 +100,21 @@ class MapViewModel(
    * launched in the `viewModelScope` to manage its lifecycle automatically.
    */
   private fun observeDataSources() {
-    combine(gpsService.positionState, hazardsService.fetcherState, NominatimService.locations) {
-            newPositionState,
-            newHazardState,
-            newNominatimState ->
-          val severities = computeSeverities(newHazardState.hazards)
+    combine(
+            gpsService.positionState,
+            hazardsService.fetcherState,
+            nominatimService.nominatimState) { newPositionState, newHazardState, newNominatimState
+              ->
+              val severities = computeSeverities(newHazardState.hazards)
 
-          _uiState.update {
-            it.copy(
-                positionState = newPositionState,
-                hazardState = newHazardState,
-                severitiesByType = severities,
-                nominatimState = newNominatimState)
-          }
-        }
+              _uiState.update {
+                it.copy(
+                    positionState = newPositionState,
+                    hazardState = newHazardState,
+                    severitiesByType = severities,
+                    nominatimState = newNominatimState)
+              }
+            }
         .launchIn(viewModelScope)
   }
 
@@ -241,9 +241,12 @@ class MapViewModel(
    * @see GeocodeRepository.reverseGeocode
    */
   fun searchLocations(query: String) {
-    NominatimService.searchQuery(query)
+    nominatimService.searchQuery(query)
   }
 
+  fun setSelectedLocation(location: Location) {
+    _uiState.update { it.copy(selectedLocation = location) }
+  }
   /**
    * Defines a composable for the map route (Map.route).
    *

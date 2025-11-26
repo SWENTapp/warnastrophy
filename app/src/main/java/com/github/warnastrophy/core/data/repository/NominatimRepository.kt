@@ -8,7 +8,7 @@
  * into a list of [Location] domain models. Rate limiting is applied locally to avoid excessive
  * requests within a short time window.
  */
-package com.github.warnastrophy.core.ui.repository
+package com.github.warnastrophy.core.data.repository
 
 import com.github.warnastrophy.core.domain.model.Location
 import java.io.BufferedReader
@@ -16,7 +16,6 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.math.max
-import kotlin.text.compareTo
 import org.json.JSONArray
 
 val TAG = "NominatimLocationRepository : "
@@ -86,6 +85,8 @@ class NominatimRepository() : GeocodeRepository {
    * @return A list of [Location] results. Returns an empty list if the request is rate limited or
    *   if the response is empty/invalid.
    */
+  private val VALID_REPONSE_CODE_RANGE = 200..299
+
   override suspend fun reverseGeocode(location: String): List<Location> {
     val url = buildUrl(location)
     val jsonStr = httpGet(url)
@@ -131,7 +132,7 @@ class NominatimRepository() : GeocodeRepository {
 
     return try {
       val code = conn.responseCode
-      val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+      val stream = if (code in VALID_REPONSE_CODE_RANGE) conn.inputStream else conn.errorStream
       BufferedReader(InputStreamReader(stream)).use { it.readText() }
     } catch (e: Exception) {
       ""

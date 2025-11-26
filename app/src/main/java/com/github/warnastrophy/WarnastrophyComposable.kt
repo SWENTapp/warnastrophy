@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.domain.model.NominatimService
 import com.github.warnastrophy.core.ui.common.ErrorHandler
@@ -40,7 +41,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
-import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth

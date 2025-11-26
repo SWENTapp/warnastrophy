@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.map
 
+import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -29,6 +29,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.github.warnastrophy.R
+import com.github.warnastrophy.core.domain.model.Location.Companion.toLatLng
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
@@ -41,9 +43,9 @@ import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import kotlin.text.compareTo
-import kotlinx.coroutines.launch
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
@@ -220,10 +222,10 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
 fun HazardsGoogleMap(
     cameraPositionState: CameraPositionState,
     uiState: MapUIState,
+    context: Context = LocalContext.current,
 ) {
   val hazards = uiState.hazardState.hazards
 
-  // Pas de pointerInput ici : on clearFocus est déjà géré par le Box parent
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
       cameraPositionState = cameraPositionState,
@@ -234,6 +236,14 @@ fun HazardsGoogleMap(
               mapToolbarEnabled = false),
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
         hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
+
+        uiState.selectedLocation?.let { loc ->
+          val pos = toLatLng(loc)
+          Marker(
+              state = MarkerState(position = pos),
+              title = loc.name?.substringBefore(",") ?: "",
+              icon = bitmapDescriptorFromJpeg(context, R.drawable.material_symobls_pin))
+        }
       }
 }
 

@@ -6,7 +6,6 @@
  */
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.ui.repository.NominatimRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test

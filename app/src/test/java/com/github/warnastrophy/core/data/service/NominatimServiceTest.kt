@@ -1,9 +1,10 @@
 package com.github.warnastrophy.core.data.service
 
+import com.github.warnastrophy.core.data.repository.GeocodeRepository
+import com.github.warnastrophy.core.data.repository.MockNominatimRepo
 import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.NominatimService
-import com.github.warnastrophy.core.ui.repository.GeocodeRepository
-import com.github.warnastrophy.core.ui.repository.MockNominatimRepo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.*
 import org.junit.Assert.assertEquals
@@ -27,21 +28,46 @@ class NominatimServiceTest {
 
   @Before
   fun setUp() {
+    Dispatchers.setMain(testDispatcher)
     repository = MockNominatimRepo(mockLocations)
     nominatimService = NominatimService(repository)
   }
 
   @Test
   fun serviceCorrectlyInitialised() = runTest {
-    assertTrue(nominatimService.locations.value.isEmpty())
+    assertTrue(nominatimService.nominatimState.value.isEmpty())
   }
 
   @Test
   fun searchQueryUpdatesWithLocResult() = runTest {
     nominatimService.searchQuery("query")
-    advanceUntilIdle()
+    testDispatcher.scheduler.advanceUntilIdle()
 
-    val result = nominatimService.locations.first()
+    val result = nominatimService.nominatimState.first()
     assertEquals(mockLocations, result)
+  }
+
+  @Test
+  fun searchQueryCancelSearchIfStillRunning() = runTest {
+    val calls = mutableListOf<String>()
+    var delayCall = 0
+    val fakeRepo =
+        object : GeocodeRepository {
+          override fun delayForNextQuery(): Long = if (delayCall++ == 0) Long.MAX_VALUE else 0L
+
+          override suspend fun reverseGeocode(location: String): List<Location> {
+            calls.add(location)
+            return if (location == "q2") mockLocations else listOf(Location(0.0, 0.0, "first"))
+          }
+        }
+
+    nominatimService = NominatimService(fakeRepo, dispatcher = Dispatchers.IO)
+
+    nominatimService.searchQuery("q1")
+    nominatimService.searchQuery("q2")
+
+    assertEquals(1, calls.size)
+    assertEquals("q2", calls.first())
+    assertEquals(mockLocations, nominatimService.nominatimState.first())
   }
 }

@@ -33,12 +33,19 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.Location.Companion.toLatLng
+import com.github.warnastrophy.core.ui.features.map.Colors.horizontalDividerColor
 import com.google.maps.android.compose.CameraPositionState
 import kotlinx.coroutines.launch
+
+object Colors {
+  val horizontalDividerColor: Color = Color(0xFF3B3B3B)
+}
 
 @Composable
 fun SearchBar(
@@ -89,6 +96,7 @@ fun SearchBar(
             text = name
             expanded = false
             focusManager.clearFocus()
+            viewModel.setSelectedLocation(loc)
             coroutineScope.launch { defaultAnimate(cameraPositionState, toLatLng(loc)) }
           })
     }
@@ -111,7 +119,7 @@ private fun SearchTextField(
       verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Outlined.Search,
-            contentDescription = "Search Icon",
+            contentDescription = stringResource(R.string.search_bar_icon),
             tint = Color.Black,
             modifier = Modifier.padding(start = 8.dp))
 
@@ -129,7 +137,9 @@ private fun SearchTextField(
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             decorationBox = { innerTextField ->
               if (text.isEmpty()) {
-                Text("Search", color = Color.Black.copy(alpha = 0.6f))
+                Text(
+                    stringResource(R.string.search_bar_search),
+                    color = Color.Black.copy(alpha = 0.6f))
               }
               innerTextField()
             })
@@ -161,7 +171,7 @@ private fun SuggestionsDropdown(
                 text = { Text(name, maxLines = 2) },
                 onClick = { onSelect(item) })
             if (index < suggestions.size - 1) {
-              HorizontalDivider(thickness = 1.dp, color = Color(0xFF3B3B3B))
+              HorizontalDivider(thickness = 1.dp, color = horizontalDividerColor)
             }
           }
         }

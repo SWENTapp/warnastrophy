@@ -5,7 +5,7 @@
  */
 package com.github.warnastrophy.core.domain.model
 
-import com.github.warnastrophy.core.ui.repository.GeocodeRepository
+import com.github.warnastrophy.core.data.repository.GeocodeRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 interface GeocodeService {
-  val locations: StateFlow<List<Location>>
+  val nominatimState: StateFlow<List<Location>>
 
   fun searchQuery(query: String)
 }
@@ -31,6 +31,11 @@ interface GeocodeService {
  *
  * @property repository The Nominatim repository used to perform geocoding queries.
  */
+data class NominatimState(
+    val locations: List<Location> = emptyList(),
+    val selectedLocation: Location? = null
+)
+
 class NominatimService(
     private val repository: GeocodeRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -40,7 +45,7 @@ class NominatimService(
   private val scope = CoroutineScope(dispatcher + rootJob)
 
   private val _locations = MutableStateFlow<List<Location>>(emptyList())
-  override val locations: StateFlow<List<Location>> = _locations.asStateFlow()
+  override val nominatimState: StateFlow<List<Location>> = _locations.asStateFlow()
 
   private var currentSearchJob: Job? = null
 
@@ -72,7 +77,7 @@ class NominatimService(
 class MockNominatimService : GeocodeService {
 
   private val _locations = MutableStateFlow<List<Location>>(emptyList())
-  override val locations: StateFlow<List<Location>> = _locations.asStateFlow()
+  override val nominatimState: StateFlow<List<Location>> = _locations.asStateFlow()
 
   override fun searchQuery(query: String) {}
 
