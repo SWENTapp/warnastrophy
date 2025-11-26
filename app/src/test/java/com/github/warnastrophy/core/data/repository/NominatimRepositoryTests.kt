@@ -6,7 +6,10 @@
  */
 package com.github.warnastrophy.core.data.repository
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 
@@ -46,10 +49,11 @@ class NominatimRepositoryTests {
     Assert.assertTrue(delay > 0)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun `isRateLimited returns false when requests respect the delay`() = runBlocking {
+  fun `isRateLimited returns false when requests respect the delay`() = runTest {
     val repo = NominatimRepository()
-    Thread.sleep(600) // wait longer than maxRateMs
+    advanceTimeBy(2000) // simulate waiting
     val delay = repo.delayForNextQuery()
     Assert.assertTrue(delay <= 0)
   }

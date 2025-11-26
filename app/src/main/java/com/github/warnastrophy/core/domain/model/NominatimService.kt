@@ -20,6 +20,8 @@ interface GeocodeService {
   val nominatimState: StateFlow<List<Location>>
 
   fun searchQuery(query: String)
+
+  fun stop()
 }
 
 /**
@@ -72,6 +74,10 @@ class NominatimService(
           _locations.value = result
         }
   }
+
+  override fun stop() {
+    rootJob.cancel()
+  }
 }
 
 class MockNominatimService : GeocodeService {
@@ -79,9 +85,14 @@ class MockNominatimService : GeocodeService {
   private val _locations = MutableStateFlow<List<Location>>(emptyList())
   override val nominatimState: StateFlow<List<Location>> = _locations.asStateFlow()
 
-  override fun searchQuery(query: String) {}
+  override fun searchQuery(query: String) { // No-op for mock}
+  }
 
   fun setLocations(locations: List<Location>) {
     _locations.value = locations
+  }
+
+  override fun stop() {
+    // No-op for mock
   }
 }
