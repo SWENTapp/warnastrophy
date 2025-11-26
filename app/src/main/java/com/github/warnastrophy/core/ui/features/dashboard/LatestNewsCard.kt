@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,6 +44,7 @@ import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.HazardsDataService
 import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.ui.theme.extendedColors
 import com.github.warnastrophy.core.util.formatDate
 
 object LatestNewsTestTags {
@@ -96,6 +98,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
         state.hazards[currentIndex]
       } else Hazard()
 
+  val extendedColors = MaterialTheme.extendedColors
+
   Column(
       modifier =
           modifier
@@ -103,36 +107,34 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
               .clip(RoundedCornerShape(12.dp))
               .border(
                   width = 1.dp,
-                  color = LatestNewsCardColors.BORDER_COLOR.copy(alpha = 0.4f),
+                  color = extendedColors.newsCard.border.copy(alpha = 0.4f),
                   shape = RoundedCornerShape(12.dp))) {
         Row(
             modifier =
                 Modifier.fillMaxWidth()
                     .testTag(LatestNewsTestTags.HEADER_ROW)
-                    .background(LatestNewsCardColors.HEADER_BACKGROUND_COLOR)
+                    .background(extendedColors.newsCard.headerBackground)
                     .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Text(
                   text = stringResource(id = R.string.latest_news),
                   modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TITLE),
-                  color = LatestNewsCardColors.HEADER_TEXT_COLOR,
+                  color = extendedColors.newsCard.headerText,
                   fontWeight = FontWeight.Bold,
                   fontSize = 14.sp)
 
               Text(
                   text = formatDate(currentHazard.date ?: ""),
                   modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TIMESTAMP),
-                  color = LatestNewsCardColors.WEATHER_TEXT_COLOR,
+                  color = extendedColors.newsCard.weatherText,
                   fontSize = 12.sp)
             }
-
-        Spacer(Modifier.height(8.dp))
 
         Column(
             modifier =
                 Modifier.fillMaxWidth()
-                    .background(LatestNewsCardColors.BODY_BACKGROUND_COLOR)
+                    .background(extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))
                     .padding(3.dp)) {
               Row(
                   modifier = Modifier.fillMaxWidth(),
@@ -152,7 +154,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           contentPadding = PaddingValues(0.dp),
                           colors =
                               ButtonDefaults.buttonColors(
-                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                                  containerColor =
+                                      extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))) {
                             Text("<", fontSize = 14.sp, color = Color.Black)
                           }
                     }
@@ -189,7 +192,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                       if (state.hazards.isNotEmpty() && currentHazard.articleUrl != null) {
                         Text(
                             text = "read",
-                            color = LatestNewsCardColors.READ_ARTICLE_TEXT_COLOR,
+                            color = extendedColors.newsCard.readArticleText,
                             fontSize = 16.sp,
                             textDecoration = TextDecoration.Underline,
                             modifier =
@@ -209,7 +212,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                             Modifier.size(80.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = LatestNewsCardColors.BORDER_COLOR,
+                                    color = extendedColors.newsCard.border,
                                     shape = RoundedCornerShape(8.dp))
                                 .background(Color.White, RoundedCornerShape(8.dp))
                                 .testTag(LatestNewsTestTags.IMAGE_BOX),
@@ -239,7 +242,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           contentPadding = PaddingValues(0.dp),
                           colors =
                               ButtonDefaults.buttonColors(
-                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                                  containerColor =
+                                      extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))) {
                             Text(">", fontSize = 14.sp, color = Color.Black)
                           }
                     }

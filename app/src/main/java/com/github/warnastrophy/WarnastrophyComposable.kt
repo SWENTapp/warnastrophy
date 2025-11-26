@@ -185,7 +185,11 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               }
               composable(Screen.DangerModePreferences.route) {
                 DangerModePreferencesScreen(
-                    viewModel = DangerModePreferencesViewModel(permissionManager))
+                    viewModel =
+                        DangerModePreferencesViewModel(
+                            permissionManager = permissionManager,
+                            userPreferencesRepository =
+                                ServiceStateManager.userPreferencesRepository))
               }
             }
       }

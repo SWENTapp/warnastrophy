@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
+import com.github.warnastrophy.core.ui.theme.extendedColors
 
 object DangerModeTestTags {
   const val CARD = "dangerModeCard"
@@ -84,11 +85,12 @@ fun DangerModeCard(
   val capabilities by viewModel.capabilities.collectAsState(emptySet())
   val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
   val colorScheme = MaterialTheme.colorScheme
+  val extendedColors = MaterialTheme.extendedColors
 
   StandardDashboardCard(
       modifier = modifier.fillMaxWidth().testTag(DangerModeTestTags.CARD),
       backgroundColor = colorScheme.error,
-      borderColor = colorScheme.errorContainer,
+      borderColor = colorScheme.error,
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       Row(
@@ -115,15 +117,15 @@ fun DangerModeCard(
                     Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable { expanded = true },
                 verticalAlignment = Alignment.CenterVertically) {
                   StandardDashboardButton(
-                      color = colorScheme.error,
                       label = currentModeName.label,
+                      color = colorScheme.errorContainer,
                       onClick = { expanded = true },
-                      textColor = colorScheme.onError,
+                      textColor = colorScheme.onErrorContainer,
                       icon = {
                         Icon(
                             imageVector = Icons.Filled.ArrowDropDown,
                             contentDescription = "Dropdown Arrow",
-                            tint = colorScheme.onError)
+                            tint = colorScheme.onErrorContainer)
                       })
                 }
             DropdownMenu(
@@ -149,10 +151,10 @@ fun DangerModeCard(
             modifier = Modifier.testTag(DangerModeTestTags.COLOR_ROW)) {
               Text(text = "Danger Level", color = colorScheme.onError, fontSize = 13.sp)
               listOf(
-                      Color(0xFF4CAF50), // green
-                      Color(0xFFFFEB3B), // yellow
-                      Color(0xFFFFC107), // amber-ish
-                      Color(0xFFD32F2F) // red
+                      extendedColors.dangerLevels.green, // green
+                      extendedColors.dangerLevels.yellow, // yellow
+                      extendedColors.dangerLevels.amber, // amber-ish
+                      extendedColors.dangerLevels.red // red
                       )
                   .forEachIndexed { index, it ->
                     val alpha = if (index == dangerLevel.ordinal) 1f else 0.1f
@@ -182,14 +184,15 @@ fun DangerModeCard(
                     }
 
                 StandardDashboardButton(
-                    color = color,
-                    textColor = textColor,
                     label = capability.label,
-                    onClick = { viewModel.onCapabilityToggled(capability) },
                     modifier =
                         Modifier.testTag(DangerModeTestTags.capabilityTag(capability)).semantics {
                           this.selected = selected
-                        })
+                        },
+                    color = color,
+                    borderColor = colorScheme.onError,
+                    onClick = { viewModel.onCapabilityToggled(capability) },
+                    textColor = textColor)
               }
             }
           }

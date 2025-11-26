@@ -12,7 +12,9 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.permissions.PermissionResult
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
+import com.github.warnastrophy.core.ui.util.MockUserPreferencesRepository
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -23,17 +25,19 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   private lateinit var mockPermissionManager: MockPermissionManager
+  private lateinit var userPreferencesRepository: UserPreferencesRepository
   private lateinit var viewModel: DangerModePreferencesViewModel
 
   @Before
   override fun setUp() {
     super.setUp()
     mockPermissionManager = MockPermissionManager()
+    userPreferencesRepository = MockUserPreferencesRepository()
   }
 
   /** Helper function to set the content of the test rule with a configured ViewModel. */
   private fun setContent() {
-    viewModel = DangerModePreferencesViewModel(mockPermissionManager)
+    viewModel = DangerModePreferencesViewModel(mockPermissionManager, userPreferencesRepository)
     composeTestRule.setContent { DangerModePreferencesScreen(viewModel = viewModel) }
 
     composeTestRule.waitForIdle()
@@ -65,7 +69,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   /** Verifies that a fallback error message is shown when the context is not an Activity. */
   @Test
   fun showsFallbackError_whenNoActivityContextAvailable() {
-    viewModel = DangerModePreferencesViewModel(mockPermissionManager)
+    viewModel = DangerModePreferencesViewModel(mockPermissionManager, userPreferencesRepository)
     // Arrange: use non-activity context to verify fallback UI is displayed
     val applicationContext =
         InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
