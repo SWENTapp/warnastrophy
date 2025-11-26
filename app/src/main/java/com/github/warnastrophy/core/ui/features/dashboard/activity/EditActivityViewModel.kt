@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.repository.ActivityRepositoryProvider
-import com.github.warnastrophy.core.domain.model.Activity
+import com.github.warnastrophy.core.model.Activity
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow

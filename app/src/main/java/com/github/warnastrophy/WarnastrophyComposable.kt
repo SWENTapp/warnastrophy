@@ -189,7 +189,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                         DangerModePreferencesViewModel(
                             permissionManager = permissionManager,
                             userPreferencesRepository =
-                                ServiceStateManager.userPreferencesRepository))
+                                StateManagerService.userPreferencesRepository))
               }
             }
       }
