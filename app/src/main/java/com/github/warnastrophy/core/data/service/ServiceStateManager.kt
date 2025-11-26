@@ -11,6 +11,7 @@ import com.github.warnastrophy.core.domain.model.PositionService
 import com.github.warnastrophy.core.domain.usecase.HazardChecker
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +28,7 @@ object ServiceStateManager {
   lateinit var gpsService: PositionService
   lateinit var hazardsService: HazardsDataService
   lateinit var permissionManager: PermissionManagerInterface
+  lateinit var errorHandler: ErrorHandler
   lateinit var dangerModeService: DangerModeService
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
@@ -57,13 +59,12 @@ object ServiceStateManager {
 
   fun init(context: Context) {
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
-    gpsService = GpsService(locationClient)
 
-    hazardsService =
-        HazardsService(
-            HazardRepositoryProvider.repository,
-            gpsService,
-        )
+    errorHandler = ErrorHandler()
+
+    gpsService = GpsService(locationClient, errorHandler)
+
+    hazardsService = HazardsService(HazardRepositoryProvider.repository, gpsService, errorHandler)
 
     permissionManager = PermissionManager(context)
 
@@ -76,11 +77,13 @@ object ServiceStateManager {
   fun init(
       gpsService: PositionService,
       hazardsService: HazardsDataService,
-      dangerModeService: DangerModeService
+      dangerModeService: DangerModeService,
+      errorHandler: ErrorHandler = ErrorHandler()
   ) {
     this.gpsService = gpsService
     this.hazardsService = hazardsService
     this.dangerModeService = dangerModeService
+    this.errorHandler = errorHandler
 
     startHazardSubscription()
   }

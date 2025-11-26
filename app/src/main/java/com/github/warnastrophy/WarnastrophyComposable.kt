@@ -18,7 +18,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.service.ServiceStateManager
-import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
@@ -100,8 +99,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
 
   val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
-  val errorHandler = ErrorHandler()
-
+  val errorHandler = remember { ServiceStateManager.errorHandler }
   val gpsService = remember { ServiceStateManager.gpsService }
   val hazardsService = remember { ServiceStateManager.hazardsService }
   val permissionManager = remember { ServiceStateManager.permissionManager }

@@ -4,6 +4,7 @@ import android.util.Log
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import kotlin.time.TimeSource
@@ -54,20 +55,6 @@ class HazardsService(
   init {
     serviceScope.launch {
       while (isActive) {
-        // for now we only use a fixed polygon from the repository provider
-        /*
-        val currPosition =
-            Location(
-                latitude = gpsService.positionState.value.position.latitude,
-                longitude = gpsService.positionState.value.position.longitude)
-        val polygon =
-            Location.getPolygon(
-                currPosition,
-                AppConfig.rectangleHazardZone.first,
-                AppConfig.rectangleHazardZone.second)
-
-        val wktPolygon = Location.locationsToWktPolygon(polygon)
-           */
         try {
           val lastFetch = TimeSource.Monotonic.markNow()
           _fetcherState.value =
@@ -86,13 +73,12 @@ class HazardsService(
             }
           }
           Log.i("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
+          errorHandler.clearError(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
           delay(AppConfig.gdacsFetchDelay - lastFetch.elapsedNow())
         } catch (e: Exception) {
           Log.e("HazardsService", "Error fetching hazards", e)
-          errorHandler.addError(
-              "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
-          _fetcherState.value =
-              _fetcherState.value.copy(errorMsg = "Error fetching hazards", isLoading = false)
+          errorHandler.addError(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
+          _fetcherState.value = _fetcherState.value.copy(isLoading = false)
         }
       }
     }
@@ -125,13 +111,8 @@ class HazardsService(
  *
  * @property hazards List of currently fetched hazards.
  * @property isLoading Indicates whether a fetch operation is in progress.
- * @property errorMsg Optional error message if an error occurred during fetching.
  */
-data class FetcherState(
-    val hazards: List<Hazard> = emptyList(),
-    val isLoading: Boolean = false,
-    val errorMsg: String? = null
-)
+data class FetcherState(val hazards: List<Hazard> = emptyList(), val isLoading: Boolean = false)
 
 class HazardsServiceFactory(
     private val repository: HazardsDataSource,

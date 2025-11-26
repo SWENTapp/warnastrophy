@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.ui.common.Error
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.features.error.ErrorScreen
 import com.github.warnastrophy.core.ui.features.error.ErrorScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
@@ -18,16 +19,16 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
 
   @Test
   fun errorScreen_displaysErrorMessage() {
-    val testErrorMessage = "Test error message"
-    val errors = listOf(Error(testErrorMessage, Screen.Dashboard))
+    val errors = listOf(Error(ErrorType.LOCATION_ERROR, Screen.Dashboard))
     composeTestRule.setContent {
-      ErrorScreen(message = testErrorMessage, onDismiss = {}, expanded = true, errors)
+      ErrorScreen(
+          message = ErrorType.LOCATION_ERROR.message, onDismiss = {}, expanded = true, errors)
     }
 
     composeTestRule
         .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(testErrorMessage)
+        .assertTextEquals(ErrorType.LOCATION_ERROR.message)
   }
 
   @Test
@@ -52,8 +53,7 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
       TopBar(currentScreen = Screen.Dashboard, errorHandler = errorHandler)
     }
 
-    val testErrorMessage = "Handler error message"
-    errorHandler.addError(testErrorMessage, Screen.Dashboard)
+    errorHandler.addError(ErrorType.LOCATION_ERROR, Screen.Dashboard)
 
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_ERROR_ICON, useUnmergedTree = true)
@@ -63,6 +63,6 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE, useUnmergedTree = true)
         .assertExists()
-        .assertTextEquals(testErrorMessage)
+        .assertTextEquals(ErrorType.LOCATION_ERROR.message)
   }
 }

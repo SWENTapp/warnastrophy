@@ -4,6 +4,7 @@ package com.github.warnastrophy.core.ui.error
 import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
 import com.github.warnastrophy.core.ui.common.Error
 import com.github.warnastrophy.core.ui.common.ErrorState
+import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.common.GlobalErrorViewModel
 import com.github.warnastrophy.core.ui.navigation.Screen
 import io.mockk.every
@@ -39,7 +40,7 @@ class GlobalErrorViewModelTest {
   fun `errorState should reflect errors added to the handler`() = runTest {
     assertEquals(ErrorState(), viewModel.errorState.value)
 
-    val testError = Error("Access Denied", Screen.Profile)
+    val testError = Error(ErrorType.LOCATION_NOT_GRANTED_ERROR, Screen.Profile)
     val newState = ErrorState(errors = listOf(testError))
 
     mockErrorStateFlow.value = newState
