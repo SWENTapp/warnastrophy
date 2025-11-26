@@ -113,7 +113,7 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
   @Test
   fun showsMapContent_when_mapContentProvided() {
     // Initialize Contact Repository (really important for first time app launch during tests)
-    ContactRepositoryProvider.init(ApplicationProvider.getApplicationContext())
+    ContactRepositoryProvider.initLocal(ApplicationProvider.getApplicationContext())
     composeTestRule.setContent {
       WarnastrophyComposable(mockMapScreen = { MapScreen(viewModel = viewModel) })
     }

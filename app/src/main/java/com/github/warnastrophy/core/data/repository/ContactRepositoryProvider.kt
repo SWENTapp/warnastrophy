@@ -8,7 +8,7 @@ object ContactRepositoryProvider {
 
   var repository: ContactsRepository
     get() = _repo ?: error("ContactRepositoryProvider not initialized")
-    private set(value) {
+    set(value) {
       _repo = value
     }
   /**

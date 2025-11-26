@@ -2,23 +2,74 @@ package com.github.warnastrophy.e2e
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.test.espresso.IdlingRegistry
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.service.DangerModeService
+import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.service.ServiceStateManager.dangerModeService
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
+import com.github.warnastrophy.core.ui.features.map.MapViewModel
+import com.github.warnastrophy.core.ui.map.GpsServiceMock
+import com.github.warnastrophy.core.ui.map.HazardServiceMock
+import com.github.warnastrophy.core.ui.map.MockNominatimRepository
+import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
+import com.github.warnastrophy.core.ui.repository.GeocodeRepository
+import com.github.warnastrophy.core.util.AnimationIdlingResource
+import com.google.android.gms.maps.MapsInitializer
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
 class EndToEndM2Test : EndToEndUtils() {
 
+  private lateinit var gpsService: GpsServiceMock
+  private lateinit var hazardService: HazardServiceMock
+  private lateinit var permissionManager: MockPermissionManager
+  private lateinit var viewModel: MapViewModel
+  private val mockPerm = AppPermissions.LocationFine
+
+  private lateinit var nominatimRepository: GeocodeRepository
+  private val animationIdlingResource = AnimationIdlingResource()
+
   @Before
   override fun setUp() {
     super.setUp()
+    gpsService = GpsServiceMock()
+    hazardService = HazardServiceMock()
+    permissionManager = MockPermissionManager()
+    nominatimRepository = MockNominatimRepository()
+    ServiceStateManager.init(composeTestRule.activity.applicationContext)
+    ServiceStateManager.permissionManager =
+        MockPermissionManager(currentResult = PermissionResult.Granted)
+    dangerModeService = DangerModeService(permissionManager = ServiceStateManager.permissionManager)
+
+    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimRepository)
+    IdlingRegistry.getInstance().register(animationIdlingResource)
 
     val context = composeTestRule.activity.applicationContext
-    ContactRepositoryProvider.init(context)
+    MapsInitializer.initialize(context)
+
+    ContactRepositoryProvider.resetForTests()
+    ContactRepositoryProvider.initLocal(context)
     repository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
+    ServiceStateManager.initForTests(
+        gpsService = gpsService,
+        hazardsService = hazardService,
+        permissionManager = permissionManager,
+        dangerModeService = dangerModeService,
+    )
+  }
+
+  @After
+  override fun tearDown() {
+    super.tearDown()
+    // Optional: clean again after tests if you want
+    ContactRepositoryProvider.resetForTests()
   }
 
   @Test
