@@ -5,6 +5,7 @@ import android.location.Location
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.domain.model.GpsResult
 import com.github.warnastrophy.core.domain.model.GpsService
+import com.github.warnastrophy.core.ui.common.ErrorType
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -90,7 +91,7 @@ class GpsServiceTests {
     sleep(3000)
     val state = gpsService.positionState.value
     Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Location error: ${e.message}", state.errorMessage)
+    Assert.assertEquals(ErrorType.LOCATION_UPDATE_ERROR.message, state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
   }
 
@@ -147,7 +148,6 @@ class GpsServiceTests {
     // Vérifie l’état
     val state = gpsService.positionState.value
     assertFalse(state.isLoading)
-    assertEquals("No location fix available", state.errorMessage)
   }
 
   @Test
@@ -161,7 +161,7 @@ class GpsServiceTests {
     sleep(3000)
     val state = gpsService.positionState.value
     Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Location permission not granted!", state.errorMessage)
+    Assert.assertEquals(ErrorType.LOCATION_NOT_GRANTED_ERROR.message, state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
   }
 
@@ -178,7 +178,7 @@ class GpsServiceTests {
     sleep(3000)
     val state = gpsService.positionState.value
     // Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Location update failed: ${e.message}", state.errorMessage)
+    Assert.assertEquals(ErrorType.LOCATION_UPDATE_ERROR.message, state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
   }
 

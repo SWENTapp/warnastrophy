@@ -26,7 +26,7 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule
-        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE, useUnmergedTree = true)
+        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT, useUnmergedTree = true)
         .assertExists()
         .assertTextEquals(ErrorType.LOCATION_ERROR.message)
   }
@@ -61,7 +61,7 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
         .performClick()
 
     composeTestRule
-        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE, useUnmergedTree = true)
+        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT, useUnmergedTree = true)
         .assertExists()
         .assertTextEquals(ErrorType.LOCATION_ERROR.message)
   }

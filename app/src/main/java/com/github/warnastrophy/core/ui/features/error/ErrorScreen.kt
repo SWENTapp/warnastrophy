@@ -38,6 +38,7 @@ import com.github.warnastrophy.core.ui.theme.extendedColors
 /** Object containing test tags for the ErrorScreen composable. */
 object ErrorScreenTestTags {
   const val ERROR_MESSAGE = "error_message"
+  const val ERROR_MESSAGE_TEXT = "error_message_text"
 }
 
 /**
@@ -129,6 +130,8 @@ fun ErrorScreen(
                                         .testTag(ErrorScreenTestTags.ERROR_MESSAGE),
                                 contentAlignment = Alignment.Center) {
                                   Text(
+                                      modifier =
+                                          Modifier.testTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT),
                                       text = errText,
                                       color = MaterialTheme.colorScheme.onSurfaceVariant,
                                       fontSize = 14.sp)
