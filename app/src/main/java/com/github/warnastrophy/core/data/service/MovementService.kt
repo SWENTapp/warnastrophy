@@ -6,9 +6,8 @@
 package com.example.dangermode.service
 
 import com.github.warnastrophy.core.data.repository.MotionData
-import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
+import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.util.AppConfig.windowMillisMotion
-import kotlin.text.compareTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,8 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Service that collects motion samples from a [MouvementSensorRepository] and exposes recent
- * samples as a snapshot or as a [StateFlow].
+ * Service that collects motion samples from a [MovementSensorRepository] and exposes recent samples
+ * as a snapshot or as a [StateFlow].
  *
  * The service starts listening to the repository's `data` flow immediately after construction. It
  * keeps an in-memory sliding window of samples and regularly prunes samples older than
@@ -30,7 +29,7 @@ import kotlinx.coroutines.launch
  *
  * @param repository Source of motion data samples.
  */
-class MouvementService(private val repository: MouvementSensorRepository) {
+class MovementService(private val repository: MovementSensorRepository) {
 
   /** Root job for the service coroutine scope. Cancelling this stops the collector. */
   private val job = Job()

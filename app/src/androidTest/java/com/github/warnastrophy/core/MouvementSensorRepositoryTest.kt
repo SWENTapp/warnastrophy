@@ -12,7 +12,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.data.repository.MotionData
-import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
+import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import io.mockk.*
 import kotlin.math.sqrt
@@ -26,7 +26,7 @@ import org.junit.Before
 import org.junit.Test
 
 class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
-  private lateinit var repo: MouvementSensorRepository
+  private lateinit var repo: MovementSensorRepository
   private lateinit var context: Context
   private lateinit var sensorManager: SensorManager
   private lateinit var mockSensorManager: SensorManager
@@ -84,7 +84,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     val mockContext = mockk<Context>(relaxed = true)
     every { mockContext.getSystemService(Context.SENSOR_SERVICE) } returns mockSensorManager
 
-    repo = MouvementSensorRepository(mockContext)
+    repo = MovementSensorRepository(mockContext)
 
     return Pair(mockSensorManager, proxy)
   }
@@ -118,14 +118,14 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
   @Test
   fun repository_initialization_succeeds() {
-    repo = MouvementSensorRepository(context)
+    repo = MovementSensorRepository(context)
     assertNotNull(repo)
     assertNotNull(repo.data)
   }
 
   @Test
   fun data_flow_is_created_successfully() = runTest {
-    repo = MouvementSensorRepository(context)
+    repo = MovementSensorRepository(context)
     val flow = repo.data
     assertNotNull(flow)
   }

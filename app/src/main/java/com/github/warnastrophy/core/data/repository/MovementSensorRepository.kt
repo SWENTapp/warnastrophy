@@ -42,7 +42,7 @@ data class MotionData(
  *
  * @param context Application context used to obtain the SensorManager.
  */
-class MouvementSensorRepository(context: Context) {
+class MovementSensorRepository(context: Context) {
 
   private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 

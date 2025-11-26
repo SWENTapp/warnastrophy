@@ -6,11 +6,10 @@
 package com.example.dangermode.service
 
 import com.github.warnastrophy.core.data.repository.MotionData
-import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
+import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
-import kotlin.compareTo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
@@ -20,16 +19,16 @@ import org.junit.Test
 
 class MouvementServiceTest : BaseAndroidComposeTest() {
 
-  private lateinit var mockRepository: MouvementSensorRepository
+  private lateinit var mockRepository: MovementSensorRepository
   private lateinit var dataFlow: MutableSharedFlow<MotionData>
-  private lateinit var service: MouvementService
+  private lateinit var service: MovementService
 
   @Before
   fun setup() {
     dataFlow = MutableSharedFlow(replay = 2, extraBufferCapacity = 10)
     mockRepository = mockk(relaxed = true)
     every { mockRepository.data } returns dataFlow
-    service = MouvementService(mockRepository)
+    service = MovementService(mockRepository)
     service.startListening()
   }
 
