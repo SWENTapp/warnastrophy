@@ -30,4 +30,18 @@
     <!-- Search Bar Strings -->
     <string name="search_bar_search">Search</string>
     <string name="search_bar_icon">Search Icon</string>
+
+    <!-- Danger Mode Preferences -->
+    <string name="danger_mode_alert_mode_title">Alert Mode automatic</string>
+    <string name="danger_mode_alert_mode_description">If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions</string>
+
+    <string name="danger_mode_inactivity_detection_title">Inactivity Detection</string>
+    <string name="danger_mode_inactivity_detection_description">If this option is enabled and you are in Danger Mode, your phone will detect your activity and send an SMS alert to your registered emergency contacts if you remain inactive for a certain period of time in a dangerous area.\n\nThis mode require fine location permissions</string>
+    <string name="danger_mode_inactivity_detection_extra_description">It is strongly recommended that you enable the automatic SMS feature with this functionality.</string>
+
+    <string name="danger_mode_automatic_sms_title">Automatic SMS</string>
+    <string name="danger_mode_automatic_sms_description">If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions</string>
+
+    <string name="danger_mode_error_no_activity">Error: Screen cannot function without an Activity context.</string>
+
 </resources>

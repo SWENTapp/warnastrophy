@@ -4,11 +4,11 @@ import android.app.Activity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import com.github.warnastrophy.core.data.repository.GeocodeRepository
 import com.github.warnastrophy.core.domain.model.MockNominatimService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.data.repository.GeocodeRepository
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
