@@ -11,6 +11,7 @@ import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.util.AppConfig.windowMillisMotion
 import kotlin.compareTo
 import kotlin.text.compareTo
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource.Monotonic
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +35,10 @@ import kotlinx.coroutines.launch
  *
  * @param repository Source of motion data samples.
  */
-class MovementService(private val repository: MovementSensorRepository) {
+class MovementService(
+    private val repository: MovementSensorRepository,
+    initialConfig: MovementConfig = MovementConfig()
+) {
 
   /** Root job for the service coroutine scope. Cancelling this stops the collector. */
   private val job = Job()
@@ -69,6 +73,9 @@ class MovementService(private val repository: MovementSensorRepository) {
    */
   val movementState: StateFlow<MovementState> = _movementState
 
+  /** Current movement detection configuration. */
+  private var config = initialConfig
+
   /** Window duration in milliseconds used to keep only recent samples (default 2 minutes). */
   /**
    * Start collecting motion samples from the repository.
@@ -83,24 +90,22 @@ class MovementService(private val repository: MovementSensorRepository) {
     scope.launch {
       repository.data.collect { motion ->
         // State update logic based on acceleration magnitude
-        // TODO: Allow configuring thresholds via parameters or settings
-        when (_movementState.value) {
+        when (val currentState = _movementState.value) {
           is MovementState.Safe -> {
-            if (motion.accelerationMagnitude > 50.0) {
+            if (motion.accelerationMagnitude > config.preDangerThreshold) {
               _movementState.value = MovementState.PreDanger(Monotonic.markNow())
               Log.d("MovementService", "State changed to PRE_DANGER")
             }
           }
           is MovementState.PreDanger -> {
-            val preDangerState = _movementState.value as MovementState.PreDanger
-            preDangerState.accumulatedSamples.add(motion.accelerationMagnitude)
+            currentState.accumulatedSamples.add(motion.accelerationMagnitude)
 
-            val elapsedTime = Monotonic.markNow().minus(preDangerState.timestamp)
+            val elapsedTime = Monotonic.markNow().minus(currentState.timestamp)
 
-            if (elapsedTime >= 10.seconds) {
-              val averageAcceleration = preDangerState.accumulatedSamples.average()
+            if (elapsedTime >= config.preDangerTimeout) {
+              val averageAcceleration = currentState.accumulatedSamples.average()
 
-              if (averageAcceleration < 2.0) {
+              if (averageAcceleration < config.dangerAverageThreshold) {
                 _movementState.value = MovementState.Danger(Monotonic.markNow())
                 Log.d("MovementService", "State changed to DANGER (avg: $averageAcceleration)")
               } else {
@@ -150,7 +155,39 @@ class MovementService(private val repository: MovementSensorRepository) {
     _movementState.value = MovementState.Safe(Monotonic.markNow())
     Log.d("MovementService", "State manually set to SAFE")
   }
+
+  /**
+   * Updates the movement detection configuration. Only applies when in Safe state to prevent
+   * unwanted behavior during PreDanger state.
+   *
+   * @param newConfig The new configuration to apply
+   * @return true if configuration was updated, false if update was rejected due to current state
+   */
+  fun updateConfig(newConfig: MovementConfig): Result<Unit> {
+    return if (_movementState.value is MovementState.Safe) {
+      config = newConfig
+      Log.d("MovementService", "Configuration updated: $newConfig")
+      Result.success(Unit)
+    } else {
+      Log.w("MovementService", "Configuration update rejected - not in Safe state")
+      Result.failure(IllegalStateException("Not in Safe state"))
+    }
+  }
 }
+
+/**
+ * Configuration for movement detection thresholds.
+ *
+ * @param preDangerThreshold Acceleration magnitude threshold to trigger PreDanger state
+ * @param dangerAverageThreshold Average acceleration threshold below which Danger state is
+ *   triggered
+ * @param preDangerTimeout Duration to wait in PreDanger before evaluating for Danger state
+ */
+data class MovementConfig(
+    val preDangerThreshold: Double = 50.0,
+    val dangerAverageThreshold: Double = 2.0,
+    val preDangerTimeout: Duration = 10.seconds
+)
 
 /**
  * Represents the current state of the accident detection program.
