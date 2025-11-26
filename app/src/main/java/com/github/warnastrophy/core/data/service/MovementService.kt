@@ -5,6 +5,7 @@
  */
 package com.example.dangermode.service
 
+import android.util.Log
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.util.AppConfig.windowMillisMotion
@@ -14,6 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 /**
@@ -66,12 +68,18 @@ class MovementService(private val repository: MovementSensorRepository) {
    */
   fun startListening() {
     scope.launch {
-      repository.data.collect { motion ->
-        val now = System.currentTimeMillis()
-        samples.add(motion)
-        samples.removeIf { it.timestamp < now - windowMillisMotion }
-        _recentData.value = samples.toList()
-      }
+      repository.data
+          .distinctUntilChanged { old, new ->
+            old.acceleration.dot(new.acceleration) -
+                old.accelerationMagnitude * new.accelerationMagnitude < 0.5f
+          }
+          .collect { motion ->
+            Log.d("MovementService", "Received motion data: ${motion.accelerationMagnitude}")
+            val now = System.currentTimeMillis()
+            samples.add(motion)
+            samples.removeIf { it.timestamp < now - windowMillisMotion }
+            _recentData.value = samples.toList()
+          }
     }
   }
 
@@ -98,4 +106,17 @@ class MovementService(private val repository: MovementSensorRepository) {
     job.cancel()
     scope.cancel()
   }
+}
+
+/**
+ * Represents the current state of the accident detection program.
+ *
+ * @property SAFE normal movement state
+ * @property PRE_DANGER indicates potential accident, triggered by initial high acceleration
+ * @property DANGER confirmed accident state, triggered by no further movement
+ */
+private enum class MovementState {
+  SAFE,
+  PRE_DANGER,
+  DANGER,
 }

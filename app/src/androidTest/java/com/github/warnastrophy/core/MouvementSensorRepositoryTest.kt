@@ -184,7 +184,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     assertTrue(receivedData.size >= 3)
     receivedData.forEach { data ->
       assertNotNull(data.acceleration)
-      assertTrue(data.acceleration.first.isFinite())
+      assertTrue(data.acceleration.x.isFinite())
     }
   }
 
@@ -206,9 +206,9 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     assertTrue(receivedData.size >= 2)
     receivedData.forEach { data ->
-      assertEquals(1.5f, data.rotation.first, 0.01f)
-      assertEquals(-0.5f, data.rotation.second, 0.01f)
-      assertEquals(0.8f, data.rotation.third, 0.01f)
+      assertEquals(1.5, data.rotation.x, 0.01)
+      assertEquals(-0.5, data.rotation.y, 0.01)
+      assertEquals(0.8, data.rotation.z, 0.01)
     }
   }
 
@@ -230,10 +230,10 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     val data = receivedData.first()
     val expectedMagnitude =
         sqrt(
-            data.acceleration.first * data.acceleration.first +
-                data.acceleration.second * data.acceleration.second +
-                data.acceleration.third * data.acceleration.third)
-    assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01f)
+            data.acceleration.x * data.acceleration.x +
+                data.acceleration.y * data.acceleration.y +
+                data.acceleration.z * data.acceleration.z)
+    assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01)
   }
 
   @Test
@@ -342,8 +342,8 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     assertTrue(receivedData.size >= 4)
     val lastData = receivedData.last()
-    assertEquals(0.8f, lastData.rotation.first, 0.01f)
-    assertEquals(0.9f, lastData.rotation.second, 0.01f)
-    assertEquals(1.0f, lastData.rotation.third, 0.01f)
+    assertEquals(0.8, lastData.rotation.x, 0.01)
+    assertEquals(0.9, lastData.rotation.y, 0.01)
+    assertEquals(1.0, lastData.rotation.z, 0.01)
   }
 }

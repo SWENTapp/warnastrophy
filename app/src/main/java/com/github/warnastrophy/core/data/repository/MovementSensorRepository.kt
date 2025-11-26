@@ -10,10 +10,10 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import kotlin.math.sqrt
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import org.locationtech.jts.math.Vector3D
 
 /**
  * Represents a single motion sample produced by sensors.
@@ -25,9 +25,9 @@ import kotlinx.coroutines.flow.callbackFlow
  */
 data class MotionData(
     val timestamp: Long,
-    val acceleration: Triple<Float, Float, Float>,
-    val rotation: Triple<Float, Float, Float>,
-    val accelerationMagnitude: Float
+    val acceleration: Vector3D,
+    val rotation: Vector3D,
+    val accelerationMagnitude: Double
 )
 
 /**
@@ -62,8 +62,8 @@ class MovementSensorRepository(context: Context) {
   val data: Flow<MotionData> = callbackFlow {
     val listener =
         object : SensorEventListener {
-          private var accValues = Triple(0f, 0f, 0f)
-          private var gyroValues = Triple(0f, 0f, 0f)
+          private var accValues = Vector3D(0.0, 0.0, 0.0)
+          private var gyroValues = Vector3D(0.0, 0.0, 0.0)
 
           override fun onSensorChanged(event: SensorEvent?) {
             event ?: return
@@ -80,25 +80,24 @@ class MovementSensorRepository(context: Context) {
                 val linearAccY = event.values[1] - gravity[1]
                 val linearAccZ = event.values[2] - gravity[2]
 
-                accValues = Triple(linearAccX, linearAccY, linearAccZ)
+                accValues =
+                    Vector3D(linearAccX.toDouble(), linearAccY.toDouble(), linearAccZ.toDouble())
               }
               Sensor.TYPE_GYROSCOPE -> {
-                gyroValues = Triple(event.values[0], event.values[1], event.values[2])
+                gyroValues =
+                    Vector3D(
+                        event.values[0].toDouble(),
+                        event.values[1].toDouble(),
+                        event.values[2].toDouble())
               }
             }
-
-            val magnitude =
-                sqrt(
-                    accValues.first * accValues.first +
-                        accValues.second * accValues.second +
-                        accValues.third * accValues.third)
 
             trySend(
                     MotionData(
                         timestamp = event.timestamp,
                         acceleration = accValues,
                         rotation = gyroValues,
-                        accelerationMagnitude = magnitude))
+                        accelerationMagnitude = accValues.length()))
                 .isSuccess // result ignored here; callbackFlow will keep working
           }
 

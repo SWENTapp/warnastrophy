@@ -2,7 +2,9 @@ package com.github.warnastrophy.core.data.service
 
 import android.content.Context
 import android.util.Log
+import com.example.dangermode.service.MovementService
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.Hazard
 import com.github.warnastrophy.core.domain.model.HazardsDataService
@@ -28,6 +30,7 @@ object ServiceStateManager {
   lateinit var hazardsService: HazardsDataService
   lateinit var permissionManager: PermissionManagerInterface
   lateinit var dangerModeService: DangerModeService
+  lateinit var movementService: MovementService
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
   val activeHazardFlow: StateFlow<Hazard?> = _activeHazardFlow.asStateFlow()
@@ -68,6 +71,9 @@ object ServiceStateManager {
     permissionManager = PermissionManager(context)
 
     dangerModeService = DangerModeService(permissionManager = permissionManager)
+
+    movementService = MovementService(MovementSensorRepository(context))
+    movementService.startListening()
 
     startHazardSubscription()
   }
