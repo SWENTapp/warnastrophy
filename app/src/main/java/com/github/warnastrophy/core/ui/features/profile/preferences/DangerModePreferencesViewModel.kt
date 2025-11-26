@@ -2,12 +2,17 @@ package com.github.warnastrophy.core.ui.features.profile.preferences
 
 import android.app.Activity
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 enum class PendingAction {
   TOGGLE_ALERT_MODE,
@@ -49,8 +54,10 @@ data class DangerModePreferencesUiState(
  *
  * @param permissionManager An interface for checking and managing app permissions.
  */
-class DangerModePreferencesViewModel(private val permissionManager: PermissionManagerInterface) :
-    ViewModel() {
+class DangerModePreferencesViewModel(
+    private val permissionManager: PermissionManagerInterface,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
   val alertModePermissions = AppPermissions.AlertModePermission
 
   // !!! Add set for Inactivity Detection if necessary or remove this one. For the moment it uses
@@ -69,6 +76,20 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
 
   val uiState = _uiState.asStateFlow()
 
+  init {
+    // Observe the user preferences from the repository and update the UI state
+    userPreferencesRepository.getUserPreferences
+        .onEach { prefs ->
+          _uiState.update {
+            it.copy(
+                alertModeAutomaticEnabled = prefs.dangerModePreferences.alertMode,
+                inactivityDetectionEnabled = prefs.dangerModePreferences.inactivityDetection,
+                automaticSmsEnabled = prefs.dangerModePreferences.automaticSms)
+          }
+        }
+        .launchIn(viewModelScope)
+  }
+
   /**
    * Handles the toggling of the "Alert Mode Automatic" feature. If turned off, it also disables
    * related features like "Inactivity Detection" and "Automatic SMS".
@@ -76,10 +97,13 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
    * @param enabled The new state of the "Alert Mode Automatic" switch.
    */
   fun onAlertModeToggled(enabled: Boolean) {
-    _uiState.update { it.copy(alertModeAutomaticEnabled = enabled) }
-    // If "Alert Mode" is turned off, also turn off others
-    if (!enabled) {
-      _uiState.update { it.copy(inactivityDetectionEnabled = false, automaticSmsEnabled = false) }
+    viewModelScope.launch {
+      userPreferencesRepository.setAlertMode(enabled)
+      // If "Alert Mode" is turned off, also turn off others
+      if (!enabled) {
+        userPreferencesRepository.setInactivityDetection(false)
+        userPreferencesRepository.setAutomaticSms(false)
+      }
     }
   }
 
@@ -90,10 +114,12 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
    * @param enabled The new state of the "Inactivity Detection" switch.
    */
   fun onInactivityDetectionToggled(enabled: Boolean) {
-    _uiState.update { it.copy(inactivityDetectionEnabled = enabled) }
-    // If "Inactivity Detection" is turned off, also turn off "Automatic SMS"
-    if (!enabled) {
-      _uiState.update { it.copy(automaticSmsEnabled = false) }
+    viewModelScope.launch {
+      userPreferencesRepository.setInactivityDetection(enabled)
+      // If "Inactivity Detection" is turned off, also turn off "Automatic SMS"
+      if (!enabled) {
+        userPreferencesRepository.setAutomaticSms(false)
+      }
     }
   }
 
@@ -103,7 +129,7 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
    * @param enabled The new state of the "Automatic SMS" switch.
    */
   fun onAutomaticSmsToggled(enabled: Boolean) {
-    _uiState.update { it.copy(automaticSmsEnabled = enabled) }
+    viewModelScope.launch { userPreferencesRepository.setAutomaticSms(enabled) }
   }
 
   /**
@@ -127,11 +153,6 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
         permissionManager.getPermissionResult(inactivityDetectionPermissions, activity)
     val newSmsResult = permissionManager.getPermissionResult(smsPermissions, activity)
 
-    permissionManager.markPermissionsAsAsked(alertModePermissions)
-    // permissionManager.markPermissionsAsAsked(inactivityDetectionPermissions)
-    // !!! Add if necessary !!!
-    permissionManager.markPermissionsAsAsked(smsPermissions)
-
     _uiState.update {
       it.copy(
           alertModePermissionResult = newAlertModeResult,
@@ -142,16 +163,20 @@ class DangerModePreferencesViewModel(private val permissionManager: PermissionMa
 
     when (_uiState.value.pendingPermissionAction) {
       PendingAction.TOGGLE_ALERT_MODE -> {
+        permissionManager.markPermissionsAsAsked(alertModePermissions)
         if (newAlertModeResult is PermissionResult.Granted) {
           onAlertModeToggled(true)
         }
       }
       PendingAction.TOGGLE_INACTIVITY_DETECTION -> {
+        // permissionManager.markPermissionsAsAsked(inactivityDetectionPermissions)
+        // !!! Add if necessary !!!
         if (newInactivityResult is PermissionResult.Granted) {
           onInactivityDetectionToggled(true)
         }
       }
       PendingAction.TOGGLE_AUTOMATIC_SMS -> {
+        permissionManager.markPermissionsAsAsked(smsPermissions)
         if (newSmsResult is PermissionResult.Granted) {
           onAutomaticSmsToggled(true)
         }
