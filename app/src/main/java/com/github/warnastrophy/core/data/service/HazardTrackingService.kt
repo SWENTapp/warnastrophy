@@ -1,8 +1,6 @@
 package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.domain.model.Location
-import com.github.warnastrophy.core.domain.model.PositionService
-import com.github.warnastrophy.core.domain.usecase.RefreshHazardsIfMoved
+import com.github.warnastrophy.core.model.Location
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -15,7 +13,7 @@ import kotlinx.coroutines.launch
  *
  * This class uses Kotlin Coroutines to subscribe to a continuous stream of GPS position updates
  * from the [PositionService] and delegates the movement check and network fetch logic to the
- * [RefreshHazardsIfMoved].
+ * [RefreshHazardsIfMovedService].
  *
  * @property gpsService The service providing the continuous stream of user position data via Flow.
  * @property refreshHazardsIfMoved The use case responsible for checking distance moved and
@@ -25,7 +23,7 @@ import kotlinx.coroutines.launch
  */
 class HazardTrackingService(
     private val gpsService: PositionService? = null,
-    private val refreshHazardsIfMoved: RefreshHazardsIfMoved? = null,
+    private val refreshHazardsIfMoved: RefreshHazardsIfMovedService? = null,
     private val serviceScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) {

@@ -42,8 +42,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "com.github.warnastrophy.HiltTestRunner"
+        testInstrumentationRunner = "com.github.warnastrophy.core.util.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }

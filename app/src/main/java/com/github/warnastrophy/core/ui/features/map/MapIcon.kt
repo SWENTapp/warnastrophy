@@ -16,8 +16,8 @@ import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.semantics
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.Hazard
-import com.github.warnastrophy.core.domain.model.Location
+import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.util.GeometryParser
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMapComposable

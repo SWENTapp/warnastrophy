@@ -8,8 +8,6 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.domain.model.ForegroundGpsService
-import com.github.warnastrophy.core.domain.model.GpsService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import com.github.warnastrophy.core.ui.common.ErrorHandler
@@ -34,7 +32,7 @@ class ForegroundGpsServiceTest {
   fun setup() {
     // Ensure ServiceStateManager is initialized for tests
     val context = ApplicationProvider.getApplicationContext<Context>()
-    ServiceStateManager.init(context)
+    StateManagerService.init(context)
   }
 
   @Test

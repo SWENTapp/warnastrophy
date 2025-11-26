@@ -4,7 +4,7 @@ import com.github.warnastrophy.core.util.GeometryParser.convertRawGeoJsonGeometr
 import com.github.warnastrophy.core.util.GeometryParser.jtsGeometryToLatLngList
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
