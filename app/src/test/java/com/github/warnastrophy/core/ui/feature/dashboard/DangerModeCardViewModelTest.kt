@@ -1,10 +1,10 @@
 package com.github.warnastrophy.core.ui.dangermodecard
 
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.data.permissions.PermissionResult
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset

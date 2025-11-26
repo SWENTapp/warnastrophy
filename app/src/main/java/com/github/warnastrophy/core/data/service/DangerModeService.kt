@@ -1,9 +1,9 @@
 package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.data.permissions.AppPermissions
-import com.github.warnastrophy.core.data.permissions.PermissionManagerInterface
-import com.github.warnastrophy.core.data.permissions.PermissionResult
 import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import kotlin.time.TimeSource

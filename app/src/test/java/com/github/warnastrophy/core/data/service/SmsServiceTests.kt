@@ -1,3 +1,5 @@
+package com.github.warnastrophy.core.data.service
+
 import android.content.Context
 import android.os.Build
 import android.telephony.SmsManager

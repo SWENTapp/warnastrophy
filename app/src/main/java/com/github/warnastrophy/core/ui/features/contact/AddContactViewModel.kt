@@ -3,8 +3,8 @@ package com.github.warnastrophy.core.ui.features.contact
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.Provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.isValidPhoneNumber
 import kotlinx.coroutines.flow.MutableSharedFlow

@@ -2,9 +2,6 @@ package com.github.warnastrophy.core.ui.map
 
 import android.app.Activity
 import android.app.Service
-import com.github.warnastrophy.core.data.permissions.AppPermissions
-import com.github.warnastrophy.core.data.permissions.PermissionManagerInterface
-import com.github.warnastrophy.core.data.permissions.PermissionResult
 import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.data.service.FetcherState
 import com.github.warnastrophy.core.data.service.GpsPositionState
@@ -13,6 +10,9 @@ import com.github.warnastrophy.core.data.service.HazardsDataService
 import com.github.warnastrophy.core.data.service.PositionService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.google.android.gms.location.FusedLocationProviderClient

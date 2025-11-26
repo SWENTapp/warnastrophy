@@ -3,9 +3,9 @@ package com.github.warnastrophy.core.ui.features.health
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.Provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.localStorage.HealthCardStorage
 import com.github.warnastrophy.core.data.localStorage.StorageResult
+import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.HealthCardRepository
 import com.github.warnastrophy.core.model.HealthCard
 import kotlinx.coroutines.CoroutineDispatcher

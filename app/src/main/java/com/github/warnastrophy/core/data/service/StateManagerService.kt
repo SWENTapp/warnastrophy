@@ -1,14 +1,14 @@
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context
-import com.github.warnastrophy.core.data.Provider.HazardRepositoryProvider
-import com.github.warnastrophy.core.data.permissions.PermissionManager
-import com.github.warnastrophy.core.data.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.data.provider.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.domain.usecase.HazardCheckerService
 import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.permissions.PermissionManager
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

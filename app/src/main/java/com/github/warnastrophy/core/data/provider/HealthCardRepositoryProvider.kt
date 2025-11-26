@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.Provider
+package com.github.warnastrophy.core.data.provider
 
 import android.content.Context
 import com.github.warnastrophy.core.data.localStorage.LocalHealthCardRepository

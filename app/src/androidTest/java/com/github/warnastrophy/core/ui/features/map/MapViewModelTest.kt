@@ -4,8 +4,8 @@ import android.app.Activity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import com.github.warnastrophy.core.data.permissions.AppPermissions
-import com.github.warnastrophy.core.data.permissions.PermissionResult
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
 import com.github.warnastrophy.core.ui.repository.GeocodeRepository

@@ -7,7 +7,7 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.github.warnastrophy.core.data.Provider.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import org.junit.Before
 import org.junit.Test

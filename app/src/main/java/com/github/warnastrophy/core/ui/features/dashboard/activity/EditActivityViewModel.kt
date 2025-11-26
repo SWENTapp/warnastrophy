@@ -3,8 +3,8 @@ package com.github.warnastrophy.core.ui.features.dashboard.activity
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ActivityRepository
-import com.github.warnastrophy.core.data.repository.ActivityRepositoryProvider
 import com.github.warnastrophy.core.model.Activity
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

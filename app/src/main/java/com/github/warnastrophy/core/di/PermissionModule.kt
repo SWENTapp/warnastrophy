@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.di
 
 import android.content.Context
-import com.github.warnastrophy.core.data.permissions.PermissionManager
-import com.github.warnastrophy.core.data.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.permissions.PermissionManager
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

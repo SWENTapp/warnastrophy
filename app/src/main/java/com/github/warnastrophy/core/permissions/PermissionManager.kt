@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.permissions
+package com.github.warnastrophy.core.permissions
 
 import android.app.Activity
 import android.content.Context

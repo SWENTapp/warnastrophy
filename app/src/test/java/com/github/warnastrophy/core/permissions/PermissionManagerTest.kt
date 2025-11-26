@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.permissions
+package com.github.warnastrophy.core.permissions
 
 import android.Manifest
 import android.app.Activity
@@ -39,9 +39,9 @@ class PermissionManagerTest {
    * Verifies that `getPermissionResult` returns [PermissionResult.Granted] when the requested
    * permission has already been granted by the user.
    *
-   * It mocks the [androidx.core.content.ContextCompat.checkSelfPermission] to return
-   * [android.content.pm.PackageManager.PERMISSION_GRANTED] and then asserts that the result of
-   * calling `getPermissionResult` is of the type [PermissionResult.Granted].
+   * It mocks the [ContextCompat.checkSelfPermission] to return [PackageManager.PERMISSION_GRANTED]
+   * and then asserts that the result of calling `getPermissionResult` is of the type
+   * [PermissionResult.Granted].
    */
   @Test
   fun returns_Granted_when_all_permissions_are_granted() {

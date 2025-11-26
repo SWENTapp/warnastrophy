@@ -1,12 +1,10 @@
-package com.github.warnastrophy.core.data.permissions
+package com.github.warnastrophy.core.ui.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.github.warnastrophy.core.ui.components.PermissionRequestCard
-import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.util.BaseSimpleComposeTest
 import junit.framework.TestCase
 import org.junit.Test

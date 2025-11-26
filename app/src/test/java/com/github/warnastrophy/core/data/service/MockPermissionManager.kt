@@ -1,9 +1,9 @@
 package com.github.warnastrophy.core.data.service
 
 import android.app.Activity
-import com.github.warnastrophy.core.data.permissions.AppPermissions
-import com.github.warnastrophy.core.data.permissions.PermissionManagerInterface
-import com.github.warnastrophy.core.data.permissions.PermissionResult
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.permissions.PermissionResult
 
 /**
  * TODO: REMOVE THIS LATER BECAUSE ITS A DUPLICATE OF MockPermissionManager in androidTest A

@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.data.Provider.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.provider.HazardRepositoryProvider
 import com.github.warnastrophy.core.model.Hazard
 import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
