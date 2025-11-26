@@ -52,6 +52,7 @@ import androidx.core.net.toUri
 import com.github.warnastrophy.core.domain.model.Location
 import com.github.warnastrophy.core.domain.model.Location.Companion.toLatLng
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
@@ -64,12 +65,10 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
-import kotlin.text.compareTo
 import kotlinx.coroutines.launch
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
-  const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
   const val TRACK_LOCATION_BUTTON = "trackLocationButton"
   const val SEARCH_BAR = "searchBar"
 
@@ -92,11 +91,7 @@ fun MapScreen(
   val focusManager = LocalFocusManager.current
 
   if (activity == null) {
-    Box(
-        modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR),
-        contentAlignment = Alignment.Center) {
-          Text("Error: Map screen cannot function without an Activity context.")
-        }
+    ActivityFallback()
     return
   }
 

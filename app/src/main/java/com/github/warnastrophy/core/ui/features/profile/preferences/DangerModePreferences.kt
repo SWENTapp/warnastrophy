@@ -29,10 +29,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
+import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.util.findActivity
 
 object DangerModePreferencesScreenTestTags {
-  const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
   const val ALERT_MODE_ITEM = "alertModeItem"
   const val INACTIVITY_DETECTION_ITEM = "inactivityDetectionItem"
   const val AUTOMATIC_SMS_ITEM = "automaticSmsItem"
@@ -61,15 +61,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
   val activity = context.findActivity()
 
   if (activity == null) {
-    // A fallback UI to prevent crashes and inform developers.
-    Column(
-        modifier =
-            Modifier.fillMaxSize()
-                .testTag(DangerModePreferencesScreenTestTags.FALLBACK_ACTIVITY_ERROR),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally) {
-          Text(stringResource(R.string.danger_mode_error_no_activity))
-        }
+    ActivityFallback()
     return
   }
 

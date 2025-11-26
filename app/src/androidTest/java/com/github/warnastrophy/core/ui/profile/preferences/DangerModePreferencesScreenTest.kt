@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.features.profile.preferences
+package com.github.warnastrophy.core.ui.profile.preferences
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
@@ -13,6 +13,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.components.FALLBACK_ACTIVITY_ERROR
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreenTestTags
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
+import com.github.warnastrophy.core.ui.features.profile.preferences.PendingAction
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.ui.util.MockUserPreferencesRepository
@@ -80,9 +85,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         DangerModePreferencesScreen(viewModel = viewModel)
       }
     }
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.FALLBACK_ACTIVITY_ERROR)
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
   }
 
   @Test

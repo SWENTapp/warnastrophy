@@ -29,6 +29,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.components.FALLBACK_ACTIVITY_ERROR
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
@@ -44,7 +45,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
-import kotlin.text.get
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
 import org.junit.Assume.assumeTrue
@@ -192,7 +192,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
         MapScreen(viewModel = viewModel)
       }
     }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
   }
 
   /**
