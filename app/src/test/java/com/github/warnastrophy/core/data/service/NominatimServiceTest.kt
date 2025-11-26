@@ -53,7 +53,7 @@ class NominatimServiceTest {
     var delayCall = 0
     val fakeRepo =
         object : GeocodeRepository {
-          override fun delayForNextQuery(): Long = if (delayCall++ == 0) Long.MAX_VALUE else 0L
+          override fun delayForNextQuery(): Long = if (delayCall++ == 0) 10_000L else 0L
 
           override suspend fun reverseGeocode(location: String): List<Location> {
             calls.add(location)
@@ -61,10 +61,12 @@ class NominatimServiceTest {
           }
         }
 
-    nominatimService = NominatimService(fakeRepo, dispatcher = Dispatchers.IO)
+    nominatimService = NominatimService(fakeRepo, dispatcher = testDispatcher)
 
     nominatimService.searchQuery("q1")
+    testDispatcher.scheduler.runCurrent()
     nominatimService.searchQuery("q2")
+    testDispatcher.scheduler.advanceUntilIdle()
 
     assertEquals(1, calls.size)
     assertEquals("q2", calls.first())
