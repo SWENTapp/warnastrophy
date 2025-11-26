@@ -51,9 +51,6 @@ abstract class EndToEndUtils : UITest() {
 
   /** Sets the content of the test rule to the WarnastrophyApp, optionally using a fake map. */
   fun setContent(useFakeMap: Boolean = true) {
-    // Initialiser les services et Firebase avant de setContent pour éviter les NPEs dans le
-    // composable
-    initServicesForTests()
     setupMockFirebaseAuth()
 
     if (useFakeMap) {
@@ -66,7 +63,6 @@ abstract class EndToEndUtils : UITest() {
   @After
   override fun tearDown() {
     super.tearDown()
-    // Nettoyer tous les mocks pour éviter les interférences entre tests
     try {
       unmockkAll()
     } catch (_: Throwable) {}
@@ -104,26 +100,6 @@ abstract class EndToEndUtils : UITest() {
 
     every { FirebaseAuth.getInstance() } returns mockFirebaseAuth
     every { mockFirebaseAuth.currentUser } returns mockFirebaseUser
-  }
-
-  private fun initServicesForTests() {
-    // Controlled hazard flow for tests
-    val emptyHazardFlow =
-        kotlinx.coroutines.flow.MutableStateFlow<com.github.warnastrophy.core.domain.model.Hazard?>(
-            null)
-
-    // Real test doubles (NOT mocks via mockkObject(ServiceStateManager))
-    val mockPermissionManager = com.github.warnastrophy.core.ui.map.MockPermissionManager()
-
-    val gpsMock =
-        com.github.warnastrophy.core.ui.map.GpsServiceMock(
-            com.google.android.gms.maps.model.LatLng(0.0, 0.0))
-
-    val hazardsMock = com.github.warnastrophy.core.ui.map.HazardServiceMock(emptyList())
-
-    val dangerService =
-        com.github.warnastrophy.core.data.service.DangerModeService(
-            activeHazardFlow = emptyHazardFlow, permissionManager = mockPermissionManager)
   }
 
   /**

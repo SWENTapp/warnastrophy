@@ -8,7 +8,6 @@ import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.data.service.ServiceStateManager.dangerModeService
-import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
@@ -30,8 +29,6 @@ class EndToEndM2Test : EndToEndUtils() {
   private lateinit var hazardService: HazardServiceMock
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
-  private val mockPerm = AppPermissions.LocationFine
-
   private lateinit var nominatimRepository: GeocodeRepository
   private val animationIdlingResource = AnimationIdlingResource()
 
@@ -68,7 +65,6 @@ class EndToEndM2Test : EndToEndUtils() {
   @After
   override fun tearDown() {
     super.tearDown()
-    // Optional: clean again after tests if you want
     ContactRepositoryProvider.resetForTests()
   }
 
