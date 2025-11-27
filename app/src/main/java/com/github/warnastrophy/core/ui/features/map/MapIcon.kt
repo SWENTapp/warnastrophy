@@ -1,5 +1,8 @@
 package com.github.warnastrophy.core.ui.features.map
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -19,6 +22,8 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.util.GeometryParser
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMapComposable
 import com.google.maps.android.compose.MarkerComposable
@@ -166,4 +171,9 @@ fun PolygonWrapper(polygonCoords: List<LatLng>) {
       strokeWidth = 2f,
       strokeColor = MaterialTheme.colorScheme.error,
       fillColor = MaterialTheme.colorScheme.error.copy(alpha = 0.18f))
+}
+
+fun bitmapDescriptorFromJpeg(context: Context, jpegResId: Int): BitmapDescriptor {
+  val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, jpegResId)
+  return BitmapDescriptorFactory.fromBitmap(bitmap)
 }

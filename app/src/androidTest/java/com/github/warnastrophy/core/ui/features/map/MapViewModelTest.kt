@@ -4,11 +4,12 @@ import android.app.Activity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import com.github.warnastrophy.core.data.repository.GeocodeRepository
+import com.github.warnastrophy.core.data.repository.MockNominatimRepository
+import com.github.warnastrophy.core.data.service.MockNominatimService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.features.map.MapViewModelFactory
-import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.google.android.gms.maps.model.LatLng
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
@@ -32,6 +33,8 @@ class MapViewModelTest {
   private lateinit var permissionManager: MockPermissionManager
 
   private lateinit var nominatimRepository: GeocodeRepository
+
+  private lateinit var nominatimService: MockNominatimService
   private lateinit var viewModel: MapViewModel
   private val mockPerm = AppPermissions.LocationFine
   private val mockPos = LatLng(54.23, 23.23)
@@ -44,8 +47,11 @@ class MapViewModelTest {
     hazardsService = HazardServiceMock()
     permissionManager = MockPermissionManager()
     nominatimRepository = MockNominatimRepository()
+    nominatimService = MockNominatimService()
+    val repo = nominatimRepository as MockNominatimRepository
+    nominatimService.setLocations(repo.locations)
 
-    viewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimRepository)
+    viewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
     println(viewModel.uiState.value.hazardState.hazards)
   }
 
@@ -248,7 +254,7 @@ class MapViewModelTest {
           override val viewModelStore: ViewModelStore = viewModelStore
         }
 
-    val factory = MapViewModelFactory(gpsService, hazardsService, permissionManager)
+    val factory = MapViewModel.MapViewModelFactory(gpsService, hazardsService, permissionManager)
 
     // Avant rotation
     val vmBefore = ViewModelProvider(owner, factory)[MapViewModel::class.java]

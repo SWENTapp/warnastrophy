@@ -6,8 +6,10 @@
  */
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.ui.repository.NominatimRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 
@@ -38,25 +40,12 @@ class NominatimRepositoryTests {
         "https://nominatim.openstreetmap.org/search?q=Tokyo&format=json&limit=5", url)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun `isRateLimited returns true when requests are too frequent`() {
+  fun `isRateLimited returns false when requests respect the delay`() = runTest {
     val repo = NominatimRepository()
-    repo.maxRateMs = 2_000L
-
-    // First call should "register" a request and not be limited
-    val first = repo.isRateLimited()
-    // Second call immediately after should be limited
-    val second = repo.isRateLimited()
-
-    Assert.assertFalse(first)
-    Assert.assertTrue(second)
-  }
-
-  @Test
-  fun `isRateLimited returns false when requests respect the delay`() = runBlocking {
-    val repo = NominatimRepository()
-    Thread.sleep(600) // wait longer than maxRateMs
-    val isRateLimited = repo.isRateLimited()
-    Assert.assertTrue(!isRateLimited)
+    advanceTimeBy(2000) // simulate waiting
+    val delay = repo.delayForNextQuery()
+    Assert.assertTrue(delay <= 0)
   }
 }

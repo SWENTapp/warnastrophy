@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.map
+package com.github.warnastrophy.core.ui.features.map
 
 import android.Manifest
 import android.content.Context
@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
@@ -27,13 +28,16 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
+import com.github.warnastrophy.core.data.repository.GeocodeRepository
+import com.github.warnastrophy.core.data.repository.MockNominatimRepository
+import com.github.warnastrophy.core.data.service.MockNominatimService
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.components.FALLBACK_ACTIVITY_ERROR
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
-import com.github.warnastrophy.core.ui.features.map.MapScreen
-import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
-import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.repository.GeocodeRepository
+import com.github.warnastrophy.core.ui.map.GpsServiceMock
+import com.github.warnastrophy.core.ui.map.HazardServiceMock
+import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.AppConfig.defaultPosition
@@ -46,6 +50,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
+import org.junit.Assert
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -60,6 +65,8 @@ class MapScreenTest : BaseAndroidComposeTest() {
   private val mockPerm = AppPermissions.LocationFine
 
   private lateinit var nominatimRepository: GeocodeRepository
+
+  private lateinit var nominatimService: MockNominatimService
   /**
    * An idling resource to wait for camera animations to complete during tests. This is crucial for
    * Espresso tests involving map camera movements, as it prevents test actions from executing
@@ -80,10 +87,14 @@ class MapScreenTest : BaseAndroidComposeTest() {
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
     nominatimRepository = MockNominatimRepository()
+    nominatimService = MockNominatimService()
+    val repo = nominatimRepository as MockNominatimRepository
+    nominatimService.setLocations(repo.locations)
+
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
 
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimRepository)
+    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimService)
     IdlingRegistry.getInstance().register(animationIdlingResource)
   }
 
@@ -191,7 +202,7 @@ class MapScreenTest : BaseAndroidComposeTest() {
         MapScreen(viewModel = viewModel)
       }
     }
-    composeTestRule.onNodeWithTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
   }
 
   /**
@@ -426,11 +437,9 @@ class MapScreenTest : BaseAndroidComposeTest() {
     val semanticsList = items.fetchSemanticsNodes()
     for (i in hardcodedlocs.indices) {
       val nodeText =
-          semanticsList[i]
-              .config
-              .getOrNull(androidx.compose.ui.semantics.SemanticsProperties.Text)
-              ?.joinToString { it.text } ?: ""
-      org.junit.Assert.assertEquals(hardcodedlocs[i].name, nodeText)
+          semanticsList[i].config.getOrNull(SemanticsProperties.Text)?.joinToString { it.text }
+              ?: ""
+      Assert.assertEquals(hardcodedlocs[i].name, nodeText)
     }
   }
 }

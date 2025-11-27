@@ -27,7 +27,7 @@ class ActivityListViewModelTest() {
   private val activity = Activity("1", "Climbing")
 
   @Before
-  fun setUp() = runTest {
+  fun setUp() {
     Dispatchers.setMain(testDispatcher)
     repository = MockActivityRepository()
     viewModel = ActivityListViewModel(repository, AppConfig.defaultUserId, testDispatcher)
@@ -54,7 +54,7 @@ class ActivityListViewModelTest() {
   }
 
   @Test
-  fun `initialization loadsActivities On Success`() = runTest {
+  fun `initialization loads Activities On Success`() = runTest {
     repository.addActivity(AppConfig.defaultUserId, activity)
     advanceUntilIdle()
     viewModel.refreshUIState()
