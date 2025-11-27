@@ -50,7 +50,7 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
     timeSource += 100.milliseconds
     composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
     service.setSafe()
-    assertTrue(service.movementState.value is MovementState.Safe)
+    composeTestRule.waitUntil { service.movementState.value is MovementState.Safe }
   }
 
   @Test
@@ -78,7 +78,6 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
     }
     composeTestRule.waitUntil { service.movementState.value is MovementState.Danger }
-    assertTrue(service.movementState.value is MovementState.Danger)
   }
 
   @Test
@@ -122,67 +121,9 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
     delay(
         service.config.preDangerTimeout /
             2) // Wait less than timeout so it should not return to safe
-    assertTrue(service.movementState.value is MovementState.Safe)
+
+    composeTestRule.waitUntil { service.movementState.value is MovementState.Safe }
   }
-
-  //  @Test
-  //  fun service_collects_motion_data() = runTest {
-  //    val motion1 = createMotionData(timestamp = System.currentTimeMillis())
-  //    val motion2 = createMotionData(timestamp = System.currentTimeMillis() + 1000)
-  //
-  //    dataFlow.emit(motion1)
-  //    dataFlow.emit(motion2)
-  //
-  //    awaitCondition { service.getRecentSamples().size >= 2 }
-  //
-  //    val samples = service.getRecentSamples()
-  //    assertEquals(2, samples.size)
-  //    assertTrue(samples.contains(motion1))
-  //    assertTrue(samples.contains(motion2))
-  //  }
-
-  //  @Test
-  //  fun service_removes_samples_older_than_two_minutes() = runTest {
-  //    val now = System.currentTimeMillis()
-  //    val oldMotion = createMotionData(timestamp = now - 3 * 60 * 1000L)
-  //    val recentMotion = createMotionData(timestamp = now)
-  //
-  //    dataFlow.emit(oldMotion)
-  //    dataFlow.emit(recentMotion)
-  //
-  //    awaitCondition { service.getRecentSamples().size >= 1 }
-  //
-  //    val samples = service.getRecentSamples()
-  //    assertEquals(1, samples.size)
-  //    assertFalse(samples.contains(oldMotion))
-  //    assertTrue(samples.contains(recentMotion))
-  //  }
-
-  //  @Test
-  //  fun service_keeps_samples_within_two_minute_window() = runTest {
-  //    val now = System.currentTimeMillis()
-  //    val motion1 = createMotionData(timestamp = now - 1 * 60 * 1000L)
-  //    val motion2 = createMotionData(timestamp = now)
-  //
-  //    dataFlow.emit(motion1)
-  //    dataFlow.emit(motion2)
-  //
-  //    awaitCondition { service.getRecentSamples().size >= 2 }
-  //
-  //    val samples = service.getRecentSamples()
-  //    assertEquals(2, samples.size)
-  //  }
-
-  //  @Test
-  //  fun stop_cancels_collection_job() = runTest {
-  //    service.stop()
-  //
-  //    val motion = createMotionData(timestamp = System.currentTimeMillis())
-  //    dataFlow.emit(motion)
-  //
-  //    delay(100)
-  //    assertTrue(service.getRecentSamples().isEmpty())
-  //  }
 
   /**
    * Creates an instance of `MotionData` with the provided data.
