@@ -139,10 +139,10 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     delay(100)
 
     verify(exactly = 1) {
-      mockManager.registerListener(any(), mockAccelerometer, SensorManager.SENSOR_DELAY_GAME)
+      mockManager.registerListener(any(), mockAccelerometer, SensorManager.SENSOR_DELAY_NORMAL)
     }
     verify(exactly = 1) {
-      mockManager.registerListener(any(), mockGyroscope, SensorManager.SENSOR_DELAY_GAME)
+      mockManager.registerListener(any(), mockGyroscope, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     job.cancel()

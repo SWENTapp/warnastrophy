@@ -7,9 +7,15 @@ package com.example.dangermode.service
 
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
+import com.github.warnastrophy.core.data.service.MovementConfig
+import com.github.warnastrophy.core.data.service.MovementService
+import com.github.warnastrophy.core.data.service.MovementState
 import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TestTimeSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
@@ -22,6 +28,7 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
 
   private lateinit var mockRepository: MovementSensorRepository
   private lateinit var dataFlow: MutableSharedFlow<MotionData>
+  private lateinit var timeSource: TestTimeSource
   private lateinit var service: MovementService
 
   @Before
@@ -29,27 +36,89 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
     dataFlow = MutableSharedFlow(replay = 2, extraBufferCapacity = 10)
     mockRepository = mockk(relaxed = true)
     every { mockRepository.data } returns dataFlow
-    service = MovementService(mockRepository)
+    timeSource = TestTimeSource()
+    service = MovementService(mockRepository, timeSource = timeSource)
+    service.updateConfig(service.config.copy(preDangerTimeout = 500.milliseconds))
     service.startListening()
   }
 
   @Test
-  fun get_recent_samples_returns_snapshot() = runTest {
-    val motion = createMotionData(timestamp = System.currentTimeMillis())
-    dataFlow.tryEmit(motion)
-
-    awaitCondition { service.getRecentSamples().isNotEmpty() }
-
-    val snapshot1 = service.getRecentSamples()
-    val snapshot2 = service.getRecentSamples()
-
-    assertEquals(snapshot1, snapshot2)
-    assertNotSame(snapshot1, snapshot2)
+  fun setSafe_success() = runTest {
+    // Force into an unsafe state
+    dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
+    awaitCondition { service.movementState.value !is MovementState.Safe }
+    service.setSafe()
+    assertTrue(service.movementState.value is MovementState.Safe)
   }
 
   @Test
-  fun service_initializes_and_starts_listening() = runTest {
-    assertTrue(service.getRecentSamples().isEmpty())
+  fun updateConfig_success_failure() = runTest {
+    val newConfig =
+        MovementConfig(
+            preDangerThreshold = 15.0, dangerAverageThreshold = 10.0, preDangerTimeout = 5.seconds)
+    assertTrue(service.updateConfig(newConfig).isSuccess)
+    // Force into an unsafe state with new threshold
+    dataFlow.emit(createMotionData(acceleration = Vector3D(16.0, 0.0, 0.0)))
+    awaitCondition { service.movementState.value !is MovementState.Safe }
+    assertTrue(service.updateConfig(newConfig.copy(preDangerThreshold = 10.0)).isFailure)
+    assertEquals(newConfig, service.config)
+  }
+
+  @Test
+  fun danger_state_detected() = runTest {
+    dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
+    awaitCondition { service.movementState.value !is MovementState.Safe }
+    for (i in 1..100) {
+      dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
+      timeSource += service.config.preDangerTimeout / 10
+      delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
+    }
+    awaitCondition { service.movementState.value is MovementState.Danger }
+    assertTrue(service.movementState.value is MovementState.Danger)
+  }
+
+  @Test
+  fun multiple_collisions_detect_danger() = runTest {
+    dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
+    dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
+    awaitCondition { service.movementState.value is MovementState.PreDangerAcc }
+    for (i in 1..5) {
+      dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
+      timeSource += service.config.preDangerTimeout / 10
+      delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
+      awaitCondition { service.movementState.value is MovementState.PreDanger }
+      dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
+    }
+
+    for (i in 1..20) {
+      dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
+      timeSource += service.config.preDangerTimeout / 10
+      delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
+    }
+    awaitCondition { service.movementState.value is MovementState.Danger }
+  }
+
+  @Test
+  fun recovers_to_safe_state() = runTest {
+    dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
+    awaitCondition { service.movementState.value !is MovementState.Safe }
+    for (i in 1..20) {
+      dataFlow.emit(createMotionData(acceleration = Vector3D(1.0, 0.0, 0.0)))
+      timeSource += service.config.preDangerTimeout / 10
+      delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
+    }
+    awaitCondition { service.movementState.value is MovementState.Safe }
+  }
+
+  @Test
+  fun stop_stops_collection() = runTest {
+    service.stop()
+    val motion = createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0))
+    dataFlow.emit(motion)
+    delay(
+        service.config.preDangerTimeout /
+            2) // Wait less than timeout so it should not return to safe
+    assertTrue(service.movementState.value is MovementState.Safe)
   }
 
   //  @Test
@@ -67,19 +136,6 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
   //    assertTrue(samples.contains(motion1))
   //    assertTrue(samples.contains(motion2))
   //  }
-
-  @Test
-  fun service_exposes_recent_data_flow() = runTest {
-    val motion = createMotionData(timestamp = System.currentTimeMillis())
-
-    dataFlow.emit(motion)
-
-    awaitCondition { service.recentData.value.size >= 1 }
-
-    val recentData = service.recentData.value
-    assertEquals(1, recentData.size)
-    assertEquals(motion, recentData.first())
-  }
 
   //  @Test
   //  fun service_removes_samples_older_than_two_minutes() = runTest {
@@ -113,16 +169,16 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
   //    assertEquals(2, samples.size)
   //  }
 
-  @Test
-  fun stop_cancels_collection_job() = runTest {
-    service.stop()
-
-    val motion = createMotionData(timestamp = System.currentTimeMillis())
-    dataFlow.emit(motion)
-
-    delay(100)
-    assertTrue(service.getRecentSamples().isEmpty())
-  }
+  //  @Test
+  //  fun stop_cancels_collection_job() = runTest {
+  //    service.stop()
+  //
+  //    val motion = createMotionData(timestamp = System.currentTimeMillis())
+  //    dataFlow.emit(motion)
+  //
+  //    delay(100)
+  //    assertTrue(service.getRecentSamples().isEmpty())
+  //  }
 
   /**
    * Creates an instance of `MotionData` with the provided data.
@@ -138,21 +194,13 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
    */
   private fun createMotionData(
       timestamp: Long = System.currentTimeMillis(),
-      acceleration: Triple<Float, Float, Float> = Triple(0f, 0f, 0f),
-      rotation: Triple<Float, Float, Float> = Triple(0f, 0f, 0f)
+      acceleration: Vector3D = Vector3D(0.0, 0.0, 0.0),
+      rotation: Vector3D = Vector3D(0.0, 0.0, 0.0)
   ): MotionData {
-    val acceleration =
-        Vector3D(
-            acceleration.first.toDouble(),
-            acceleration.second.toDouble(),
-            acceleration.third.toDouble())
-
     return MotionData(
         timestamp = timestamp,
         acceleration = acceleration,
-        rotation =
-            Vector3D(
-                rotation.first.toDouble(), rotation.second.toDouble(), rotation.third.toDouble()),
+        rotation = rotation,
         accelerationMagnitude = acceleration.length())
   }
 }

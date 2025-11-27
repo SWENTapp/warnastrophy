@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.example.dangermode.service.MovementState
+import com.github.warnastrophy.core.data.service.MovementState
 import com.github.warnastrophy.core.data.service.ServiceStateManager
 import com.github.warnastrophy.core.domain.model.HazardsDataService
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar

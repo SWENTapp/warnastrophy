@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.data.service
 
 import android.content.Context
 import android.util.Log
-import com.example.dangermode.service.MovementService
 import com.github.warnastrophy.core.data.repository.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.domain.model.GpsService
@@ -87,12 +86,15 @@ object ServiceStateManager {
   fun init(
       gpsService: PositionService,
       hazardsService: HazardsDataService,
-      dangerModeService: DangerModeService
+      dangerModeService: DangerModeService,
+      movementService: MovementService? = null,
   ) {
     this.gpsService = gpsService
     this.hazardsService = hazardsService
     this.dangerModeService = dangerModeService
-
+    if (movementService != null) {
+      this.movementService = movementService
+    }
     startHazardSubscription()
   }
 
