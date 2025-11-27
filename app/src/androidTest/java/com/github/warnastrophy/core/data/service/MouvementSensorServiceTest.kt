@@ -48,9 +48,13 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
     delay(100)
     timeSource += 100.milliseconds
-    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value !is MovementState.Safe
+    }
     service.setSafe()
-    composeTestRule.waitUntil { service.movementState.value is MovementState.Safe }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value is MovementState.Safe
+    }
   }
 
   @Test
@@ -63,7 +67,9 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
     dataFlow.emit(createMotionData(acceleration = Vector3D(16.0, 0.0, 0.0)))
     delay(100)
     timeSource += 100.milliseconds
-    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value !is MovementState.Safe
+    }
     assertTrue(service.updateConfig(newConfig.copy(preDangerThreshold = 10.0)).isFailure)
     assertEquals(newConfig, service.config)
   }
@@ -71,25 +77,33 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
   @Test
   fun danger_state_detected() = runTest {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
-    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value !is MovementState.Safe
+    }
     for (i in 1..100) {
       dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
     }
-    composeTestRule.waitUntil { service.movementState.value is MovementState.Danger }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value is MovementState.Danger
+    }
   }
 
   @Test
   fun multiple_collisions_detect_danger() = runTest {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
     dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
-    composeTestRule.waitUntil { service.movementState.value is MovementState.PreDangerAcc }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value is MovementState.PreDangerAcc
+    }
     for (i in 1..5) {
       dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
-      composeTestRule.waitUntil { service.movementState.value is MovementState.PreDanger }
+      composeTestRule.waitUntil(timeoutMillis = 5000L) {
+        service.movementState.value is MovementState.PreDanger
+      }
       dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
     }
 
@@ -98,19 +112,25 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
     }
-    composeTestRule.waitUntil { service.movementState.value is MovementState.Danger }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value is MovementState.Danger
+    }
   }
 
   @Test
   fun recovers_to_safe_state() = runTest {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
-    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value !is MovementState.Safe
+    }
     for (i in 1..20) {
       dataFlow.emit(createMotionData(acceleration = Vector3D(1.0, 0.0, 0.0)))
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
     }
-    composeTestRule.waitUntil { service.movementState.value is MovementState.Safe }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value is MovementState.Safe
+    }
   }
 
   @Test
@@ -122,7 +142,9 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
         service.config.preDangerTimeout /
             2) // Wait less than timeout so it should not return to safe
 
-    composeTestRule.waitUntil { service.movementState.value is MovementState.Safe }
+    composeTestRule.waitUntil(timeoutMillis = 5000L) {
+      service.movementState.value is MovementState.Safe
+    }
   }
 
   /**
