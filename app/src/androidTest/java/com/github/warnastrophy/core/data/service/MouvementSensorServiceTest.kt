@@ -46,6 +46,8 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
   fun setSafe_success() = runTest {
     // Force into an unsafe state
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
+    delay(100)
+    timeSource += 100.milliseconds
     awaitCondition { service.movementState.value !is MovementState.Safe }
     service.setSafe()
     assertTrue(service.movementState.value is MovementState.Safe)
