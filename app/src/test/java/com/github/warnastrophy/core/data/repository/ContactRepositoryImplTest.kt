@@ -181,4 +181,49 @@ class ContactRepositoryImplTest {
     assertTrue(result.isFailure)
     assertTrue(result.exceptionOrNull() is StorageException.EncryptionError)
   }
+
+  @Test
+  fun `getContact throws DataStoreError on firestore failure`() = runTest {
+    // Simulate Firestore failure by throwing an exception
+    coEvery { doc.get() } returns Tasks.forException(Exception("Firestore error"))
+
+    val result = impl.getContact(userId, "c1")
+
+    // Assert that the result is a failure
+    assertTrue(result.isFailure)
+
+    // Assert that the exception is of type DataStoreError
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+  }
+
+  @Test
+  fun `getAllContacts throws DataStoreError on firestore failure`() = runTest {
+    // Simulate Firestore failure by throwing an exception
+    coEvery { firestore.collection("users").document(userId).collection("contacts").get() } returns
+        Tasks.forException(Exception("Firestore error"))
+
+    val result = impl.getAllContacts(userId)
+
+    // Assert that the result is a failure
+    assertTrue(result.isFailure)
+
+    // Assert that the exception is of type DataStoreError
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+  }
+
+  @Test
+  fun `getContact throws DeserializationError on JSON parse failure`() = runTest {
+    val snap = mockk<DocumentSnapshot>()
+    val invalidJson = """{"id":"c1","fullName":"John","phoneNumber":"555","relationship":"brother"""
+
+    every { snap.exists() } returns true
+    every { snap.getString("json") } returns invalidJson // Simulate invalid JSON
+    every { doc.get() } returns Tasks.forResult(snap)
+
+    val result = impl.getContact(userId, "c1")
+
+    // Assert that the result returns a failure due to JSON parse error
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.DeserializationError)
+  }
 }
