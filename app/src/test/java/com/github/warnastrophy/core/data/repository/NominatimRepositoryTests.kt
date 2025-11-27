@@ -40,14 +40,14 @@ class NominatimRepositoryTests {
         "https://nominatim.openstreetmap.org/search?q=Tokyo&format=json&limit=5", url)
   }
 
-  //  @Test
-  //  fun `isRateLimited returns true when requests are too frequent`() = runBlocking {
-  //    val repo = NominatimRepository()
-  //    repo.maxRateMs = 2000
-  //    repo.reverseGeocode("Tokyo") // simulate a request
-  //    val delay = repo.delayForNextQuery()
-  //    Assert.assertTrue(delay > 0)
-  //  }
+  @Test
+  fun `isRateLimited returns true when requests are too frequent`() = runBlocking {
+    val repo = NominatimRepository()
+    repo.maxRateMs = 2000
+    repo.reverseGeocode("Tokyo") // simulate a request
+    val delay = repo.delayForNextQuery()
+    Assert.assertTrue(delay > 0)
+  }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
