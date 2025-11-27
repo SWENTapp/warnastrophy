@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 object ServiceStateManager {
+  private var initialized = false
   private val serviceScope = CoroutineScope(Dispatchers.IO)
   private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
 
@@ -59,6 +60,8 @@ object ServiceStateManager {
   }
 
   fun init(context: Context) {
+    if (initialized) return
+
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
     gpsService = GpsService(locationClient)
 
@@ -76,6 +79,8 @@ object ServiceStateManager {
     movementService.startListening()
 
     startHazardSubscription()
+
+    initialized = true
   }
 
   /** Overload for tests or DI where services are provided directly. */
