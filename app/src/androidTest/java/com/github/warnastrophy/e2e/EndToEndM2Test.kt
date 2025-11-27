@@ -17,7 +17,7 @@ class EndToEndM2Test : EndToEndUtils() {
 
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.init(context)
-    repository = ContactRepositoryProvider.repository
+    contactRepository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
   }
 

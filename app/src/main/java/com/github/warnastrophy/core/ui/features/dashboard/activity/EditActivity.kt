@@ -20,8 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+object EditActivityTestTags {
+  const val INPUT_ACTIVITY_NAME = "inputActivityName"
+  const val SAVE_BUTTON = "activitySave"
+  const val DELETE_BUTTON = "activityDelete"
+  const val ERROR_MESSAGE = "errorMessage"
+}
 
 @Composable
 fun EditActivityScreen(
@@ -59,13 +67,21 @@ fun EditActivityScreen(
             onValueChange = { editActivityViewModel.setActivityName(it) },
             label = { Text("Full Name") },
             isError = activityUIState.invalidActivityNameMsg != null,
-            supportingText = { activityUIState.invalidActivityNameMsg?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+            supportingText = {
+              activityUIState.invalidActivityNameMsg?.let {
+                Text(it, modifier = Modifier.testTag(EditActivityTestTags.ERROR_MESSAGE))
+              }
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .testTag(EditActivityTestTags.INPUT_ACTIVITY_NAME))
 
         Button(
             onClick = { editActivityViewModel.editActivity(activityID) },
             enabled = isSaveButtonValid,
-            modifier = Modifier.fillMaxWidth().height(50.dp)) {
+            modifier =
+                Modifier.fillMaxWidth().height(50.dp).testTag(EditActivityTestTags.SAVE_BUTTON)) {
               Text("Save")
             }
 
@@ -79,7 +95,8 @@ fun EditActivityScreen(
                     contentColor = Color.White,
                     disabledContainerColor = Color.Gray,
                     disabledContentColor = Color.DarkGray),
-            modifier = Modifier.fillMaxWidth().height(50.dp)) {
+            modifier =
+                Modifier.fillMaxWidth().height(50.dp).testTag(EditActivityTestTags.DELETE_BUTTON)) {
               Text("Delete", color = Color.White)
             }
       }

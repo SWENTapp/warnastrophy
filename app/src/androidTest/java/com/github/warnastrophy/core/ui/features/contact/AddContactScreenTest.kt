@@ -20,8 +20,8 @@ class AddContactScreenTest : UITest() {
   @Before
   override fun setUp() {
     super.setUp()
-    repository = MockContactRepository()
-    val mockViewModel = AddContactViewModel(repository = repository, userId = userId)
+    contactRepository = MockContactRepository()
+    val mockViewModel = AddContactViewModel(repository = contactRepository, userId = userId)
     composeTestRule.setContent {
       AddContactScreen(addContactViewModel = mockViewModel, userId = userId)
     }
@@ -113,7 +113,7 @@ class AddContactScreenTest : UITest() {
 
   @Test
   fun savingWithEmptyFullNameShouldDoNothing() =
-      checkNoContactWereAdded(
+      checkNoEntityWasAdded(
           {
             composeTestRule.enterAddFullName(" ")
 
@@ -121,11 +121,12 @@ class AddContactScreenTest : UITest() {
 
             composeTestRule.enterAddRelationship(contact1.relationship)
 
-            composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
+            composeTestRule.clickOnSaveButton(testTag = AddContactTestTags.SAVE_BUTTON)
 
             composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
           },
-          userId)
+          userId,
+          getAllEntities = { userId -> contactRepository.getAllContacts(userId) })
 
   @Test
   fun savingWithEmptyRelationshipShouldDoNothing() {
@@ -135,7 +136,7 @@ class AddContactScreenTest : UITest() {
 
     composeTestRule.enterAddRelationship(" ")
 
-    composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
+    composeTestRule.clickOnSaveButton(testTag = AddContactTestTags.SAVE_BUTTON)
 
     composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
@@ -145,7 +146,7 @@ class AddContactScreenTest : UITest() {
     composeTestRule.enterEditFullName(contact1.fullName)
     composeTestRule.enterEditPhoneNumber(contact1.fullName)
     composeTestRule.enterEditRelationship(contact1.relationship)
-    composeTestRule.clickOnSaveContact(testTag = AddContactTestTags.SAVE_BUTTON)
+    composeTestRule.clickOnSaveButton(testTag = AddContactTestTags.SAVE_BUTTON)
     composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 }

@@ -17,8 +17,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+object AddActivityTestTags {
+  const val INPUT_ACTIVITY_NAME = "inputActivityName"
+  const val ERROR_MESSAGE = "errorMessage"
+  const val SAVE_BUTTON = "activitySave"
+}
 
 @Composable
 fun AddActivityScreen(
@@ -52,14 +59,22 @@ fun AddActivityScreen(
             onValueChange = { addActivityViewModel.setActivityName(it) },
             label = { Text("Activity Name") },
             isError = activityUIState.invalidActivityName != null,
-            supportingText = { activityUIState.invalidActivityName?.let { Text(it) } },
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
+            supportingText = {
+              activityUIState.invalidActivityName?.let {
+                Text(it, modifier = Modifier.testTag(AddActivityTestTags.ERROR_MESSAGE))
+              }
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .testTag(AddActivityTestTags.INPUT_ACTIVITY_NAME))
 
         Button(
             onClick = { addActivityViewModel.addActivity() },
             enabled = isSaveButtonValid,
-            modifier = Modifier.fillMaxWidth().height(50.dp)) {
-              Text("Save Activity")
+            modifier =
+                Modifier.fillMaxWidth().height(50.dp).testTag(AddActivityTestTags.SAVE_BUTTON)) {
+              Text("Save")
             }
       }
 }

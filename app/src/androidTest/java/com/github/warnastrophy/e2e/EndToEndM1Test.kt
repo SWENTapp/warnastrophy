@@ -19,7 +19,7 @@ class EndToEndM1Test : EndToEndUtils() {
     super.setUp()
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.init(context)
-    repository = ContactRepositoryProvider.repository
+    contactRepository = ContactRepositoryProvider.repository
   }
 
   @Test

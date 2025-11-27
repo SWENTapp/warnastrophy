@@ -28,18 +28,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.model.Activity
 
+object ActivityListScreenTestTags {
+  const val ADD_ACTIVITY_BUTTON = "addButton"
+  const val ACTIVITIES_LIST = "activitiesList"
+
+  fun getTestTagForActivityItem(activity: Activity): String = "activityItem${activity.id}"
+}
+
 @Composable
 private fun ActivityItem(activity: Activity, onActivityClick: () -> Unit) {
   Card(
       modifier =
-          Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 8.dp).clickable {
-            onActivityClick()
-          }) {
+          Modifier.fillMaxWidth()
+              .padding(vertical = 4.dp, horizontal = 8.dp)
+              .testTag(ActivityListScreenTestTags.getTestTagForActivityItem(activity))
+              .clickable { onActivityClick() }) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween) {
@@ -72,9 +81,11 @@ fun ActivityListScreen(
 
   Scaffold(
       floatingActionButton = {
-        FloatingActionButton(onClick = { onAddButtonClick() }) {
-          Icon(Icons.Filled.Add, contentDescription = "Add Activity")
-        }
+        FloatingActionButton(
+            onClick = { onAddButtonClick() },
+            modifier = Modifier.testTag(ActivityListScreenTestTags.ADD_ACTIVITY_BUTTON)) {
+              Icon(Icons.Filled.Add, contentDescription = "Add Activity")
+            }
       }) { paddingValues ->
         if (activities.isEmpty()) {
           Column(
@@ -84,15 +95,19 @@ fun ActivityListScreen(
                 Text("No activities found. Tap '+' to add one.")
               }
         } else {
-          LazyColumn(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            items(activities, key = { it.id }) { activity ->
-              ActivityItem(activity = activity, onActivityClick = { onActivityClick(activity) })
-              HorizontalDivider(
-                  Modifier,
-                  DividerDefaults.Thickness,
-                  color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-            }
-          }
+          LazyColumn(
+              modifier =
+                  Modifier.fillMaxSize()
+                      .padding(paddingValues)
+                      .testTag(ActivityListScreenTestTags.ACTIVITIES_LIST)) {
+                items(activities, key = { it.id }) { activity ->
+                  ActivityItem(activity = activity, onActivityClick = { onActivityClick(activity) })
+                  HorizontalDivider(
+                      Modifier,
+                      DividerDefaults.Thickness,
+                      color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                }
+              }
         }
       }
 }
