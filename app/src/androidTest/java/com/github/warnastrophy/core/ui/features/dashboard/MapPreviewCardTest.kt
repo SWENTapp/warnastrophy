@@ -12,11 +12,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.WarnastrophyComposable
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
@@ -47,7 +46,9 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
   @get:Rule
   val permissionRule: GrantPermissionRule =
       GrantPermissionRule.grant(
-          Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+          Manifest.permission.ACCESS_FINE_LOCATION,
+          Manifest.permission.ACCESS_COARSE_LOCATION,
+          Manifest.permission.POST_NOTIFICATIONS)
 
   @Before
   override fun setUp() {
@@ -59,6 +60,8 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     MapsInitializer.initialize(context)
     viewModel = MapViewModel(gpsService, hazardService, permissionManager)
+    ContactRepositoryProvider.init(context)
+    StateManagerService.init(context)
   }
 
   /**
@@ -112,7 +115,6 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
   @Test
   fun showsMapContent_when_mapContentProvided() {
     // Initialize Contact Repository (really important for first time app launch during tests)
-    ContactRepositoryProvider.init(ApplicationProvider.getApplicationContext())
     composeTestRule.setContent {
       WarnastrophyComposable(mockMapScreen = { MapScreen(viewModel = viewModel) })
     }
