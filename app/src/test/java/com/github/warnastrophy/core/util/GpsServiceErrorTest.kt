@@ -51,7 +51,7 @@ class GpsServiceErrorTest {
 
     assertTrue(
         errorHandler.state.value.errors.any {
-          it.type == ErrorType.LOCATION_NOT_GRANTED_ERROR && it.screenType == Screen.Map
+          it.type == ErrorType.LOCATION_NOT_GRANTED_ERROR && it.screenTypes.contains(Screen.Map)
         })
   }
 
@@ -66,15 +66,15 @@ class GpsServiceErrorTest {
 
     assertTrue(
         errorHandler.state.value.errors.any {
-          it.type == ErrorType.LOCATION_UPDATE_ERROR && it.screenType == Screen.Map
+          it.type == ErrorType.LOCATION_UPDATE_ERROR && it.screenTypes.contains(Screen.Map)
         })
   }
 
   @Test
   fun startLocationUpdates_success_clearsPreviousErrors() {
     // pre-populate handler with both error types for the Map screen
-    errorHandler.addError(ErrorType.LOCATION_NOT_GRANTED_ERROR, Screen.Map)
-    errorHandler.addError(ErrorType.LOCATION_UPDATE_ERROR, Screen.Map)
+    errorHandler.addErrorToScreen(ErrorType.LOCATION_NOT_GRANTED_ERROR, Screen.Map)
+    errorHandler.addErrorToScreen(ErrorType.LOCATION_UPDATE_ERROR, Screen.Map)
 
     doAnswer { invocation ->
           val callback = invocation.getArgument<LocationCallback>(1)
@@ -97,13 +97,13 @@ class GpsServiceErrorTest {
 
     gpsService.requestCurrentLocation()
 
-    assertTrue(errorHandler.state.value.errors.none { it.screenType == Screen.Map })
+    assertTrue(errorHandler.state.value.errors.none { it.screenTypes.contains(Screen.Map) })
   }
 
   @Test
   fun close_removesLocationUpdates_and_clearsErrors() {
     // pre-populate an error
-    errorHandler.addError(ErrorType.LOCATION_ERROR, Screen.Map)
+    errorHandler.addErrorToScreen(ErrorType.LOCATION_ERROR, Screen.Map)
 
     gpsService.close()
 

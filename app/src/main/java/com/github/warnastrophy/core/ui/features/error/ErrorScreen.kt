@@ -29,10 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.ui.common.Error
+import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
 /** Object containing test tags for the ErrorScreen composable. */
@@ -58,6 +60,7 @@ fun ErrorScreen(
     errors: List<Error>
 ) {
   if (!expanded) return
+  val noErrorColor = Color(0xFF2E7D32)
 
   androidx.compose.ui.window.Dialog(onDismissRequest = { onDismiss() }) {
     Surface(
@@ -77,7 +80,7 @@ fun ErrorScreen(
                 horizontalArrangement = Arrangement.SpaceBetween) {
                   Row(verticalAlignment = Alignment.CenterVertically) {
                     val iconTint =
-                        if (errors.isEmpty()) Color(0xFF2E7D32) else MaterialTheme.colorScheme.error
+                        if (errors.isEmpty()) noErrorColor else MaterialTheme.colorScheme.error
                     val icon =
                         if (errors.isEmpty()) Icons.Filled.CheckCircle else Icons.Filled.Warning
                     Box(
@@ -109,7 +112,7 @@ fun ErrorScreen(
                   if (errors.isEmpty()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                       Text(
-                          "No errors",
+                          text = stringResource(ErrorType.NO_ERRORS.message),
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                           fontWeight = FontWeight.Medium)
                     }
@@ -119,7 +122,8 @@ fun ErrorScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)) {
                           errors.forEach { err ->
                             val errText =
-                                runCatching { err.type.message }.getOrDefault(err.toString())
+                                runCatching { stringResource(err.type.message) }
+                                    .getOrDefault(err.toString())
                             // Simple chip
                             Box(
                                 modifier =

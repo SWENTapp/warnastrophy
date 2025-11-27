@@ -41,4 +41,15 @@
 
     <string name="danger_mode_error_no_activity">Error: Screen cannot function without an Activity context.</string>
 
+    <!-- Error Messages -->
+    <string name="no_errors">No errors</string>
+
+    <string name="error_location_not_granted">Location permission not granted</string>
+    <string name="error_location_update_failed">Location update failed</string>
+    <string name="error_foreground_start_failed">Failed to start foreground GPS service</string>
+    <string name="error_location_unavailable">No location available</string>
+
+    <string name="error_hazard_fetch_failed">Failed to fetch hazard data</string>
+
+
 </resources>

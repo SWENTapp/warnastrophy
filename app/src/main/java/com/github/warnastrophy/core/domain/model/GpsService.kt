@@ -96,7 +96,6 @@ class GpsService(
       object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
           val pos = result.lastLocation
-          Log.e(TAG, "requestPos : $pos")
           if (pos != null) {
             updatePosition(LatLng(pos.latitude, pos.longitude))
             setSuccess("Position updated")
@@ -106,9 +105,7 @@ class GpsService(
         }
 
         override fun onLocationAvailability(availability: LocationAvailability) {
-          if (!availability.isLocationAvailable) {
-            // setError(ErrorType.LOCATION_ERROR)
-          } else {
+          if (availability.isLocationAvailable) {
             setSuccess("Location available")
             clearError(ErrorType.LOCATION_ERROR)
           }
@@ -124,7 +121,6 @@ class GpsService(
    */
   @SuppressLint("MissingPermission")
   override fun requestCurrentLocation() {
-    Log.e("GpsService", "Requesting current location")
     serviceScope.launch {
       try {
         setLoading(true)
@@ -135,7 +131,6 @@ class GpsService(
                 .build()
 
         val location = locationClient.getCurrentLocation(request, null).await()
-        Log.e("GpsService", "Location obtained: $location")
         if (location != null) {
           updatePosition(LatLng(location.latitude, location.longitude))
           setSuccess("Current position obtained")
@@ -246,9 +241,9 @@ class GpsService(
    */
   private fun setError(type: ErrorType) {
     _positionState.update { currentState ->
-      currentState.copy(result = GpsResult.Failed, errorMessage = type.message)
+      currentState.copy(result = GpsResult.Failed, errorMessage = type.message.toString())
     }
-    errorHandler.addError(type, Screen.Map)
+    errorHandler.addErrorToScreen(type, Screen.Map)
   }
 
   /**
@@ -258,7 +253,7 @@ class GpsService(
    */
   private fun clearError(type: ErrorType) {
     _positionState.update { currentState -> currentState.copy(errorMessage = null) }
-    errorHandler.clearError(type, Screen.Map)
+    errorHandler.clearErrorFromScreen(type, Screen.Map)
   }
 
   /**

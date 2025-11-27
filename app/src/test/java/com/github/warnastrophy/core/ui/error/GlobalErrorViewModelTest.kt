@@ -40,7 +40,7 @@ class GlobalErrorViewModelTest {
   fun `errorState should reflect errors added to the handler`() = runTest {
     assertEquals(ErrorState(), viewModel.errorState.value)
 
-    val testError = Error(ErrorType.LOCATION_NOT_GRANTED_ERROR, Screen.Profile)
+    val testError = Error(ErrorType.LOCATION_NOT_GRANTED_ERROR, listOf(Screen.Profile))
     val newState = ErrorState(errors = listOf(testError))
 
     mockErrorStateFlow.value = newState

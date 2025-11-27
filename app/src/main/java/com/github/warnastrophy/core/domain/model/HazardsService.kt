@@ -72,12 +72,12 @@ class HazardsService(
                   _fetcherState.value.copy(hazards = currentHazards.toList(), isLoading = false)
             }
           }
-          Log.i("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
-          errorHandler.clearError(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
+          errorHandler.clearErrorFromScreen(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
+
           delay(AppConfig.gdacsFetchDelay - lastFetch.elapsedNow())
         } catch (e: Exception) {
           Log.e("HazardsService", "Error fetching hazards", e)
-          errorHandler.addError(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
+          errorHandler.addErrorToScreen(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
           _fetcherState.value = _fetcherState.value.copy(isLoading = false)
         }
       }

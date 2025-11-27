@@ -36,7 +36,10 @@ fun TopBar(
 
   val ctx = LocalContext.current
   val errorState = errorHandler.state.collectAsState()
-  val hasErrors = errorState.value.errors.isNotEmpty()
+  val errors = errorState.value.getScreenErrors(currentScreen)
+  val hasErrors = errors.isNotEmpty()
+  val errorMessages = errors.joinToString(separator = "\n") { ctx.getString(it.type.message) }
+
   var expanded by remember { mutableStateOf(false) }
 
   LaunchedEffect(hasErrors) { if (hasErrors) expanded = true }
@@ -58,7 +61,7 @@ fun TopBar(
             }
 
         ErrorScreen(
-            message = errorState.value.getScreenErrors(currentScreen),
+            message = errorMessages,
             expanded = expanded,
             onDismiss = { expanded = false },
             errors = errorState.value.errors)

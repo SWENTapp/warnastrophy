@@ -1,16 +1,19 @@
 package com.github.warnastrophy.core.ui.common
 
 import androidx.lifecycle.ViewModel
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.navigation.Screen
+import com.github.warnastrophy.core.util.isSubsequenceOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-enum class ErrorType(val message: String) {
-  LOCATION_NOT_GRANTED_ERROR("Location permission not granted!"),
-  LOCATION_UPDATE_ERROR("Location update failed!"),
-  FOREGROUND_ERROR("Failed to start foreground GPS service"),
-  LOCATION_ERROR("No location available"),
-  HAZARD_FETCHING_ERROR("Failed to fetch hazard data"),
+enum class ErrorType(val message: Int) {
+  NO_ERRORS(R.string.no_errors),
+  LOCATION_NOT_GRANTED_ERROR(R.string.error_location_not_granted),
+  LOCATION_UPDATE_ERROR(R.string.error_location_update_failed),
+  FOREGROUND_ERROR(R.string.error_foreground_start_failed),
+  LOCATION_ERROR(R.string.error_location_unavailable),
+  HAZARD_FETCHING_ERROR(R.string.error_hazard_fetch_failed),
 }
 
 /** ViewModel responsible for managing error messages associated with different screens. */
@@ -21,31 +24,98 @@ class ErrorHandler : ViewModel() {
   val state: StateFlow<ErrorState> = _state
 
   /**
-   * Adds an error message associated with a specific screen to the error state.
+   * Adds an error of a specific type associated with a given screen to the error state. Prevents
+   * duplicate errors for the same type and screen.
    *
    * @param type The type of error to add.
    * @param screen The screen associated with the error.
    */
-  fun addError(type: ErrorType, screen: Screen) {
-    if (_state.value.errors.any { it.screenType == screen && it.type == type }) return
-    _state.value = _state.value.copy(errors = _state.value.errors + Error(type, screen))
+  fun addErrorToScreen(type: ErrorType, screen: Screen) {
+    if (_state.value.errors.any { it.type == type && it.screenTypes.contains(screen) }) return
+    _state.value = _state.value.copy(errors = _state.value.errors + Error(type, listOf(screen)))
   }
 
   /**
-   * Clears a specific error type associated with a given screen from the error state.
+   * Adds an error of a specific type associated with given screens to the error state. Prevents
+   * duplicate errors for the same type and screens.
    *
-   * @param type The type of error to clear.
-   * @param screen The screen associated with the error.
+   * @param type The type of error to add.
+   * @param screens The list of screens associated with the error.
    */
-  fun clearError(type: ErrorType, screen: Screen) {
-    _state.value =
-        _state.value.copy(
-            errors = _state.value.errors.filter { it.type != type || it.screenType != screen })
+  fun addErrorToScreens(type: ErrorType, screens: List<Screen>) {
+    if (screens.size == 1) addErrorToScreen(type, screens.first())
+    else if (_state.value.errors.any { it.type == type && screens.isSubsequenceOf(it.screenTypes) })
+        return
+    else if (_state.value.errors.any {
+      it.type == type && it.screenTypes.isSubsequenceOf(screens)
+    }) {
+      _state.value =
+          _state.value.copy(
+              errors =
+                  _state.value.errors.map {
+                    if (it.type == type) it.copy(screenTypes = screens) else it
+                  })
+    } else _state.value = _state.value.copy(errors = _state.value.errors + Error(type, screens))
   }
 
+  /**
+   * Clears errors of a specific type associated with a given screen from the error state.
+   *
+   * @param type The type of error to clear.
+   * @param screen The screen for which to clear the error.
+   */
+  fun clearErrorFromScreen(type: ErrorType, screen: Screen) {
+    _state.value =
+        _state.value.copy(
+            errors =
+                _state.value.errors.filter {
+                  !(it.type == type && it.screenTypes.contains(screen))
+                })
+  }
+
+  /**
+   * Clears errors of a specific type associated with given screens from the error state. Updates
+   * existing errors to remove only the specified screens if they are a subset.
+   *
+   * @param type The type of error to clear.
+   * @param screens The list of screens for which to clear the error.
+   */
+  fun clearErrorFromScreens(type: ErrorType, screens: List<Screen>) {
+    _state.value =
+        _state.value.copy(
+            errors =
+                _state.value.errors.flatMap {
+                  when {
+                    it.type != type -> listOf(it)
+                    screens.isSubsequenceOf(it.screenTypes) && screens.size < it.screenTypes.size ->
+                        listOf(it.copy(screenTypes = it.screenTypes - screens.toSet()))
+                    else -> emptyList()
+                  }
+                })
+  }
+
+  /**
+   * Clears all errors associated with a specific screen from the error state.
+   *
+   * @param screen The screen for which to clear all errors.
+   */
   fun clearScreenErrors(screen: Screen) {
     _state.value =
-        _state.value.copy(errors = _state.value.errors.filter { it.screenType != screen })
+        _state.value.copy(errors = _state.value.errors.filter { !it.screenTypes.contains(screen) })
+  }
+
+  /**
+   * Clears all errors associated with specific screens from the error state.
+   *
+   * @param screens The list of screens for which to clear all errors.
+   */
+  fun clearScreenErrors(screens: List<Screen>) {
+    _state.value =
+        _state.value.copy(
+            errors =
+                _state.value.errors.filter {
+                  !screens.any { screen -> it.screenTypes.contains(screen) }
+                })
   }
 
   /** Clears all errors from the error state. */
@@ -62,21 +132,19 @@ class ErrorHandler : ViewModel() {
 data class ErrorState(val errors: List<Error> = emptyList())
 
 /**
- * Extension function to retrieve error messages for a specific screen from the ErrorState.
+ * Extension function to retrieve error for a specific screen from the ErrorState.
  *
  * @param screen The screen for which to retrieve error messages.
- * @return A concatenated string of error messages associated with the specified screen.
+ * @return List of errors associated with the specified screen.
  */
-fun ErrorState.getScreenErrors(screen: Screen): String {
-  return errors
-      .filter { it.screenType == screen }
-      .joinToString(separator = "\n") { it.type.message }
+fun ErrorState.getScreenErrors(screen: Screen): List<Error> {
+  return errors.filter { it.screenTypes.contains(screen) }
 }
 
 /**
  * Data class representing an individual error with a message and associated screen type.
  *
  * @property type The type of error.
- * @property screenType The screen associated with the error.
+ * @property screenTypes The list of screens associated with this error.
  */
-data class Error(val type: ErrorType, val screenType: Screen)
+data class Error(val type: ErrorType, val screenTypes: List<Screen>)

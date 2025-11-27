@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.errorMsg
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -27,7 +28,7 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule
         .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT, useUnmergedTree = true)
-        .assertExists()
+        .assertIsDisplayed()
         .assertTextEquals(ErrorType.LOCATION_ERROR.message)
   }
 
@@ -53,16 +54,16 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
       TopBar(currentScreen = Screen.Dashboard, errorHandler = errorHandler)
     }
 
-    errorHandler.addError(ErrorType.LOCATION_ERROR, Screen.Dashboard)
+    errorHandler.addErrorToScreen(ErrorType.LOCATION_ERROR, Screen.Dashboard)
 
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_ERROR_ICON, useUnmergedTree = true)
-        .assertExists()
+        .assertIsDisplayed()
         .performClick()
 
     composeTestRule
         .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT, useUnmergedTree = true)
-        .assertExists()
-        .assertTextEquals(ErrorType.LOCATION_ERROR.message)
+        .assertIsDisplayed()
+        .assertTextEquals(composeTestRule.activity.getString(ErrorType.LOCATION_ERROR.message))
   }
 }
