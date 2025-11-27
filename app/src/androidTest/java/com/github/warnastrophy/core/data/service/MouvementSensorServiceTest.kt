@@ -150,7 +150,7 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
       }
 
   @Test
-  fun stop_stops_collection() =
+  fun stop_collection() =
       runTest(testDispatcher) {
         service.stop()
         testDispatcher.scheduler.advanceUntilIdle()

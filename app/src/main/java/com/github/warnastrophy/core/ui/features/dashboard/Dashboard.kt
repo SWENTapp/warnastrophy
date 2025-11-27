@@ -11,21 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.data.service.HazardsDataService
-import com.github.warnastrophy.core.data.service.MovementState
-import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
@@ -85,27 +78,7 @@ fun DashboardScreen(
 
             DangerModeCard(modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION))
 
-            // Spacer(modifier = Modifier.height(80.dp))
-            // TODO: REMOVE AFTER TESTING
-            val state by StateManagerService.movementService.movementState.collectAsState()
-            Surface(
-                modifier = Modifier.fillMaxWidth().testTag("dashboard_movementServiceButton"),
-                color =
-                    if (state is MovementState.Safe) {
-                      Color.Green
-                    } else {
-                      Color.Red
-                    },
-                tonalElevation = 2.dp) {
-                  Row(
-                      modifier = Modifier.padding(16.dp),
-                      horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Movement Service: ${state::class.simpleName}")
-                        Button(onClick = { StateManagerService.movementService.setSafe() }) {
-                          Text("Reset to Safe")
-                        }
-                      }
-                }
+            Spacer(modifier = Modifier.height(80.dp))
           }
         }
   }
