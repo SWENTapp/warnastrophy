@@ -3,7 +3,6 @@ package com.github.warnastrophy.core.util
 import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import org.junit.Test

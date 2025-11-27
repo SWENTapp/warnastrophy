@@ -5,7 +5,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import org.junit.Test
 import org.junit.runner.RunWith
 
