@@ -93,9 +93,6 @@ class ContactRepositoryImplTest {
     coEvery { firestore.collection("users").document(userId).collection("contacts").get() } returns
         Tasks.forResult(querySnap)
 
-    coEvery { firestore.collection("users").document(userId).collection("contacts").get() } returns
-        Tasks.forResult(querySnap)
-
     val result = impl.getAllContacts(userId)
 
     assertTrue(result.isSuccess)
@@ -149,5 +146,39 @@ class ContactRepositoryImplTest {
 
     // Firestore should never be called if IDs don't match
     coVerify(exactly = 0) { doc.set(any()) }
+  }
+
+  // Test for exception handling: StorageException.DataStoreError (delete)
+  @Test
+  fun `deleteContact throws DataStoreError on failure`() = runTest {
+    coEvery { doc.delete() } returns Tasks.forException(Exception("Firestore error"))
+
+    val result = impl.deleteContact(userId, "c1")
+
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+  }
+
+  // Test for exception handling: StorageException.DataStoreError (edit)
+  @Test
+  fun `editContact throws DataStoreError on failure`() = runTest {
+    coEvery { doc.set(any()) } returns Tasks.forException(Exception("Firestore error"))
+
+    val result = impl.editContact(userId, "c1", contact)
+
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+  }
+
+  // Test for exception handling: StorageException.EncryptionError
+  @Test
+  fun `editContact throws EncryptionError on encryption failure`() = runTest {
+    // Simulate CryptoUtils encryption failure
+    every { CryptoUtils.encrypt(any()) } throws Exception("Encryption failed")
+
+    val result = impl.editContact(userId, "c1", contact)
+
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.EncryptionError)
   }
 }

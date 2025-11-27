@@ -58,4 +58,15 @@ class HybridContactRepositoryTest {
     coVerify { local.deleteContact(userId, "c1") }
     coVerify { remote.deleteContact(userId, "c1") }
   }
+
+  @Test
+  fun getNewUid() = runTest {
+    // Simulate remote returning a new UID
+    coEvery { remote.getNewUid() } returns "new-uid"
+
+    val result = hybrid.getNewUid()
+
+    // Assert that the returned UID matches the expected value
+    assertTrue(result == "new-uid")
+  }
 }
