@@ -71,25 +71,24 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   }
 
   /**
-   * Helper function to wrap ProfileScreen with CompositionLocalProvider
-   * for ThemeViewModel in tests.
+   * Helper function to wrap ProfileScreen with CompositionLocalProvider for ThemeViewModel in
+   * tests.
    */
   @Composable
   private fun TestProfileScreen(
-    signInViewModel: SignInViewModel = mockSignInViewModel,
-    onHealthCardClick: () -> Unit = {},
-    onEmergencyContactsClick: () -> Unit = {},
-    onLogout: () -> Unit = {},
-    onDangerModePreferencesClick: () -> Unit = {}
+      signInViewModel: SignInViewModel = mockSignInViewModel,
+      onHealthCardClick: () -> Unit = {},
+      onEmergencyContactsClick: () -> Unit = {},
+      onLogout: () -> Unit = {},
+      onDangerModePreferencesClick: () -> Unit = {}
   ) {
     CompositionLocalProvider(LocalThemeViewModel provides mockThemeViewModel) {
       ProfileScreen(
-        signInViewModel = signInViewModel,
-        onHealthCardClick = onHealthCardClick,
-        onEmergencyContactsClick = onEmergencyContactsClick,
-        onLogout = onLogout,
-        onDangerModePreferencesClick = onDangerModePreferencesClick
-      )
+          signInViewModel = signInViewModel,
+          onHealthCardClick = onHealthCardClick,
+          onEmergencyContactsClick = onEmergencyContactsClick,
+          onLogout = onLogout,
+          onDangerModePreferencesClick = onDangerModePreferencesClick)
     }
   }
 
@@ -183,8 +182,8 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Click the switch directly
     composeTestRule
-      .onNodeWithTag("${ProfileScreenTestTag.THEME_TOGGLE_SWITCH}_switch")
-      .performClick()
+        .onNodeWithTag("${ProfileScreenTestTag.THEME_TOGGLE_SWITCH}_switch")
+        .performClick()
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -202,8 +201,8 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Click the switch directly
     composeTestRule
-      .onNodeWithTag("${ProfileScreenTestTag.THEME_TOGGLE_SWITCH}_switch")
-      .performClick()
+        .onNodeWithTag("${ProfileScreenTestTag.THEME_TOGGLE_SWITCH}_switch")
+        .performClick()
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -225,8 +224,8 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     // Verify dialog is displayed by checking for dialog-specific content
     // Use unmergedTree for dialog content
     composeTestRule
-      .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
-      .assertIsDisplayed()
+        .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
+        .assertIsDisplayed()
     composeTestRule.onNodeWithText("Cancel", useUnmergedTree = true).assertIsDisplayed()
 
     // Verify there are now multiple "Logout" texts (list item + dialog title + dialog button)
@@ -251,8 +250,8 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Verify dialog is dismissed - dialog text should not exist
     composeTestRule
-      .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
-      .assertDoesNotExist()
+        .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
+        .assertDoesNotExist()
 
     // Verify signOut was not called
     verify(exactly = 0) { mockSignInViewModel.signOut() }
@@ -349,8 +348,8 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Verify dialog is displayed
     composeTestRule
-      .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
-      .assertIsDisplayed()
+        .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
+        .assertIsDisplayed()
 
     // Note: Testing dismiss on click outside requires more complex setup
     // as it involves touching outside the dialog bounds
