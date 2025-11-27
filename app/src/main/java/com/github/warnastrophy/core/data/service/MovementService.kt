@@ -20,6 +20,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 /**
@@ -41,11 +43,9 @@ class MovementService(
 ) {
 
   /** Root job for the service coroutine scope. Cancelling this stops the collector. */
-  private val job = Job()
-
+  private var collectionJob: Job? = null
   /** Coroutine scope used to collect the repository flow. Runs on [Dispatchers.Default]. */
-  private val scope = CoroutineScope(Dispatchers.Default + job)
-
+  private val scope = CoroutineScope(Dispatchers.Default + Job())
   /**
    * Internal mutable list that stores received samples.
    *
@@ -87,44 +87,76 @@ class MovementService(
    * The collector runs until [stop] is called which cancels the internal job.
    */
   fun startListening() {
-    scope.launch {
-      repository.data.collect { motion ->
-        // State update logic based on acceleration magnitude
-        when (val currentState = _movementState.value) {
-          is MovementState.Safe -> {
-            if (motion.accelerationMagnitude > config.preDangerThreshold) {
-              _movementState.value = MovementState.PreDanger(Monotonic.markNow())
-              Log.d("MovementService", "State changed to PRE_DANGER")
-            }
-          }
-          is MovementState.PreDanger -> {
-            currentState.accumulatedSamples.add(motion.accelerationMagnitude)
+    // If already listening, do nothing
+    if (collectionJob?.isActive == true) return
 
-            val elapsedTime = Monotonic.markNow().minus(currentState.timestamp)
-
-            if (elapsedTime >= config.preDangerTimeout) {
-              val averageAcceleration = currentState.accumulatedSamples.average()
-
-              if (averageAcceleration < config.dangerAverageThreshold) {
-                _movementState.value = MovementState.Danger(Monotonic.markNow())
-                Log.d("MovementService", "State changed to DANGER (avg: $averageAcceleration)")
-              } else {
-                _movementState.value = MovementState.Safe(Monotonic.markNow())
-                Log.d("MovementService", "State reverted to SAFE (avg: $averageAcceleration)")
+    collectionJob =
+        scope.launch {
+          Log.d("MovementService", "Started listening to motion data")
+          repository.data
+              .distinctUntilChanged { old, new ->
+                // Consider samples equal if their timestamps are the same to avoid redundant
+                // updates
+                old.timestamp.compareTo(new.timestamp) == 0
               }
-            }
-          }
-          is MovementState.Danger -> {
-            // Remain in Danger state until externally reset
-          }
-        }
+              .collectLatest { motion ->
+                // State update logic based on acceleration magnitude
+                _movementState.value =
+                    when (val currentState = _movementState.value) {
+                      is MovementState.Safe -> {
+                        if (motion.accelerationMagnitude > config.preDangerThreshold) {
+                          Log.d("MovementService", "State changed to PRE_DANGER")
+                          MovementState.PreDanger(Monotonic.markNow())
+                        } else {
+                          currentState
+                        }
+                      }
+                      is MovementState.PreDanger -> {
+                        if (motion.accelerationMagnitude <= config.dangerAverageThreshold) {
+                          Log.d("MovementService", "State changed to PRE_DANGER_ACC")
+                          MovementState.PreDangerAcc(
+                              Monotonic.markNow(), mutableListOf(motion.accelerationMagnitude))
+                        } else {
+                          currentState
+                        }
+                      }
+                      is MovementState.PreDangerAcc -> {
+                        if (motion.accelerationMagnitude > config.preDangerThreshold) {
+                          // Reset timer and samples if a new high acceleration is detected, this
+                          // avoids
+                          // considering multiple consecutive spikes as a safe state.
+                          Log.d("MovementService", "PRE_DANGER reset due to new high acceleration")
+                          MovementState.PreDanger(Monotonic.markNow())
+                        }
 
-        val now = System.currentTimeMillis()
-        samples.add(motion)
-        samples.removeIf { it.timestamp < now - windowMillisMotion }
-        _recentData.value = samples.toList()
-      }
-    }
+                        currentState.accumulatedSamples.add(motion.accelerationMagnitude)
+                        val elapsedTime = Monotonic.markNow().minus(currentState.timestamp)
+
+                        if (elapsedTime >= config.preDangerTimeout) {
+                          val averageAcceleration = currentState.accumulatedSamples.average()
+
+                          if (averageAcceleration < config.dangerAverageThreshold) {
+                            Log.d(
+                                "MovementService",
+                                "State changed to DANGER (avg: $averageAcceleration)")
+                            MovementState.Danger(Monotonic.markNow())
+                          } else {
+                            Log.d(
+                                "MovementService",
+                                "State reverted to SAFE (avg: $averageAcceleration)")
+                            MovementState.Safe(Monotonic.markNow())
+                          }
+                        } else {
+                          currentState
+                        }
+                      }
+                      is MovementState.Danger -> {
+                        currentState
+                        // Remain in Danger state until externally reset
+                      }
+                    }
+              }
+        }
   }
 
   /**
@@ -147,13 +179,15 @@ class MovementService(
    * After calling this function the service will no longer collect new samples.
    */
   fun stop() {
-    job.cancel()
-    scope.cancel()
+    collectionJob?.cancel()
+    collectionJob = null
   }
 
   fun setSafe() {
+    stop()
     _movementState.value = MovementState.Safe(Monotonic.markNow())
     Log.d("MovementService", "State manually set to SAFE")
+    startListening()
   }
 
   /**
@@ -185,22 +219,24 @@ class MovementService(
  */
 data class MovementConfig(
     val preDangerThreshold: Double = 50.0,
-    val dangerAverageThreshold: Double = 2.0,
+    val dangerAverageThreshold: Double = 1.0,
     val preDangerTimeout: Duration = 10.seconds
 )
 
-/**
- * Represents the current state of the accident detection program.
- *
- * @property timestamp the time when this state was entered
- */
+/** Represents the current state of the accident detection program. */
 sealed class MovementState(val timestamp: Monotonic.ValueTimeMark) {
+  /** User is considered safe, no significant movement detected. */
   class Safe(timestamp: Monotonic.ValueTimeMark) : MovementState(timestamp)
 
-  class PreDanger(
+  /** Potential danger detected, waiting for the acceleration values to go to acceptable range */
+  class PreDanger(timestamp: Monotonic.ValueTimeMark) : MovementState(timestamp)
+
+  /** Potential danger detected, accumulate values to confirm danger */
+  class PreDangerAcc(
       timestamp: Monotonic.ValueTimeMark,
       val accumulatedSamples: MutableList<Double> = mutableListOf()
   ) : MovementState(timestamp)
 
+  /** Danger detected, big acceleration followed by stillness */
   class Danger(timestamp: Monotonic.ValueTimeMark) : MovementState(timestamp)
 }

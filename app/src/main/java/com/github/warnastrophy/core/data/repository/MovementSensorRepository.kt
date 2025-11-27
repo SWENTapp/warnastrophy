@@ -105,9 +105,11 @@ class MovementSensorRepository(context: Context) {
         }
 
     accelerometer?.let {
-      sensorManager.registerListener(listener, it, SensorManager.SENSOR_DELAY_GAME)
+      sensorManager.registerListener(listener, it, SensorManager.SENSOR_DELAY_NORMAL)
     }
-    gyroscope?.let { sensorManager.registerListener(listener, it, SensorManager.SENSOR_DELAY_GAME) }
+    gyroscope?.let {
+      sensorManager.registerListener(listener, it, SensorManager.SENSOR_DELAY_NORMAL)
+    }
 
     awaitClose { sensorManager.unregisterListener(listener) }
   }
