@@ -39,12 +39,17 @@ class NominatimRepositoryTests {
   }
 
   @Test
-  fun `isRateLimited returns true when requests are too frequent`() = runBlocking {
+  fun `isRateLimited returns true when requests are too frequent`() {
     val repo = NominatimRepository()
-    repo.maxRateMs = 2000
-    repo.reverseGeocode("Tokyo") // simulate a request
-    val isRateLimited = repo.isRateLimited()
-    Assert.assertTrue(isRateLimited)
+    repo.maxRateMs = 2_000L
+
+    // First call should "register" a request and not be limited
+    val first = repo.isRateLimited()
+    // Second call immediately after should be limited
+    val second = repo.isRateLimited()
+
+    Assert.assertFalse(first)
+    Assert.assertTrue(second)
   }
 
   @Test
