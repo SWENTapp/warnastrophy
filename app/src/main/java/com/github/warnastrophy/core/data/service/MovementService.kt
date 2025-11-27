@@ -74,67 +74,87 @@ class MovementService(
           Log.d("MovementService", "Started listening to motion data")
           repository.data.collect { motion ->
             Log.d("MovementService", "Received motion data: accMag=${motion.accelerationMagnitude}")
-            // State update logic based on acceleration magnitude
-            _movementState.value =
-                when (val currentState = _movementState.value) {
-                  is MovementState.Safe -> {
-                    if (motion.accelerationMagnitude > config.preDangerThreshold) {
-                      Log.d("MovementService", "State changed to PRE_DANGER")
-                      MovementState.PreDanger(timeSource.markNow())
-                    } else {
-                      currentState
-                    }
-                  }
-                  is MovementState.PreDanger -> {
-                    if (motion.accelerationMagnitude <= config.dangerAverageThreshold) {
-                      Log.d("MovementService", "State changed to PRE_DANGER_ACC")
-                      MovementState.PreDangerAcc(
-                          timeSource.markNow(), mutableListOf(motion.accelerationMagnitude))
-                    } else {
-                      currentState
-                    }
-                  }
-                  is MovementState.PreDangerAcc -> {
-                    if (motion.accelerationMagnitude > config.preDangerThreshold) {
-                      // Reset timer and samples if a new high acceleration is detected, this
-                      // avoids
-                      // considering multiple consecutive spikes as a safe state.
-                      Log.d("MovementService", "PRE_DANGER reset due to new high acceleration")
-                      MovementState.PreDanger(timeSource.markNow())
-                    } else {
-                      currentState.accumulatedSamples.add(motion.accelerationMagnitude)
-                      val elapsedTime = timeSource.markNow().minus(currentState.timestamp)
-
-                      Log.d(
-                          "MovementService",
-                          "PRE_DANGER_ACC elapsedTime=$elapsedTime, samples=${currentState.accumulatedSamples.size}")
-
-                      if (elapsedTime >= config.preDangerTimeout) {
-                        val averageAcceleration = currentState.accumulatedSamples.average()
-
-                        if (averageAcceleration < config.dangerAverageThreshold) {
-                          Log.d(
-                              "MovementService",
-                              "State changed to DANGER (avg: $averageAcceleration)")
-                          MovementState.Danger(timeSource.markNow())
-                        } else {
-                          Log.d(
-                              "MovementService",
-                              "State reverted to SAFE (avg: $averageAcceleration)")
-                          MovementState.Safe(timeSource.markNow())
-                        }
-                      } else {
-                        currentState
-                      }
-                    }
-                  }
-                  is MovementState.Danger -> {
-                    currentState
-                    // Remain in Danger state until externally reset
-                  }
-                }
+            _movementState.value = processMotion(motion.accelerationMagnitude, _movementState.value)
           }
         }
+  }
+
+  /**
+   * Process motion data and determine the next movement state based on current state and
+   * acceleration magnitude.
+   */
+  private fun processMotion(
+      accelerationMagnitude: Double,
+      currentState: MovementState
+  ): MovementState {
+    return when (currentState) {
+      is MovementState.Safe -> processSafeState(accelerationMagnitude, currentState)
+      is MovementState.PreDanger -> processPreDangerState(accelerationMagnitude, currentState)
+      is MovementState.PreDangerAcc -> processPreDangerAccState(accelerationMagnitude, currentState)
+      is MovementState.Danger -> currentState // Remain in Danger state until externally reset
+    }
+  }
+
+  private fun processSafeState(
+      accelerationMagnitude: Double,
+      currentState: MovementState.Safe
+  ): MovementState {
+    if (accelerationMagnitude > config.preDangerThreshold) {
+      Log.d("MovementService", "State changed to PRE_DANGER")
+      return MovementState.PreDanger(timeSource.markNow())
+    }
+    return currentState
+  }
+
+  private fun processPreDangerState(
+      accelerationMagnitude: Double,
+      currentState: MovementState.PreDanger
+  ): MovementState {
+    if (accelerationMagnitude <= config.dangerAverageThreshold) {
+      Log.d("MovementService", "State changed to PRE_DANGER_ACC")
+      return MovementState.PreDangerAcc(timeSource.markNow(), mutableListOf(accelerationMagnitude))
+    }
+    return currentState
+  }
+
+  private fun processPreDangerAccState(
+      accelerationMagnitude: Double,
+      currentState: MovementState.PreDangerAcc
+  ): MovementState {
+    if (accelerationMagnitude > config.preDangerThreshold) {
+      // Reset timer and samples if a new high acceleration is detected, this avoids
+      // considering multiple consecutive spikes as a safe state.
+      Log.d("MovementService", "PRE_DANGER reset due to new high acceleration")
+      return MovementState.PreDanger(timeSource.markNow())
+    }
+    return evaluatePreDangerAccTimeout(accelerationMagnitude, currentState)
+  }
+
+  private fun evaluatePreDangerAccTimeout(
+      accelerationMagnitude: Double,
+      currentState: MovementState.PreDangerAcc
+  ): MovementState {
+    currentState.accumulatedSamples.add(accelerationMagnitude)
+    val elapsedTime = timeSource.markNow().minus(currentState.timestamp)
+
+    Log.d(
+        "MovementService",
+        "PRE_DANGER_ACC elapsedTime=$elapsedTime, samples=${currentState.accumulatedSamples.size}")
+
+    if (elapsedTime >= config.preDangerTimeout) {
+      val averageAcceleration = currentState.accumulatedSamples.average()
+      return evaluateDangerCondition(averageAcceleration)
+    }
+    return currentState
+  }
+
+  private fun evaluateDangerCondition(averageAcceleration: Double): MovementState {
+    if (averageAcceleration < config.dangerAverageThreshold) {
+      Log.d("MovementService", "State changed to DANGER (avg: $averageAcceleration)")
+      return MovementState.Danger(timeSource.markNow())
+    }
+    Log.d("MovementService", "State reverted to SAFE (avg: $averageAcceleration)")
+    return MovementState.Safe(timeSource.markNow())
   }
 
   /**
