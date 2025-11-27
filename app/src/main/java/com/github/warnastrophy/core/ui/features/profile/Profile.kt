@@ -57,6 +57,7 @@ object ProfileScreenTestTag {
  *
  * @param signInViewModel The [SignInViewModel] instance that handles the logic for sign-in and
  *   sign-out.
+ * @param themeViewModel The [ThemeViewModel] instance that manages the app's theme settings.
  * @param onHealthCardClick A callback function to navigate to the health card screen when clicked.
  * @param onEmergencyContactsClick A callback function to navigate to the emergency contacts screen
  *   when clicked.
@@ -234,6 +235,14 @@ private fun ProfileListItem(
   }
 }
 
+/**
+ * A Composable function representing the theme toggle option in the Profile screen. It allows users
+ * to toggle between dark and light modes.
+ *
+ * @param isDarkMode The current theme mode (true for dark, false for light).
+ * @param onThemeChange A callback function triggered when the theme is toggled.
+ * @param modifier An optional [Modifier] to apply to the layout of the toggle.
+ */
 @Composable
 private fun ProfileThemeToggleItem(
     isDarkMode: Boolean,
