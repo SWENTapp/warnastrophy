@@ -1,8 +1,6 @@
 package com.github.warnastrophy.core.ui.features.map
 
 import android.content.Context
-import android.content.Intent
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -28,14 +26,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Location.Companion.toLatLng
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
 import com.github.warnastrophy.core.util.findActivity
+import com.github.warnastrophy.core.util.openAppSettings
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraMoveStartedReason
@@ -49,7 +48,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
-  const val FALLBACK_ACTIVITY_ERROR = "fallbackActivityError"
   const val TRACK_LOCATION_BUTTON = "trackLocationButton"
   const val SEARCH_BAR = "searchBar"
 
@@ -73,11 +71,7 @@ fun MapScreen(
   val focusManager = LocalFocusManager.current
 
   if (activity == null) {
-    Box(
-        modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.FALLBACK_ACTIVITY_ERROR),
-        contentAlignment = Alignment.Center) {
-          Text("Error: Map screen cannot function without an Activity context.")
-        }
+    ActivityFallback()
     return
   }
 
@@ -177,15 +171,7 @@ fun MapScreen(
                   message = msg,
                   showAllowButton = showAllow,
                   onAllowClick = requestPermissions,
-                  onOpenSettingsClick = {
-                    val intent =
-                        Intent(
-                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                "package:${activity.packageName}".toUri())
-                            .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                    // Use the activity to start the new activity.
-                    activity.startActivity(intent)
-                  },
+                  onOpenSettingsClick = { openAppSettings(context = activity) },
                   modifier =
                       Modifier.align(Alignment.BottomCenter)
                           .padding(16.dp)
