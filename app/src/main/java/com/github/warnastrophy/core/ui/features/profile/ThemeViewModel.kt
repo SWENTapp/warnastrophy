@@ -48,6 +48,6 @@ class ThemeViewModel(
    * @param isDark `true` to enable dark mode, `false` to disable it and switch to light mode.
    */
   fun toggleTheme(isDark: Boolean) {
-    viewModelScope.launch(dispatcher) { userPreferencesRepository.setDarkMode(isDark) }
+    viewModelScope.launch { userPreferencesRepository.setDarkMode(isDark) }
   }
 }
