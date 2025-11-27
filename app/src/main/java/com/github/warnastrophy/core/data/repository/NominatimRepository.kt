@@ -1,4 +1,3 @@
-// kotlin
 /**
  * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
  *
@@ -9,16 +8,14 @@
  * into a list of [Location] domain models. Rate limiting is applied locally to avoid excessive
  * requests within a short time window.
  */
-package com.github.warnastrophy.core.ui.repository
+package com.github.warnastrophy.core.data.repository
 
 import com.github.warnastrophy.core.model.Location
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlin.math.max
 import org.json.JSONArray
 
 val TAG = "NominatimLocationRepository : "
@@ -29,7 +26,7 @@ val TAG = "NominatimLocationRepository : "
  * Implementations should provide means to resolve a textual location query into a list of
  * [Location] domain objects.
  */
-fun interface GeocodeRepository {
+interface GeocodeRepository {
   /**
    * Perform a reverse geocode or search for the given textual [location] and return a list of
    * matching [Location] objects.
@@ -40,6 +37,8 @@ fun interface GeocodeRepository {
    * @return A list of matching [Location] results; empty list if none or on error.
    */
   suspend fun reverseGeocode(location: String): List<Location>
+
+  fun delayForNextQuery(): Long
 }
 
 /**
@@ -55,8 +54,7 @@ fun interface GeocodeRepository {
  *
  * @param ioDispatcher Dispatcher used for IO-bound work (injectable for tests).
  */
-class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO) :
-    GeocodeRepository {
+class NominatimRepository() : GeocodeRepository {
 
   /** HTTP Referer header value to identify the application source. */
   private val referer = "https://github.com/ssidimoh694"
@@ -87,6 +85,8 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
    * @return A list of [Location] results. Returns an empty list if the request is rate limited or
    *   if the response is empty/invalid.
    */
+  private val VALID_REPONSE_CODE_RANGE = 200..299
+
   override suspend fun reverseGeocode(location: String): List<Location> {
     val url = buildUrl(location)
     val jsonStr = httpGet(url)
@@ -119,33 +119,27 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
    * @param urlStr The full URL to fetch.
    * @return The response body as a string, or an empty string if rate limited.
    */
-  private suspend fun httpGet(urlStr: String): String =
-      withContext(ioDispatcher) {
-        val bool = isRateLimited()
-
-        if (bool) {
-          return@withContext ""
+  private fun httpGet(urlStr: String): String {
+    lastQueryTimestamp = System.currentTimeMillis()
+    val url = URL(urlStr)
+    val conn =
+        (url.openConnection() as HttpURLConnection).apply {
+          requestMethod = "GET"
+          setRequestProperty("Accept-Language", "en")
+          setRequestProperty("User-Agent", "WarnAStrophyApp/1.0 (+$referer)")
+          setRequestProperty("Referer", referer)
         }
 
-        val url = URL(urlStr)
-        val conn =
-            (url.openConnection() as HttpURLConnection).apply {
-              requestMethod = "GET"
-              setRequestProperty("Accept-Language", "en")
-              setRequestProperty("User-Agent", "WarnAStrophyApp/1.0 (+${referer}")
-              setRequestProperty("Referer", referer)
-            }
-        val message: String
-        try {
-          val code = conn.responseCode
-          val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-          message = BufferedReader(InputStreamReader(stream)).use { it.readText() }
-        } finally {
-          conn.disconnect()
-        }
-        return@withContext message
-      }
-
+    return try {
+      val code = conn.responseCode
+      val stream = if (code in VALID_REPONSE_CODE_RANGE) conn.inputStream else conn.errorStream
+      BufferedReader(InputStreamReader(stream)).use { it.readText() }
+    } catch (e: Exception) {
+      ""
+    } finally {
+      conn.disconnect()
+    }
+  }
   /**
    * Decode the JSON array string [jsonStr] returned by Nominatim into a list of [Location].
    *
@@ -174,7 +168,7 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
           Location(
               latitude = obj.getDouble("lat"),
               longitude = obj.getDouble("lon"),
-              name = obj.optString("name", "Unknown"),
+              name = obj.optString("display_name", "Unknown"),
           )
       locations.add(location)
     }
@@ -191,21 +185,42 @@ class NominatimRepository(private val ioDispatcher: CoroutineDispatcher = Dispat
    * @return `true` if the repository should consider the next request as rate limited; `false`
    *   otherwise.
    */
-  fun isRateLimited(): Boolean {
-    val currentTimestamp = System.currentTimeMillis()
+  override fun delayForNextQuery(): Long {
     val last = lastQueryTimestamp
+    if (last == null) {
+      return 0L
+    } else {
+      val timeSinceLastQuery = System.currentTimeMillis() - last
+      return max(maxRateMs - timeSinceLastQuery, 0L)
+    }
+  }
+}
 
-    val isLimited =
-        if (last == null) {
-          lastQueryTimestamp = currentTimestamp
-          false
-        } else {
-          val timeSinceLastQuery = currentTimestamp - last
-          val limited = timeSinceLastQuery < maxRateMs
-          if (limited) lastQueryTimestamp = currentTimestamp
-          limited
-        }
+class MockNominatimRepository : GeocodeRepository {
 
-    return isLimited
+  val locations =
+      listOf(
+          Location(40.7128, -74.0060, "Suvy"),
+          Location(40.0583, -74.4057, "Tolar"),
+          Location(-40.9006, 174.8860, "New Zok"))
+
+  override suspend fun reverseGeocode(location: String): List<Location> {
+    return locations
+  }
+
+  override fun delayForNextQuery(): Long {
+    return 0L
+  }
+}
+
+class MockNominatimRepo(private val returnList: List<Location> = emptyList<Location>()) :
+    GeocodeRepository {
+
+  override suspend fun reverseGeocode(location: String): List<Location> {
+    return returnList
+  }
+
+  override fun delayForNextQuery(): Long {
+    return 0L
   }
 }
