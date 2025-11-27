@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.data.local.StorageException
-import com.github.warnastrophy.core.domain.model.Contact
+import com.github.warnastrophy.core.data.localStorage.StorageException
+import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.*

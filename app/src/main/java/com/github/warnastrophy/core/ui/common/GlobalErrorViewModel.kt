@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.ui.common
 
 import androidx.lifecycle.ViewModel
-import com.github.warnastrophy.core.domain.error.ErrorDisplayManager
+import com.github.warnastrophy.core.util.ErrorDisplayManager
 import kotlinx.coroutines.flow.StateFlow
 
 // @HiltViewModel TODO: uncomment in next PR

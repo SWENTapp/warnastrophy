@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.lifecycle.ViewModel
-import com.github.warnastrophy.core.domain.model.FetcherState
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.FetcherState
+import com.github.warnastrophy.core.data.service.HazardsDataService
 import kotlinx.coroutines.flow.StateFlow
 
 /** ViewModel responsible for providing the latest news and hazard data state to the UI. */

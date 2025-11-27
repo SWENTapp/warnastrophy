@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.data.service
 
-import com.github.warnastrophy.core.domain.model.Hazard
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult

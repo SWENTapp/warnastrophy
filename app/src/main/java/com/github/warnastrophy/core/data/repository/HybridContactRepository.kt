@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.data.repository
 
-import com.github.warnastrophy.core.domain.model.Contact
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
+import com.github.warnastrophy.core.model.Contact
 
 class HybridContactRepository(
     private val local: ContactsRepository,
@@ -10,29 +11,31 @@ class HybridContactRepository(
   override fun getNewUid(): String = remote.getNewUid()
 
   override suspend fun getAllContacts(userId: String): Result<List<Contact>> {
-
-    val localList = local.getAllContacts(userId)
     val remoteList = remote.getAllContacts(userId)
 
     if (remoteList.isSuccess) {
       val remoteContacts = remoteList.getOrThrow()
-      localContactsMerge(userId, remoteContacts)
+      runCatching { localContactsMerge(userId, remoteContacts) }
+      return Result.success(remoteContacts)
     }
 
-    return localList
+    return local.getAllContacts(userId)
   }
 
   override suspend fun getContact(userId: String, contactID: String): Result<Contact> {
 
-    val localFound = local.getContact(userId, contactID)
-    if (localFound.isSuccess) return localFound
-
     val remoteFound = remote.getContact(userId, contactID)
 
     if (remoteFound.isSuccess) {
-      local.addContact(userId, remoteFound.getOrThrow())
+      val contact = remoteFound.getOrThrow()
+
+      runCatching {
+        // You can swap to editContact if your local storage requires "upsert" semantics
+        local.addContact(userId, contact)
+      }
+      return Result.success(contact)
     }
-    return remoteFound
+    return local.getContact(userId, contactID)
   }
 
   override suspend fun addContact(userId: String, contact: Contact): Result<Unit> {

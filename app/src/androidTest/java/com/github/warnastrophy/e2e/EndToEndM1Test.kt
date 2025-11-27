@@ -8,11 +8,11 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.IdlingRegistry
+import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.service.DangerModeService
-import com.github.warnastrophy.core.data.service.ServiceStateManager
-import com.github.warnastrophy.core.data.service.ServiceStateManager.dangerModeService
+import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.data.service.StateManagerService.dangerModeService
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
@@ -42,10 +42,10 @@ class EndToEndM1Test : EndToEndUtils() {
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
     nominatimRepository = MockNominatimRepository()
-    ServiceStateManager.init(composeTestRule.activity.applicationContext)
-    ServiceStateManager.permissionManager =
+    StateManagerService.init(composeTestRule.activity.applicationContext)
+    StateManagerService.permissionManager =
         MockPermissionManager(currentResult = PermissionResult.Granted)
-    dangerModeService = DangerModeService(permissionManager = ServiceStateManager.permissionManager)
+    dangerModeService = DangerModeService(permissionManager = StateManagerService.permissionManager)
 
     viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimRepository)
     IdlingRegistry.getInstance().register(animationIdlingResource)
@@ -57,7 +57,7 @@ class EndToEndM1Test : EndToEndUtils() {
     ContactRepositoryProvider.initLocal(context)
     repository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
-    ServiceStateManager.initForTests(
+    StateManagerService.initForTests(
         gpsService = gpsService,
         hazardsService = hazardService,
         permissionManager = permissionManager,

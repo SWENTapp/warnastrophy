@@ -3,9 +3,9 @@ package com.github.warnastrophy.core.ui.features.dashboard
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.local.HealthCardStorage
-import com.github.warnastrophy.core.data.local.StorageResult
-import com.github.warnastrophy.core.domain.model.HealthCard
+import com.github.warnastrophy.core.data.localStorage.HealthCardStorage
+import com.github.warnastrophy.core.data.localStorage.StorageResult
+import com.github.warnastrophy.core.model.HealthCard
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

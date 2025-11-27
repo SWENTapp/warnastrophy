@@ -11,12 +11,11 @@
  */
 package com.github.warnastrophy.core.ui.repository
 
-import com.github.warnastrophy.core.domain.model.Location
+import com.github.warnastrophy.core.model.Location
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import kotlin.text.compareTo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -1,8 +1,9 @@
 package com.github.warnastrophy.core.data.repository
 
 import android.util.Log
-import com.github.warnastrophy.core.data.local.StorageException
-import com.github.warnastrophy.core.domain.model.Contact
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
+import com.github.warnastrophy.core.data.localStorage.StorageException
+import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
@@ -19,16 +20,8 @@ class ContactsRepositoryImpl(private val firestore: FirebaseFirestore) : Contact
   override fun getNewUid(): String = UUID.randomUUID().toString()
 
   override suspend fun addContact(userId: String, contact: Contact): Result<Unit> = runCatching {
-    val cipheredJson =
-        try {
-          CryptoUtils.encrypt(gson.toJson(contact))
-        } catch (e: Exception) {
-          Log.e("FirestoreContacts", "Encryption error", e)
-          throw StorageException.EncryptionError(e)
-        }
-
-    val data = mapOf("encrypted" to cipheredJson)
-
+    val json = gson.toJson(contact)
+    val data = mapOf("json" to json)
     try {
       doc(userId, contact.id).set(data).await()
     } catch (e: Exception) {
@@ -46,24 +39,18 @@ class ContactsRepositoryImpl(private val firestore: FirebaseFirestore) : Contact
           throw StorageException.DataStoreError(e)
         }
 
-    snap.documents.map { doc ->
-      val enc =
-          doc.getString("encrypted")
-              ?: throw StorageException.DataStoreError(Exception("Missing encrypted field"))
-
-      val json =
-          try {
-            CryptoUtils.decrypt(enc)
-          } catch (e: Exception) {
-            Log.e("FirestoreContacts", "Decryption error", e)
-            throw StorageException.DecryptionError(e)
-          }
+    snap.documents.mapNotNull { doc ->
+      val json = doc.getString("json")
+      if (json == null) {
+        Log.e("FirestoreContacts", "Skipping contact ${doc.id}: missing 'json' field")
+        return@mapNotNull null
+      }
 
       try {
         gson.fromJson(json, Contact::class.java)
       } catch (e: Exception) {
-        Log.e("FirestoreContacts", "JSON parse error", e)
-        throw StorageException.DeserializationError(e)
+        Log.e("FirestoreContacts", "Skipping contact ${doc.id}: JSON parse error", e)
+        null
       }
     }
   }
@@ -82,17 +69,10 @@ class ContactsRepositoryImpl(private val firestore: FirebaseFirestore) : Contact
           throw StorageException.DataStoreError(Exception("Contact not found"))
         }
 
-        val enc =
-            docSnap.getString("encrypted")
-                ?: throw StorageException.DataStoreError(Exception("Invalid Firestore entry"))
-
         val json =
-            try {
-              CryptoUtils.decrypt(enc)
-            } catch (e: Exception) {
-              Log.e("FirestoreContacts", "Decrypt error", e)
-              throw StorageException.DecryptionError(e)
-            }
+            docSnap.getString("json")
+                ?: throw StorageException.DataStoreError(
+                    Exception("Invalid Firestore entry: missing 'json'"))
 
         try {
           gson.fromJson(json, Contact::class.java)

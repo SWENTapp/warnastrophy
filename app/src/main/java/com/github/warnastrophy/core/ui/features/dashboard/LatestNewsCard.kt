@@ -5,13 +5,29 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,8 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.Hazard
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.model.Hazard
+import com.github.warnastrophy.core.ui.theme.extendedColors
 import com.github.warnastrophy.core.util.formatDate
 
 object LatestNewsTestTags {
@@ -51,38 +68,37 @@ object LatestNewsCardColors {
   val HEADER_TEXT_COLOR: Color = Color(0xFFD32F2F) // Dark Red
   val BODY_BACKGROUND_COLOR: Color = Color(0xFFF6F4F4) // Off White
   val WEATHER_TEXT_COLOR: Color = Color(0xFF616161) // Dark Grey
-
-  val IMAGE_TEXT_COLOR: Color = Color(0xFF9E9E9E) // Grey
   val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
 }
 
 /**
- * Affiche une carte des dernières nouvelles liées aux dangers.
+ * Displays a card with the latest news related to hazards.
  *
- * @param hazardsService Une instance de `HazardsDataService` utilisée pour récupérer les données
- *   des dangers et gérer leur état.
+ * @param hazardsService An instance of `HazardsDataService` used to retrieve hazard data and manage
+ *   their state.
  *
- * Fonctionnalités :
- * - Affiche les informations sur le danger actuel, y compris la description, la gravité et la date.
- * - Permet de naviguer entre les dangers à l'aide de boutons gauche et droit.
- * - Inclut un lien cliquable pour lire plus d'informations sur le danger.
- * - Affiche une image associée au type de danger.
+ * Features:
+ * - Displays information about the current hazard, including its description, severity, and date.
+ * - Allows navigation between hazards using left and right buttons.
+ * - Includes a clickable link to read more information about the hazard.
+ * - Displays an image associated with the type of hazard.
  *
  * @see HazardsDataService
  */
 @Composable
 fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
-  val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
   val state = fetcherState.value
   var currentIndex by remember { mutableIntStateOf(0) }
-  currentIndex = currentIndex.coerceIn(0, (hazards.size - 1).coerceAtLeast(0))
+  currentIndex = currentIndex.coerceIn(0, (state.hazards.size - 1).coerceAtLeast(0))
   val context = LocalContext.current
 
   val currentHazard =
       if (state.hazards.isNotEmpty()) {
         state.hazards[currentIndex]
       } else Hazard()
+
+  val extendedColors = MaterialTheme.extendedColors
 
   Column(
       modifier =
@@ -91,36 +107,34 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
               .clip(RoundedCornerShape(12.dp))
               .border(
                   width = 1.dp,
-                  color = LatestNewsCardColors.BORDER_COLOR.copy(alpha = 0.4f),
+                  color = extendedColors.newsCard.border.copy(alpha = 0.4f),
                   shape = RoundedCornerShape(12.dp))) {
         Row(
             modifier =
                 Modifier.fillMaxWidth()
                     .testTag(LatestNewsTestTags.HEADER_ROW)
-                    .background(LatestNewsCardColors.HEADER_BACKGROUND_COLOR)
+                    .background(extendedColors.newsCard.headerBackground)
                     .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 5.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Text(
                   text = stringResource(id = R.string.latest_news),
                   modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TITLE),
-                  color = LatestNewsCardColors.HEADER_TEXT_COLOR,
+                  color = extendedColors.newsCard.headerText,
                   fontWeight = FontWeight.Bold,
                   fontSize = 14.sp)
 
               Text(
                   text = formatDate(currentHazard.date ?: ""),
                   modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TIMESTAMP),
-                  color = LatestNewsCardColors.WEATHER_TEXT_COLOR,
+                  color = extendedColors.newsCard.weatherText,
                   fontSize = 12.sp)
             }
-
-        Spacer(Modifier.height(8.dp))
 
         Column(
             modifier =
                 Modifier.fillMaxWidth()
-                    .background(LatestNewsCardColors.BODY_BACKGROUND_COLOR)
+                    .background(extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))
                     .padding(3.dp)) {
               Row(
                   modifier = Modifier.fillMaxWidth(),
@@ -140,7 +154,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           contentPadding = PaddingValues(0.dp),
                           colors =
                               ButtonDefaults.buttonColors(
-                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                                  containerColor =
+                                      extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))) {
                             Text("<", fontSize = 14.sp, color = Color.Black)
                           }
                     }
@@ -174,10 +189,10 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           overflow = TextOverflow.Ellipsis)
 
                       Spacer(modifier = Modifier.height(8.dp))
-                      if (state.hazards.isNotEmpty()) {
+                      if (state.hazards.isNotEmpty() && currentHazard.articleUrl != null) {
                         Text(
                             text = "read",
-                            color = LatestNewsCardColors.READ_ARTICLE_TEXT_COLOR,
+                            color = extendedColors.newsCard.readArticleText,
                             fontSize = 16.sp,
                             textDecoration = TextDecoration.Underline,
                             modifier =
@@ -197,7 +212,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                             Modifier.size(80.dp)
                                 .border(
                                     width = 1.dp,
-                                    color = LatestNewsCardColors.BORDER_COLOR,
+                                    color = extendedColors.newsCard.border,
                                     shape = RoundedCornerShape(8.dp))
                                 .background(Color.White, RoundedCornerShape(8.dp))
                                 .testTag(LatestNewsTestTags.IMAGE_BOX),
@@ -227,7 +242,8 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           contentPadding = PaddingValues(0.dp),
                           colors =
                               ButtonDefaults.buttonColors(
-                                  containerColor = LatestNewsCardColors.BODY_BACKGROUND_COLOR)) {
+                                  containerColor =
+                                      extendedColors.newsCard.bodyBackground.copy(alpha = 0.8f))) {
                             Text(">", fontSize = 14.sp, color = Color.Black)
                           }
                     }
@@ -238,11 +254,11 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
 }
 
 /**
- * Retourne l'identifiant de ressource d'image correspondant au type d'événement.
+ * Returns the image resource identifier corresponding to the event type.
  *
- * @param eventType Le type d'événement sous forme de chaîne (par exemple, "EQ", "TC", etc.).
- * @return L'identifiant de ressource de l'image associée à ce type d'événement. Si le type n'est
- *   pas reconnu, une image par défaut est retournée.
+ * @param eventType The event type as a string (for example, "EQ", "TC", etc.).
+ * @return The resource identifier of the image associated with that event type. If the type is not
+ *   recognized, a default image is returned.
  */
 fun getImageForEvent(eventType: String): Int {
   return when (eventType) {
@@ -252,6 +268,6 @@ fun getImageForEvent(eventType: String): Int {
     "VO" -> R.drawable.vo
     "DR" -> R.drawable.dr
     "WF" -> R.drawable.wf
-    else -> R.drawable.de // Une image par défaut
+    else -> R.drawable.de
   }
 }

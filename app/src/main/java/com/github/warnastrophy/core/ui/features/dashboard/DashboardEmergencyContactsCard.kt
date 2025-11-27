@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,15 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.domain.model.Contact
+import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -54,12 +53,16 @@ object DashboardEmergencyContactsTestTags {
  * Defines the visual appearance with a light yellow background and gray text variants.
  */
 object DashboardEmergencyContactsCardColors {
-  fun getColors(colorScheme: ColorScheme): Colors {
+  fun getColors(colorScheme: ColorScheme, isDarkTheme: Boolean): Colors {
     return Colors(
         backgroundColor =
-            colorScheme.surface.copy(red = 1f, green = 1f, blue = 0.8f), // light yellow
+            if (isDarkTheme) {
+              colorScheme.surface.copy(red = 0.12f, green = 0.23f, blue = 0.37f)
+            } else {
+              colorScheme.surface.copy(red = 1f, green = 1f, blue = 0.5f)
+            },
         textColor = colorScheme.onSurface, // Dark Gray text
-        subtitleColor = colorScheme.onSurfaceVariant // Medium Gray subtitle
+        subtitleColor = colorScheme.onSurface // Medium Gray subtitle
         )
   }
 }
@@ -90,7 +93,8 @@ fun DashboardEmergencyContactsCardStateless(
 ) {
   modifier.clickable { onManageContactsClick() }
   val colorScheme = MaterialTheme.colorScheme
-  val colors = DashboardEmergencyContactsCardColors.getColors(colorScheme)
+  val isDarkTheme = isSystemInDarkTheme()
+  val colors = DashboardEmergencyContactsCardColors.getColors(colorScheme, isDarkTheme)
   StandardDashboardCard(
       modifier = modifier.testTag(DashboardEmergencyContactsTestTags.CARD),
       backgroundColor = colors.backgroundColor,
@@ -140,6 +144,7 @@ fun DashboardEmergencyContactsCardStateless(
                     contacts.take(2).forEachIndexed { index, contact ->
                       ContactItem(
                           contact = contact,
+                          isDarkTheme = isDarkTheme,
                           modifier =
                               Modifier.testTag(
                                   "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}$index"))
@@ -160,10 +165,12 @@ fun DashboardEmergencyContactsCardStateless(
  * @param modifier Modifier to be applied to the text component.
  */
 @Composable
-private fun ContactItem(contact: Contact, modifier: Modifier = Modifier) {
+private fun ContactItem(contact: Contact, modifier: Modifier = Modifier, isDarkTheme: Boolean) {
   Text(
       text = "${contact.fullName}: ${contact.phoneNumber}",
-      color = DashboardEmergencyContactsCardColors.getColors(MaterialTheme.colorScheme).textColor,
+      color =
+          DashboardEmergencyContactsCardColors.getColors(MaterialTheme.colorScheme, isDarkTheme)
+              .textColor,
       fontSize = 11.sp,
       fontWeight = FontWeight.Medium,
       modifier = modifier)
@@ -214,25 +221,4 @@ fun DashboardEmergencyContactsCardStateful(
       onManageContactsClick = onManageContactsClick,
       modifier = modifier,
       isLoading = isLoading)
-}
-
-@Preview(showBackground = true, name = "With Contacts")
-@Composable
-private fun DashboardEmergencyContactsCardPreview() {
-  MainAppTheme {
-    DashboardEmergencyContactsCardStateless(
-        contacts =
-            listOf(
-                Contact(
-                    id = "1",
-                    fullName = "Jane Doe",
-                    phoneNumber = "+1 555-123-4567",
-                    relationship = "Mom"),
-                Contact(
-                    id = "2",
-                    fullName = "John Smith",
-                    phoneNumber = "+1 555-987-6543",
-                    relationship = "Dad")),
-        onManageContactsClick = {})
-  }
 }
