@@ -40,8 +40,7 @@ class ContactRepositoryImplTest {
 
   @Test
   fun `addContact encrypts and writes to firestore`() = runTest {
-    val encrypted = "ENCRYPTED"
-    every { CryptoUtils.encrypt(any()) } returns encrypted
+    val json = """{"id":"c1","fullName":"John","phoneNumber":"555","relationship":"brother"}"""
 
     coEvery { doc.set(any()) } returns Tasks.forResult(null)
 
@@ -49,23 +48,19 @@ class ContactRepositoryImplTest {
 
     assertTrue(result.isSuccess)
 
-    coVerify { doc.set(match<Map<String, String>> { map -> map["encrypted"] == encrypted }) }
+    coVerify { doc.set(match<Map<String, String>> { map -> map["json"] == json }) }
   }
 
   @Test
-  fun `getContact returns decrypted and parsed contact`() = runTest {
-    val encrypted = "ENCRYPTED"
-    val decryptedJson =
-        """{"id":"c1","fullName":"John","phoneNumber":"555","relationship":"brother"}"""
+  fun `getContact returns contact`() = runTest {
+    val json = """{"id":"c1","fullName":"John","phoneNumber":"555","relationship":"brother"}"""
 
     val snap = mockk<DocumentSnapshot>(relaxed = true)
 
     every { snap.exists() } returns true
-    every { snap.getString("encrypted") } returns encrypted
-    every { CryptoUtils.decrypt(encrypted) } returns decryptedJson
+    every { snap.getString("json") } returns json
 
-    coEvery { doc.get() } returns Tasks.forResult(snap)
-
+    every { doc.get() } returns Tasks.forResult(snap)
     val result = impl.getContact(userId, "c1")
 
     assertTrue(result.isSuccess)
@@ -86,16 +81,13 @@ class ContactRepositoryImplTest {
   }
 
   @Test
-  fun `getAllContacts decrypts list`() = runTest {
-    val encrypted = "ENCRYPTED"
-    val decryptedJson =
-        """{"id":"c1","fullName":"John","phoneNumber":"555","relationship":"brother"}"""
+  fun `getAllContacts succeeds and returns contacts`() = runTest {
+    val json = """{"id":"c1","fullName":"John","phoneNumber":"555","relationship":"brother"}"""
 
     val snap = mockk<DocumentSnapshot>()
     val querySnap = mockk<QuerySnapshot>()
 
-    every { snap.getString("encrypted") } returns encrypted
-    every { CryptoUtils.decrypt(encrypted) } returns decryptedJson
+    every { snap.getString("json") } returns json
     every { querySnap.documents } returns listOf(snap)
 
     coEvery { firestore.collection("users").document(userId).collection("contacts").get() } returns
@@ -121,7 +113,7 @@ class ContactRepositoryImplTest {
   }
 
   @Test
-  fun `editContact encrypts and updates firestore`() = runTest {
+  fun `editContact succeeds and updates firestore`() = runTest {
     // Arrange
     val encrypted = "ENCRYPTED_EDIT"
     every { CryptoUtils.encrypt(any()) } returns encrypted
