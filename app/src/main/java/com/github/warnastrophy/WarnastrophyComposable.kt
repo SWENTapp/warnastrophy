@@ -53,7 +53,9 @@ object WarnastrophyAppTestTags {
 }
 
 @Composable
-fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
+fun WarnastrophyComposable(
+    mockMapScreen: (@Composable () -> Unit)? = null
+) {
   val context = LocalContext.current
 
   val credentialManager = CredentialManager.create(context)

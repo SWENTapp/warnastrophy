@@ -33,4 +33,6 @@ interface UserPreferencesRepository {
    * @param enabled `true` to enable automatic SMS, `false` to disable it.
    */
   suspend fun setAutomaticSms(enabled: Boolean)
+
+  suspend fun setDarkMode(isDark: Boolean)
 }

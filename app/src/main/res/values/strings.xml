@@ -45,5 +45,10 @@
 
     <!-- No activity fallback -->
     <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
+    
+    <!-- Theme management strings -->
+    <string name="theme_string">Theme</string>
+    <string name="dark_string">Dark</string>
+    <string name="light_string">Light</string>
 
 </resources>

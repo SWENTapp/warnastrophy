@@ -1,5 +1,7 @@
 package com.github.warnastrophy.core.ui.profile
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
@@ -8,7 +10,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.ui.features.auth.AuthUIState
 import com.github.warnastrophy.core.ui.features.auth.SignInViewModel
+import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
+import com.github.warnastrophy.core.ui.features.profile.ProfileScreenTestTag
+import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.util.BaseSimpleComposeTest
 import io.mockk.Runs
@@ -28,22 +33,26 @@ import org.junit.Test
  * - Navigation callbacks
  * - Logout dialog flow
  * - Error handling
+ * - Theme toggle functionality
  */
 class ProfileScreenTest : BaseSimpleComposeTest() {
 
-  private lateinit var mockViewModel: SignInViewModel
+  private lateinit var mockSignInViewModel: SignInViewModel
+  private lateinit var mockThemeViewModel: ThemeViewModel
   private lateinit var mockOnHealthCardClick: () -> Unit
   private lateinit var mockOnEmergencyContactsClick: () -> Unit
   private lateinit var mockOnDangerModePreferencesClick: () -> Unit
   private lateinit var mockOnLogout: () -> Unit
   private lateinit var uiStateFlow: MutableStateFlow<AuthUIState>
+  private lateinit var isDarkModeFlow: MutableStateFlow<Boolean?>
 
   @Before
   override fun setUp() {
     super.setUp()
 
     // Initialize mocks
-    mockViewModel = mockk(relaxed = true)
+    mockSignInViewModel = mockk(relaxed = true)
+    mockThemeViewModel = mockk(relaxed = true)
     mockOnHealthCardClick = mockk(relaxed = true)
     mockOnEmergencyContactsClick = mockk(relaxed = true)
     mockOnDangerModePreferencesClick = mockk(relaxed = true)
@@ -51,14 +60,42 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Initialize UI state flow
     uiStateFlow = MutableStateFlow(AuthUIState())
-    every { mockViewModel.uiState } returns uiStateFlow
-    every { mockViewModel.signOut() } just Runs
-    every { mockViewModel.clearErrorMsg() } just Runs
+    every { mockSignInViewModel.uiState } returns uiStateFlow
+    every { mockSignInViewModel.signOut() } just Runs
+    every { mockSignInViewModel.clearErrorMsg() } just Runs
+
+    // Initialize theme flow
+    isDarkModeFlow = MutableStateFlow(false)
+    every { mockThemeViewModel.isDarkMode } returns isDarkModeFlow
+    every { mockThemeViewModel.toggleTheme(any()) } just Runs
+  }
+
+  /**
+   * Helper function to wrap ProfileScreen with CompositionLocalProvider
+   * for ThemeViewModel in tests.
+   */
+  @Composable
+  private fun TestProfileScreen(
+    signInViewModel: SignInViewModel = mockSignInViewModel,
+    onHealthCardClick: () -> Unit = {},
+    onEmergencyContactsClick: () -> Unit = {},
+    onLogout: () -> Unit = {},
+    onDangerModePreferencesClick: () -> Unit = {}
+  ) {
+    CompositionLocalProvider(LocalThemeViewModel provides mockThemeViewModel) {
+      ProfileScreen(
+        signInViewModel = signInViewModel,
+        onHealthCardClick = onHealthCardClick,
+        onEmergencyContactsClick = onEmergencyContactsClick,
+        onLogout = onLogout,
+        onDangerModePreferencesClick = onDangerModePreferencesClick
+      )
+    }
   }
 
   @Test
   fun profileScreen_displaysAllListItems() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -66,14 +103,13 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     composeTestRule.onNodeWithTag(NavigationTestTags.HEALTH_CARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.CONTACT_LIST).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.DANGER_MODE_PREFERENCES).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(ProfileScreenTestTag.THEME_TOGGLE_SWITCH).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.LOGOUT).assertIsDisplayed()
   }
 
   @Test
   fun healthCardClick_triggersCallback() {
-    composeTestRule.setContent {
-      ProfileScreen(viewModel = mockViewModel, onHealthCardClick = mockOnHealthCardClick)
-    }
+    composeTestRule.setContent { TestProfileScreen(onHealthCardClick = mockOnHealthCardClick) }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -87,8 +123,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   @Test
   fun emergencyContactsClick_triggersCallback() {
     composeTestRule.setContent {
-      ProfileScreen(
-          viewModel = mockViewModel, onEmergencyContactsClick = mockOnEmergencyContactsClick)
+      TestProfileScreen(onEmergencyContactsClick = mockOnEmergencyContactsClick)
     }
 
     composeTestRule.waitForIdleWithTimeout()
@@ -103,9 +138,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   @Test
   fun onDangerModePreferencesClick_triggersCallback() {
     composeTestRule.setContent {
-      ProfileScreen(
-          viewModel = mockViewModel,
-          onDangerModePreferencesClick = mockOnDangerModePreferencesClick)
+      TestProfileScreen(onDangerModePreferencesClick = mockOnDangerModePreferencesClick)
     }
     composeTestRule.waitForIdleWithTimeout()
     composeTestRule.onNodeWithTag(NavigationTestTags.DANGER_MODE_PREFERENCES).performClick()
@@ -115,8 +148,72 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   }
 
   @Test
+  fun themeToggle_whenOff_displaysLightMode() {
+    isDarkModeFlow.value = false
+
+    composeTestRule.setContent { TestProfileScreen() }
+
+    composeTestRule.waitForIdleWithTimeout()
+
+    // Verify switch is off and "Light" text is displayed
+    composeTestRule.onNodeWithTag(ProfileScreenTestTag.THEME_TOGGLE_SWITCH).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Light").assertIsDisplayed()
+  }
+
+  @Test
+  fun themeToggle_whenOn_displaysDarkMode() {
+    isDarkModeFlow.value = true
+
+    composeTestRule.setContent { TestProfileScreen() }
+
+    composeTestRule.waitForIdleWithTimeout()
+
+    // Verify switch is on and "Dark" text is displayed
+    composeTestRule.onNodeWithTag(ProfileScreenTestTag.THEME_TOGGLE_SWITCH).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Dark").assertIsDisplayed()
+  }
+
+  @Test
+  fun themeToggle_click_callsToggleTheme() {
+    isDarkModeFlow.value = false
+
+    composeTestRule.setContent { TestProfileScreen() }
+
+    composeTestRule.waitForIdleWithTimeout()
+
+    // Click the switch directly
+    composeTestRule
+      .onNodeWithTag("${ProfileScreenTestTag.THEME_TOGGLE_SWITCH}_switch")
+      .performClick()
+
+    composeTestRule.waitForIdleWithTimeout()
+
+    // Verify toggleTheme was called with true (to enable dark mode)
+    verify(exactly = 1) { mockThemeViewModel.toggleTheme(true) }
+  }
+
+  @Test
+  fun themeToggle_clickWhenOn_callsToggleThemeWithFalse() {
+    isDarkModeFlow.value = true
+
+    composeTestRule.setContent { TestProfileScreen() }
+
+    composeTestRule.waitForIdleWithTimeout()
+
+    // Click the switch directly
+    composeTestRule
+      .onNodeWithTag("${ProfileScreenTestTag.THEME_TOGGLE_SWITCH}_switch")
+      .performClick()
+
+    composeTestRule.waitForIdleWithTimeout()
+
+    // Verify toggleTheme was called with false (to disable dark mode)
+    verify(exactly = 1) { mockThemeViewModel.toggleTheme(false) }
+  }
+
+  @Test
   fun logoutClick_showsConfirmationDialog() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -128,8 +225,8 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     // Verify dialog is displayed by checking for dialog-specific content
     // Use unmergedTree for dialog content
     composeTestRule
-        .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
-        .assertIsDisplayed()
+      .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
+      .assertIsDisplayed()
     composeTestRule.onNodeWithText("Cancel", useUnmergedTree = true).assertIsDisplayed()
 
     // Verify there are now multiple "Logout" texts (list item + dialog title + dialog button)
@@ -138,7 +235,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
   @Test
   fun logoutDialog_cancelButton_dismissesDialog() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -154,16 +251,16 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Verify dialog is dismissed - dialog text should not exist
     composeTestRule
-        .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
-        .assertDoesNotExist()
+      .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
+      .assertDoesNotExist()
 
     // Verify signOut was not called
-    verify(exactly = 0) { mockViewModel.signOut() }
+    verify(exactly = 0) { mockSignInViewModel.signOut() }
   }
 
   @Test
   fun logoutDialog_confirmButton_callsSignOut() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -180,12 +277,12 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     // Verify signOut was called
-    verify(exactly = 1) { mockViewModel.signOut() }
+    verify(exactly = 1) { mockSignInViewModel.signOut() }
   }
 
   @Test
   fun signedOutState_triggersLogoutCallback() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel, onLogout = mockOnLogout) }
+    composeTestRule.setContent { TestProfileScreen(onLogout = mockOnLogout) }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -202,7 +299,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   fun errorState_displaysErrorDialog() {
     val errorMessage = "Failed to sign out. Please try again."
 
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -221,7 +318,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   fun errorDialog_okButton_clearsError() {
     val errorMessage = "Network error occurred"
 
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -236,12 +333,12 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
     composeTestRule.waitForIdleWithTimeout()
 
     // Verify clearErrorMsg was called
-    verify(exactly = 1) { mockViewModel.clearErrorMsg() }
+    verify(exactly = 1) { mockSignInViewModel.clearErrorMsg() }
   }
 
   @Test
   fun logoutDialog_dismissOnClickOutside_dismissesDialog() {
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -252,8 +349,8 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Verify dialog is displayed
     composeTestRule
-        .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
-        .assertIsDisplayed()
+      .onNodeWithText("Are you sure you want to logout?", useUnmergedTree = true)
+      .assertIsDisplayed()
 
     // Note: Testing dismiss on click outside requires more complex setup
     // as it involves touching outside the dialog bounds
@@ -262,9 +359,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
   @Test
   fun multipleClicks_onHealthCard_triggersMultipleCallbacks() {
-    composeTestRule.setContent {
-      ProfileScreen(viewModel = mockViewModel, onHealthCardClick = mockOnHealthCardClick)
-    }
+    composeTestRule.setContent { TestProfileScreen(onHealthCardClick = mockOnHealthCardClick) }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -281,7 +376,7 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
   @Test
   fun profileScreen_withNoCallbacks_doesNotCrash() {
     // Test that screen works with default empty callbacks
-    composeTestRule.setContent { ProfileScreen(viewModel = mockViewModel) }
+    composeTestRule.setContent { TestProfileScreen() }
 
     composeTestRule.waitForIdleWithTimeout()
 
@@ -296,5 +391,18 @@ class ProfileScreenTest : BaseSimpleComposeTest() {
 
     // Verify screen is still displayed
     composeTestRule.onNodeWithText("Health Card").assertIsDisplayed()
+  }
+
+  @Test
+  fun themeToggle_nullValue_defaultsToFalse() {
+    isDarkModeFlow.value = null
+
+    composeTestRule.setContent { TestProfileScreen() }
+
+    composeTestRule.waitForIdleWithTimeout()
+
+    // Verify switch defaults to off when value is null
+    composeTestRule.onNodeWithTag(ProfileScreenTestTag.THEME_TOGGLE_SWITCH).assertIsDisplayed()
+    composeTestRule.onNodeWithText("Light").assertIsDisplayed()
   }
 }

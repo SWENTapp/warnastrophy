@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,12 +46,17 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.features.auth.SignInViewModel
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 
+object ProfileScreenTestTag {
+  const val THEME_TOGGLE_SWITCH = "profileThemeToggle"
+}
+
 /**
  * A Composable function representing the Profile Screen, displaying a list of actions such as
  * "Health Card", "Emergency Contacts", and "Logout". It shows a confirmation dialog when the user
  * attempts to log out, and handles any errors related to signing out.
  *
- * @param viewModel The [SignInViewModel] instance that handles the logic for sign-in and sign-out.
+ * @param signInViewModel The [SignInViewModel] instance that handles the logic for sign-in and
+ *   sign-out.
  * @param onHealthCardClick A callback function to navigate to the health card screen when clicked.
  * @param onEmergencyContactsClick A callback function to navigate to the emergency contacts screen
  *   when clicked.
@@ -59,14 +65,16 @@ import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    viewModel: SignInViewModel = viewModel(),
+    signInViewModel: SignInViewModel = viewModel(),
+    themeViewModel: ThemeViewModel = LocalThemeViewModel.current,
     onHealthCardClick: () -> Unit = {},
     onEmergencyContactsClick: () -> Unit = {},
     onLogout: () -> Unit = {},
     onDangerModePreferencesClick: () -> Unit = {}
 ) {
 
-  val uiState by viewModel.uiState.collectAsState()
+  val uiState by signInViewModel.uiState.collectAsState()
+  val isDarkMode by themeViewModel.isDarkMode.collectAsState()
   var showLogoutDialog by remember { mutableStateOf(false) }
 
   LaunchedEffect(uiState.signedOut) {
@@ -100,9 +108,14 @@ fun ProfileScreen(
 
     Spacer(modifier = Modifier.height(8.dp))
 
+    ProfileThemeToggleItem(
+        isDarkMode = isDarkMode ?: false,
+        onThemeChange = { themeViewModel.toggleTheme(it) },
+        modifier = Modifier.testTag(ProfileScreenTestTag.THEME_TOGGLE_SWITCH))
+
     ProfileListItem(
         icon = Icons.AutoMirrored.Filled.ExitToApp,
-        label = "Logout",
+        label = stringResource(R.string.logout_string),
         onClick = { showLogoutDialog = true },
         modifier = Modifier.testTag(NavigationTestTags.LOGOUT),
         tintColor = MaterialTheme.colorScheme.error)
@@ -129,7 +142,7 @@ fun ProfileScreen(
             Button(
                 onClick = {
                   showLogoutDialog = false
-                  viewModel.signOut()
+                  signInViewModel.signOut()
                 },
                 colors =
                     ButtonDefaults.buttonColors(
@@ -145,7 +158,7 @@ fun ProfileScreen(
   }
 
   uiState.errorMsg?.let { error ->
-    BasicAlertDialog(onDismissRequest = { viewModel.clearErrorMsg() }) {
+    BasicAlertDialog(onDismissRequest = { signInViewModel.clearErrorMsg() }) {
       Card {
         Column(modifier = Modifier.padding(24.dp)) {
           Text(
@@ -161,7 +174,7 @@ fun ProfileScreen(
               modifier = Modifier.padding(bottom = 24.dp))
 
           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = { viewModel.clearErrorMsg() }) {
+            TextButton(onClick = { signInViewModel.clearErrorMsg() }) {
               Text("OK", color = MaterialTheme.colorScheme.error)
             }
           }
@@ -212,6 +225,46 @@ private fun ProfileListItem(
               contentDescription = "Navigate",
               tint = tintColor,
               modifier = Modifier.size(24.dp))
+        }
+
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant,
+        thickness = 1.dp,
+        modifier = Modifier.padding(top = 4.dp, start = 16.dp, end = 16.dp))
+  }
+}
+
+@Composable
+private fun ProfileThemeToggleItem(
+    isDarkMode: Boolean,
+    onThemeChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+  Column(modifier = modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween) {
+          Text(
+              text = stringResource(R.string.theme_string),
+              style = MaterialTheme.typography.bodyLarge,
+              color = MaterialTheme.colorScheme.onSurface)
+
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text =
+                        if (isDarkMode) stringResource(R.string.dark_string)
+                        else stringResource(R.string.light_string),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Switch(
+                    checked = isDarkMode,
+                    onCheckedChange = onThemeChange,
+                    modifier =
+                        Modifier.testTag("${ProfileScreenTestTag.THEME_TOGGLE_SWITCH}_switch"))
+              }
         }
 
     HorizontalDivider(
