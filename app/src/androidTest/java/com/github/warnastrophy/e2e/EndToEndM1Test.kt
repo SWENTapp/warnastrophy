@@ -11,16 +11,16 @@ import androidx.test.espresso.IdlingRegistry
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.service.DangerModeService
+import com.github.warnastrophy.core.data.service.GeocodeService
+import com.github.warnastrophy.core.data.service.MockNominatimService
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.data.service.StateManagerService.dangerModeService
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
-import com.github.warnastrophy.core.ui.map.MockNominatimRepository
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import com.github.warnastrophy.core.ui.repository.GeocodeRepository
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.google.android.gms.maps.MapsInitializer
 import org.junit.After
@@ -32,7 +32,7 @@ class EndToEndM1Test : EndToEndUtils() {
   private lateinit var hazardService: HazardServiceMock
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var viewModel: MapViewModel
-  private lateinit var nominatimRepository: GeocodeRepository
+  private lateinit var nominatimRepository: GeocodeService
   private val animationIdlingResource = AnimationIdlingResource()
 
   @Before
@@ -41,7 +41,7 @@ class EndToEndM1Test : EndToEndUtils() {
     gpsService = GpsServiceMock()
     hazardService = HazardServiceMock()
     permissionManager = MockPermissionManager()
-    nominatimRepository = MockNominatimRepository()
+    nominatimRepository = MockNominatimService()
     StateManagerService.init(composeTestRule.activity.applicationContext)
     StateManagerService.permissionManager =
         MockPermissionManager(currentResult = PermissionResult.Granted)
