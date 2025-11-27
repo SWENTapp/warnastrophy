@@ -12,13 +12,13 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.data.repository.MotionData
+import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
+import io.mockk.*
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import com.github.warnastrophy.core.data.repository.MovementSensorRepository
-import io.mockk.*
 import kotlin.math.sqrt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
