@@ -6,9 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.repository.HealthCardRepositoryProvider
-import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.init(applicationContext)
-    ServiceStateManager.init(applicationContext)
+    StateManagerService.init(applicationContext)
 
     showUI()
   }

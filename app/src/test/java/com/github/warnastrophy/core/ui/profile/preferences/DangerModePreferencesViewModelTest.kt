@@ -3,30 +3,33 @@ package com.github.warnastrophy.core.ui.profile.preferences
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import com.github.warnastrophy.core.data.repository.DangerModePreferences
+import com.github.warnastrophy.core.data.repository.UserPreferences
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.data.service.MockPermissionManager
-import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
 import com.github.warnastrophy.core.ui.features.profile.preferences.PendingAction
 import com.github.warnastrophy.core.util.AppConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.bouncycastle.crypto.params.Blake3Parameters.context
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
@@ -38,6 +41,7 @@ class DangerModePreferencesViewModelTest {
   private val testDispatcher = StandardTestDispatcher()
   private lateinit var permissionManager: MockPermissionManager
   private lateinit var prefs: SharedPreferences
+  private lateinit var userPreferencesRepository: UserPreferencesRepository
   private lateinit var viewModel: DangerModePreferencesViewModel
 
   @Before
@@ -47,6 +51,15 @@ class DangerModePreferencesViewModelTest {
     context = activity.applicationContext
     prefs = context.getSharedPreferences(AppConfig.PREF_FILE_NAME, Context.MODE_PRIVATE)
     permissionManager = spy(MockPermissionManager())
+    userPreferencesRepository = mock()
+
+    // Provide a default empty flow to prevent crashes on init
+    whenever(userPreferencesRepository.getUserPreferences)
+        .thenReturn(
+            flowOf(
+                UserPreferences(
+                    DangerModePreferences(
+                        alertMode = false, inactivityDetection = false, automaticSms = false))))
   }
 
   @After
@@ -60,7 +73,7 @@ class DangerModePreferencesViewModelTest {
    * *before* this is called.
    */
   private fun createViewModel() {
-    viewModel = DangerModePreferencesViewModel(permissionManager)
+    viewModel = DangerModePreferencesViewModel(permissionManager, userPreferencesRepository)
   }
 
   @Test
@@ -82,27 +95,6 @@ class DangerModePreferencesViewModelTest {
   }
 
   @Test
-  fun onPermissionsResult_updatesStateAndEnablesFeature_whenPermissionGranted() = runTest {
-    permissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
-    createViewModel()
-    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_ALERT_MODE)
-
-    assertEquals(PendingAction.TOGGLE_ALERT_MODE, viewModel.uiState.value.pendingPermissionAction)
-
-    // Simulate the user granting the permission
-    val grantedResult = PermissionResult.Granted
-    permissionManager.setPermissionResult(grantedResult)
-
-    viewModel.onPermissionsResult(mock())
-
-    val finalState = viewModel.uiState.value
-
-    assertEquals(grantedResult, finalState.alertModePermissionResult)
-    assertTrue(finalState.alertModeAutomaticEnabled)
-    assertNull(finalState.pendingPermissionAction)
-  }
-
-  @Test
   fun handlePreferenceChange_enablesToggle_whenPermissionIsGranted() {
     permissionManager.setPermissionResult(PermissionResult.Granted)
     createViewModel()
@@ -120,32 +112,88 @@ class DangerModePreferencesViewModelTest {
 
   @Test
   fun onAlertModeToggled_withFalse_disablesAlertModeAndDependencies() = runTest {
-    permissionManager.setPermissionResult(PermissionResult.Granted)
     createViewModel()
-
-    viewModel.onAlertModeToggled(true)
-    viewModel.onInactivityDetectionToggled(true)
-    viewModel.onAutomaticSmsToggled(true)
 
     viewModel.onAlertModeToggled(false)
 
-    val state = viewModel.uiState.value
-    assertFalse(state.alertModeAutomaticEnabled)
-    assertFalse(state.inactivityDetectionEnabled)
-    assertFalse(state.automaticSmsEnabled)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    verify(userPreferencesRepository).setAlertMode(false)
+    verify(userPreferencesRepository).setInactivityDetection(false)
+    verify(userPreferencesRepository).setAutomaticSms(false)
   }
 
   @Test
-  fun onPermissionsResult_marksAllPermissionsAsAsked() = runTest {
-    permissionManager.setPermissionResult(
-        PermissionResult.Denied(AppPermissions.AlertModePermission.permissions.toList()))
+  fun onPermissionsResult_AlertMode_whenPermissionIsGranted_enablesToggle() = runTest {
     createViewModel()
+    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_ALERT_MODE)
+    permissionManager.setPermissionResult(
+        PermissionResult.Granted) // Simulate user granting permission
 
-    viewModel.onPermissionsResult(activity = activity)
-
+    viewModel.onPermissionsResult(activity)
     testDispatcher.scheduler.advanceUntilIdle()
 
     verify(permissionManager).markPermissionsAsAsked(viewModel.alertModePermissions)
+    verify(userPreferencesRepository).setAlertMode(true) // Check that toggle was called
+    assertNull(viewModel.uiState.value.pendingPermissionAction) // Action should be cleared
+  }
+
+  @Test
+  fun onPermissionsResult_AlertMode_whenPermissionIsDenied_doesNotEnableToggle() = runTest {
+    createViewModel()
+    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_ALERT_MODE)
+    permissionManager.setPermissionResult(
+        PermissionResult.Denied(emptyList())) // Simulate user denying
+
+    viewModel.onPermissionsResult(activity)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    verify(permissionManager).markPermissionsAsAsked(viewModel.alertModePermissions)
+    verify(userPreferencesRepository, never()).setAlertMode(true) // Toggle should NOT be called
+    assertNull(viewModel.uiState.value.pendingPermissionAction)
+  }
+
+  @Test
+  fun onPermissionsResult_InactivityDetection_whenPermissionIsGranted_enablesToggle() = runTest {
+    createViewModel()
+    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_INACTIVITY_DETECTION)
+    permissionManager.setPermissionResult(PermissionResult.Granted)
+
+    viewModel.onPermissionsResult(activity)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    verify(permissionManager, never())
+        .markPermissionsAsAsked(viewModel.inactivityDetectionPermissions)
+    verify(userPreferencesRepository).setInactivityDetection(true)
+    assertNull(viewModel.uiState.value.pendingPermissionAction)
+  }
+
+  @Test
+  fun onPermissionsResult_Sms_whenPermissionIsGranted_enablesToggle() = runTest {
+    createViewModel()
+    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_AUTOMATIC_SMS)
+    permissionManager.setPermissionResult(PermissionResult.Granted)
+
+    viewModel.onPermissionsResult(activity)
+    testDispatcher.scheduler.advanceUntilIdle()
+
     verify(permissionManager).markPermissionsAsAsked(viewModel.smsPermissions)
+    verify(userPreferencesRepository).setAutomaticSms(true)
+    assertNull(viewModel.uiState.value.pendingPermissionAction)
+  }
+
+  @Test
+  fun onPermissionsResult_with_no_pending_action_does_nothing() = runTest {
+    createViewModel()
+    assertNull(viewModel.uiState.value.pendingPermissionAction)
+
+    viewModel.onPermissionsResult(activity)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    verify(userPreferencesRepository, never()).setAlertMode(true)
+    verify(userPreferencesRepository, never()).setInactivityDetection(true)
+    verify(userPreferencesRepository, never()).setAutomaticSms(true)
+    verify(permissionManager, never()).markPermissionsAsAsked(viewModel.alertModePermissions)
+    verify(permissionManager, never()).markPermissionsAsAsked(viewModel.smsPermissions)
   }
 }

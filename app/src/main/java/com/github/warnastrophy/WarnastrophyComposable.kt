@@ -17,20 +17,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.data.service.ServiceStateManager
+import com.github.warnastrophy.core.data.repository.NominatimRepository
+import com.github.warnastrophy.core.data.service.NominatimService
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
+import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
+import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
+import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
+import com.github.warnastrophy.core.ui.features.contact.ContactListViewModel
+import com.github.warnastrophy.core.ui.features.contact.EditContactScreen
+import com.github.warnastrophy.core.ui.features.contact.EditContactViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
-import com.github.warnastrophy.core.ui.features.profile.contact.AddContactScreen
-import com.github.warnastrophy.core.ui.features.profile.contact.AddContactViewModel
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListScreen
-import com.github.warnastrophy.core.ui.features.profile.contact.ContactListViewModel
-import com.github.warnastrophy.core.ui.features.profile.contact.EditContactScreen
-import com.github.warnastrophy.core.ui.features.profile.contact.EditContactViewModel
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
@@ -102,18 +104,18 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
 
   val errorHandler = ErrorHandler()
 
-  val gpsService = remember { ServiceStateManager.gpsService }
-  val hazardsService = remember { ServiceStateManager.hazardsService }
-  val permissionManager = remember { ServiceStateManager.permissionManager }
+  val gpsService = remember { StateManagerService.gpsService }
+  val hazardsService = remember { StateManagerService.hazardsService }
+  val permissionManager = remember { StateManagerService.permissionManager }
 
   val contactListViewModel = ContactListViewModel(userId = userId)
   val editContactViewModel = EditContactViewModel(userId = userId)
   val addContactViewModel = AddContactViewModel(userId = userId)
 
-  val mapScreen =
-      @Composable {
-        MapScreen(viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
-      }
+  val nominatimRepository = NominatimRepository()
+  val nominatimService = NominatimService(nominatimRepository)
+
+  val mapViewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
 
   Scaffold(
       modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
@@ -137,14 +139,15 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,
-                    mapScreen = { mockMapScreen?.invoke() ?: mapScreen() },
+                    mapScreen = {
+                      mockMapScreen?.invoke()
+                          ?: MapScreen(viewModel = mapViewModel, isPreview = true)
+                    },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) })
               }
               composable(Map.route) {
-                mockMapScreen?.invoke()
-                    ?: MapScreen(
-                        viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
+                mockMapScreen?.invoke() ?: MapScreen(viewModel = mapViewModel)
               }
               composable(Profile.route) {
                 ProfileScreen(
@@ -185,7 +188,11 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               }
               composable(Screen.DangerModePreferences.route) {
                 DangerModePreferencesScreen(
-                    viewModel = DangerModePreferencesViewModel(permissionManager))
+                    viewModel =
+                        DangerModePreferencesViewModel(
+                            permissionManager = permissionManager,
+                            userPreferencesRepository =
+                                StateManagerService.userPreferencesRepository))
               }
             }
       }

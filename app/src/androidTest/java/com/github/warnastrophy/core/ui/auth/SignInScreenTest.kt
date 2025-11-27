@@ -13,7 +13,7 @@ import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.auth.SignInScreenTestTags
 import com.github.warnastrophy.core.ui.features.auth.SignInViewModel
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.google.firebase.auth.FirebaseUser
 import io.mockk.Runs
 import io.mockk.every

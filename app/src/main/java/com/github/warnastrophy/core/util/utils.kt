@@ -6,7 +6,6 @@ import android.content.ContextWrapper
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.text.format
 
 fun debugPrint(msg: String) {
   val file = File("debug.txt")

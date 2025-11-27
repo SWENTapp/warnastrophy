@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,11 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
-
-object MapPreviewCardColors {
-  val BACKGROUND_COLOR: Color = Color(0xFFE0E0E0) // Light Grey
-  val MAP_MARKER_COLOR: Color = Color(0xFF1E88E5) // Blue
-}
+import com.github.warnastrophy.core.ui.theme.extendedColors
 
 object MapPreviewTestTags {
   const val PLACEHOLDER = "mapPreviewPlaceholder"
@@ -36,6 +33,8 @@ It features a placeholder background and a marker indicating the user's location
  */
 @Composable
 fun MapPreviewCard(modifier: Modifier = Modifier, mapContent: (@Composable () -> Unit)? = null) {
+  val extendedColors = MaterialTheme.extendedColors
+
   StandardDashboardCard(
       backgroundColor = Color.White, minHeight = 50.dp, maxHeight = 100.dp, modifier = modifier) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -46,7 +45,7 @@ fun MapPreviewCard(modifier: Modifier = Modifier, mapContent: (@Composable () ->
               Box(
                   modifier =
                       Modifier.matchParentSize()
-                          .background(MapPreviewCardColors.BACKGROUND_COLOR)
+                          .background(extendedColors.mapPreview.background)
                           .testTag(MapPreviewTestTags.PLACEHOLDER))
 
               Column(
@@ -55,7 +54,7 @@ fun MapPreviewCard(modifier: Modifier = Modifier, mapContent: (@Composable () ->
                     Box(
                         modifier =
                             Modifier.size(16.dp)
-                                .background(MapPreviewCardColors.MAP_MARKER_COLOR, CircleShape)
+                                .background(extendedColors.mapPreview.mapMarker, CircleShape)
                                 .border(width = 2.dp, color = Color.White, shape = CircleShape))
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(

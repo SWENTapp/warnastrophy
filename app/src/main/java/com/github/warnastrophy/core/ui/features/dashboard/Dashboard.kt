@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -22,10 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.core.data.service.HazardsDataService
 import com.github.warnastrophy.core.data.service.MovementState
-import com.github.warnastrophy.core.data.service.ServiceStateManager
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
+import com.github.warnastrophy.core.ui.theme.extendedColors
 
 object DashboardScreenTestTags {
   const val ROOT_SCROLL = "dashboard_rootScroll"
@@ -36,10 +38,6 @@ object DashboardScreenTestTags {
   const val DANGER_MODE_SECTION = "dashboard_dangerModeSection"
 }
 
-object DashboardColors {
-  val BACKGROUND_COLOR: Color = Color(0xFFF5F5F5) // Light Grey
-}
-
 @Composable
 fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
@@ -47,13 +45,13 @@ fun DashboardScreen(
     onEmergencyContactsClick: () -> Unit = {},
     hazardsService: HazardsDataService
 ) {
-  Scaffold(containerColor = DashboardColors.BACKGROUND_COLOR) { innerPadding ->
+  Scaffold(containerColor = MaterialTheme.extendedColors.backgroundOffWhite) { innerPadding ->
     Column(
         modifier =
             Modifier.padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(DashboardColors.BACKGROUND_COLOR)
+                .background(MaterialTheme.extendedColors.backgroundOffWhite)
                 .testTag(DashboardScreenTestTags.ROOT_SCROLL)) {
           SafeZoneTopBar(modifier = Modifier.testTag(DashboardScreenTestTags.TOP_BAR))
 
@@ -87,8 +85,9 @@ fun DashboardScreen(
 
             DangerModeCard(modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION))
 
+            // Spacer(modifier = Modifier.height(80.dp))
             // TODO: REMOVE AFTER TESTING
-            val state by ServiceStateManager.movementService.movementState.collectAsState()
+            val state by StateManagerService.movementService.movementState.collectAsState()
             Surface(
                 modifier = Modifier.fillMaxWidth().testTag("dashboard_movementServiceButton"),
                 color =
@@ -102,7 +101,7 @@ fun DashboardScreen(
                       modifier = Modifier.padding(16.dp),
                       horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Movement Service: ${state::class.simpleName}")
-                        Button(onClick = { ServiceStateManager.movementService.setSafe() }) {
+                        Button(onClick = { StateManagerService.movementService.setSafe() }) {
                           Text("Reset to Safe")
                         }
                       }

@@ -6,13 +6,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.ui.common.Error
+import com.github.warnastrophy.core.ui.theme.extendedColors
 
 /** Object containing test tags for the ErrorScreen composable. */
 object ErrorScreenTestTags {
@@ -40,7 +41,9 @@ fun ErrorScreen(
       modifier =
           Modifier.fillMaxWidth()
               .widthIn(max = 300.dp)
-              .background(Color.White, shape = RoundedCornerShape(8.dp))) {
+              .background(
+                  MaterialTheme.extendedColors.backgroundOffWhite,
+                  shape = RoundedCornerShape(8.dp))) {
         if (errors.isEmpty()) {
           DropdownMenuItem(text = { Text("No errors") }, onClick = { onDismiss() })
         } else {
