@@ -24,6 +24,7 @@ object NavigationTestTags {
   const val HEALTH_CARD = "healthCard"
   const val LOGOUT = "logout"
   const val DANGER_MODE_PREFERENCES = "dangerModePreferences"
+  const val BUTTON_MANAGE_ACTIVITY_DANGER_MODE = "buttonManageActivity"
 }
 
 /** Object for holding navigation routes. */

@@ -27,6 +27,15 @@ object AddActivityTestTags {
   const val SAVE_BUTTON = "activitySave"
 }
 
+/**
+ * The screen composable for adding a new activity. This screen provides a form where the user can
+ * input the name of a new activity.
+ *
+ * @param addActivityViewModel The ViewModel responsible for handling the business logic and state
+ *   for adding an activity.
+ * @param onDone Lambda function to be invoked when the activity is successfully saved and the
+ *   screen should be navigated back.
+ */
 @Composable
 fun AddActivityScreen(
     addActivityViewModel: AddActivityViewModel = viewModel(),

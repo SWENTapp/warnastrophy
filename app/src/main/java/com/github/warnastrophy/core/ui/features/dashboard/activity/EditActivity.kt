@@ -31,6 +31,15 @@ object EditActivityTestTags {
   const val ERROR_MESSAGE = "errorMessage"
 }
 
+/**
+ * The screen composable for editing an existing activity.
+ *
+ * @param activityID The unique identifier of the activity to be loaded and edited.
+ * @param editActivityViewModel The ViewModel responsible for handling the business logic and state
+ *   for editing/deleting an activity.
+ * @param onDone Lambda function to be invoked when an operation (save or delete) is successful and
+ *   the screen should be navigated back.
+ */
 @Composable
 fun EditActivityScreen(
     activityID: String = "1", // just for testing purpose

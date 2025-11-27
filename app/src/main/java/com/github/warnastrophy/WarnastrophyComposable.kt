@@ -119,10 +119,6 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
   val editActivityViewModel = EditActivityViewModel(userId = userId)
   val activitiesListViewModel = ActivityListViewModel(userId = userId)
 
-  val mapScreen =
-      @Composable {
-        MapScreen(viewModel = MapViewModel(gpsService, hazardsService, permissionManager))
-      }
   val nominatimRepository = NominatimRepository()
   val nominatimService = NominatimService(nominatimRepository)
 

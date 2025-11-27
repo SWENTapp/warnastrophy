@@ -40,6 +40,12 @@ object ActivityListScreenTestTags {
   fun getTestTagForActivityItem(activity: Activity): String = "activityItem${activity.id}"
 }
 
+/**
+ * A composable that displays a single activity item in a clickable Card.
+ *
+ * @param activity The [Activity] data object to display.
+ * @param onActivityClick Lambda function to be invoked when the activity item is clicked.
+ */
 @Composable
 private fun ActivityItem(activity: Activity, onActivityClick: () -> Unit) {
   Card(
@@ -58,6 +64,15 @@ private fun ActivityItem(activity: Activity, onActivityClick: () -> Unit) {
       }
 }
 
+/**
+ * The main screen composable for displaying the list of user activities.
+ *
+ * @param activityListViewModel The ViewModel responsible for providing and managing the UI state
+ *   for this screen.
+ * @param onActivityClick Lambda function invoked when an activity item is clicked, passing the
+ *   clicked [Activity].
+ * @param onAddButtonClick Lambda function invoked when the Floating Action Button is clicked.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityListScreen(

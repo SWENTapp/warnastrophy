@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
+import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
 object DangerModeTestTags {
@@ -72,14 +73,12 @@ object DangerModeTestTags {
  *
  * @param modifier Modifier to be applied to the card.
  * @param viewModel The ViewModel managing the state of the Danger Mode card.
- * @param onOpenClick Lambda function to be invoked when the "Open" button is clicked
  * @param onManageActivitiesClick Lambda function to be invoked when the "Manage" button is clicked
  */
 @Composable
 fun DangerModeCard(
     modifier: Modifier = Modifier,
     viewModel: DangerModeCardViewModel = viewModel(),
-    onOpenClick: () -> Unit = {},
     onManageActivitiesClick: () -> Unit = {}
 ) {
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
@@ -149,6 +148,7 @@ fun DangerModeCard(
           StandardDashboardButton(
               label = "Manage Activities",
               color = colorScheme.errorContainer, // You might want a different color
+              modifier = Modifier.testTag(NavigationTestTags.BUTTON_MANAGE_ACTIVITY_DANGER_MODE),
               onClick = { onManageActivitiesClick() },
               textColor = colorScheme.onErrorContainer)
         }
