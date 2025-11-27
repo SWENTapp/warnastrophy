@@ -73,6 +73,18 @@ sealed class Screen(
     }
   }
 
+  object AddActivity :
+      Screen(R.string.add_activity_screen_title, icon = Icons.Filled.Add, route = "add_activity")
+
+  object ActivitiesList : Screen(R.string.activity_list_title, route = "activities_list")
+
+  data class EditActivity(val activityID: String) :
+      Screen(route = "edit_activity/${activityID}", title = R.string.edit_activity_screen_title) {
+    companion object {
+      const val route = "edit_activity/{id}"
+    }
+  }
+
   object SignIn :
       Screen(R.string.sign_in_title, route = "sign-in", hasBottomBar = false, hasTopBar = false)
 

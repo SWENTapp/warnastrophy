@@ -73,12 +73,14 @@ object DangerModeTestTags {
  * @param modifier Modifier to be applied to the card.
  * @param viewModel The ViewModel managing the state of the Danger Mode card.
  * @param onOpenClick Lambda function to be invoked when the "Open" button is clicked
+ * @param onManageActivitiesClick Lambda function to be invoked when the "Manage" button is clicked
  */
 @Composable
 fun DangerModeCard(
     modifier: Modifier = Modifier,
     viewModel: DangerModeCardViewModel = viewModel(),
-    onOpenClick: () -> Unit = {}
+    onOpenClick: () -> Unit = {},
+    onManageActivitiesClick: () -> Unit = {}
 ) {
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
   val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
@@ -143,8 +145,14 @@ fun DangerModeCard(
                   }
                 }
           }
+          Spacer(modifier = Modifier.width(8.dp))
+          StandardDashboardButton(
+              label = "Manage Activities",
+              color = colorScheme.errorContainer, // You might want a different color
+              onClick = { onManageActivitiesClick() },
+              textColor = colorScheme.onErrorContainer)
         }
-        Spacer(modifier = Modifier.width(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
