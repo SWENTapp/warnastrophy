@@ -11,6 +11,7 @@ import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,17 +19,30 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-/** TODO: Document MovementService */
+/**
+ * Service that monitors movement data from sensors and determines the current movement state. It
+ * collects motion samples from the [MovementSensorRepository] and updates the internal state based
+ * on acceleration thresholds defined in [MovementConfig].
+ *
+ * The service exposes a [StateFlow] of [MovementState] that observers can collect to get continuous
+ * updates of the current movement state.
+ *
+ * @param repository Repository providing motion data samples.
+ * @param initialConfig Initial configuration for movement detection thresholds.
+ * @param timeSource Time source used for measuring elapsed time. Defaults to monotonic time. Useful
+ *   for testing.
+ */
 class MovementService(
     private val repository: MovementSensorRepository,
     initialConfig: MovementConfig = MovementConfig(),
-    private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
+    private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
 
   /** Root job for the service coroutine scope. Cancelling this stops the collector. */
   private var collectionJob: Job? = null
-  /** Coroutine scope used to collect the repository flow. Runs on [Dispatchers.Default]. */
-  private val scope = CoroutineScope(Dispatchers.Default + Job())
+  /** Coroutine scope used to collect the repository flow. Runs on [dispatcher]. */
+  private val scope = CoroutineScope(dispatcher + Job())
 
   /** Backing _StateFlow_ that emits the current movement state. */
   private val _movementState =
