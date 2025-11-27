@@ -13,7 +13,6 @@
     <string name="activity_list_title">Activities List</string>
     <string name="health_card_screen_title">Emergency Card</string>
     <string name="sign_in_title">Sign In</string>
-    <string name="danger_mode_preferences_title">Danger Mode Preferences</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
 
     <!-- Dashboard Strings -->
@@ -31,7 +30,12 @@
     <string name="safe_zone_message">You are in a safe area</string>
     <string name="danger_mode_active_message">Danger mode is enabled</string>
 
+    <!-- Search Bar Strings -->
+    <string name="search_bar_search">Search</string>
+    <string name="search_bar_icon">Search Icon</string>
+
     <!-- Danger Mode Preferences -->
+    <string name="danger_mode_preferences_title">Danger Mode Preferences</string>
     <string name="danger_mode_alert_mode_title">Alert Mode automatic</string>
     <string name="danger_mode_alert_mode_description">If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions</string>
 
@@ -42,6 +46,7 @@
     <string name="danger_mode_automatic_sms_title">Automatic SMS</string>
     <string name="danger_mode_automatic_sms_description">If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions</string>
 
-    <string name="danger_mode_error_no_activity">Error: Screen cannot function without an Activity context.</string>
+    <!-- No activity fallback -->
+    <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
 
 </resources>
