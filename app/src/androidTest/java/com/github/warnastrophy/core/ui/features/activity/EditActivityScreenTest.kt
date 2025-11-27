@@ -5,7 +5,7 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
-import com.github.warnastrophy.core.ui.contact.UITest
+import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityScreen
 import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityViewModel
