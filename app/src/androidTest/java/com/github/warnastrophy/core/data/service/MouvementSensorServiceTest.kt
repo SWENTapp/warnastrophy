@@ -48,7 +48,7 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
     delay(100)
     timeSource += 100.milliseconds
-    awaitCondition { service.movementState.value !is MovementState.Safe }
+    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
     service.setSafe()
     assertTrue(service.movementState.value is MovementState.Safe)
   }
@@ -61,7 +61,9 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
     assertTrue(service.updateConfig(newConfig).isSuccess)
     // Force into an unsafe state with new threshold
     dataFlow.emit(createMotionData(acceleration = Vector3D(16.0, 0.0, 0.0)))
-    awaitCondition { service.movementState.value !is MovementState.Safe }
+    delay(100)
+    timeSource += 100.milliseconds
+    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
     assertTrue(service.updateConfig(newConfig.copy(preDangerThreshold = 10.0)).isFailure)
     assertEquals(newConfig, service.config)
   }
@@ -69,13 +71,13 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
   @Test
   fun danger_state_detected() = runTest {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
-    awaitCondition { service.movementState.value !is MovementState.Safe }
+    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
     for (i in 1..100) {
       dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
     }
-    awaitCondition { service.movementState.value is MovementState.Danger }
+    composeTestRule.waitUntil { service.movementState.value is MovementState.Danger }
     assertTrue(service.movementState.value is MovementState.Danger)
   }
 
@@ -83,12 +85,12 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
   fun multiple_collisions_detect_danger() = runTest {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
     dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
-    awaitCondition { service.movementState.value is MovementState.PreDangerAcc }
+    composeTestRule.waitUntil { service.movementState.value is MovementState.PreDangerAcc }
     for (i in 1..5) {
       dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
-      awaitCondition { service.movementState.value is MovementState.PreDanger }
+      composeTestRule.waitUntil { service.movementState.value is MovementState.PreDanger }
       dataFlow.emit(createMotionData(acceleration = Vector3D(0.0, 0.0, 0.0)))
     }
 
@@ -97,19 +99,19 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
     }
-    awaitCondition { service.movementState.value is MovementState.Danger }
+    composeTestRule.waitUntil { service.movementState.value is MovementState.Danger }
   }
 
   @Test
   fun recovers_to_safe_state() = runTest {
     dataFlow.emit(createMotionData(acceleration = Vector3D(100.0, 0.0, 0.0)))
-    awaitCondition { service.movementState.value !is MovementState.Safe }
+    composeTestRule.waitUntil { service.movementState.value !is MovementState.Safe }
     for (i in 1..20) {
       dataFlow.emit(createMotionData(acceleration = Vector3D(1.0, 0.0, 0.0)))
       timeSource += service.config.preDangerTimeout / 10
       delay(service.config.preDangerTimeout.inWholeMilliseconds / 10)
     }
-    awaitCondition { service.movementState.value is MovementState.Safe }
+    composeTestRule.waitUntil { service.movementState.value is MovementState.Safe }
   }
 
   @Test
