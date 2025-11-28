@@ -79,3 +79,24 @@ fun formatDate(date: String): String {
     ""
   }
 }
+
+/**
+ * Checks if the current list is a subsequence of another list.
+ *
+ * A list is considered a subsequence of another if all its elements appear in the same order within
+ * the other list, but not necessarily consecutively.
+ *
+ * @param other The list to check against.
+ * @return `true` if the current list is a subsequence of the other list, `false` otherwise.
+ */
+fun <T> List<T>.isSubsequenceOf(other: List<T>): Boolean {
+  if (this.isEmpty()) return true
+  var i = 0
+  for (item in other) {
+    if (item == this[i]) {
+      i++
+      if (i == this.size) return true
+    }
+  }
+  return false
+}

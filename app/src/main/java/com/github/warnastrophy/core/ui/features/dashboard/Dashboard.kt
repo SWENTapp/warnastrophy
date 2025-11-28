@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,7 @@ fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
     onHealthCardClick: () -> Unit = {},
     onEmergencyContactsClick: () -> Unit = {},
+    onManageActivitiesClick: () -> Unit = {},
     hazardsService: HazardsDataService
 ) {
   Scaffold(containerColor = MaterialTheme.extendedColors.backgroundOffWhite) { innerPadding ->
@@ -75,7 +77,9 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            DangerModeCard(modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION))
+            DangerModeCard(
+                modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION),
+                onManageActivitiesClick = onManageActivitiesClick)
 
             Spacer(modifier = Modifier.height(80.dp))
           }

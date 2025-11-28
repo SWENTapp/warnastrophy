@@ -7,68 +7,36 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.test.espresso.IdlingRegistry
-import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.service.DangerModeService
-import com.github.warnastrophy.core.data.service.GeocodeService
-import com.github.warnastrophy.core.data.service.MockNominatimService
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.data.service.StateManagerService.dangerModeService
-import com.github.warnastrophy.core.permissions.PermissionResult
-import com.github.warnastrophy.core.ui.features.map.MapViewModel
-import com.github.warnastrophy.core.ui.map.GpsServiceMock
-import com.github.warnastrophy.core.ui.map.HazardServiceMock
-import com.github.warnastrophy.core.ui.map.MockPermissionManager
+import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import com.github.warnastrophy.core.util.AnimationIdlingResource
-import com.google.android.gms.maps.MapsInitializer
-import org.junit.After
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Before
 import org.junit.Test
 
 class EndToEndM1Test : EndToEndUtils() {
-  private lateinit var gpsService: GpsServiceMock
-  private lateinit var hazardService: HazardServiceMock
-  private lateinit var permissionManager: MockPermissionManager
-  private lateinit var viewModel: MapViewModel
-  private lateinit var nominatimRepository: GeocodeService
-  private val animationIdlingResource = AnimationIdlingResource()
 
-  @Before
+    private lateinit var themeViewModel: ThemeViewModel
+
+
+    @Before
   override fun setUp() {
     super.setUp()
-    gpsService = GpsServiceMock()
-    hazardService = HazardServiceMock()
-    permissionManager = MockPermissionManager()
-    nominatimRepository = MockNominatimService()
-    StateManagerService.init(composeTestRule.activity.applicationContext)
-    StateManagerService.permissionManager =
-        MockPermissionManager(currentResult = PermissionResult.Granted)
-    dangerModeService = DangerModeService(permissionManager = StateManagerService.permissionManager)
-
-    viewModel = MapViewModel(gpsService, hazardService, permissionManager, nominatimRepository)
-    IdlingRegistry.getInstance().register(animationIdlingResource)
-
     val context = composeTestRule.activity.applicationContext
-    MapsInitializer.initialize(context)
+      // Mock the ThemeViewModel
+      themeViewModel = mockk(relaxed = true)
 
-    ContactRepositoryProvider.resetForTests()
-    ContactRepositoryProvider.initLocal(context)
-    repository = ContactRepositoryProvider.repository
-    HealthCardRepositoryProvider.useLocalEncrypted(context)
-    StateManagerService.initForTests(
-        gpsService = gpsService,
-        hazardsService = hazardService,
-        permissionManager = permissionManager,
-        dangerModeService = dangerModeService,
-    )
-  }
+      // Mock the `isDarkMode` to simulate a theme state
+      every { themeViewModel.isDarkMode } returns mockk(relaxed = true)
 
-  @After
-  override fun tearDown() {
-    super.tearDown()
-    ContactRepositoryProvider.resetForTests()
+      ContactRepositoryProvider.initLocal(context)
+    ActivityRepositoryProvider.init()
+    contactRepository = ContactRepositoryProvider.repository
+    activityRepository = ActivityRepositoryProvider.repository
+    StateManagerService.init(context)
   }
 
   @Test
@@ -142,6 +110,7 @@ class EndToEndM1Test : EndToEndUtils() {
   @Test
   fun navigate_to_contact_list_and_back_to_Dashboard() {
     setContent()
+
     // Go to Profile
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule

@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.data.service
 
 import android.content.Context
 import com.github.warnastrophy.core.data.provider.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.di.userPrefsDataStore
@@ -9,6 +10,7 @@ import com.github.warnastrophy.core.domain.usecase.HazardCheckerService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,13 +21,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 object StateManagerService {
+  private var initialized = false
   private val serviceScope = CoroutineScope(Dispatchers.IO)
   private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
 
   lateinit var gpsService: PositionService
   lateinit var hazardsService: HazardsDataService
   lateinit var permissionManager: PermissionManagerInterface
+  lateinit var errorHandler: ErrorHandler
   lateinit var dangerModeService: DangerModeService
+  lateinit var movementService: MovementService
   lateinit var userPreferencesRepository: UserPreferencesRepository
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
@@ -55,33 +60,44 @@ object StateManagerService {
   }
 
   fun init(context: Context) {
+    if (initialized) return
+
     userPreferencesRepository = UserPreferencesRepositoryLocal(context.userPrefsDataStore)
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
-    gpsService = GpsService(locationClient)
 
-    hazardsService =
-        HazardsService(
-            HazardRepositoryProvider.repository,
-            gpsService,
-        )
+    errorHandler = ErrorHandler()
+
+    gpsService = GpsService(locationClient, errorHandler)
+
+    hazardsService = HazardsService(HazardRepositoryProvider.repository, gpsService, errorHandler)
 
     permissionManager = PermissionManager(context)
 
     dangerModeService = DangerModeService(permissionManager = permissionManager)
 
+    movementService = MovementService(MovementSensorRepository(context))
+    movementService.startListening()
+
     startHazardSubscription()
+
+    initialized = true
   }
 
   /** Overload for tests or DI where services are provided directly. */
   fun init(
       gpsService: PositionService,
       hazardsService: HazardsDataService,
-      dangerModeService: DangerModeService
+      dangerModeService: DangerModeService,
+      movementService: MovementService? = null,
+      errorHandler: ErrorHandler = ErrorHandler()
   ) {
     this.gpsService = gpsService
     this.hazardsService = hazardsService
     this.dangerModeService = dangerModeService
-
+    this.errorHandler = errorHandler
+    if (movementService != null) {
+      this.movementService = movementService
+    }
     startHazardSubscription()
   }
 

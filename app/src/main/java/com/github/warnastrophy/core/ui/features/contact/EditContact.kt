@@ -25,12 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 object EditContactTestTags {
-  const val INPUT_FULL_NAME = "inputFullName"
-  const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
-  const val ERROR_MESSAGE = "errorMessage"
-  const val INPUT_RELATIONSHIP = "inputRelationship"
-  const val SAVE_BUTTON = "contactSave"
-  const val DELETE_BUTTON = "contactDelete"
+    const val INPUT_FULL_NAME = "inputFullName"
+    const val INPUT_PHONE_NUMBER = "inputPhoneNumber"
+    const val ERROR_MESSAGE = "errorMessage"
+    const val INPUT_RELATIONSHIP = "inputRelationship"
+    const val SAVE_BUTTON = "contactSave"
+    const val DELETE_BUTTON = "contactDelete"
 }
 
 /**
@@ -53,29 +53,29 @@ fun EditContactScreen(
     editContactViewModel: EditContactViewModel = viewModel(),
     onDone: () -> Unit = {},
 ) {
-  LaunchedEffect(contactID) { editContactViewModel.loadContact(contactID) }
+    LaunchedEffect(contactID) { editContactViewModel.loadContact(contactID) }
 
-  val contactUIState by editContactViewModel.uiState.collectAsState()
-  val errorMsg = contactUIState.errorMsg
-  val isSaveButtonValid = contactUIState.isValid
+    val contactUIState by editContactViewModel.uiState.collectAsState()
+    val errorMsg = contactUIState.errorMsg
+    val isSaveButtonValid = contactUIState.isValid
 
-  val context = LocalContext.current
+    val context = LocalContext.current
 
-  LaunchedEffect(errorMsg) {
-    if (errorMsg != null) {
-      Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-      editContactViewModel.clearErrorMsg()
+    LaunchedEffect(errorMsg) {
+        if (errorMsg != null) {
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+            editContactViewModel.clearErrorMsg()
+        }
     }
-  }
 
-  LaunchedEffect(Unit) {
-    // 1. Collect the flow of navigation events
-    editContactViewModel.navigateBack.collect { onDone() }
-  }
+    LaunchedEffect(Unit) {
+        // 1. Collect the flow of navigation events
+        editContactViewModel.navigateBack.collect { onDone() }
+    }
 
-  Column(
-      modifier = Modifier.fillMaxSize().padding(16.dp),
-      horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Edit Contact Form",
             style = MaterialTheme.typography.headlineMedium,
@@ -88,9 +88,9 @@ fun EditContactScreen(
             label = { Text("Full Name") },
             isError = contactUIState.invalidFullNameMsg != null,
             supportingText = {
-              contactUIState.invalidFullNameMsg?.let {
-                Text(it, modifier = Modifier.testTag(EditContactTestTags.ERROR_MESSAGE))
-              }
+                contactUIState.invalidFullNameMsg?.let {
+                    Text(it, modifier = Modifier.testTag(EditContactTestTags.ERROR_MESSAGE))
+                }
             },
             modifier =
                 Modifier.fillMaxWidth()
@@ -106,9 +106,9 @@ fun EditContactScreen(
             // keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             isError = contactUIState.invalidPhoneNumberMsg != null,
             supportingText = {
-              contactUIState.invalidPhoneNumberMsg?.let {
-                Text(it, modifier = Modifier.testTag(EditContactTestTags.ERROR_MESSAGE))
-              }
+                contactUIState.invalidPhoneNumberMsg?.let {
+                    Text(it, modifier = Modifier.testTag(EditContactTestTags.ERROR_MESSAGE))
+                }
             },
             modifier =
                 Modifier.fillMaxWidth()
@@ -122,9 +122,9 @@ fun EditContactScreen(
             label = { Text("Relationship (e.g., family, friend, doctor, etc.)") },
             isError = contactUIState.invalidRelationshipMsg != null,
             supportingText = {
-              contactUIState.invalidRelationshipMsg?.let {
-                Text(it, modifier = Modifier.testTag(EditContactTestTags.ERROR_MESSAGE))
-              }
+                contactUIState.invalidRelationshipMsg?.let {
+                    Text(it, modifier = Modifier.testTag(EditContactTestTags.ERROR_MESSAGE))
+                }
             },
             modifier =
                 Modifier.fillMaxWidth()
@@ -137,8 +137,8 @@ fun EditContactScreen(
             enabled = isSaveButtonValid,
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.SAVE_BUTTON)) {
-              Text("Save Contact")
-            }
+            Text("Save Contact")
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -152,7 +152,7 @@ fun EditContactScreen(
                     disabledContentColor = Color.DarkGray),
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.DELETE_BUTTON)) {
-              Text("Delete", color = Color.White)
-            }
-      }
+            Text("Delete", color = Color.White)
+        }
+    }
 }

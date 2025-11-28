@@ -8,6 +8,9 @@
     <string name="add_contact_screen_title">Add Contact</string>
     <string name="contact_list_title">Contact List</string>
     <string name="edit_contact_screen_title">Edit Contact</string>
+    <string name="edit_activity_screen_title">Edit Activity</string>
+    <string name="add_activity_screen_title">Add Activity</string>
+    <string name="activity_list_title">Activities List</string>
     <string name="health_card_screen_title">Emergency Card</string>
     <string name="sign_in_title">Sign In</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
@@ -45,5 +48,26 @@
 
     <!-- No activity fallback -->
     <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
+    
+    <!-- Theme management strings -->
+    <string name="theme_string">Theme</string>
+    <string name="dark_string">Dark</string>
+    <string name="light_string">Light</string>
+    <string name="theme_viewmodel_error">No ThemeViewModel provided</string>
+
+    <!-- Error Messages -->
+    <string name="no_errors">No errors</string>
+
+    <string name="error_location_not_granted">Location permission not granted</string>
+    <string name="error_location_update_failed">Location update failed</string>
+    <string name="error_foreground_start_failed">Failed to start foreground GPS service</string>
+    <string name="error_location_unavailable">No location available</string>
+
+    <string name="error_hazard_fetch_failed">Failed to fetch hazard data</string>
+
+    <!-- Error suggestions -->
+    <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
+    <string name="error_suggestion_check_internet">Please check your internet connection.</string>
+    <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
 
 </resources>

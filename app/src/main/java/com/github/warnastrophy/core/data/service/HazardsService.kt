@@ -5,6 +5,7 @@ import com.github.warnastrophy.core.data.repository.HazardsDataSource
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.AppConfig
 import kotlin.time.TimeSource
@@ -88,14 +89,13 @@ class HazardsService(
                   _fetcherState.value.copy(hazards = currentHazards.toList(), isLoading = false)
             }
           }
-          Log.i("HazardsService", "Fetched ${_fetcherState.value.hazards.size} hazards")
+          errorHandler.clearErrorFromScreen(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
+
           delay(AppConfig.gdacsFetchDelay - lastFetch.elapsedNow())
         } catch (e: Exception) {
-          Log.i("HazardsService", "Error fetching hazards", e)
-          errorHandler.addError(
-              "Error fetching hazards: ${e.message ?: "Unknown error"}", Screen.Map)
-          _fetcherState.value =
-              _fetcherState.value.copy(errorMsg = "Error fetching hazards", isLoading = false)
+          Log.e("HazardsService", "Error fetching hazards", e)
+          errorHandler.addErrorToScreen(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
+          _fetcherState.value = _fetcherState.value.copy(isLoading = false)
         }
       }
     }
@@ -128,13 +128,8 @@ class HazardsService(
  *
  * @property hazards List of currently fetched hazards.
  * @property isLoading Indicates whether a fetch operation is in progress.
- * @property errorMsg Optional error message if an error occurred during fetching.
  */
-data class FetcherState(
-    val hazards: List<Hazard> = emptyList(),
-    val isLoading: Boolean = false,
-    val errorMsg: String? = null
-)
+data class FetcherState(val hazards: List<Hazard> = emptyList(), val isLoading: Boolean = false)
 
 class HazardsServiceFactory(
     private val repository: HazardsDataSource,

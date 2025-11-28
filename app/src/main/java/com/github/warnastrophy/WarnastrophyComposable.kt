@@ -20,7 +20,6 @@ import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.NominatimService
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
@@ -29,6 +28,12 @@ import com.github.warnastrophy.core.ui.features.contact.ContactListViewModel
 import com.github.warnastrophy.core.ui.features.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.features.contact.EditContactViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
+import com.github.warnastrophy.core.ui.features.dashboard.activity.ActivityListScreen
+import com.github.warnastrophy.core.ui.features.dashboard.activity.ActivityListViewModel
+import com.github.warnastrophy.core.ui.features.dashboard.activity.AddActivityScreen
+import com.github.warnastrophy.core.ui.features.dashboard.activity.AddActivityViewModel
+import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityScreen
+import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityViewModel
 import com.github.warnastrophy.core.ui.features.health.HealthCardScreen
 import com.github.warnastrophy.core.ui.features.map.MapScreen
 import com.github.warnastrophy.core.ui.features.map.MapViewModel
@@ -44,7 +49,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen.Profile
 import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.util.AppConfig
-import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 
 /** Object containing test tags for the WarnastrophyApp. */
@@ -96,14 +100,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
         else -> Dashboard
       }
 
-  // val startDestination = Dashboard.route
   val startDestination =
       if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
 
-  val locationClient = LocationServices.getFusedLocationProviderClient(context)
-
-  val errorHandler = ErrorHandler()
-
+  val errorHandler = remember { StateManagerService.errorHandler }
   val gpsService = remember { StateManagerService.gpsService }
   val hazardsService = remember { StateManagerService.hazardsService }
   val permissionManager = remember { StateManagerService.permissionManager }
@@ -111,6 +111,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
   val contactListViewModel = ContactListViewModel(userId = userId)
   val editContactViewModel = EditContactViewModel(userId = userId)
   val addContactViewModel = AddContactViewModel(userId = userId)
+
+  val addActivityViewModel = AddActivityViewModel(userId = userId)
+  val editActivityViewModel = EditActivityViewModel(userId = userId)
+  val activitiesListViewModel = ActivityListViewModel(userId = userId)
 
   val nominatimRepository = NominatimRepository()
   val nominatimService = NominatimService(nominatimRepository)
@@ -144,7 +148,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                           ?: MapScreen(viewModel = mapViewModel, isPreview = true)
                     },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
-                    onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) })
+                    onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
+                    onManageActivitiesClick = {
+                      navigationActions.navigateTo(Screen.ActivitiesList)
+                    })
               }
               composable(Map.route) {
                 mockMapScreen?.invoke() ?: MapScreen(viewModel = mapViewModel)
@@ -170,6 +177,18 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                     addContactViewModel = addContactViewModel,
                     onDone = { navigationActions.goBack() })
               }
+              composable(Screen.ActivitiesList.route) {
+                ActivityListScreen(
+                    activityListViewModel = activitiesListViewModel,
+                    onActivityClick = { navigationActions.navigateTo(Screen.EditActivity(it.id)) },
+                    onAddButtonClick = { navigationActions.navigateTo(Screen.AddActivity) })
+              }
+
+              composable(Screen.AddActivity.route) {
+                AddActivityScreen(
+                    addActivityViewModel = addActivityViewModel,
+                    onDone = { navigationActions.goBack() })
+              }
               composable(Screen.HealthCard.route) {
                 HealthCardScreen(userId = userId, onDone = { navController.popBackStack() })
               }
@@ -184,6 +203,18 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                 }
                     ?: run {
                       Toast.makeText(context, "Contact ID is null", Toast.LENGTH_SHORT).show()
+                    }
+              }
+              composable(route = Screen.EditActivity.route) { navBackStackEntry ->
+                val id = navBackStackEntry.arguments?.getString("id")
+                id?.let {
+                  EditActivityScreen(
+                      editActivityViewModel = editActivityViewModel,
+                      onDone = { navigationActions.goBack() },
+                      activityID = id)
+                }
+                    ?: run {
+                      Toast.makeText(context, "Activity ID is null", Toast.LENGTH_SHORT).show()
                     }
               }
               composable(Screen.DangerModePreferences.route) {
