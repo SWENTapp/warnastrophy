@@ -36,6 +36,7 @@ fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
     onHealthCardClick: () -> Unit = {},
     onEmergencyContactsClick: () -> Unit = {},
+    onManageActivitiesClick: () -> Unit = {},
     hazardsService: HazardsDataService
 ) {
   Scaffold(containerColor = MaterialTheme.extendedColors.backgroundOffWhite) { innerPadding ->
@@ -76,7 +77,9 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            DangerModeCard(modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION))
+            DangerModeCard(
+                modifier = Modifier.testTag(DashboardScreenTestTags.DANGER_MODE_SECTION),
+                onManageActivitiesClick = onManageActivitiesClick)
 
             Spacer(modifier = Modifier.height(80.dp))
           }

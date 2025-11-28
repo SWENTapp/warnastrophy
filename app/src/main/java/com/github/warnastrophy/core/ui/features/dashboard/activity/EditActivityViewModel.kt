@@ -22,13 +22,13 @@ import kotlinx.coroutines.launch
  *
  * @property activityName The current text input for the activity's name.
  * @property errorMsg A general error message to display, usually for repository/network failures.
- * @property invalidActivityName A specific error message for input validation failure on the
+ * @property invalidActivityNameMsg A specific error message for input validation failure on the
  *   activity name field.
  */
 data class EditActivityUIState(
     val activityName: String = "",
     val errorMsg: String? = null,
-    val invalidActivityName: String? = null
+    val invalidActivityNameMsg: String? = null
 ) {
   val isValid: Boolean
     get() = activityName.isNotBlank()
@@ -138,6 +138,7 @@ class EditActivityViewModel(
     _uiState.value =
         _uiState.value.copy(
             activityName = activityName,
-            invalidActivityName = if (activityName.isBlank()) "Full name cannot be empty" else null)
+            invalidActivityNameMsg =
+                if (activityName.isBlank()) "Full name cannot be empty" else null)
   }
 }

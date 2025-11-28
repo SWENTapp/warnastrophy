@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
@@ -20,9 +21,9 @@ class EditContactScreenTest : UITest() {
   @Before
   override fun setUp() {
     super.setUp()
-    repository = MockContactRepository()
+    contactRepository = MockContactRepository()
     val userId = AppConfig.defaultUserId
-    val mockViewModel = EditContactViewModel(repository, userId)
+    val mockViewModel = EditContactViewModel(contactRepository, userId)
     composeTestRule.setContent { EditContactScreen(editContactViewModel = mockViewModel) }
   }
 
@@ -109,8 +110,8 @@ class EditContactScreenTest : UITest() {
     composeTestRule.enterEditFullName(" ")
     composeTestRule.enterEditPhoneNumber("+41654186477")
     composeTestRule.enterEditRelationship(contact_1.relationship)
-    composeTestRule.clickOnSaveContact(testTag = EditContactTestTags.SAVE_BUTTON)
-    composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
+    composeTestRule.clickOnSaveButton(testTag = EditContactTestTags.SAVE_BUTTON)
+    composeTestRule.onNodeWithTag(EditContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -118,8 +119,8 @@ class EditContactScreenTest : UITest() {
     composeTestRule.enterEditFullName(contact_1.fullName)
     composeTestRule.enterEditPhoneNumber("+41654186477")
     composeTestRule.enterEditRelationship(" ")
-    composeTestRule.clickOnSaveContact(testTag = EditContactTestTags.SAVE_BUTTON)
-    composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
+    composeTestRule.clickOnSaveButton(testTag = EditContactTestTags.SAVE_BUTTON)
+    composeTestRule.onNodeWithTag(EditContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 
   @Test
@@ -127,7 +128,7 @@ class EditContactScreenTest : UITest() {
     composeTestRule.enterEditFullName(contact_1.fullName)
     composeTestRule.enterEditPhoneNumber(contact_1.phoneNumber)
     composeTestRule.enterEditRelationship(contact_1.relationship)
-    composeTestRule.clickOnSaveContact(testTag = EditContactTestTags.SAVE_BUTTON)
+    composeTestRule.clickOnSaveButton(testTag = EditContactTestTags.SAVE_BUTTON)
     composeTestRule.onNodeWithTag(AddContactTestTags.SAVE_BUTTON).assertIsDisplayed()
   }
 }
