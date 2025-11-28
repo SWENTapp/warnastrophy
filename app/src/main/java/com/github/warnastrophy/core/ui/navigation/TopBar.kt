@@ -9,6 +9,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,9 +36,13 @@ fun TopBar(
 
   val ctx = LocalContext.current
   val errorState = errorHandler.state.collectAsState()
-  val hasErrors = errorState.value.errors.isNotEmpty()
+  val errors = errorState.value.getScreenErrors(currentScreen)
+  val hasErrors = errors.isNotEmpty()
+  val errorMessages = errors.joinToString(separator = "\n") { ctx.getString(it.type.message) }
 
   var expanded by remember { mutableStateOf(false) }
+
+  LaunchedEffect(hasErrors) { if (hasErrors) expanded = true }
 
   TopAppBar(
       title = {
@@ -56,12 +61,9 @@ fun TopBar(
             }
 
         ErrorScreen(
-            message = errorState.value.getScreenErrors(currentScreen),
+            message = errorMessages,
             expanded = expanded,
-            onDismiss = {
-              expanded = false
-              // errorHandler.clearAll()
-            },
+            onDismiss = { expanded = false },
             errors = errorState.value.errors)
       },
       navigationIcon = {

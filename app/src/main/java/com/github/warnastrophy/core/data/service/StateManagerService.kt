@@ -10,6 +10,7 @@ import com.github.warnastrophy.core.domain.usecase.HazardCheckerService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +28,7 @@ object StateManagerService {
   lateinit var gpsService: PositionService
   lateinit var hazardsService: HazardsDataService
   lateinit var permissionManager: PermissionManagerInterface
+  lateinit var errorHandler: ErrorHandler
   lateinit var dangerModeService: DangerModeService
   lateinit var movementService: MovementService
   lateinit var userPreferencesRepository: UserPreferencesRepository
@@ -62,13 +64,12 @@ object StateManagerService {
 
     userPreferencesRepository = UserPreferencesRepositoryLocal(context.userPrefsDataStore)
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
-    gpsService = GpsService(locationClient)
 
-    hazardsService =
-        HazardsService(
-            HazardRepositoryProvider.repository,
-            gpsService,
-        )
+    errorHandler = ErrorHandler()
+
+    gpsService = GpsService(locationClient, errorHandler)
+
+    hazardsService = HazardsService(HazardRepositoryProvider.repository, gpsService, errorHandler)
 
     permissionManager = PermissionManager(context)
 
@@ -88,10 +89,12 @@ object StateManagerService {
       hazardsService: HazardsDataService,
       dangerModeService: DangerModeService,
       movementService: MovementService? = null,
+      errorHandler: ErrorHandler = ErrorHandler()
   ) {
     this.gpsService = gpsService
     this.hazardsService = hazardsService
     this.dangerModeService = dangerModeService
+    this.errorHandler = errorHandler
     if (movementService != null) {
       this.movementService = movementService
     }

@@ -20,7 +20,6 @@ import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.NominatimService
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
@@ -101,12 +100,10 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
         else -> Dashboard
       }
 
-  // val startDestination = Dashboard.route
   val startDestination =
       if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
 
-  val errorHandler = ErrorHandler()
-
+  val errorHandler = remember { StateManagerService.errorHandler }
   val gpsService = remember { StateManagerService.gpsService }
   val hazardsService = remember { StateManagerService.hazardsService }
   val permissionManager = remember { StateManagerService.permissionManager }
@@ -180,7 +177,6 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                     addContactViewModel = addContactViewModel,
                     onDone = { navigationActions.goBack() })
               }
-
               composable(Screen.ActivitiesList.route) {
                 ActivityListScreen(
                     activityListViewModel = activitiesListViewModel,

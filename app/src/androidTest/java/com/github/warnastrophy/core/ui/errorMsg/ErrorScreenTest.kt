@@ -1,11 +1,14 @@
 package com.github.warnastrophy.core.ui.errorMsg
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.common.Error
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.features.error.ErrorScreen
 import com.github.warnastrophy.core.ui.features.error.ErrorScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
@@ -18,16 +21,20 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
 
   @Test
   fun errorScreen_displaysErrorMessage() {
-    val testErrorMessage = "Test error message"
-    val errors = listOf(Error(testErrorMessage, Screen.Dashboard))
+    val errors = listOf(Error(ErrorType.LOCATION_ERROR, listOf(Screen.Dashboard)))
     composeTestRule.setContent {
-      ErrorScreen(message = testErrorMessage, onDismiss = {}, expanded = true, errors)
+      ErrorScreen(
+          message = composeTestRule.activity.getString(ErrorType.LOCATION_ERROR.message),
+          onDismiss = {},
+          expanded = true,
+          errors)
     }
 
     composeTestRule
-        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE, useUnmergedTree = true)
-        .assertExists()
-        .assertTextEquals(testErrorMessage)
+        .onNodeWithTag(ErrorScreenTestTags.ERROR_SUGGESTION_TEXT, useUnmergedTree = true)
+        .assertIsDisplayed()
+        .assertTextEquals(
+            composeTestRule.activity.getString(R.string.error_suggestion_enable_location))
   }
 
   @Test
@@ -42,7 +49,7 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.onNodeWithText("No errors").assertExists()
 
-    composeTestRule.onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(ErrorScreenTestTags.ERROR_SUGGESTION).assertDoesNotExist()
   }
 
   @Test
@@ -52,17 +59,17 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
       TopBar(currentScreen = Screen.Dashboard, errorHandler = errorHandler)
     }
 
-    val testErrorMessage = "Handler error message"
-    errorHandler.addError(testErrorMessage, Screen.Dashboard)
+    errorHandler.addErrorToScreen(ErrorType.LOCATION_ERROR, Screen.Dashboard)
 
     composeTestRule
         .onNodeWithTag(NavigationTestTags.TOP_BAR_ERROR_ICON, useUnmergedTree = true)
-        .assertExists()
+        .assertIsDisplayed()
         .performClick()
 
     composeTestRule
-        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE, useUnmergedTree = true)
-        .assertExists()
-        .assertTextEquals(testErrorMessage)
+        .onNodeWithTag(ErrorScreenTestTags.ERROR_SUGGESTION_TEXT, useUnmergedTree = true)
+        .assertIsDisplayed()
+        .assertTextEquals(
+            composeTestRule.activity.getString(R.string.error_suggestion_enable_location))
   }
 }

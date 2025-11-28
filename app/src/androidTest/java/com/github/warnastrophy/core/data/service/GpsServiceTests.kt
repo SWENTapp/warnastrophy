@@ -3,6 +3,10 @@ package com.github.warnastrophy.core.data.service
 import android.content.Context
 import android.location.Location
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
+import com.github.warnastrophy.core.ui.common.getScreenErrors
+import com.github.warnastrophy.core.ui.navigation.Screen
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -32,6 +36,7 @@ import org.mockito.kotlin.whenever
 class GpsServiceTests {
   private lateinit var context: Context
   private lateinit var mockClient: FusedLocationProviderClient
+  private lateinit var errorHandler: ErrorHandler
   private lateinit var gpsService: GpsService
   private val testDispatcher = StandardTestDispatcher()
 
@@ -39,8 +44,9 @@ class GpsServiceTests {
   fun setup() {
     Dispatchers.setMain(testDispatcher)
     context = ApplicationProvider.getApplicationContext()
-    mockClient = Mockito.mock<FusedLocationProviderClient>()
-    gpsService = GpsService(locationClient = mockClient)
+    errorHandler = ErrorHandler()
+    mockClient = Mockito.mock()
+    gpsService = GpsService(locationClient = mockClient, errorHandler = errorHandler)
   }
 
   @After
@@ -70,7 +76,9 @@ class GpsServiceTests {
         LatLng(fake_gps_location.latitude, fake_gps_location.longitude), state.position)
     Assert.assertFalse(state.isLoading)
     Assert.assertTrue(state.result is GpsResult.Success)
-    Assert.assertNull(state.errorMessage)
+    // No errors should be present for the Map screen
+    val errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    Assert.assertTrue(errors.isEmpty())
   }
 
   @Test
@@ -85,8 +93,10 @@ class GpsServiceTests {
     Thread.sleep(3000)
     val state = gpsService.positionState.value
     Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Location error: ${e.message}", state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
+
+    val errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    Assert.assertTrue(errors.any { it.type == ErrorType.LOCATION_UPDATE_ERROR })
   }
 
   @Test
@@ -120,7 +130,9 @@ class GpsServiceTests {
     val finalState = gpsService.positionState.value
     TestCase.assertEquals(route.last(), finalState.position)
     TestCase.assertFalse(finalState.isLoading)
-    TestCase.assertNull(finalState.errorMessage)
+
+    val errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    Assert.assertTrue(errors.isEmpty())
   }
 
   @Test
@@ -142,7 +154,10 @@ class GpsServiceTests {
     // Vérifie l’état
     val state = gpsService.positionState.value
     TestCase.assertFalse(state.isLoading)
-    TestCase.assertEquals("No location fix available", state.errorMessage)
+
+    // Null location should not add errors for the Map screen
+    val errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    Assert.assertTrue(errors.isEmpty())
   }
 
   @Test
@@ -156,8 +171,10 @@ class GpsServiceTests {
     Thread.sleep(3000)
     val state = gpsService.positionState.value
     Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Location permission not granted!", state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
+
+    val errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    Assert.assertTrue(errors.any { it.type == ErrorType.LOCATION_NOT_GRANTED_ERROR })
   }
 
   @Test
@@ -172,15 +189,22 @@ class GpsServiceTests {
     advanceUntilIdle()
     Thread.sleep(3000)
     val state = gpsService.positionState.value
-    // Assert.assertFalse(state.isLoading)
-    Assert.assertEquals("Location update failed: ${e.message}", state.errorMessage)
     Assert.assertTrue(state.result is GpsResult.Failed)
+
+    val errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    Assert.assertTrue(errors.any { it.type == ErrorType.LOCATION_UPDATE_ERROR })
   }
 
   @Test
   fun testSetAndClearErrorMsg() {
+    // Add an error, then clear with clearErrorMsg and assert empty
+    errorHandler.addErrorToScreen(ErrorType.LOCATION_UPDATE_ERROR, Screen.Map)
+    var errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    Assert.assertTrue(errors.any { it.type == ErrorType.LOCATION_UPDATE_ERROR })
+
     gpsService.clearErrorMsg()
-    TestCase.assertNull(gpsService.positionState.value.errorMessage)
+    errors = errorHandler.state.value.getScreenErrors(Screen.Map)
+    TestCase.assertTrue(errors.isEmpty())
   }
 
   @Test
