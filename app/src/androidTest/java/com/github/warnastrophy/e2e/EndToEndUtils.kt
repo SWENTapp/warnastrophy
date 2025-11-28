@@ -23,8 +23,8 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.WarnastrophyComposable
-import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
+import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
 import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
