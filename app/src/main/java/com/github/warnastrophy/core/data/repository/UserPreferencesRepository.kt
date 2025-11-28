@@ -33,4 +33,11 @@ interface UserPreferencesRepository {
    * @param enabled `true` to enable automatic SMS, `false` to disable it.
    */
   suspend fun setAutomaticSms(enabled: Boolean)
+
+  /**
+   * Enables or disables dark mode for the app's UI.
+   *
+   * @param isDark `true` to enable dark mode, `false` to disable it (enabling light mode).
+   */
+  suspend fun setDarkMode(isDark: Boolean)
 }

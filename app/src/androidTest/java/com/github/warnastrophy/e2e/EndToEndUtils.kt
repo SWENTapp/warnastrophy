@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -17,14 +18,23 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.WarnastrophyComposable
+import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.ui.contact.UITest
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
 import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.features.health.HealthCardTestTags
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
+import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
+import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
+import com.github.warnastrophy.core.ui.features.profile.ThemeViewModelFactory
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
+import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -32,6 +42,11 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.junit.After
 import org.junit.Before
 
@@ -47,12 +62,43 @@ import org.junit.Before
  */
 abstract class EndToEndUtils : UITest() {
 
-  /** Sets the content of the test rule to the WarnastrophyApp, optionally using a fake map. */
+  private val testScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+  private var dataStoreInstance: DataStore<Preferences>? = null
+
+  /**
+   * Sets the content of the test rule to the [WarnastrophyApp], optionally using a fake map.
+   *
+   * This method initializes the app's UI for testing by setting up the [WarnastrophyComposable]. It
+   * can optionally replace the map with a fake component to improve test stability and speed. A
+   * fresh instance of [DataStore] is created for each test to ensure no conflicts between tests.
+   *
+   * @param useFakeMap If true, a fake map component is used in place of the real one.
+   */
   fun setContent(useFakeMap: Boolean = true) {
-    if (useFakeMap) {
-      composeTestRule.setContent { WarnastrophyComposable(mockMapScreen = { FakeMapComponent() }) }
-    } else {
-      composeTestRule.setContent { WarnastrophyComposable() }
+    composeTestRule.setContent {
+      val context = composeTestRule.activity.applicationContext
+
+      if (dataStoreInstance == null) {
+        val testDataStore =
+            PreferenceDataStoreFactory.create(
+                scope = testScope,
+                produceFile = { File(context.filesDir, "test_preferences.preferences_pb") })
+        dataStoreInstance = testDataStore
+      }
+
+      val repository = UserPreferencesRepositoryLocal(dataStoreInstance!!)
+      val themeViewModel: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(repository))
+
+      MainAppTheme {
+        CompositionLocalProvider(LocalThemeViewModel provides themeViewModel) {
+          if (useFakeMap) {
+            WarnastrophyComposable(mockMapScreen = { FakeMapComponent() })
+          } else {
+            WarnastrophyComposable()
+          }
+        }
+      }
     }
   }
 
@@ -66,6 +112,8 @@ abstract class EndToEndUtils : UITest() {
   override fun tearDown() {
     super.tearDown()
     unmockkAll()
+    testScope.cancel()
+    dataStoreInstance = null
   }
 
   /**
@@ -93,8 +141,12 @@ abstract class EndToEndUtils : UITest() {
   }
 
   /**
-   * Simulates a full user flow for adding a new contact. It navigates to the add contact screen,
-   * fills the form, saves it, and verifies the contact's creation.
+   * Simulates a full user flow for adding a new contact.
+   *
+   * This method navigates to the add contact screen, fills out the form with the provided name, and
+   * verifies that the contact appears in the contact list after being saved.
+   *
+   * @param name The name of the new contact to be added. Defaults to "Messi".
    */
   fun addNewContact(name: String = "Messi") {
     // Navigate to the add contact screen
@@ -114,9 +166,17 @@ abstract class EndToEndUtils : UITest() {
   }
 
   /**
-   * Simulates a full user flow for editing an existing contact. It finds a contact by its previous
-   * name, navigates to the edit screen, updates the details, and then either saves or cancels the
-   * changes. Finally, it verifies that the contact list reflects the outcome.
+   * Simulates a full user flow for editing an existing contact.
+   *
+   * This method navigates to a contact, fills the form with updated details, and verifies the
+   * changes are saved or canceled based on the provided `saveChanges` parameter.
+   *
+   * @param previousName The current name of the contact to be edited. Defaults to "Messi".
+   * @param newName The new name for the contact. Defaults to "Ronaldo".
+   * @param newRelationship The updated relationship value. Defaults to "Friend".
+   * @param newPhoneNumber The updated phone number. Defaults to "+41765365899".
+   * @param saveChanges If true, the changes are saved. If false, the changes are canceled. Defaults
+   *   to true.
    */
   fun editContact(
       previousName: String = "Messi",
@@ -152,9 +212,12 @@ abstract class EndToEndUtils : UITest() {
   }
 
   /**
-   * Simulates a full user flow for deleting a contact. It navigates to a specific contact, clicks
-   * the delete button, waits for the action to complete, and verifies that the contact no longer
-   * appears in the contact list.
+   * Simulates a full user flow for deleting a contact.
+   *
+   * This method navigates to a contact, clicks the delete button, waits for the action to complete,
+   * and verifies the contact is removed from the contact list.
+   *
+   * @param name The name of the contact to delete. Defaults to "Ronaldo".
    */
   fun deleteContact(name: String = "Ronaldo") {
     // Navigate to the contact and click on it
