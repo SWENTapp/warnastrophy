@@ -91,4 +91,66 @@ class ErrorHandlerTest {
     assertEquals(1, profileErrors.size)
     assertEquals(ErrorType.HAZARD_FETCHING_ERROR, profileErrors.first().type)
   }
+
+  @Test
+  fun addErrorToScreens_expandsExistingWhenNewIsSuperset() {
+    val handler = ErrorHandler()
+    handler.addErrorToScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map))
+    assertEquals(1, handler.state.value.errors.size)
+
+    handler.addErrorToScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map, Screen.Dashboard))
+    val errors = handler.state.value.errors
+    assertEquals(1, errors.size)
+    assertTrue(errors.first().screenTypes.containsAll(listOf(Screen.Map, Screen.Dashboard)))
+    assertEquals(2, errors.first().screenTypes.size)
+  }
+
+  @Test
+  fun addErrorToScreens_preventsDuplicateSubsequence() {
+    val handler = ErrorHandler()
+    handler.addErrorToScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map, Screen.Dashboard))
+    assertEquals(1, handler.state.value.errors.size)
+
+    // adding a subsequence (single screen) should not create a duplicate
+    handler.addErrorToScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map))
+    assertEquals(1, handler.state.value.errors.size)
+  }
+
+  @Test
+  fun clearErrorFromScreens_removesOnlySpecifiedScreens() {
+    val handler = ErrorHandler()
+    handler.addErrorToScreens(
+        ErrorType.LOCATION_ERROR, listOf(Screen.Map, Screen.Dashboard, Screen.Profile))
+
+    handler.clearErrorFromScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map, Screen.Dashboard))
+
+    val remaining = handler.state.value.errors
+    assertEquals(1, remaining.size)
+    assertTrue(remaining.first().screenTypes.size == 1)
+    assertTrue(remaining.first().screenTypes.contains(Screen.Profile))
+  }
+
+  @Test
+  fun clearErrorFromScreens_removesEntireErrorWhenEqual() {
+    val handler = ErrorHandler()
+    handler.addErrorToScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map, Screen.Dashboard))
+
+    handler.clearErrorFromScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map, Screen.Dashboard))
+
+    assertTrue(handler.state.value.errors.isEmpty())
+  }
+
+  @Test
+  fun clearScreenErrors_list_removesAnyContainingScreens() {
+    val handler = ErrorHandler()
+    handler.addErrorToScreens(ErrorType.LOCATION_ERROR, listOf(Screen.Map))
+    handler.addErrorToScreens(ErrorType.FOREGROUND_ERROR, listOf(Screen.Dashboard))
+    handler.addErrorToScreens(ErrorType.HAZARD_FETCHING_ERROR, listOf(Screen.Profile))
+
+    handler.clearScreenErrors(listOf(Screen.Map, Screen.Profile))
+
+    val remaining = handler.state.value.errors
+    assertEquals(1, remaining.size)
+    assertEquals(ErrorType.FOREGROUND_ERROR, remaining.first().type)
+  }
 }
