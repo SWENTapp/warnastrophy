@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 data class UserPreferences(
     val dangerModePreferences: DangerModePreferences,
     // Add more preferences like storeInFirebase: Boolean, darkMode: Boolean, etc
+    val themePreferences: Boolean
 )
 
 /**
@@ -38,6 +39,7 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val ALERT_MODE_KEY = booleanPreferencesKey("alert_mode")
     val INACTIVITY_DETECTION_KEY = booleanPreferencesKey("inactivity_detection")
     val AUTOMATIC_SMS_KEY = booleanPreferencesKey("automatic_sms")
+    val DARK_MODE_KEY = booleanPreferencesKey("theme_preferences")
 
     // Add more keys for other preferences
   }
@@ -65,6 +67,10 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     dataStore.edit { preferences -> preferences[AUTOMATIC_SMS_KEY] = enabled }
   }
 
+  override suspend fun setDarkMode(isDark: Boolean) {
+    dataStore.edit { preferences -> preferences[DARK_MODE_KEY] = isDark }
+  }
+
   /**
    * Maps a [Preferences] object from DataStore to a [UserPreferences] data class. This function
    * extracts individual preference values using their respective keys and constructs a structured
@@ -77,8 +83,9 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val alertMode = preferences[ALERT_MODE_KEY] ?: false
     val inactivityDetection = preferences[INACTIVITY_DETECTION_KEY] ?: false
     val automaticSms = preferences[AUTOMATIC_SMS_KEY] ?: false
+    val themePreferences = preferences[DARK_MODE_KEY] ?: false
 
     val dangerModePreferences = DangerModePreferences(alertMode, inactivityDetection, automaticSms)
-    return UserPreferences(dangerModePreferences)
+    return UserPreferences(dangerModePreferences, themePreferences)
   }
 }

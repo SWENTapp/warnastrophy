@@ -15,7 +15,8 @@ class MockUserPreferencesRepository : UserPreferencesRepository {
           UserPreferences(
               dangerModePreferences =
                   DangerModePreferences(
-                      alertMode = false, inactivityDetection = false, automaticSms = false)))
+                      alertMode = false, inactivityDetection = false, automaticSms = false),
+              themePreferences = false))
 
   override val getUserPreferences: StateFlow<UserPreferences> = _preferences.asStateFlow()
 
@@ -40,4 +41,6 @@ class MockUserPreferencesRepository : UserPreferencesRepository {
         current.copy(
             dangerModePreferences = current.dangerModePreferences.copy(automaticSms = enabled))
   }
+
+  override suspend fun setDarkMode(isDark: Boolean) {}
 }

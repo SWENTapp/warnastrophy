@@ -59,7 +59,8 @@ class DangerModePreferencesViewModelTest {
             flowOf(
                 UserPreferences(
                     DangerModePreferences(
-                        alertMode = false, inactivityDetection = false, automaticSms = false))))
+                        alertMode = false, inactivityDetection = false, automaticSms = false),
+                    themePreferences = false)))
   }
 
   @After
