@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.common.Error
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
@@ -30,9 +31,10 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule
-        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT, useUnmergedTree = true)
+        .onNodeWithTag(ErrorScreenTestTags.ERROR_SUGGESTION_TEXT, useUnmergedTree = true)
         .assertIsDisplayed()
-        .assertTextEquals(composeTestRule.activity.getString(ErrorType.LOCATION_ERROR.message))
+        .assertTextEquals(
+            composeTestRule.activity.getString(R.string.error_suggestion_enable_location))
   }
 
   @Test
@@ -47,7 +49,7 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.onNodeWithText("No errors").assertExists()
 
-    composeTestRule.onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(ErrorScreenTestTags.ERROR_SUGGESTION).assertDoesNotExist()
   }
 
   @Test
@@ -65,8 +67,9 @@ class ErrorScreenTest : BaseAndroidComposeTest() {
         .performClick()
 
     composeTestRule
-        .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT, useUnmergedTree = true)
+        .onNodeWithTag(ErrorScreenTestTags.ERROR_SUGGESTION_TEXT, useUnmergedTree = true)
         .assertIsDisplayed()
-        .assertTextEquals(composeTestRule.activity.getString(ErrorType.LOCATION_ERROR.message))
+        .assertTextEquals(
+            composeTestRule.activity.getString(R.string.error_suggestion_enable_location))
   }
 }

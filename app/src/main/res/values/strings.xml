@@ -56,5 +56,9 @@
 
     <string name="error_hazard_fetch_failed">Failed to fetch hazard data</string>
 
+    <!-- Error suggestions -->
+    <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
+    <string name="error_suggestion_check_internet">Please check your internet connection.</string>
+    <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
 
 </resources>
