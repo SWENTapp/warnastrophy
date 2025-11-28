@@ -12,8 +12,9 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.data.repository.MotionData
-import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
+import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
+import io.mockk.*
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -31,7 +32,7 @@ import org.junit.Before
 import org.junit.Test
 
 class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
-  private lateinit var repo: MouvementSensorRepository
+  private lateinit var repo: MovementSensorRepository
   private lateinit var context: Context
   private lateinit var sensorManager: SensorManager
   private lateinit var mockSensorManager: SensorManager
@@ -89,7 +90,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     val mockContext = mockk<Context>(relaxed = true)
     every { mockContext.getSystemService(Context.SENSOR_SERVICE) } returns mockSensorManager
 
-    repo = MouvementSensorRepository(mockContext)
+    repo = MovementSensorRepository(mockContext)
 
     return Pair(mockSensorManager, proxy)
   }
@@ -123,14 +124,14 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
   @Test
   fun repository_initialization_succeeds() {
-    repo = MouvementSensorRepository(context)
+    repo = MovementSensorRepository(context)
     assertNotNull(repo)
     assertNotNull(repo.data)
   }
 
   @Test
   fun data_flow_is_created_successfully() = runTest {
-    repo = MouvementSensorRepository(context)
+    repo = MovementSensorRepository(context)
     val flow = repo.data
     assertNotNull(flow)
   }
@@ -144,10 +145,10 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     delay(100)
 
     verify(exactly = 1) {
-      mockManager.registerListener(any(), mockAccelerometer, SensorManager.SENSOR_DELAY_GAME)
+      mockManager.registerListener(any(), mockAccelerometer, SensorManager.SENSOR_DELAY_NORMAL)
     }
     verify(exactly = 1) {
-      mockManager.registerListener(any(), mockGyroscope, SensorManager.SENSOR_DELAY_GAME)
+      mockManager.registerListener(any(), mockGyroscope, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     job.cancel()
@@ -189,7 +190,7 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     assertTrue(receivedData.size >= 3)
     receivedData.forEach { data ->
       assertNotNull(data.acceleration)
-      assertTrue(data.acceleration.first.isFinite())
+      assertTrue(data.acceleration.x.isFinite())
     }
   }
 
@@ -211,9 +212,9 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     assertTrue(receivedData.size >= 2)
     receivedData.forEach { data ->
-      assertEquals(1.5f, data.rotation.first, 0.01f)
-      assertEquals(-0.5f, data.rotation.second, 0.01f)
-      assertEquals(0.8f, data.rotation.third, 0.01f)
+      assertEquals(1.5, data.rotation.x, 0.01)
+      assertEquals(-0.5, data.rotation.y, 0.01)
+      assertEquals(0.8, data.rotation.z, 0.01)
     }
   }
 
@@ -235,10 +236,10 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
     val data = receivedData.first()
     val expectedMagnitude =
         sqrt(
-            data.acceleration.first * data.acceleration.first +
-                data.acceleration.second * data.acceleration.second +
-                data.acceleration.third * data.acceleration.third)
-    assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01f)
+            data.acceleration.x * data.acceleration.x +
+                data.acceleration.y * data.acceleration.y +
+                data.acceleration.z * data.acceleration.z)
+    assertEquals(expectedMagnitude, data.accelerationMagnitude, 0.01)
   }
 
   @Test
@@ -347,8 +348,8 @@ class MouvementSensorRepositoryTest : BaseAndroidComposeTest() {
 
     assertTrue(receivedData.size >= 4)
     val lastData = receivedData.last()
-    assertEquals(0.8f, lastData.rotation.first, 0.01f)
-    assertEquals(0.9f, lastData.rotation.second, 0.01f)
-    assertEquals(1.0f, lastData.rotation.third, 0.01f)
+    assertEquals(0.8, lastData.rotation.x, 0.01)
+    assertEquals(0.9, lastData.rotation.y, 0.01)
+    assertEquals(1.0, lastData.rotation.z, 0.01)
   }
 }

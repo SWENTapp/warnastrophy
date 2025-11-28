@@ -55,6 +55,7 @@ class EndToEndM1Test : EndToEndUtils() {
 
     ContactRepositoryProvider.resetForTests()
     ContactRepositoryProvider.initLocal(context)
+    StateManagerService.init(context)
     repository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
     StateManagerService.initForTests(
