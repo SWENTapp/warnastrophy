@@ -19,20 +19,19 @@ import org.junit.Test
 
 class EndToEndM1Test : EndToEndUtils() {
 
-    private lateinit var themeViewModel: ThemeViewModel
+  private lateinit var themeViewModel: ThemeViewModel
 
-
-    @Before
+  @Before
   override fun setUp() {
     super.setUp()
     val context = composeTestRule.activity.applicationContext
-      // Mock the ThemeViewModel
-      themeViewModel = mockk(relaxed = true)
+    // Mock the ThemeViewModel
+    themeViewModel = mockk(relaxed = true)
 
-      // Mock the `isDarkMode` to simulate a theme state
-      every { themeViewModel.isDarkMode } returns mockk(relaxed = true)
+    // Mock the `isDarkMode` to simulate a theme state
+    every { themeViewModel.isDarkMode } returns mockk(relaxed = true)
 
-      ContactRepositoryProvider.initLocal(context)
+    ContactRepositoryProvider.initLocal(context)
     ActivityRepositoryProvider.init()
     contactRepository = ContactRepositoryProvider.repository
     activityRepository = ActivityRepositoryProvider.repository

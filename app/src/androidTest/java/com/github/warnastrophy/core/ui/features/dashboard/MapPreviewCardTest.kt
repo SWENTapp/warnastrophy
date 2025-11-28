@@ -45,10 +45,10 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
 
   @get:Rule
   val permissionRule: GrantPermissionRule =
-    GrantPermissionRule.grant(
-      Manifest.permission.ACCESS_FINE_LOCATION,
-      Manifest.permission.ACCESS_COARSE_LOCATION,
-      Manifest.permission.POST_NOTIFICATIONS)
+      GrantPermissionRule.grant(
+          Manifest.permission.ACCESS_FINE_LOCATION,
+          Manifest.permission.ACCESS_COARSE_LOCATION,
+          Manifest.permission.POST_NOTIFICATIONS)
 
   @Before
   override fun setUp() {
@@ -79,12 +79,12 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     mockkStatic(FirebaseAuth::class)
     val mockFirebaseAuth: FirebaseAuth = mockk(relaxed = true)
     val mockFirebaseUser: FirebaseUser =
-      mockk(relaxed = true) {
-        every { uid } returns "test-user-id"
-        every { email } returns "test@example.com"
-        every { displayName } returns "Test User"
-        every { isAnonymous } returns false
-      }
+        mockk(relaxed = true) {
+          every { uid } returns "test-user-id"
+          every { email } returns "test@example.com"
+          every { displayName } returns "Test User"
+          every { isAnonymous } returns false
+        }
 
     every { FirebaseAuth.getInstance() } returns mockFirebaseAuth
     every { mockFirebaseAuth.currentUser } returns mockFirebaseUser
@@ -121,28 +121,28 @@ class MapPreviewCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule.waitUntil(
-      condition = { composeTestRule.onNodeWithTag(MapPreviewTestTags.MAP_CONTENT).isDisplayed() },
-      timeoutMillis = 5_000)
+        condition = { composeTestRule.onNodeWithTag(MapPreviewTestTags.MAP_CONTENT).isDisplayed() },
+        timeoutMillis = 5_000)
 
     composeTestRule.onNodeWithTag(MapPreviewTestTags.MAP_CONTENT).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_MAP).performClick()
 
     composeTestRule.waitUntil(
-      condition = {
-        composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).isDisplayed()
-      },
-      timeoutMillis = 5_000)
+        condition = {
+          composeTestRule.onNodeWithTag(MapScreenTestTags.GOOGLE_MAP_SCREEN).isDisplayed()
+        },
+        timeoutMillis = 5_000)
     composeTestRule.onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON).performClick()
     composeTestRule.waitUntil(
-      condition = { gpsService.positionState.value.position != AppConfig.defaultPosition },
-      timeoutMillis = 5_000)
+        condition = { gpsService.positionState.value.position != AppConfig.defaultPosition },
+        timeoutMillis = 5_000)
 
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
     composeTestRule.waitUntil(
-      condition = {
-        composeTestRule.onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON).isDisplayed()
-      },
-      timeoutMillis = 5_000)
+        condition = {
+          composeTestRule.onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON).isDisplayed()
+        },
+        timeoutMillis = 5_000)
 
     composeTestRule.onNodeWithTag(MapPreviewTestTags.MAP_CONTENT).isDisplayed()
   }
