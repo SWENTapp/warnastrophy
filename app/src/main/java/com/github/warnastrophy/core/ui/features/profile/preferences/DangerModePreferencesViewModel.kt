@@ -14,6 +14,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Represents actions that are pending a permission result from the user.
+ *
+ * When a user tries to enable a feature that requires a permission, and that permission has not yet
+ * been granted, the app will request the permission. This enum is used to track which feature's
+ * toggle action initiated the permission request, so the correct action can be completed if the
+ * user grants the permission.
+ */
 enum class PendingAction {
   TOGGLE_ALERT_MODE,
   TOGGLE_INACTIVITY_DETECTION,

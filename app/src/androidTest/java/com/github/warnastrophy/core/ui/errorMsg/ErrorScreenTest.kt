@@ -13,23 +13,26 @@ import com.github.warnastrophy.core.ui.features.error.ErrorScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.TopBar
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import org.junit.Test
 
 class ErrorScreenTest : BaseAndroidComposeTest() {
 
   @Test
   fun errorScreen_displaysErrorMessage() {
-    val errors = listOf(Error(ErrorType.LOCATION_ERROR, Screen.Dashboard))
+    val errors = listOf(Error(ErrorType.LOCATION_ERROR, listOf(Screen.Dashboard)))
     composeTestRule.setContent {
       ErrorScreen(
-          message = ErrorType.LOCATION_ERROR.message, onDismiss = {}, expanded = true, errors)
+          message = composeTestRule.activity.getString(ErrorType.LOCATION_ERROR.message),
+          onDismiss = {},
+          expanded = true,
+          errors)
     }
 
     composeTestRule
         .onNodeWithTag(ErrorScreenTestTags.ERROR_MESSAGE_TEXT, useUnmergedTree = true)
         .assertIsDisplayed()
-        .assertTextEquals(ErrorType.LOCATION_ERROR.message)
+        .assertTextEquals(composeTestRule.activity.getString(ErrorType.LOCATION_ERROR.message))
   }
 
   @Test

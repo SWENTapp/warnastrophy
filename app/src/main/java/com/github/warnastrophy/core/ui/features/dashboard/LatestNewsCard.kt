@@ -5,14 +5,29 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.domain.model.Hazard
-import com.github.warnastrophy.core.domain.model.HazardsDataService
+import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.ui.theme.extendedColors
 import com.github.warnastrophy.core.util.formatDate
 
@@ -47,27 +62,35 @@ object LatestNewsTestTags {
   const val LINK = "latestNewsLink"
 }
 
+object LatestNewsCardColors {
+  val BORDER_COLOR: Color = Color(0xFFBDBDBD) // Shadow Grey
+  val HEADER_BACKGROUND_COLOR: Color = Color(0xFFFFEBEE) // Light Red
+  val HEADER_TEXT_COLOR: Color = Color(0xFFD32F2F) // Dark Red
+  val BODY_BACKGROUND_COLOR: Color = Color(0xFFF6F4F4) // Off White
+  val WEATHER_TEXT_COLOR: Color = Color(0xFF616161) // Dark Grey
+  val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
+}
+
 /**
- * Affiche une carte des dernières nouvelles liées aux dangers.
+ * Displays a card with the latest news related to hazards.
  *
- * @param hazardsService Une instance de `HazardsDataService` utilisée pour récupérer les données
- *   des dangers et gérer leur état.
+ * @param hazardsService An instance of `HazardsDataService` used to retrieve hazard data and manage
+ *   their state.
  *
- * Fonctionnalités :
- * - Affiche les informations sur le danger actuel, y compris la description, la gravité et la date.
- * - Permet de naviguer entre les dangers à l'aide de boutons gauche et droit.
- * - Inclut un lien cliquable pour lire plus d'informations sur le danger.
- * - Affiche une image associée au type de danger.
+ * Features:
+ * - Displays information about the current hazard, including its description, severity, and date.
+ * - Allows navigation between hazards using left and right buttons.
+ * - Includes a clickable link to read more information about the hazard.
+ * - Displays an image associated with the type of hazard.
  *
  * @see HazardsDataService
  */
 @Composable
 fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
-  val hazards = fetcherState.value.hazards.filter { it.articleUrl != null }
   val state = fetcherState.value
   var currentIndex by remember { mutableIntStateOf(0) }
-  currentIndex = currentIndex.coerceIn(0, (hazards.size - 1).coerceAtLeast(0))
+  currentIndex = currentIndex.coerceIn(0, (state.hazards.size - 1).coerceAtLeast(0))
   val context = LocalContext.current
 
   val currentHazard =
@@ -166,7 +189,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                           overflow = TextOverflow.Ellipsis)
 
                       Spacer(modifier = Modifier.height(8.dp))
-                      if (state.hazards.isNotEmpty()) {
+                      if (state.hazards.isNotEmpty() && currentHazard.articleUrl != null) {
                         Text(
                             text = "read",
                             color = extendedColors.newsCard.readArticleText,
@@ -231,11 +254,11 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
 }
 
 /**
- * Retourne l'identifiant de ressource d'image correspondant au type d'événement.
+ * Returns the image resource identifier corresponding to the event type.
  *
- * @param eventType Le type d'événement sous forme de chaîne (par exemple, "EQ", "TC", etc.).
- * @return L'identifiant de ressource de l'image associée à ce type d'événement. Si le type n'est
- *   pas reconnu, une image par défaut est retournée.
+ * @param eventType The event type as a string (for example, "EQ", "TC", etc.).
+ * @return The resource identifier of the image associated with that event type. If the type is not
+ *   recognized, a default image is returned.
  */
 fun getImageForEvent(eventType: String): Int {
   return when (eventType) {
@@ -245,6 +268,6 @@ fun getImageForEvent(eventType: String): Int {
     "VO" -> R.drawable.vo
     "DR" -> R.drawable.dr
     "WF" -> R.drawable.wf
-    else -> R.drawable.de // Une image par défaut
+    else -> R.drawable.de
   }
 }

@@ -3,7 +3,7 @@ package com.github.warnastrophy.core.util
 import android.location.Location
 import android.os.Looper
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.warnastrophy.core.domain.model.GpsService
+import com.github.warnastrophy.core.data.service.GpsService
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.common.getScreenErrors

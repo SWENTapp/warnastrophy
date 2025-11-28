@@ -2,8 +2,8 @@ package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.repository.ContactsRepository
-import com.github.warnastrophy.core.domain.model.Contact
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
+import com.github.warnastrophy.core.model.Contact
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

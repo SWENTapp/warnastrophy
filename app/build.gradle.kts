@@ -42,8 +42,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "com.github.warnastrophy.HiltTestRunner"
+        testInstrumentationRunner = "com.github.warnastrophy.core.util.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -261,7 +260,7 @@ dependencies {
 
     // When using the BoM, you don't specify versions in Firebase library dependencies
 
-    // TODO: Add the dependencies for Firebase products you want to use
+    // Add the dependencies for Firebase products you want to use
     // See https://firebase.google.com/docs/android/setup#available-libraries
     // For example, add the dependencies for Firebase Authentication and Cloud Firestore
     implementation(libs.firebase.auth)
@@ -273,7 +272,7 @@ dependencies {
     implementation(libs.play.services.location)
 
     // --------------- Gson -------------------
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
     // --------------- DataStore -------------------
     implementation(libs.androidx.datastore.preferences)
@@ -283,15 +282,12 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.okhttp.mockwebserver)
 
-    // --------------- DataStore -------------------
-    implementation("androidx.datastore:datastore-preferences:1.2.0")
-
     // test mock
-    androidTestImplementation("io.mockk:mockk-android:1.13.8")
+    androidTestImplementation(libs.mockk.android)
     testImplementation(libs.mockk)
     implementation(libs.json)
     testImplementation(libs.json)
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation(libs.androidx.core.testing)
 
     // For mocking objects in tests
     testImplementation(libs.mockito.core)
@@ -299,25 +295,25 @@ dependencies {
     androidTestImplementation(libs.mockito.core)
     androidTestImplementation(libs.mockito.android)
     androidTestImplementation(libs.mockito.kotlin)
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
-    testImplementation("org.mockito:mockito-inline:5.2.0")
+    testImplementation(libs.mockito.kotlin.v510)
+    testImplementation(libs.mockito.inline)
 
-    implementation("org.locationtech.jts:jts-core:1.20.0")
-    implementation("org.locationtech.jts.io:jts-io-common:1.20.0")
+    implementation(libs.jts.core)
+    implementation(libs.jts.io.common)
 
     // Espresso-Intents
-    testImplementation("androidx.test.espresso:espresso-intents:3.5.0")
-    androidTestImplementation("androidx.test.espresso:espresso-intents:3.5.0")
+    testImplementation(libs.androidx.espresso.intents)
+    androidTestImplementation(libs.androidx.espresso.intents)
     testImplementation(kotlin("test"))
 
     // Hilt
     implementation(libs.dagger.hilt.android)
     kapt(libs.dagger.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.51.1")
-    testImplementation("com.google.dagger:hilt-android-testing:2.51.1")
-    kaptTest("com.google.dagger:hilt-android-compiler:2.51.1")
+    androidTestImplementation(libs.hilt.android.testing)
+    kaptAndroidTest(libs.dagger.hilt.android.compiler)
+    testImplementation(libs.hilt.android.testing)
+    kaptTest(libs.dagger.hilt.android.compiler)
 }
 
 tasks.withType<Test> {

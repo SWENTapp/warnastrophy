@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.features.profile.preferences
+package com.github.warnastrophy.core.ui.profile.preferences
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
@@ -13,11 +13,19 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.components.FALLBACK_ACTIVITY_ERROR
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreenTestTags
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
+import com.github.warnastrophy.core.ui.features.profile.preferences.PendingAction
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
-import com.github.warnastrophy.core.ui.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.ui.util.MockUserPreferencesRepository
+import com.github.warnastrophy.core.util.BaseAndroidComposeTest
+import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -53,6 +61,20 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .assertIsDisplayed()
   }
 
+  /** Applies a given [PermissionResult] to the view model. */
+  private fun applyPerm(permissionResult: PermissionResult) {
+    mockPermissionManager.setPermissionResult(permissionResult)
+    viewModel.onPermissionsResult(composeTestRule.activity)
+  }
+
+  private fun toggleSwitch(tag: String) {
+    composeTestRule.onNodeWithTag(tag).assertIsEnabled().performClick()
+
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithTag(tag).assertIsEnabled().assertIsOn()
+  }
+
   private fun assertSwitchesOff() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
@@ -65,7 +87,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .assertIsOff()
   }
 
-  // TODO Duplication from MapScreenTest -> need to generalize fallback
   /** Verifies that a fallback error message is shown when the context is not an Activity. */
   @Test
   fun showsFallbackError_whenNoActivityContextAvailable() {
@@ -80,9 +101,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         DangerModePreferencesScreen(viewModel = viewModel)
       }
     }
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.FALLBACK_ACTIVITY_ERROR)
-        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(FALLBACK_ACTIVITY_ERROR).assertIsDisplayed()
   }
 
   @Test
@@ -123,6 +142,24 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsNotEnabled()
+  }
+
+  /**
+   * Checks if the `isOsRequestInFlight` flag is correctly set when a permission request is
+   * initiated.
+   */
+  @Test
+  fun onPermissionsRequestStart_works_as_expected() = runTest {
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+    setContent()
+
+    PendingAction.entries.forEach { action ->
+      assertNull(viewModel.uiState.value.pendingPermissionAction)
+      viewModel.onPermissionsRequestStart(action = action)
+      assertEquals(action, viewModel.uiState.value.pendingPermissionAction)
+      viewModel.onPermissionsResult(composeTestRule.activity)
+      composeTestRule.waitForIdle()
+    }
   }
 
   @Test
@@ -195,5 +232,64 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsNotEnabled()
+  }
+
+  @Test
+  fun alertModeToggle_requestsPermission_whenNotGranted() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+    setContent()
+
+    // Simulate toggle the switch
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+        .assertIsEnabled()
+        .assertIsOff()
+
+    applyPerm(PermissionResult.Granted)
+
+    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+  }
+
+  @Test
+  fun inactivityDetectionToggle_requestsPermission_whenNotGranted() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    // Toggle Alert Mode to enable inactivity detection switch
+    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+
+    // Simulate toggle the switch
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+        .assertIsEnabled()
+        .assertIsOff()
+
+    applyPerm(PermissionResult.Granted)
+
+    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+  }
+
+  @Test
+  fun automaticSmsToggle_requestsPermission_whenNotGranted() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    // Toggle Alert Mode & Inactivity Detection to enable automatic sms switch
+    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+
+    // Simulate toggle the switch
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+        .assertIsEnabled()
+        .assertIsOff()
+
+    applyPerm(PermissionResult.Granted)
+
+    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
   }
 }

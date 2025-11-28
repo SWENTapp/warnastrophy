@@ -8,7 +8,6 @@ package com.example.dangermode.service
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MouvementSensorRepository
 import com.github.warnastrophy.core.util.AppConfig.windowMillisMotion
-import kotlin.text.compareTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

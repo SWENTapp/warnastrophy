@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.ui.activity
 
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
-import com.github.warnastrophy.core.domain.model.Activity
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityViewModel
 import com.github.warnastrophy.core.util.AppConfig
 import junit.framework.TestCase
@@ -72,7 +72,7 @@ class EditActivityViewModelTest {
     advanceUntilIdle()
 
     val updated = repository.getActivity("1", AppConfig.defaultUserId).getOrNull()!!
-
+    advanceUntilIdle()
     assertEquals("Football", updated.activityName)
     assertNotNull(navigateBackEvent.await())
   }
@@ -95,20 +95,14 @@ class EditActivityViewModelTest {
   fun `edit activity with invalid UI state sets error message`() = runTest {
     prepareRepository()
     advanceUntilIdle()
-    val navigateBackEvent = async {
-      withTimeoutOrNull(100.milliseconds) {
-        viewModel.navigateBack.first() // first() throws if timeout reached before emission
-      }
-    }
 
     viewModel.setActivityName("")
 
     viewModel.editActivity("1")
     advanceUntilIdle()
-
-    assertNull(navigateBackEvent.await())
-
     TestCase.assertEquals("At least one field is not valid!", viewModel.uiState.value.errorMsg)
+    val event = withTimeoutOrNull(1.milliseconds) { viewModel.navigateBack.firstOrNull() }
+    assertNull(event)
   }
 
   @Test
