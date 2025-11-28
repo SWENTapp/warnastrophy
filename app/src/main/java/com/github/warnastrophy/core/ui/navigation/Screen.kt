@@ -24,6 +24,7 @@ object NavigationTestTags {
   const val HEALTH_CARD = "healthCard"
   const val LOGOUT = "logout"
   const val DANGER_MODE_PREFERENCES = "dangerModePreferences"
+  const val BUTTON_MANAGE_ACTIVITY_DANGER_MODE = "buttonManageActivity"
 }
 
 /** Object for holding navigation routes. */
@@ -104,6 +105,18 @@ sealed class Screen(
           title = R.string.edit_contact_screen_title) {
     companion object {
       val route = "${NavRoutes.EDIT_CONTACT}/{id}"
+    }
+  }
+
+  object AddActivity :
+      Screen(R.string.add_activity_screen_title, icon = Icons.Filled.Add, route = "add_activity")
+
+  object ActivitiesList : Screen(R.string.activity_list_title, route = "activities_list")
+
+  data class EditActivity(val activityID: String) :
+      Screen(route = "edit_activity/${activityID}", title = R.string.edit_activity_screen_title) {
+    companion object {
+      const val route = "edit_activity/{id}"
     }
   }
 

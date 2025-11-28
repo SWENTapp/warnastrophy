@@ -24,7 +24,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.WarnastrophyComposable
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
-import com.github.warnastrophy.core.ui.contact.UITest
+import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
 import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
@@ -156,7 +156,7 @@ abstract class EndToEndUtils : UITest() {
 
     // Fill the form and save
     fillContactForm(name = name)
-    composeTestRule.clickOnSaveContact(true, AddContactTestTags.SAVE_BUTTON)
+    composeTestRule.clickOnSaveButton(true, AddContactTestTags.SAVE_BUTTON)
 
     // Verify we are back on the contact list screen and the contact exists
     composeTestRule
@@ -198,7 +198,7 @@ abstract class EndToEndUtils : UITest() {
 
     // Save or cancel the changes
     if (saveChanges) {
-      composeTestRule.clickOnSaveContact(true, EditContactTestTags.SAVE_BUTTON)
+      composeTestRule.clickOnSaveButton(true, EditContactTestTags.SAVE_BUTTON)
     } else {
       composeTestRule.onNodeWithTag(NavigationTestTags.BUTTON_BACK).performClick()
     }
