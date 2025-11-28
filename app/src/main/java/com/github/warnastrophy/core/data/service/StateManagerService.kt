@@ -101,6 +101,20 @@ object StateManagerService {
     startHazardSubscription()
   }
 
+  fun initForTests(
+      gpsService: PositionService,
+      hazardsService: HazardsDataService,
+      permissionManager: PermissionManagerInterface,
+      dangerModeService: DangerModeService
+  ) {
+    this.gpsService = gpsService
+    this.hazardsService = hazardsService
+    this.permissionManager = permissionManager
+    this.dangerModeService = dangerModeService
+
+    startHazardSubscription()
+  }
+
   /**
    * Starts a coroutine to monitor hazard and GPS position updates, checking for hazard alerts
    * whenever either changes.

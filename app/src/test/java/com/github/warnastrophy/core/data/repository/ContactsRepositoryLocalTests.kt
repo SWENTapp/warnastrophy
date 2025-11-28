@@ -1,13 +1,17 @@
 package com.github.warnastrophy.core.ui.repository
 
+import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.data.localStorage.ContactsStorage
+import com.github.warnastrophy.core.data.localStorage.StorageException
 import com.github.warnastrophy.core.data.localStorage.contactDataStore
-import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.util.CryptoUtils
+import io.mockk.coEvery
+import io.mockk.mockkObject
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -26,10 +30,17 @@ class ContactsRepositoryLocalTests {
 
   @Before
   fun setUp() {
-    val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-    ContactRepositoryProvider.init(context)
+    val context = ApplicationProvider.getApplicationContext<Context>()
     datastore = context.contactDataStore
-    repositoryLocal = ContactRepositoryProvider.repository as ContactsStorage
+    repositoryLocal = ContactsStorage(datastore)
+    mockkObject(CryptoUtils)
+    coEvery { CryptoUtils.encrypt(any()) } answers { "ENC(${firstArg<String>()})" }
+    coEvery { CryptoUtils.decrypt(any()) } answers
+        {
+          val txt = firstArg<String>()
+          if (!txt.startsWith("ENC(")) throw Exception("bad cipher")
+          txt.removePrefix("ENC(").removeSuffix(")")
+        }
   }
 
   @Test
@@ -70,15 +81,18 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("corrupt", "Mallory", "0001112222", "Intruder")
     runBlocking {
       // Save a valid contact
-      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact).isSuccess)
-      // Corrupt the stored data directly
+      repositoryLocal.addContact(TEST_USER_ID, contact)
+
+      // Force invalid ciphertext
       datastore.edit {
-        val key = repositoryLocal.keyFor(userId = TEST_USER_ID, contact = contact)
-        it[key] = "not_a_valid_ciphertext"
+        val key = repositoryLocal.keyFor(TEST_USER_ID, contact)
+        it[key] = "NOT_A_VALID_CIPHER"
       }
+
       // Try to read the corrupted contact
       val result = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "corrupt")
       assert(result.isFailure)
+      assert(result.exceptionOrNull() is StorageException.DecryptionError)
     }
   }
 
@@ -87,15 +101,16 @@ class ContactsRepositoryLocalTests {
     val contact = Contact("badjson", "Mallory", "0001112222", "Intruder")
     runBlocking {
       // Save a valid contact
-      assert(repositoryLocal.addContact(userId = TEST_USER_ID, contact = contact).isSuccess)
+      repositoryLocal.addContact(TEST_USER_ID, contact)
       // Overwrite with valid ciphertext but invalid JSON
       datastore.edit {
         val key = repositoryLocal.keyFor(userId = TEST_USER_ID, contact = contact)
-        it[key] = com.github.warnastrophy.core.util.CryptoUtils.encrypt("not_a_valid_json")
+        it[key] = CryptoUtils.encrypt("not_a_valid_json")
       }
       // Try to read the corrupted contact
       val result = repositoryLocal.getContact(userId = TEST_USER_ID, contactID = "badjson")
       assert(result.isFailure)
+      assert(result.exceptionOrNull() is StorageException.DeserializationError)
     }
   }
 
