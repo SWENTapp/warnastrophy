@@ -7,6 +7,7 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
@@ -20,7 +21,9 @@ class EndToEndM1Test : EndToEndUtils() {
     super.setUp()
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.init(context)
+    ActivityRepositoryProvider.init()
     contactRepository = ContactRepositoryProvider.repository
+    activityRepository = ActivityRepositoryProvider.repository
     StateManagerService.init(context)
   }
 

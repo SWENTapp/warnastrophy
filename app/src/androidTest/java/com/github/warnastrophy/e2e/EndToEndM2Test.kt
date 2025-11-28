@@ -2,6 +2,7 @@ package com.github.warnastrophy.e2e
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
+import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
@@ -18,7 +19,9 @@ class EndToEndM2Test : EndToEndUtils() {
 
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.init(context)
+    ActivityRepositoryProvider.init()
     contactRepository = ContactRepositoryProvider.repository
+    activityRepository = ActivityRepositoryProvider.repository
     StateManagerService.init(context)
     HealthCardRepositoryProvider.useLocalEncrypted(context)
   }
