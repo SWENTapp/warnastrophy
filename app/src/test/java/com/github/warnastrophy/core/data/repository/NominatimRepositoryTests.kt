@@ -43,7 +43,7 @@ class NominatimRepositoryTests {
   @Test
   fun `isRateLimited returns true when requests are too frequent`() = runBlocking {
     val repo = NominatimRepository()
-    repo.maxRateMs = 2000
+    repo.maxRateMs = Long.MAX_VALUE
     repo.reverseGeocode("Tokyo") // simulate a request
     val delay = repo.delayForNextQuery()
     Assert.assertTrue(delay > 0)

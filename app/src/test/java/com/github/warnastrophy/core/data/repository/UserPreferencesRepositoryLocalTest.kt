@@ -54,6 +54,7 @@ class UserPreferencesRepositoryLocalTest {
     assertFalse(preferences.dangerModePreferences.alertMode)
     assertFalse(preferences.dangerModePreferences.inactivityDetection)
     assertFalse(preferences.dangerModePreferences.automaticSms)
+    assertFalse(preferences.themePreferences)
   }
 
   @Test
@@ -81,6 +82,7 @@ class UserPreferencesRepositoryLocalTest {
       assertEquals(inactivityDetectionValue, preferences.dangerModePreferences.inactivityDetection)
       assertFalse(preferences.dangerModePreferences.alertMode)
       assertFalse(preferences.dangerModePreferences.automaticSms)
+      assertFalse(preferences.themePreferences)
     }
   }
 
@@ -94,6 +96,7 @@ class UserPreferencesRepositoryLocalTest {
       assertEquals(automaticSmsValue, preferences.dangerModePreferences.automaticSms)
       assertFalse(preferences.dangerModePreferences.alertMode)
       assertFalse(preferences.dangerModePreferences.inactivityDetection)
+      assertFalse(preferences.themePreferences)
     }
   }
 
@@ -101,21 +104,25 @@ class UserPreferencesRepositoryLocalTest {
   fun multipleSetters_whenCalledSequentially_updateAllPreferencesCorrectly() = runTest {
     repository.setAlertMode(true)
     repository.setInactivityDetection(true)
+    repository.setDarkMode(true)
 
     val intermediatePrefs = repository.getUserPreferences.first()
 
     assertTrue(intermediatePrefs.dangerModePreferences.alertMode)
     assertTrue(intermediatePrefs.dangerModePreferences.inactivityDetection)
     assertFalse(intermediatePrefs.dangerModePreferences.automaticSms)
+    assertTrue(intermediatePrefs.themePreferences)
 
     repository.setAutomaticSms(true)
     repository.setAlertMode(false)
+    repository.setDarkMode(false)
 
     val finalPrefs = repository.getUserPreferences.first()
 
     assertFalse(finalPrefs.dangerModePreferences.alertMode)
     assertTrue(finalPrefs.dangerModePreferences.inactivityDetection)
     assertTrue(finalPrefs.dangerModePreferences.automaticSms)
+    assertFalse(finalPrefs.themePreferences)
   }
 
   @Test
@@ -131,6 +138,7 @@ class UserPreferencesRepositoryLocalTest {
     assertFalse(preferences.dangerModePreferences.alertMode)
     assertFalse(preferences.dangerModePreferences.inactivityDetection)
     assertFalse(preferences.dangerModePreferences.automaticSms)
+    assertFalse(preferences.themePreferences)
   }
 
   @Test
