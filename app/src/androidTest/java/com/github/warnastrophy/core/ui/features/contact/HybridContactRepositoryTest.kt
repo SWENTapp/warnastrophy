@@ -69,4 +69,49 @@ class HybridContactRepositoryTest {
     // Assert that the returned UID matches the expected value
     assertTrue(result == "new-uid")
   }
+
+  @Test
+  fun `get_new_uid_should_return_uid_from_remote`() = runTest {
+    coEvery { remote.getNewUid() } returns "new-uid"
+
+    val result = hybrid.getNewUid()
+
+    assertTrue(result == "new-uid")
+  }
+
+  // Test for addContact
+  @Test
+  fun `add_contact_should_add_contact_to_local_and_remote`() = runTest {
+    coEvery { local.addContact(userId, contact) } returns Result.success(Unit)
+
+    val result = hybrid.addContact(userId, contact)
+
+    assertTrue(result.isSuccess)
+    coVerify { local.addContact(userId, contact) }
+    coVerify(exactly = 1) { remote.addContact(userId, contact) }
+  }
+
+  // Test for editContact
+  @Test
+  fun `edit_contact_should_update_local_and_remote_repositories`() = runTest {
+    coEvery { local.editContact(userId, "c1", contact) } returns Result.success(Unit)
+
+    val result = hybrid.editContact(userId, "c1", contact)
+
+    assertTrue(result.isSuccess)
+    coVerify { local.editContact(userId, "c1", contact) }
+    coVerify { remote.editContact(userId, "c1", contact) }
+  }
+
+  // Test for deleteContact
+  @Test
+  fun `delete_contact_should_delete_contact_from_local_and_remote`() = runTest {
+    coEvery { local.deleteContact(userId, "c1") } returns Result.success(Unit)
+
+    val result = hybrid.deleteContact(userId, "c1")
+
+    assertTrue(result.isSuccess)
+    coVerify { local.deleteContact(userId, "c1") }
+    coVerify { remote.deleteContact(userId, "c1") }
+  }
 }

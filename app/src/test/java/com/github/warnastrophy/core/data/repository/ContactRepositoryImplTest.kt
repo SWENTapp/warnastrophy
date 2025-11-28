@@ -226,4 +226,39 @@ class ContactRepositoryImplTest {
     assertTrue(result.isFailure)
     assertTrue(result.exceptionOrNull() is StorageException.DeserializationError)
   }
+
+  @Test
+  fun `addContact throws DataStoreError on firestore failure`() = runTest {
+    coEvery { doc.set(any()) } returns Tasks.forException(Exception("Firestore error"))
+
+    val result = impl.addContact(userId, contact)
+
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+  }
+
+  // Test for getContact - Handle missing "json" field
+  @Test
+  fun `getContact throws DataStoreError on missing 'json' field`() = runTest {
+    val snap = mockk<DocumentSnapshot>()
+    every { snap.exists() } returns true
+    every { snap.getString("json") } returns null // Simulating missing "json"
+    every { doc.get() } returns Tasks.forResult(snap)
+
+    val result = impl.getContact(userId, "c1")
+
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+  }
+
+  // Test for editContact - Handle Firestore failure
+  @Test
+  fun `editContact throws DataStoreError on firestore failure`() = runTest {
+    coEvery { doc.set(any()) } returns Tasks.forException(Exception("Firestore error"))
+
+    val result = impl.editContact(userId, "c1", contact)
+
+    assertTrue(result.isFailure)
+    assertTrue(result.exceptionOrNull() is StorageException.DataStoreError)
+  }
 }
