@@ -21,7 +21,17 @@ class ContactsRepositoryImpl(private val firestore: FirebaseFirestore) : Contact
 
   override suspend fun addContact(userId: String, contact: Contact): Result<Unit> = runCatching {
     val json = gson.toJson(contact)
-    val data = mapOf("json" to json)
+
+    val encrypted =
+        try {
+          CryptoUtils.encrypt(json)
+        } catch (e: Exception) {
+          Log.e("FirestoreContacts", "Encryption failed during add", e)
+          throw StorageException.EncryptionError(e)
+        }
+
+    val data = mapOf("encrypted" to encrypted)
+
     try {
       doc(userId, contact.id).set(data).await()
     } catch (e: Exception) {
@@ -40,11 +50,19 @@ class ContactsRepositoryImpl(private val firestore: FirebaseFirestore) : Contact
         }
 
     snap.documents.mapNotNull { doc ->
-      val json = doc.getString("json")
-      if (json == null) {
-        Log.e("FirestoreContacts", "Skipping contact ${doc.id}: missing 'json' field")
+      val encrypted = doc.getString("encrypted")
+      if (encrypted == null) {
+        Log.e("FirestoreContacts", "Skipping contact ${doc.id}: missing 'encrypted' field")
         return@mapNotNull null
       }
+
+      val json =
+          try {
+            CryptoUtils.decrypt(encrypted)
+          } catch (e: Exception) {
+            Log.e("FirestoreContacts", "Skipping contact ${doc.id}: Decryption error", e)
+            return@mapNotNull null
+          }
 
       try {
         gson.fromJson(json, Contact::class.java)
@@ -69,10 +87,18 @@ class ContactsRepositoryImpl(private val firestore: FirebaseFirestore) : Contact
           throw StorageException.DataStoreError(Exception("Contact not found"))
         }
 
-        val json =
-            docSnap.getString("json")
+        val encrypted =
+            docSnap.getString("encrypted")
                 ?: throw StorageException.DataStoreError(
-                    Exception("Invalid Firestore entry: missing 'json'"))
+                    Exception("Invalid Firestore entry: missing 'encrypted' field"))
+
+        val json =
+            try {
+              CryptoUtils.decrypt(encrypted)
+            } catch (e: Exception) {
+              Log.e("FirestoreContacts", "Decryption error", e)
+              throw StorageException.DecryptionError(e)
+            }
 
         try {
           gson.fromJson(json, Contact::class.java)
