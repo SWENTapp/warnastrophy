@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.profile
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -80,6 +81,7 @@ fun ProfileScreen(
 
   LaunchedEffect(uiState.signedOut) {
     if (uiState.signedOut) {
+        Log.d("Profile", "Log out button is pressed")
       onLogout()
     }
   }

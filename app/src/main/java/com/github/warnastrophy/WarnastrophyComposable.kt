@@ -20,7 +20,6 @@ import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.NominatimService
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
@@ -46,7 +45,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
-import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.firebase.auth.FirebaseAuth
@@ -57,10 +55,12 @@ object WarnastrophyAppTestTags {
 }
 
 @Composable
-fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
+fun WarnastrophyComposable(
+    mockMapScreen: (@Composable () -> Unit)? = null,
+    onLoggedOut: () -> Unit = {}
+) {
   val context = LocalContext.current
 
-  val credentialManager = CredentialManager.create(context)
   val firebaseAuth = remember { FirebaseAuth.getInstance() }
 
   var userId by remember {
@@ -93,15 +93,14 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
-        SignIn.route -> SignIn
+        //SignIn.route -> SignIn
         Screen.DangerModePreferences.route -> Screen.DangerModePreferences
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
         else -> Dashboard
       }
 
-  val startDestination =
-      if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
+  val startDestination = Dashboard.route
 
   val errorHandler = remember { StateManagerService.errorHandler }
   val gpsService = remember { StateManagerService.gpsService }
@@ -135,11 +134,14 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
+            /*
               composable(SignIn.route) {
                 SignInScreen(
                     credentialManager = credentialManager,
                     onSignedIn = { navigationActions.navigateTo(Dashboard) })
               }
+
+             */
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,
@@ -160,7 +162,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                 ProfileScreen(
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
-                    onLogout = { navigationActions.navigateTo(SignIn) },
+                    onLogout = { onLoggedOut },
                     onDangerModePreferencesClick = {
                       navigationActions.navigateTo(Screen.DangerModePreferences)
                     })
