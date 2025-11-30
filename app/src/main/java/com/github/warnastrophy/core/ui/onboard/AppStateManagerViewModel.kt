@@ -11,6 +11,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * This ViewModel tracks whether the user has completed the initial onboarding screens and provides
+ * a mechanism to mark the onboarding as completed.
+ *
+ * @property repository The [IntroductionRepository] used to read/write onboarding state. Defaults
+ *   to [OnboardingRepositoryProvider.repository].
+ * @property dispatcher The [CoroutineDispatcher] used for background operations. Defaults to
+ *   [Dispatchers.IO] to perform repository calls off the main thread.
+ */
 class AppStateManagerViewModel(
     private val repository: IntroductionRepository = OnboardingRepositoryProvider.repository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO

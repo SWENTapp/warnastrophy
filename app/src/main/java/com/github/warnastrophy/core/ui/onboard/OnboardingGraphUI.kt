@@ -16,6 +16,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Composable that displays the content of a single onboarding page.
+ *
+ * @param onboardingModel The [OnboardingModel] representing the onboarding page to display.
+ */
 @Composable
 fun OnboardingGraphUI(onboardingModel: OnboardingModel) {
   Column(

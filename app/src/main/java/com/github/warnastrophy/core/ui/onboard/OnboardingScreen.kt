@@ -39,6 +39,11 @@ object OnboardingScreenTestTags {
   const val INDICATOR = "indicator"
 }
 
+/**
+ * Composable that displays the onboarding flow of the app using a horizontal pager.
+ *
+ * @param onFinished Lambda that is invoked when the user completes the onboarding walkthrough.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
@@ -112,6 +117,17 @@ fun OnboardingScreen(onFinished: () -> Unit) {
       })
 }
 
+/**
+ * A reusable button composable for onboarding or other UI screens.
+ *
+ * @param text The text displayed on the button.
+ * @param backgroundColor The background color of the button.
+ * @param textColor The color of the text.
+ * @param textStyle The [TextStyle] to apply to the text.
+ * @param fontSize The font size in sp.
+ * @param modifier Optional [Modifier] for styling or test tags.
+ * @param onClick Lambda invoked when the button is clicked.
+ */
 @Composable
 fun ButtonUi(
     text: String = "Next",
@@ -133,6 +149,16 @@ fun ButtonUi(
       }
 }
 
+/**
+ * Displays a horizontal row of indicators to show the current onboarding page.
+ *
+ * The current page is highlighted with [selectedColor], while others use [unselectedColor].
+ *
+ * @param pageSize Total number of pages in the onboarding flow.
+ * @param currentPage Index of the currently visible page.
+ * @param selectedColor Color of the active page indicator.
+ * @param unselectedColor Color of inactive page indicators.
+ */
 @Composable
 fun IndicatorUI(
     pageSize: Int,

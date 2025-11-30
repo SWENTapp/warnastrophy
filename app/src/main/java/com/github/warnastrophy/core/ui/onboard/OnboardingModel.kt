@@ -1,5 +1,14 @@
 package com.github.warnastrophy.core.ui.onboard
 
+/**
+ * Represents a single page of the onboarding flow in the app.
+ *
+ * Each onboarding page has a [title] and [description] explaining the feature or permissions
+ * required to the user.
+ *
+ * @property title The main title displayed for the onboarding page.
+ * @property description A descriptive text explaining the feature or permission.
+ */
 sealed class OnboardingModel(val title: String, val description: String) {
   data object FirstPage :
       OnboardingModel(
