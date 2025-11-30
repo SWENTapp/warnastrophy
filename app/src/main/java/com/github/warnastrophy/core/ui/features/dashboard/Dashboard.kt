@@ -96,7 +96,7 @@ fun DashboardScreen(
     if (showHealthCard) {
       HealthCardPopUp(
           onDismissRequest = { onDismiss() },
-          onEdit = {
+          onClick = {
             onDismiss()
             onHealthCardClick()
           })

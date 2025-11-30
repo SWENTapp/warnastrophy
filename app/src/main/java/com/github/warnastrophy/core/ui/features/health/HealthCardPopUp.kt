@@ -3,9 +3,9 @@ package com.github.warnastrophy.core.ui.features.health
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,16 +16,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-fun HealthCardPopUp(onDismissRequest: () -> Unit, onEdit: () -> Unit = {}) {
+fun HealthCardPopUp(onDismissRequest: () -> Unit = {}, onClick: () -> Unit = {}) {
   Dialog(onDismissRequest = onDismissRequest) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier =
-            Modifier.fillMaxWidth()
-                .aspectRatio(0.63f), // Approximate credit card/ID card aspect ratio
+        modifier = Modifier.fillMaxWidth().aspectRatio(0.63f),
         colors =
             CardDefaults.cardColors(
-                containerColor = Color(0xFF9D2A2C) // TODO set color from theme
+                containerColor = Color(0xFF9D2A2C) // TODO: Use theme color
                 )) {
           Column(modifier = Modifier.padding(16.dp).fillMaxHeight()) {
             Row(
@@ -33,15 +31,22 @@ fun HealthCardPopUp(onDismissRequest: () -> Unit, onEdit: () -> Unit = {}) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
                   Text(
-                      text = "EMERGENCY CARD",
+                      text = "HEALTH CARD",
                       color = Color.White,
                       fontWeight = FontWeight.Bold,
                       fontSize = 20.sp)
-                  IconButton(onClick = { onEdit() }) {
+                  TextButton(onClick = onClick) {
+                    Text(
+                        text = "Edit/Show Full",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp)
+                    Spacer(Modifier.width(3.dp))
                     Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = Color.White)
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Go to full health card",
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp))
                   }
                 }
 
@@ -50,15 +55,8 @@ fun HealthCardPopUp(onDismissRequest: () -> Unit, onEdit: () -> Unit = {}) {
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier =
-                    Modifier.fillMaxWidth().weight(1f) // Allow this card to take up remaining space
-                ) {
-                  Column(
-                      modifier = Modifier.fillMaxSize(),
-                      verticalArrangement = Arrangement.Center,
-                      horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Empty Health Card")
-                      }
+                modifier = Modifier.fillMaxWidth().weight(1f)) {
+                  EmptyHealthCardPopUp()
                 }
           }
         }
@@ -73,8 +71,18 @@ private fun HealthInfoEntry(label: String, value: String) {
   }
 }
 
+@Composable
+private fun EmptyHealthCardPopUp() {
+  Column(
+      modifier = Modifier.fillMaxSize(),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Empty Health Card")
+      }
+}
+
 @Preview
 @Composable
 fun EmergencyCardPreview() {
-  HealthCardPopUp(onDismissRequest = {})
+  HealthCardPopUp()
 }
