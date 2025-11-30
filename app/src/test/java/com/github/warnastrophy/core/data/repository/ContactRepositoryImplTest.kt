@@ -24,7 +24,7 @@ import org.junit.Test
 class ContactRepositoryImplTest {
 
   private lateinit var firestore: FirebaseFirestore
-  private lateinit var impl: ContactsRepositoryImpl
+  private lateinit var impl: ContactRepositoryImpl
 
   private val userId = "user123"
   private val contact =
@@ -36,7 +36,7 @@ class ContactRepositoryImplTest {
   @Before
   fun setup() {
     firestore = mockk(relaxed = true)
-    impl = ContactsRepositoryImpl(firestore)
+    impl = ContactRepositoryImpl(firestore)
 
     mockkObject(CryptoUtils)
 
