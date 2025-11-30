@@ -22,34 +22,29 @@ fun ButtonUi(
     onClick: () -> Unit
 ) {
 
-    Button(
-        onClick = onClick, colors = ButtonDefaults.buttonColors(
-            containerColor = backgroundColor, contentColor = textColor
-        ), shape = RoundedCornerShape(10.dp)
-    ) {
-
-
-        Text(
-            text = text, fontSize = fontSize.sp, style = textStyle
-        )
-    }
+  Button(
+      onClick = onClick,
+      colors =
+          ButtonDefaults.buttonColors(containerColor = backgroundColor, contentColor = textColor),
+      shape = RoundedCornerShape(10.dp)) {
+        Text(text = text, fontSize = fontSize.sp, style = textStyle)
+      }
 }
 
 @Preview
 @Composable
 fun NextButton() {
-    ButtonUi(text = "Next") {}
+  ButtonUi(text = "Next") {}
 }
 
 @Preview
 @Composable
 fun BackButton() {
 
-    ButtonUi(
-        text = "Back",
-        backgroundColor = Color.Transparent,
-        textColor = Color.Gray,
-        textStyle = MaterialTheme.typography.bodySmall,
-        fontSize = 13
-    ) {}
+  ButtonUi(
+      text = "Back",
+      backgroundColor = Color.Transparent,
+      textColor = Color.Gray,
+      textStyle = MaterialTheme.typography.bodySmall,
+      fontSize = 13) {}
 }

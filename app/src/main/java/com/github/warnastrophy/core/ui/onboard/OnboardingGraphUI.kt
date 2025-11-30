@@ -18,42 +18,28 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun OnboardingGraphUI(onboardingModel: OnboardingModel) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    )
-    {
+  Column(
+      modifier = Modifier.fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center) {
         Text(
             text = onboardingModel.title,
             modifier = Modifier.fillMaxWidth(),
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(15.dp)
-        )
+            color = MaterialTheme.colorScheme.onBackground)
+        Spacer(modifier = Modifier.fillMaxWidth().size(15.dp))
 
         Text(
             text = onboardingModel.description,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(25.dp, 0.dp),
+            modifier = Modifier.fillMaxWidth().padding(25.dp, 0.dp),
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
         )
 
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(60.dp)
-        )
-
-    }
+        Spacer(modifier = Modifier.fillMaxWidth().size(60.dp))
+      }
 }

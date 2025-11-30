@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.credentials.CredentialManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -57,7 +56,7 @@ object WarnastrophyAppTestTags {
 @Composable
 fun WarnastrophyComposable(
     mockMapScreen: (@Composable () -> Unit)? = null,
-    onLoggedOut: () -> Unit = {}
+    onLogOutEvent: () -> Unit = {}
 ) {
   val context = LocalContext.current
 
@@ -93,7 +92,7 @@ fun WarnastrophyComposable(
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
-        //SignIn.route -> SignIn
+        // SignIn.route -> SignIn
         Screen.DangerModePreferences.route -> Screen.DangerModePreferences
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
@@ -134,14 +133,14 @@ fun WarnastrophyComposable(
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
-            /*
-              composable(SignIn.route) {
-                SignInScreen(
-                    credentialManager = credentialManager,
-                    onSignedIn = { navigationActions.navigateTo(Dashboard) })
-              }
+              /*
+               composable(SignIn.route) {
+                 SignInScreen(
+                     credentialManager = credentialManager,
+                     onSignedIn = { navigationActions.navigateTo(Dashboard) })
+               }
 
-             */
+              */
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,
@@ -162,7 +161,7 @@ fun WarnastrophyComposable(
                 ProfileScreen(
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
-                    onLogout = { onLoggedOut },
+                    onLogout = { onLogOutEvent() },
                     onDangerModePreferencesClick = {
                       navigationActions.navigateTo(Screen.DangerModePreferences)
                     })

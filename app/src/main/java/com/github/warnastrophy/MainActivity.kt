@@ -1,13 +1,11 @@
 package com.github.warnastrophy
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -20,13 +18,13 @@ import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModelFactory
-import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
-import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.onboard.AppStateManagerViewModel
 import com.github.warnastrophy.core.ui.onboard.OnboardingScreen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
@@ -76,7 +74,6 @@ class MainActivity : ComponentActivity() {
 object rootNav {
   const val SIGN_IN = "root_sign_in"
   const val ONBOARDING = "root_onboarding"
-  const val DECIDER = "decider"
   const val MAINAPP = "main_app"
 }
 
@@ -89,10 +86,10 @@ object rootNav {
  */
 @Composable
 private fun ThemedApp(
-  themeViewModel: ThemeViewModel,
-  appStateManagerViewModel: AppStateManagerViewModel = viewModel()) {
+    themeViewModel: ThemeViewModel,
+    appStateManagerViewModel: AppStateManagerViewModel = viewModel()
+) {
   val isOnboardingCompleted by appStateManagerViewModel.isOnboardingCompleted.collectAsState()
-  Log.d("themApp", "$isOnboardingCompleted")
   val isDarkMode by themeViewModel.isDarkMode.collectAsState()
   val systemDarkTheme = isSystemInDarkTheme()
 
@@ -100,80 +97,51 @@ private fun ThemedApp(
 
   val firebaseAuth = FirebaseAuth.getInstance()
   val currentUser = firebaseAuth.currentUser
-  Log.d("themApp", "Email = ${currentUser?.email}")
 
   val navController = rememberNavController()
-  val startDestination = when {
-    FirebaseAuth.getInstance().currentUser == null -> rootNav.SIGN_IN
-    !isOnboardingCompleted -> rootNav.ONBOARDING
-    else -> rootNav.MAINAPP
-  }
+  val startDestination =
+      when {
+        currentUser == null -> rootNav.SIGN_IN
+        !isOnboardingCompleted -> rootNav.ONBOARDING
+        else -> rootNav.MAINAPP
+      }
   MainAppTheme(darkTheme = useDarkTheme) {
     CompositionLocalProvider(LocalThemeViewModel provides themeViewModel) {
-      NavHost(
-        navController = navController,
-        startDestination = startDestination
-      ){
+      NavHost(navController = navController, startDestination = startDestination) {
         composable(rootNav.SIGN_IN) {
-          Log.d("themApp", "At SignIn ")
           SignInScreen(
-            credentialManager = CredentialManager.create(LocalContext.current),
-            onSignedIn = {
-              if (!isOnboardingCompleted) {
-                Log.d("themeApp", "isOnboardingCompleted is false")
-                navController.navigate(rootNav.ONBOARDING) {
-                  popUpTo(rootNav.ONBOARDING) { inclusive = true }
+              credentialManager = CredentialManager.create(LocalContext.current),
+              onSignedIn = {
+                if (!isOnboardingCompleted) {
+                  navController.navigate(rootNav.ONBOARDING) {
+                    popUpTo(rootNav.ONBOARDING) { inclusive = true }
+                  }
+                } else {
+                  navController.navigate(rootNav.MAINAPP) {
+                    popUpTo(rootNav.MAINAPP) { inclusive = true }
+                  }
                 }
-              } else {
-                navController.navigate(rootNav.MAINAPP) {
-                  popUpTo(rootNav.MAINAPP) { inclusive = true }
-                }
-              }
-            }
-          )
+              })
         }
-
-        composable(rootNav.DECIDER) {
-          LaunchedEffect(isOnboardingCompleted) {
-            if (!isOnboardingCompleted) {
-              Log.d("themeApp", "isOnboardingCompleted is false")
-              navController.navigate(rootNav.ONBOARDING) {
-                popUpTo(rootNav.DECIDER) { inclusive = true }
-              }
-            } else {
-              navController.navigate(rootNav.MAINAPP) {
-                popUpTo(rootNav.DECIDER) { inclusive = true }
-              }
-            }
-          }
-
-        }
-
 
         composable(rootNav.ONBOARDING) {
-          Log.d("themeApp", "at onBoarding")
           OnboardingScreen(
-            onFinished = {
-              appStateManagerViewModel.completeOnboarding()
-              navController.navigate(rootNav.MAINAPP) {
-                popUpTo(rootNav.ONBOARDING) { inclusive = true }
-              }
-            }
-          )
+              onFinished = {
+                appStateManagerViewModel.completeOnboarding()
+                navController.navigate(rootNav.MAINAPP) {
+                  popUpTo(rootNav.ONBOARDING) { inclusive = true }
+                }
+              })
         }
-
-
 
         composable(rootNav.MAINAPP) {
           WarnastrophyComposable(
-            onLoggedOut = {
-              navController.navigate(rootNav.SIGN_IN) {
-                popUpTo(rootNav.MAINAPP) { inclusive = true }
-              }
-            }
-          )
+              onLogOutEvent = {
+                navController.navigate(rootNav.SIGN_IN) {
+                  popUpTo(rootNav.MAINAPP) { inclusive = true }
+                }
+              })
         }
-
       }
     }
   }
