@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -29,22 +28,4 @@ fun ButtonUi(
       shape = RoundedCornerShape(10.dp)) {
         Text(text = text, fontSize = fontSize.sp, style = textStyle)
       }
-}
-
-@Preview
-@Composable
-fun NextButton() {
-  ButtonUi(text = "Next") {}
-}
-
-@Preview
-@Composable
-fun BackButton() {
-
-  ButtonUi(
-      text = "Back",
-      backgroundColor = Color.Transparent,
-      textColor = Color.Gray,
-      textStyle = MaterialTheme.typography.bodySmall,
-      fontSize = 13) {}
 }

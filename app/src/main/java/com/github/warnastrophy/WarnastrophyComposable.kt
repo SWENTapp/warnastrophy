@@ -133,14 +133,6 @@ fun WarnastrophyComposable(
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
-              /*
-               composable(SignIn.route) {
-                 SignInScreen(
-                     credentialManager = credentialManager,
-                     onSignedIn = { navigationActions.navigateTo(Dashboard) })
-               }
-
-              */
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,
