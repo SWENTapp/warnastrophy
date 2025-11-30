@@ -1,9 +1,14 @@
 package com.github.warnastrophy
 
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.github.warnastrophy.core.ui.onboard.OnboardingScreenTestTags
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -51,7 +56,30 @@ class MainActivityTest {
   @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   @Test
-  fun mainActivity_launches_and_displays_content() {
+  fun mainActivity_walk_through_onBoarding_screens() {
+    composeTestRule.onNodeWithTag(OnboardingScreenTestTags.NEXT_BUTTON).assertIsDisplayed()
+    composeTestRule.onAllNodesWithTag(OnboardingScreenTestTags.INDICATOR)[0].assertIsDisplayed()
+
+    val nextButtonNode = composeTestRule.onNodeWithTag(OnboardingScreenTestTags.NEXT_BUTTON)
+
+    // --- Page 1 to Page 2 (Button Text: "Next") ---
+    nextButtonNode.assertIsDisplayed()
+    nextButtonNode.performClick()
+    composeTestRule.waitForIdle()
+
+    // --- Page 2 to Page 3 (Button Text: "Next") ---
+    nextButtonNode.assertIsDisplayed()
+    nextButtonNode.performClick()
+    composeTestRule.waitForIdle()
+
+    // --- Final Click (Button Text: "Start") ---
+    nextButtonNode.assertIsDisplayed()
+    nextButtonNode.assert(hasText("Start"))
+
+    // Perform the final click that calls onFinished()
+    nextButtonNode.performClick()
+    composeTestRule.waitForIdle()
+
     composeTestRule.onNodeWithTag(WarnastrophyAppTestTags.MAIN_SCREEN).assertIsDisplayed()
   }
 }
