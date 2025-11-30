@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.components.Loading
-import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.firebase.auth.FirebaseAuth
@@ -91,12 +90,14 @@ fun DashboardEmergencyContactsCardStateless(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
-  modifier.clickable { onManageContactsClick() }
   val colorScheme = MaterialTheme.colorScheme
   val isDarkTheme = isSystemInDarkTheme()
   val colors = DashboardEmergencyContactsCardColors.getColors(colorScheme, isDarkTheme)
   StandardDashboardCard(
-      modifier = modifier.testTag(DashboardEmergencyContactsTestTags.CARD),
+      modifier =
+          modifier.testTag(DashboardEmergencyContactsTestTags.CARD).clickable {
+            onManageContactsClick()
+          },
       backgroundColor = colors.backgroundColor,
       minHeight = 120.dp,
       maxHeight = 150.dp) {
@@ -114,12 +115,6 @@ fun DashboardEmergencyContactsCardStateless(
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.testTag(DashboardEmergencyContactsTestTags.TITLE),
                         fontSize = 16.sp)
-
-                    Box(
-                        modifier =
-                            Modifier.testTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)) {
-                          StandardDashboardButton(label = "Manage", onClick = onManageContactsClick)
-                        }
                   }
 
               // Content area

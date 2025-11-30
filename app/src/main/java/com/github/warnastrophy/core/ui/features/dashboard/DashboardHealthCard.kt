@@ -29,7 +29,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
-import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
@@ -89,12 +88,6 @@ fun DashboardHealthCardStateless(
                         color = DashboardHealthCardColors.textColor,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp)
-
-                    Box(
-                        modifier =
-                            Modifier.testTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)) {
-                          StandardDashboardButton(label = "Manage", onClick = onHealthCardClick)
-                        }
                   }
 
               Spacer(modifier = Modifier.height(8.dp))
