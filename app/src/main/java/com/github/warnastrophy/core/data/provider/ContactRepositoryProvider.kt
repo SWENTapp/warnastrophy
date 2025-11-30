@@ -25,7 +25,7 @@ object ContactRepositoryProvider {
   /** Initialize Hybrid (local + remote) */
   fun initHybrid(context: Context, firestore: FirebaseFirestore) {
     val local = ContactsStorage(context.contactDataStore)
-    val remote = ContactsRepositoryImpl(firestore)
+    val remote = ContactRepositoryImpl(firestore)
 
     repository = HybridContactRepository(local, remote)
   }
