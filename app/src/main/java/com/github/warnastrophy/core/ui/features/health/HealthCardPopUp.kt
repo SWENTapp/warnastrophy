@@ -66,21 +66,6 @@ fun HealthCardPopUp(onDismissRequest: () -> Unit = {}, onClick: () -> Unit = {})
 }
 
 @Composable
-private fun HealthInfoEntry(label: String, value: String) {
-  Column(modifier = Modifier.padding(bottom = 12.dp)) {
-    Text(
-        text = label,
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
-        color = MaterialTheme.extendedColors.healthCardPopUp.primary)
-    Text(
-        text = value,
-        fontSize = 16.sp,
-        color = MaterialTheme.extendedColors.healthCardPopUp.fieldText)
-  }
-}
-
-@Composable
 private fun EmptyHealthCardPopUp() {
   Column(
       modifier = Modifier.fillMaxSize(),
