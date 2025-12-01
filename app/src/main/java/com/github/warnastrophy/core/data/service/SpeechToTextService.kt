@@ -1,4 +1,4 @@
-/** Fait par anas sifi mohamed et Gemini comme assistant. */
+/** Made by Anas Sifi Mohamed and Gemini as assistant. */
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context
@@ -7,115 +7,127 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import com.github.warnastrophy.R
+import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
+import com.github.warnastrophy.core.ui.navigation.Screen
 import java.util.Locale
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 /**
- * Un service pour gérer la reconnaissance vocale (Speech-to-Text).
+ * A service to handle speech recognition (Speech-to-Text).
  *
- * Ce service écoute l'entrée audio de l'utilisateur, la transcrit en texte et fournit une
- * fonctionnalité pour détecter une confirmation par "oui" ou "non".
+ * This service listens to the user's audio input, transcribes it into text, and provides
+ * functionality to detect a confirmation by "yes" or "no".
  *
- * IMPORTANT : L'application qui utilise ce service doit déclarer la permission `<uses-permission
- * android:name="android.permission.RECORD_AUDIO" />` dans son AndroidManifest.xml et obtenir
- * l'autorisation de l'utilisateur au moment de l'exécution.
+ * IMPORTANT: The application using this service must declare the permission `<uses-permission
+ * android:name="android.permission.RECORD_AUDIO" />` in its AndroidManifest.xml and obtain the
+ * user's permission at runtime.
  *
- * @param context Le contexte de l'application, nécessaire pour initialiser le SpeechRecognizer.
+ * @param context The application context, required to initialize the SpeechRecognizer.
  */
-class SpeechToTextService(private val context: Context) {
+class SpeechToTextService(private val context: Context, val errorHandler: ErrorHandler) {
 
   private var speechRecognizer: SpeechRecognizer? = null
+  private var currentContinuation: Continuation<Boolean>? = null
+  private val speechRecognizerIntent =
+      Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH.toString())
+      }
+
+  private val recognitionListener =
+      object : RecognitionListener {
+        override fun onResults(results: Bundle?) {
+          val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+          if (!matches.isNullOrEmpty()) {
+            val spokenText = matches[0]
+            val confirmation = parseConfirmation(spokenText)
+
+            if (confirmation != null) {
+              currentContinuation?.let { continuation ->
+                if (continuation.context.isActive) {
+                  continuation.resume(confirmation)
+                  currentContinuation = null
+                }
+              }
+            } else {
+              speechRecognizer?.startListening(speechRecognizerIntent)
+            }
+          } else {
+            speechRecognizer?.startListening(speechRecognizerIntent)
+          }
+        }
+
+        override fun onError(error: Int) {
+          // Continue listening unless the error is fatal
+          if (error == SpeechRecognizer.ERROR_NO_MATCH ||
+              error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT ||
+              error == SpeechRecognizer.ERROR_NETWORK) {
+            speechRecognizer?.startListening(speechRecognizerIntent)
+          } else {
+            // For other errors, we retry
+            speechRecognizer?.startListening(speechRecognizerIntent)
+          }
+        }
+
+        override fun onReadyForSpeech(params: Bundle?) {}
+
+        override fun onBeginningOfSpeech() {}
+
+        override fun onRmsChanged(rmsdB: Float) {}
+
+        override fun onBufferReceived(buffer: ByteArray?) {}
+
+        override fun onEndOfSpeech() {}
+
+        override fun onPartialResults(partialResults: Bundle?) {}
+
+        override fun onEvent(eventType: Int, params: Bundle?) {}
+      }
 
   /**
-   * Écoute l'entrée vocale de l'utilisateur jusqu'à ce qu'une confirmation ("oui" ou "non") soit
-   * détectée.
+   * Listens to the user's voice input until a confirmation ("yes" or "no") is detected.
    *
-   * Cette fonction suspendue démarre le processus de reconnaissance vocale et continue d'écouter
-   * jusqu'à ce que l'utilisateur dise une variante de "oui" ou "non" en anglais. Si l'utilisateur
-   * dit "oui", "yes", ou "yeah", la fonction retourne `true`. Si l'utilisateur dit "non" ou "no",
-   * la fonction retourne `false`. Pour tout autre mot, le service continue d'écouter.
+   * This suspended function starts the speech recognition process and continues listening until the
+   * user says a variant of "yes" or "no" in English. If the user says "yes", "yeah", or "yep", the
+   * function returns `true`. If the user says "no", the function returns `false`. For any other
+   * word, the service continues listening.
    *
-   * La reconnaissance s'arrête automatiquement si le coroutine est annulé.
+   * Recognition stops automatically if the coroutine is canceled.
    *
-   * @return `true` si l'utilisateur confirme, `false` s'il refuse.
-   * @throws Exception si le service de reconnaissance vocale n'est pas disponible sur l'appareil.
+   * @return `true` if the user confirms, `false` if they decline.
+   * @throws Exception if the speech recognition service is not available on the device.
    */
   suspend fun listenForConfirmation(): Boolean = suspendCancellableCoroutine { continuation ->
     if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-      continuation.cancel(Exception("Speech recognition service is not available on this device."))
+      continuation.cancel(Exception(context.getString(R.string.error_speech_recognition_failed)))
+      errorHandler.addErrorToScreen(ErrorType.SPEECH_RECOGNITION_ERROR, Screen.Dashboard)
       return@suspendCancellableCoroutine
     }
 
+    currentContinuation = continuation
+
     speechRecognizer =
         SpeechRecognizer.createSpeechRecognizer(context).apply {
-          val speechRecognizerIntent =
-              Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(
-                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH.toString())
-              }
-
-          setRecognitionListener(
-              object : RecognitionListener {
-                override fun onResults(results: Bundle?) {
-                  val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                  if (!matches.isNullOrEmpty()) {
-                    val spokenText = matches[0]
-                    val confirmation = parseConfirmation(spokenText)
-
-                    if (confirmation != null) {
-                      if (continuation.isActive) {
-                        continuation.resume(confirmation)
-                      }
-                    } else {
-                      // Si ce n'est pas une confirmation, on continue d'écouter
-                      startListening(speechRecognizerIntent)
-                    }
-                  } else {
-                    startListening(speechRecognizerIntent)
-                  }
-                }
-
-                override fun onError(error: Int) {
-                  // On continue d'écouter sauf si l'erreur est fatale
-                  if (error == SpeechRecognizer.ERROR_NO_MATCH ||
-                      error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
-                    startListening(speechRecognizerIntent)
-                  } else {
-                    // Pour d'autres erreurs, on pourrait vouloir annuler.
-                    // Pour ce cas, nous choisissons de réessayer.
-                    startListening(speechRecognizerIntent)
-                  }
-                }
-
-                override fun onReadyForSpeech(params: Bundle?) {}
-
-                override fun onBeginningOfSpeech() {}
-
-                override fun onRmsChanged(rmsdB: Float) {}
-
-                override fun onBufferReceived(buffer: ByteArray?) {}
-
-                override fun onEndOfSpeech() {}
-
-                override fun onPartialResults(partialResults: Bundle?) {}
-
-                override fun onEvent(eventType: Int, params: Bundle?) {}
-              })
-
+          setRecognitionListener(recognitionListener)
           startListening(speechRecognizerIntent)
         }
 
-    continuation.invokeOnCancellation { destroy() }
+    continuation.invokeOnCancellation {
+      currentContinuation = null
+      destroy()
+    }
   }
 
   /**
-   * Analyse le texte transcrit pour vérifier s'il s'agit d'une confirmation positive ou négative.
+   * Analyzes the transcribed text to check if it is a positive or negative confirmation.
    *
-   * @param text Le texte à analyser.
-   * @return `true` pour "yes", "yeah". `false` pour "no". `null` pour tout autre texte.
+   * @param text The text to analyze.
+   * @return `true` for "yes", "yeah". `false` for "no". `null` for any other text.
    */
   internal fun parseConfirmation(text: String?): Boolean? {
     return when (text?.lowercase(Locale.ROOT)?.trim()) {
@@ -127,8 +139,8 @@ class SpeechToTextService(private val context: Context) {
   }
 
   /**
-   * Arrête la reconnaissance vocale et libère les ressources. Doit être appelé lorsque le service
-   * n'est plus nécessaire pour éviter les fuites de mémoire.
+   * Stops speech recognition and releases resources. Must be called when the service is no longer
+   * needed to avoid memory leaks.
    */
   fun destroy() {
     speechRecognizer?.stopListening()

@@ -70,4 +70,6 @@
     <string name="error_suggestion_check_internet">Please check your internet connection.</string>
     <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
 
+    <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
+
 </resources>
