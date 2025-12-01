@@ -53,9 +53,14 @@ class SpeechToTextServiceTest {
           .`when`<Boolean> { SpeechRecognizer.isRecognitionAvailable(mockContext) }
           .thenReturn(false)
 
-      val exception = assertFailsWith<Exception> { speechToTextService.listenForConfirmation() }
+      whenever(mockContext.getString(any())).thenReturn("Speech recognition not available")
 
-      assertEquals("Speech recognition service is not available on this device.", exception.message)
+      val exception =
+          assertFailsWith<kotlinx.coroutines.CancellationException> {
+            speechToTextService.listenForConfirmation()
+          }
+
+      assertEquals("Speech recognition not available", exception.cause?.message)
     }
   }
 

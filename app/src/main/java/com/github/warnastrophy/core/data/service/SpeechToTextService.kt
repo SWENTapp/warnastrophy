@@ -13,6 +13,7 @@ import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
 import java.util.Locale
 import kotlin.coroutines.Continuation
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -29,7 +30,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  *
  * @param context The application context, required to initialize the SpeechRecognizer.
  */
-class SpeechToTextService(private val context: Context, val errorHandler: ErrorHandler) {
+class SpeechToTextService(
+    private val context: Context,
+    val errorHandler: ErrorHandler = ErrorHandler()
+) {
 
   private var speechRecognizer: SpeechRecognizer? = null
   private var currentContinuation: Continuation<Boolean>? = null
@@ -104,8 +108,9 @@ class SpeechToTextService(private val context: Context, val errorHandler: ErrorH
    */
   suspend fun listenForConfirmation(): Boolean = suspendCancellableCoroutine { continuation ->
     if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-      continuation.cancel(Exception(context.getString(R.string.error_speech_recognition_failed)))
       errorHandler.addErrorToScreen(ErrorType.SPEECH_RECOGNITION_ERROR, Screen.Dashboard)
+      continuation.cancel(
+          CancellationException(context.getString(R.string.error_speech_recognition_failed)))
       return@suspendCancellableCoroutine
     }
 
