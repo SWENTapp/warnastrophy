@@ -290,36 +290,37 @@ class SpeechToTextServiceTest {
     }
   }
 
+  private fun invokeParseConfirmation(input: String?): Boolean? {
+    val method =
+        speechToTextService.javaClass.getDeclaredMethod("parseConfirmation", String::class.java)
+    method.isAccessible = true
+    return method.invoke(speechToTextService, input) as Boolean?
+  }
+
   @Test
   fun `parseConfirmation returns true for yes variants`() {
-    val parseConfirmation =
-        speechToTextService.javaClass.getDeclaredMethod("parseConfirmation", String::class.java)
-    assertTrue(parseConfirmation("yes") == true)
-    assertTrue(parseConfirmation("YES") == true)
-    assertTrue(parseConfirmation(" yes ") == true)
-    assertTrue(parseConfirmation("yeah") == true)
-    assertTrue(parseConfirmation("YEAH") == true)
-    assertTrue(parseConfirmation(" Yeah ") == true)
+    assertTrue(invokeParseConfirmation("yes")!!)
+    assertTrue(invokeParseConfirmation("YES")!!)
+    assertTrue(invokeParseConfirmation(" yes ")!!)
+    assertTrue(invokeParseConfirmation("yeah")!!)
+    assertTrue(invokeParseConfirmation("YEAH")!!)
+    assertTrue(invokeParseConfirmation(" Yeah ")!!)
   }
 
   @Test
   fun `parseConfirmation returns false for no variants`() {
-    val parseConfirmation =
-        speechToTextService.javaClass.getDeclaredMethod("parseConfirmation", String::class.java)
-    assertTrue(parseConfirmation("no") == false)
-    assertTrue(parseConfirmation("NO") == false)
-    assertTrue(parseConfirmation(" No ") == false)
+    assertFalse(invokeParseConfirmation("no")!!)
+    assertFalse(invokeParseConfirmation("NO")!!)
+    assertFalse(invokeParseConfirmation(" No ")!!)
   }
 
   @Test
   fun `parseConfirmation returns null for invalid inputs`() {
-    val parseConfirmation =
-        speechToTextService.javaClass.getDeclaredMethod("parseConfirmation", String::class.java)
-    assertNull(parseConfirmation("hello"))
-    assertNull(parseConfirmation("maybe"))
-    assertNull(parseConfirmation(""))
-    assertNull(parseConfirmation(null))
-    assertNull(parseConfirmation("yep"))
+    assertNull(invokeParseConfirmation("hello"))
+    assertNull(invokeParseConfirmation("maybe"))
+    assertNull(invokeParseConfirmation(""))
+    assertNull(invokeParseConfirmation(null))
+    assertNull(invokeParseConfirmation("yep"))
   }
 
   @Test
