@@ -111,8 +111,7 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     try {
       doc().update(fieldName, value).await()
     } catch (e: Exception) {
-      val defaultMap = mutableMapOf(fieldName to value)
-      doc().set(defaultMap, SetOptions.merge()).await()
+      doc().set(mapOf(fieldName to value), SetOptions.merge()).await()
     }
   }
 

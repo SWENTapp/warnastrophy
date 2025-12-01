@@ -16,17 +16,14 @@ import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
-import java.lang.Exception
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class UserPreferencesRepositoryRemoteTest {
 
   private lateinit var mockFirestore: FirebaseFirestore
