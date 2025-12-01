@@ -68,29 +68,36 @@ class SpeechToTextService(
 
         override fun onError(error: Int) {
           // Continue listening unless the error is fatal
-          if (error == SpeechRecognizer.ERROR_NO_MATCH ||
-              error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT ||
-              error == SpeechRecognizer.ERROR_NETWORK) {
-            speechRecognizer?.startListening(speechRecognizerIntent)
-          } else {
-            // For other errors, we retry
-            speechRecognizer?.startListening(speechRecognizerIntent)
-          }
+          speechRecognizer?.startListening(speechRecognizerIntent)
         }
 
-        override fun onReadyForSpeech(params: Bundle?) {}
+        override fun onReadyForSpeech(params: Bundle?) {
+          // No action needed
+        }
 
-        override fun onBeginningOfSpeech() {}
+        override fun onBeginningOfSpeech() {
+          // No action needed
+        }
 
-        override fun onRmsChanged(rmsdB: Float) {}
+        override fun onRmsChanged(rmsdB: Float) {
+          // No action needed
+        }
 
-        override fun onBufferReceived(buffer: ByteArray?) {}
+        override fun onBufferReceived(buffer: ByteArray?) {
+          // No action needed
+        }
 
-        override fun onEndOfSpeech() {}
+        override fun onEndOfSpeech() {
+          // No action needed
+        }
 
-        override fun onPartialResults(partialResults: Bundle?) {}
+        override fun onPartialResults(partialResults: Bundle?) {
+          // No action needed
+        }
 
-        override fun onEvent(eventType: Int, params: Bundle?) {}
+        override fun onEvent(eventType: Int, params: Bundle?) {
+          // No action needed
+        }
       }
 
   /**
@@ -134,7 +141,7 @@ class SpeechToTextService(
    * @param text The text to analyze.
    * @return `true` for "yes", "yeah". `false` for "no". `null` for any other text.
    */
-  internal fun parseConfirmation(text: String?): Boolean? {
+  private fun parseConfirmation(text: String?): Boolean? {
     return when (text?.lowercase(Locale.ROOT)?.trim()) {
       "yes",
       "yeah" -> true

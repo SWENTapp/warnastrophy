@@ -292,28 +292,34 @@ class SpeechToTextServiceTest {
 
   @Test
   fun `parseConfirmation returns true for yes variants`() {
-    assertTrue(speechToTextService.parseConfirmation("yes") == true)
-    assertTrue(speechToTextService.parseConfirmation("YES") == true)
-    assertTrue(speechToTextService.parseConfirmation(" yes ") == true)
-    assertTrue(speechToTextService.parseConfirmation("yeah") == true)
-    assertTrue(speechToTextService.parseConfirmation("YEAH") == true)
-    assertTrue(speechToTextService.parseConfirmation(" Yeah ") == true)
+    val parseConfirmation =
+        speechToTextService.javaClass.getDeclaredMethod("parseConfirmation", String::class.java)
+    assertTrue(parseConfirmation("yes") == true)
+    assertTrue(parseConfirmation("YES") == true)
+    assertTrue(parseConfirmation(" yes ") == true)
+    assertTrue(parseConfirmation("yeah") == true)
+    assertTrue(parseConfirmation("YEAH") == true)
+    assertTrue(parseConfirmation(" Yeah ") == true)
   }
 
   @Test
   fun `parseConfirmation returns false for no variants`() {
-    assertTrue(speechToTextService.parseConfirmation("no") == false)
-    assertTrue(speechToTextService.parseConfirmation("NO") == false)
-    assertTrue(speechToTextService.parseConfirmation(" No ") == false)
+    val parseConfirmation =
+        speechToTextService.javaClass.getDeclaredMethod("parseConfirmation", String::class.java)
+    assertTrue(parseConfirmation("no") == false)
+    assertTrue(parseConfirmation("NO") == false)
+    assertTrue(parseConfirmation(" No ") == false)
   }
 
   @Test
   fun `parseConfirmation returns null for invalid inputs`() {
-    assertNull(speechToTextService.parseConfirmation("hello"))
-    assertNull(speechToTextService.parseConfirmation("maybe"))
-    assertNull(speechToTextService.parseConfirmation(""))
-    assertNull(speechToTextService.parseConfirmation(null))
-    assertNull(speechToTextService.parseConfirmation("yep"))
+    val parseConfirmation =
+        speechToTextService.javaClass.getDeclaredMethod("parseConfirmation", String::class.java)
+    assertNull(parseConfirmation("hello"))
+    assertNull(parseConfirmation("maybe"))
+    assertNull(parseConfirmation(""))
+    assertNull(parseConfirmation(null))
+    assertNull(parseConfirmation("yep"))
   }
 
   @Test
