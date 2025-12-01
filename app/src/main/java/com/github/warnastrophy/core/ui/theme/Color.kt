@@ -109,8 +109,6 @@ data class NewsCardColors(
 /** Color set for map preview, including background and map marker colors. */
 data class MapPreviewColors(val background: Color, val mapMarker: Color)
 
-// ... other data classes like NewsCardColors ...
-
 /**
  * Defines the color palette for health card components.
  *
