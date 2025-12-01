@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
@@ -76,19 +77,14 @@ fun DashboardHealthCardStateless(
       minHeight = 120.dp,
       maxHeight = 150.dp) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween) {
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Health",
-                        modifier = Modifier.testTag(DashboardHealthCardTestTags.TITLE),
-                        color = DashboardHealthCardColors.textColor,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp)
-                  }
+              Text(
+                  text = stringResource(id = R.string.dashboard_health_card_title),
+                  modifier = Modifier.testTag(DashboardHealthCardTestTags.TITLE),
+                  color = DashboardHealthCardColors.textColor,
+                  fontWeight = FontWeight.SemiBold,
+                  fontSize = 16.sp)
 
               Spacer(modifier = Modifier.height(8.dp))
 
@@ -111,7 +107,7 @@ fun DashboardHealthCardStateless(
                 }
                 else -> {
                   Text(
-                      text = "Add your medical info,\nallergies and meds",
+                      text = stringResource(id = R.string.dashboard_health_card_empty_text),
                       color = DashboardHealthCardColors.textColor,
                       fontSize = 14.sp,
                       modifier = Modifier.testTag(DashboardHealthCardTestTags.SUBTITLE),

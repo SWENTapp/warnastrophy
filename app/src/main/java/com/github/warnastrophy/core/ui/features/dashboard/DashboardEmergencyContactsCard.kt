@@ -5,7 +5,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ColorScheme
@@ -22,9 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.components.Loading
@@ -43,7 +44,6 @@ object DashboardEmergencyContactsTestTags {
   const val TITLE = "dashboardEmergencyContactsTitle"
   const val CONTACT_ITEM_PREFIX = "dashboardEmergencyContactItem_"
   const val NO_CONTACTS_TEXT = "dashboardEmergencyContactsNoContacts"
-  const val MANAGE_BUTTON = "dashboardEmergencyContactsManageButton"
 }
 
 /**
@@ -105,17 +105,12 @@ fun DashboardEmergencyContactsCardStateless(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween) {
               // Header
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Contacts",
-                        color = colors.textColor,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.testTag(DashboardEmergencyContactsTestTags.TITLE),
-                        fontSize = 16.sp)
-                  }
+              Text(
+                  text = stringResource(id = R.string.dashboard_emergency_contacts_title),
+                  color = colors.textColor,
+                  fontWeight = FontWeight.SemiBold,
+                  modifier = Modifier.testTag(DashboardEmergencyContactsTestTags.TITLE),
+                  fontSize = 16.sp)
 
               // Content area
               when {
@@ -128,7 +123,7 @@ fun DashboardEmergencyContactsCardStateless(
                 }
                 contacts.isEmpty() -> {
                   Text(
-                      text = "No emergency contacts added",
+                      text = stringResource(id = R.string.dashboard_emergency_contacts_no_contacts),
                       color = colors.subtitleColor,
                       fontSize = 14.sp,
                       modifier =
@@ -162,7 +157,11 @@ fun DashboardEmergencyContactsCardStateless(
 @Composable
 private fun ContactItem(contact: Contact, modifier: Modifier = Modifier, isDarkTheme: Boolean) {
   Text(
-      text = "${contact.fullName}: ${contact.phoneNumber}",
+      text =
+          stringResource(
+              id = R.string.dashboard_emergency_contacts_item_format,
+              contact.fullName,
+              contact.phoneNumber),
       color =
           DashboardEmergencyContactsCardColors.getColors(MaterialTheme.colorScheme, isDarkTheme)
               .textColor,

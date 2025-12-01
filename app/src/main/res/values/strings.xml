@@ -22,6 +22,15 @@
     <string name="event_image_description">Event Image</string>
     <string name="loading">Loading…</string>
 
+    <!-- Dashboard Emergency Contacts Card -->
+    <string name="dashboard_emergency_contacts_title">Contacts</string>
+    <string name="dashboard_emergency_contacts_no_contacts">No emergency contacts added</string>
+    <string name="dashboard_emergency_contacts_item_format">%1$s: %2$s</string>
+
+    <!-- Dashboard Health Card -->
+    <string name="dashboard_health_card_title">Health</string>
+    <string name="dashboard_health_card_empty_text">Add your medical info,\nallergies and meds</string>
+
     <!-- Logout strings -->
     <string name="logout_string">Logout</string>
     <string name="logout_message">Are you sure you want to logout?</string>
