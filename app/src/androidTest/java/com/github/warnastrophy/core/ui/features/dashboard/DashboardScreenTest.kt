@@ -1,28 +1,30 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isDisplayed
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.permissions.PermissionResult
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
+import com.github.warnastrophy.core.ui.features.health.HealthCardPopUpTestTags
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.map.dangerHazard
+import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.google.android.gms.maps.model.LatLng
+import junit.framework.TestCase.assertTrue
 import org.junit.Test
-import org.locationtech.jts.geom.GeometryFactory
 
 class DashboardScreenTest : BaseAndroidComposeTest() {
   // Verify that the root of the DashboardScreen is scrollable
@@ -64,7 +66,6 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     // Initially, danger mode should be off
     checkedDangerMode(false)
 
-    val geometryFactory = GeometryFactory()
     // Put a dangerous hazard and the user in it's affectedArea to activate danger mode
     mockHazardService.setHazards(listOf(dangerHazard))
 
@@ -82,7 +83,39 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     checkedDangerMode(false)
   }
 
-  private fun checkedDangerMode(on: Boolean): Unit {
+  @Test
+  fun clickingHealthCard_showsHealthCardPopUp() {
+    val mockHazardService = HazardServiceMock()
+    composeTestRule.setContent {
+      MainAppTheme { DashboardScreen(hazardsService = mockHazardService) }
+    }
+
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).performClick()
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertIsDisplayed()
+  }
+
+  @Test
+  fun healthCardPopUp_dismissesAndNavigates_whenEditButtonIsClicked() {
+    var onHealthCardClickCalled = false
+    val mockHazardService = HazardServiceMock()
+
+    composeTestRule.setContent {
+      MainAppTheme {
+        DashboardScreen(
+            hazardsService = mockHazardService,
+            onHealthCardClick = { onHealthCardClickCalled = true })
+      }
+    }
+
+    composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).performClick()
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EDIT_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertDoesNotExist()
+    assertTrue("onHealthCardClick should have been called.", onHealthCardClickCalled)
+  }
+
+  private fun checkedDangerMode(on: Boolean) {
     composeTestRule.waitUntilWithTimeout {
       composeTestRule.onNode(hasTestTag(DangerModeTestTags.SWITCH)).isDisplayed()
     }
