@@ -23,7 +23,7 @@ fun HealthCardPopUp(onDismissRequest: () -> Unit = {}, onClick: () -> Unit = {})
   Dialog(onDismissRequest = onDismissRequest) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().aspectRatio(0.63f),
+        modifier = Modifier.fillMaxWidth(1f).fillMaxHeight(0.8f),
         colors = CardDefaults.cardColors(containerColor = healthCardColors.primary)) {
           Column(modifier = Modifier.padding(16.dp).fillMaxHeight()) {
             Row(
