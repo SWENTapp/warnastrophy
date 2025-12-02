@@ -16,6 +16,7 @@ import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
+import junit.framework.TestCase.assertEquals
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -72,12 +73,26 @@ class UserPreferencesRepositoryRemoteTest {
   }
 
   @Test
-  fun `getUserId returns anonymous when user is not authenticated`() = runTest {
+  fun `setAlertMode does nothing when user is not authenticated`() = runTest {
     every { mockAuth.currentUser } returns null
 
     repository.setAlertMode(true)
 
-    verify { mockCollection.document("anonymous") }
+    verify(exactly = 0) { mockDocument.update(any<String>(), any()) }
+    verify(exactly = 0) { mockDocument.set(any<Map<String, Any>>(), any<SetOptions>()) }
+  }
+
+  @Test
+  fun `getUserPreferences emits default preferences when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    val result = repository.getUserPreferences.first()
+
+    assertEquals(UserPreferences.default(), result)
+    assertFalse(result.dangerModePreferences.alertMode)
+    assertFalse(result.dangerModePreferences.inactivityDetection)
+    assertFalse(result.dangerModePreferences.automaticSms)
+    assertFalse(result.themePreferences)
   }
 
   @Test
@@ -156,7 +171,7 @@ class UserPreferencesRepositoryRemoteTest {
   }
 
   @Test
-  fun `setAlertMode updates field successfully`() = runTest {
+  fun `setAlertMode updates field successfully when authenticated`() = runTest {
     repository.setAlertMode(true)
 
     verify { mockDocument.update("alertMode", true) }
@@ -181,28 +196,55 @@ class UserPreferencesRepositoryRemoteTest {
   }
 
   @Test
-  fun `setInactivityDetection updates field successfully`() = runTest {
+  fun `setInactivityDetection updates field successfully when authenticated`() = runTest {
     repository.setInactivityDetection(true)
 
     verify { mockDocument.update("inactivityDetection", true) }
   }
 
   @Test
-  fun `setAutomaticSms updates field successfully`() = runTest {
+  fun `setInactivityDetection does nothing when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setInactivityDetection(true)
+
+    verify(exactly = 0) { mockDocument.update(any<String>(), any()) }
+  }
+
+  @Test
+  fun `setAutomaticSms updates field successfully when authenticated`() = runTest {
     repository.setAutomaticSms(false)
 
     verify { mockDocument.update("automaticSms", false) }
   }
 
   @Test
-  fun `setDarkMode updates field successfully`() = runTest {
+  fun `setAutomaticSms does nothing when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setAutomaticSms(false)
+
+    verify(exactly = 0) { mockDocument.update(any<String>(), any()) }
+  }
+
+  @Test
+  fun `setDarkMode updates field successfully when authenticated`() = runTest {
     repository.setDarkMode(true)
 
     verify { mockDocument.update("darkMode", true) }
   }
 
   @Test
-  fun `multiple field updates work correctly`() = runTest {
+  fun `setDarkMode does nothing when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setDarkMode(true)
+
+    verify(exactly = 0) { mockDocument.update(any<String>(), any()) }
+  }
+
+  @Test
+  fun `multiple field updates work correctly when authenticated`() = runTest {
     repository.setAlertMode(true)
     repository.setInactivityDetection(false)
     repository.setAutomaticSms(true)
@@ -212,6 +254,19 @@ class UserPreferencesRepositoryRemoteTest {
     verify { mockDocument.update("inactivityDetection", false) }
     verify { mockDocument.update("automaticSms", true) }
     verify { mockDocument.update("darkMode", false) }
+  }
+
+  @Test
+  fun `multiple field updates do nothing when not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setAlertMode(true)
+    repository.setInactivityDetection(false)
+    repository.setAutomaticSms(true)
+    repository.setDarkMode(false)
+
+    verify(exactly = 0) { mockDocument.update(any<String>(), any()) }
+    verify(exactly = 0) { mockDocument.set(any<Map<String, Any>>(), any<SetOptions>()) }
   }
 
   @Test
@@ -230,6 +285,15 @@ class UserPreferencesRepositoryRemoteTest {
     repository.getUserPreferences.first()
 
     verify(timeout = 10000) { mockRegistration.remove() }
+  }
+
+  @Test
+  fun `getUserPreferences does not add listener when not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.getUserPreferences.first()
+
+    verify(exactly = 0) { mockDocument.addSnapshotListener(any()) }
   }
 
   @Test
@@ -275,14 +339,14 @@ class UserPreferencesRepositoryRemoteTest {
   }
 
   @Test
-  fun `repository uses correct collection name`() = runTest {
+  fun `repository uses correct collection name when authenticated`() = runTest {
     repository.setAlertMode(true)
 
     verify { mockFirestore.collection("user_preferences") }
   }
 
   @Test
-  fun `repository uses correct field names`() = runTest {
+  fun `repository uses correct field names when authenticated`() = runTest {
     repository.setAlertMode(true)
     verify { mockDocument.update("alertMode", any()) }
 
@@ -294,5 +358,17 @@ class UserPreferencesRepositoryRemoteTest {
 
     repository.setDarkMode(true)
     verify { mockDocument.update("darkMode", any()) }
+  }
+
+  @Test
+  fun `authentication state changes are reflected in subsequent calls`() = runTest {
+    every { mockAuth.currentUser } returns mockUser
+    repository.setAlertMode(true)
+    verify { mockDocument.update("alertMode", true) }
+
+    every { mockAuth.currentUser } returns null
+    repository.setAlertMode(false)
+    verify(exactly = 1) { mockDocument.update("alertMode", true) }
+    verify(exactly = 0) { mockDocument.update("alertMode", false) }
   }
 }
