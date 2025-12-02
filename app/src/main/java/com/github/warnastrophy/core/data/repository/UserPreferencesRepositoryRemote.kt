@@ -7,6 +7,7 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -26,6 +27,8 @@ import kotlinx.coroutines.tasks.await
 class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) :
     UserPreferencesRepository {
 
+  private val auth = FirebaseAuth.getInstance()
+
   private companion object {
     const val COLLECTION_NAME = "user_preferences"
     const val FIELD_ALERT_MODE = "alertMode"
@@ -39,7 +42,7 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
    *
    * @return A [DocumentReference] pointing to the current user's preferences document in Firestore.
    */
-  private fun doc() = firestore.collection(COLLECTION_NAME).document(getUserId())
+  private fun doc() = getUserId()?.let { firestore.collection(COLLECTION_NAME).document(it) }
 
   /**
    * Retrieves the current user's UID from Firebase Authentication. If the user is not
@@ -47,8 +50,17 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
    *
    * @return The current user's UID.
    */
-  private fun getUserId(): String {
-    return FirebaseAuth.getInstance().currentUser?.uid ?: "anonymous"
+  private fun getUserId(): String? {
+    return auth.currentUser?.uid
+  }
+
+  /**
+   * Checks if a user is currently authenticated.
+   *
+   * @return true if a user is authenticated, false otherwise.
+   */
+  private fun isUserAuthenticated(): Boolean {
+    return auth.currentUser != null
   }
 
   /**
@@ -59,30 +71,42 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
    * preferences to collectors. If no preferences exist for the user, it will emit default
    * preferences.
    */
-  override val getUserPreferences: Flow<UserPreferences> = callbackFlow {
-    var listenerRegistration: ListenerRegistration? = null
+  override val getUserPreferences: Flow<UserPreferences> =
+      if (!isUserAuthenticated()) {
+        flowOf(UserPreferences.default())
+      } else {
+        callbackFlow {
+          var listenerRegistration: ListenerRegistration? = null
 
-    try {
-      listenerRegistration =
-          doc().addSnapshotListener { snapshot, error ->
-            if (error != null) {
-              close(error)
-              return@addSnapshotListener
+          try {
+            val document = doc()
+            if (document == null) {
+              trySend(UserPreferences.default())
+              close()
+              return@callbackFlow
             }
 
-            if (snapshot != null && snapshot.exists()) {
-              val preferences = mapDocumentToUserPreferences(snapshot.data)
-              trySend(preferences)
-            } else {
-              trySend(getDefaultPreferences())
-            }
+            listenerRegistration =
+                document.addSnapshotListener { snapshot, error ->
+                  if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                  }
+
+                  if (snapshot != null && snapshot.exists()) {
+                    val preferences = mapDocumentToUserPreferences(snapshot.data)
+                    trySend(preferences)
+                  } else {
+                    trySend(UserPreferences.default())
+                  }
+                }
+          } catch (e: Exception) {
+            close(e)
           }
-    } catch (e: Exception) {
-      close(e)
-    }
 
-    awaitClose { listenerRegistration?.remove() }
-  }
+          awaitClose { listenerRegistration?.remove() }
+        }
+      }
 
   override suspend fun setAlertMode(enabled: Boolean) {
     updateField(FIELD_ALERT_MODE, enabled)
@@ -104,14 +128,19 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
    * Updates a specific field in the user's preferences document in Firestore. If the field does not
    * exist, it is created with the provided value.
    *
+   * This method assumes the user is authenticated (checked by caller).
+   *
    * @param fieldName The field to update in the preferences document.
    * @param value The new value for the field.
    */
   private suspend fun updateField(fieldName: String, value: Any) {
+    val document = doc() ?: return
+
     try {
-      doc().update(fieldName, value).await()
+      document.update(fieldName, value).await()
     } catch (e: Exception) {
-      doc().set(mapOf(fieldName to value), SetOptions.merge()).await()
+      // NOSONAR - This is a Firestore set() method, not a map accessor
+      document.set(mapOf(fieldName to value), SetOptions.merge()).await()
     }
   }
 
@@ -135,18 +164,5 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
 
     return UserPreferences(
         dangerModePreferences = dangerModePreferences, themePreferences = darkMode)
-  }
-
-  /**
-   * Returns the default user preferences when no preferences exist in Firestore.
-   *
-   * @return A [UserPreferences] object with default values.
-   */
-  private fun getDefaultPreferences(): UserPreferences {
-    return UserPreferences(
-        dangerModePreferences =
-            DangerModePreferences(
-                alertMode = false, inactivityDetection = false, automaticSms = false),
-        themePreferences = false)
   }
 }
