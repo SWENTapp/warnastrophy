@@ -15,10 +15,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.ui.features.health.HealthCardPopUp
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
@@ -39,6 +43,8 @@ fun DashboardScreen(
     onManageActivitiesClick: () -> Unit = {},
     hazardsService: HazardsDataService
 ) {
+  var showHealthCard by remember { mutableStateOf(false) }
+
   Scaffold(containerColor = MaterialTheme.extendedColors.backgroundOffWhite) { innerPadding ->
     Column(
         modifier =
@@ -71,7 +77,7 @@ fun DashboardScreen(
                       modifier =
                           Modifier.weight(1f).testTag(DashboardEmergencyContactsTestTags.CARD))
                   DashboardHealthCardStateful(
-                      onHealthCardClick = { onHealthCardClick() },
+                      onHealthCardClick = { showHealthCard = true },
                       modifier = Modifier.testTag(DashboardHealthCardTestTags.CARD).weight(0.78f))
                 }
 
@@ -84,5 +90,16 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(80.dp))
           }
         }
+
+    val onDismiss = { showHealthCard = false }
+
+    if (showHealthCard) {
+      HealthCardPopUp(
+          onDismissRequest = { onDismiss() },
+          onClick = {
+            onDismiss()
+            onHealthCardClick()
+          })
+    }
   }
 }
