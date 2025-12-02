@@ -12,7 +12,13 @@ data class UserPreferences(
     val dangerModePreferences: DangerModePreferences,
     // Add more preferences like storeInFirebase: Boolean, darkMode: Boolean, etc
     val themePreferences: Boolean
-)
+) {
+  companion object {
+    fun default() =
+        UserPreferences(
+            dangerModePreferences = DangerModePreferences.default(), themePreferences = false)
+  }
+}
 
 /**
  * Data class to hold all user-configurable settings related to "danger mode".
@@ -26,7 +32,12 @@ data class DangerModePreferences(
     val alertMode: Boolean,
     val inactivityDetection: Boolean,
     val automaticSms: Boolean,
-)
+) {
+  companion object {
+    fun default() =
+        DangerModePreferences(alertMode = false, inactivityDetection = false, automaticSms = false)
+  }
+}
 
 /**
  * Repository for managing user preferences using Jetpack DataStore. It handles read errors and
