@@ -1,9 +1,11 @@
-package com.github.warnastrophy.core.data.repository
+package com.github.warnastrophy.core.data.provider
 
 import android.content.Context
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.data.localStorage.ContactsStorage
 import com.github.warnastrophy.core.data.localStorage.contactDataStore
+import com.github.warnastrophy.core.data.repository.ContactRepositoryImpl
+import com.github.warnastrophy.core.data.repository.HybridContactRepository
 import com.google.firebase.firestore.FirebaseFirestore
 
 object ContactRepositoryProvider {
