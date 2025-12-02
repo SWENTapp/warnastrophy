@@ -19,7 +19,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.NominatimService
+import com.github.warnastrophy.core.data.service.SpeechToTextService
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.ui.components.CommunicationScreen
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
@@ -101,7 +103,8 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
       }
 
   val startDestination =
-      if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
+      if (FirebaseAuth.getInstance().currentUser == null) SignIn.route
+      else Screen.Communication.route
 
   val errorHandler = remember { StateManagerService.errorHandler }
   val gpsService = remember { StateManagerService.gpsService }
@@ -120,6 +123,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
   val nominatimService = NominatimService(nominatimRepository)
 
   val mapViewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
+  val speechToTextService = SpeechToTextService(context, errorHandler)
 
   Scaffold(
       modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
@@ -224,6 +228,11 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                             permissionManager = permissionManager,
                             userPreferencesRepository =
                                 StateManagerService.userPreferencesRepository))
+              }
+
+              composable(Screen.Communication.route) {
+                CommunicationScreen(
+                    speechToTextService, onBackClick = { navigationActions.goBack() })
               }
             }
       }

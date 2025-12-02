@@ -33,7 +33,6 @@ object StateManagerService {
   lateinit var movementService: MovementService
   lateinit var userPreferencesRepository: UserPreferencesRepository
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
-
   val activeHazardFlow: StateFlow<Hazard?> = _activeHazardFlow.asStateFlow()
 
   /**

@@ -73,4 +73,10 @@
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
     <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
 
+    <string name="communication_screen_title">Voice command</string>
+    <string name="communication_listening_label">Listening…</string>
+    <string name="communication_idle_label">Tap the mic to start listening</string>
+    <string name="communication_no_input_hint">We will show the transcript here.</string>
+    <string name="communication_listen_button">Start listening</string>
+    <string name="navigate_back">Back</string>
 </resources>

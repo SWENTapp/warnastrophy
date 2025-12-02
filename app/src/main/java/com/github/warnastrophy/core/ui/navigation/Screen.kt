@@ -95,6 +95,12 @@ sealed class Screen(
           icon = Icons.Filled.Add,
           route = NavRoutes.ADD_CONTACT)
 
+  object Communication :
+      Screen(
+          R.string.communication_screen_title,
+          icon = Icons.Filled.Add,
+          route = NavRoutes.ADD_CONTACT)
+
   object ContactList : Screen(R.string.contact_list_title, route = NavRoutes.CONTACT_LIST)
 
   object HealthCard : Screen(R.string.health_card_screen_title, route = NavRoutes.HEALTH_CARD)
