@@ -58,6 +58,12 @@ object DangerModeTestTags {
   const val MODE_PREFIX = "dangerModePresetButton"
   const val COLOR_BOX_PREFIX = "dangerModeColorBox"
 
+    const val ADVANCED_SECTION = "dangerModeAdvancedSection"
+    const val AUTO_CALL_SWITCH = "dangerModeAutoCallSwitch"
+    const val AUTO_MESSAGE_SWITCH = "dangerModeAutoMessageSwitch"
+    const val CONFIRM_TOUCH_SWITCH = "dangerModeConfirmTouchSwitch"
+    const val CONFIRM_VOICE_SWITCH = "dangerModeConfirmVoiceSwitch"
+
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
 
   fun modeTag(mode: DangerModePreset) = MODE_PREFIX + mode.label
@@ -85,6 +91,10 @@ fun DangerModeCard(
   val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
   val capabilities by viewModel.capabilities.collectAsState(emptySet())
   val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
+
+    val confirmTouchRequired by viewModel.confirmTouchRequired.collectAsState(false)
+    val confirmVoiceRequired by viewModel.confirmVoiceRequired.collectAsState(false)
+
   val colorScheme = MaterialTheme.colorScheme
   val extendedColors = MaterialTheme.extendedColors
 
@@ -204,6 +214,16 @@ fun DangerModeCard(
               }
             }
           }
+        if (capabilities.contains(DangerModeCapability.CALL)) {
+            Spacer(modifier = Modifier.height(12.dp))
+            DangerModeAdvancedOptionsSection(
+                confirmTouchRequired = confirmTouchRequired,
+                confirmVoiceRequired = confirmVoiceRequired,
+                onConfirmTouchChanged = viewModel::onConfirmTouchChanged,
+                onConfirmVoiceChanged = viewModel::onConfirmVoiceChanged,
+            )
+        }
+
       Spacer(modifier = Modifier.height(4.dp))
     }
   }
@@ -231,6 +251,83 @@ private fun DangerColorBox(
       modifier = modifier.size(width = 28.dp, height = 28.dp),
       border = BorderStroke(width = 2.dp, color = borderColor),
   ) {}
+}
+@Composable
+private fun DangerModeAdvancedOptionsSection(
+    confirmTouchRequired: Boolean,
+    confirmVoiceRequired: Boolean,
+    onConfirmTouchChanged: (Boolean) -> Unit,
+    onConfirmVoiceChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .testTag(DangerModeTestTags.ADVANCED_SECTION)) {
+        Text(
+            text = "Automatic actions",
+            color = colors.onError,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text =
+                "When Danger Mode is triggered, calls and messages can be sent automatically. " +
+                        "Use the options below to choose what happens, and how you confirm it.",
+            color = colors.onError.copy(alpha = 0.9f),
+            fontSize = 11.sp)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Confirmation methods",
+            color = colors.onError,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text =
+                "For extra control, you can require a quick confirmation before actions are sent.",
+            color = colors.onError.copy(alpha = 0.9f),
+            fontSize = 11.sp)
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Tactile confirmation
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Require touch confirmation",
+                color = colors.onError,
+                fontSize = 13.sp,
+                modifier = Modifier.weight(1f))
+            Switch(
+                checked = confirmTouchRequired,
+                onCheckedChange = onConfirmTouchChanged,
+                modifier = Modifier.testTag(DangerModeTestTags.CONFIRM_TOUCH_SWITCH))
+        }
+
+        // Voice confirmation
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Allow voice confirmation",
+                color = colors.onError,
+                fontSize = 13.sp,
+                modifier = Modifier.weight(1f))
+            Switch(
+                checked = confirmVoiceRequired,
+                onCheckedChange = onConfirmVoiceChanged,
+                modifier = Modifier.testTag(DangerModeTestTags.CONFIRM_VOICE_SWITCH))
+        }
+    }
 }
 
 @Composable
