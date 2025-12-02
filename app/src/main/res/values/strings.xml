@@ -85,4 +85,8 @@
     <string name="health_card_popup_edit_button_cd">Go to full health card</string>
     <string name="health_card_popup_empty_text">Empty Health Card</string>
 
+    <!-- Speech Recognition Error Messages -->
+    <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
+    <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
+
 </resources>
