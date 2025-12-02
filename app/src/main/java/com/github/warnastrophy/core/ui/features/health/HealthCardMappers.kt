@@ -50,5 +50,17 @@ fun HealthCard.toFormState(): HealthCardFormState =
         organDonor = organDonor ?: false,
         notes = notes.orEmpty())
 
+/** Domain → Preview UI */
+fun HealthCard.toPreviewState(): HealthCardPreviewState =
+    HealthCardPreviewState(
+        fullName = fullName,
+        birthDate = dateOfBirthIso.isoToUiOrBlank(),
+        sex = sex ?: "-",
+        bloodType = bloodType ?: "-",
+        allergies = if (allergies.isEmpty()) "-" else allergies.joinToString(", "),
+        medications = if (medications.isEmpty()) "-" else medications.joinToString(", "),
+        organDonor = organDonor ?: false,
+        notes = notes ?: "-")
+
 internal fun String.splitToList(): List<String> =
     split(",").map { it.trim() }.filter { it.isNotEmpty() }

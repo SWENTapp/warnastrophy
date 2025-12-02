@@ -27,12 +27,15 @@ import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
 class DashboardScreenTest : BaseAndroidComposeTest() {
+
+  private val fakeUserId = "user1234"
+
   // Verify that the root of the DashboardScreen is scrollable
   @Test
   fun dashboardScreen_rootIsScrollable() {
     val mockHazardService = HazardServiceMock()
     composeTestRule.setContent {
-      MaterialTheme { DashboardScreen(hazardsService = mockHazardService) }
+      MaterialTheme { DashboardScreen(userId = fakeUserId, hazardsService = mockHazardService) }
     }
 
     composeTestRule
@@ -58,7 +61,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     ContactRepositoryProvider.repository = MockContactRepository()
 
     composeTestRule.setContent {
-      MaterialTheme { DashboardScreen(hazardsService = mockHazardService) }
+      MaterialTheme { DashboardScreen(userId = fakeUserId, hazardsService = mockHazardService) }
     }
 
     composeTestRule.waitForIdle()
@@ -87,7 +90,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   fun clickingHealthCard_showsHealthCardPopUp() {
     val mockHazardService = HazardServiceMock()
     composeTestRule.setContent {
-      MainAppTheme { DashboardScreen(hazardsService = mockHazardService) }
+      MainAppTheme { DashboardScreen(userId = fakeUserId, hazardsService = mockHazardService) }
     }
 
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertDoesNotExist()
@@ -103,6 +106,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     composeTestRule.setContent {
       MainAppTheme {
         DashboardScreen(
+            userId = fakeUserId,
             hazardsService = mockHazardService,
             onHealthCardClick = { onHealthCardClickCalled = true })
       }

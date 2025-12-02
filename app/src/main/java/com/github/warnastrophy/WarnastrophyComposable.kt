@@ -142,6 +142,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
               }
               composable(Dashboard.route) {
                 DashboardScreen(
+                    userId = userId,
                     hazardsService = hazardsService,
                     mapScreen = {
                       mockMapScreen?.invoke()
