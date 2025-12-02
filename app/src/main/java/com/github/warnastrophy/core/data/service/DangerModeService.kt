@@ -113,7 +113,6 @@ class DangerModeService(
 
       val requiredPermission =
           when (cap) {
-            DangerModeCapability.LOCATION -> AppPermissions.LocationFine
             DangerModeCapability.SMS -> AppPermissions.SendEmergencySms
             DangerModeCapability.CALL -> null
           }

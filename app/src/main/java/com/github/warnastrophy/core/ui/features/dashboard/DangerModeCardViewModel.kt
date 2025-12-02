@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 enum class DangerModeCapability(val label: String) {
   CALL("Call"),
   SMS("SMS"),
-  LOCATION("Location")
 }
 
 /** Preset modes for Danger Mode with associated labels. */
@@ -63,6 +62,8 @@ class DangerModeCardViewModel(
           .map { it.capabilities }
           .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
 
+  private val _autoActionsEnabled = MutableStateFlow(false)
+  val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
   private val _confirmTouchRequired = MutableStateFlow(false)
   val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
 
@@ -135,6 +136,11 @@ class DangerModeCardViewModel(
 
   fun onConfirmTouchChanged(enabled: Boolean) {
     _confirmTouchRequired.value = enabled
+    // TODO: Persist & enforce tactile confirmation before actions.
+  }
+
+  fun onAutoActionsEnabled(enabled: Boolean) {
+    _autoActionsEnabled.value = enabled
     // TODO: Persist & enforce tactile confirmation before actions.
   }
 

@@ -59,10 +59,10 @@ object DangerModeTestTags {
   const val COLOR_BOX_PREFIX = "dangerModeColorBox"
 
   const val ADVANCED_SECTION = "dangerModeAdvancedSection"
-  const val AUTO_CALL_SWITCH = "dangerModeAutoCallSwitch"
-  const val AUTO_MESSAGE_SWITCH = "dangerModeAutoMessageSwitch"
   const val CONFIRM_TOUCH_SWITCH = "dangerModeConfirmTouchSwitch"
   const val CONFIRM_VOICE_SWITCH = "dangerModeConfirmVoiceSwitch"
+
+  const val AUTO_CALL_SWITCH = "dangerModeAutoActionsSwitch"
 
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
 
@@ -91,6 +91,7 @@ fun DangerModeCard(
   val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
   val capabilities by viewModel.capabilities.collectAsState(emptySet())
   val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
+  val autoActionsEnabled by viewModel.autoActionsEnabled.collectAsState(false)
 
   val confirmTouchRequired by viewModel.confirmTouchRequired.collectAsState(false)
   val confirmVoiceRequired by viewModel.confirmVoiceRequired.collectAsState(false)
@@ -214,14 +215,16 @@ fun DangerModeCard(
               }
             }
           }
-      if (capabilities.contains(DangerModeCapability.CALL)) {
+      if (capabilities.contains(DangerModeCapability.CALL) ||
+          capabilities.contains(DangerModeCapability.SMS)) {
         Spacer(modifier = Modifier.height(12.dp))
         DangerModeAdvancedOptionsSection(
+            autoActionsEnabled = autoActionsEnabled,
             confirmTouchRequired = confirmTouchRequired,
             confirmVoiceRequired = confirmVoiceRequired,
+            onAutoActionsChanged = viewModel::onAutoActionsEnabled,
             onConfirmTouchChanged = viewModel::onConfirmTouchChanged,
-            onConfirmVoiceChanged = viewModel::onConfirmVoiceChanged,
-        )
+            onConfirmVoiceChanged = viewModel::onConfirmVoiceChanged)
       }
 
       Spacer(modifier = Modifier.height(4.dp))
@@ -255,8 +258,10 @@ private fun DangerColorBox(
 
 @Composable
 private fun DangerModeAdvancedOptionsSection(
+    autoActionsEnabled: Boolean,
     confirmTouchRequired: Boolean,
     confirmVoiceRequired: Boolean,
+    onAutoActionsChanged: (Boolean) -> Unit,
     onConfirmTouchChanged: (Boolean) -> Unit,
     onConfirmVoiceChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier
@@ -264,11 +269,18 @@ private fun DangerModeAdvancedOptionsSection(
   val colors = MaterialTheme.colorScheme
 
   Column(modifier = modifier.fillMaxWidth().testTag(DangerModeTestTags.ADVANCED_SECTION)) {
-    Text(
-        text = "Automatic actions",
-        color = colors.onError,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold)
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+      Text(
+          text = "Automatic actions",
+          color = colors.onError,
+          fontSize = 13.sp,
+          fontWeight = FontWeight.SemiBold,
+          modifier = Modifier.weight(1f))
+      Switch(
+          checked = autoActionsEnabled,
+          onCheckedChange = onAutoActionsChanged,
+          modifier = Modifier.testTag(DangerModeTestTags.AUTO_CALL_SWITCH))
+    }
     Spacer(modifier = Modifier.height(4.dp))
     Text(
         text =
