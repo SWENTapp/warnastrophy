@@ -51,6 +51,7 @@ object DashboardEmergencyContactsTestTags {
  *
  * Defines the visual appearance with a light yellow background and gray text variants.
  */
+// TODO remove hardcoded colors
 object DashboardEmergencyContactsCardColors {
   fun getColors(colorScheme: ColorScheme, isDarkTheme: Boolean): Colors {
     return Colors(
@@ -60,9 +61,8 @@ object DashboardEmergencyContactsCardColors {
             } else {
               colorScheme.surface.copy(red = 1f, green = 1f, blue = 0.5f)
             },
-        textColor = colorScheme.onSurface, // Dark Gray text
-        subtitleColor = colorScheme.onSurface // Medium Gray subtitle
-        )
+        textColor = Color.Black,
+        subtitleColor = Color.Black)
   }
 }
 
