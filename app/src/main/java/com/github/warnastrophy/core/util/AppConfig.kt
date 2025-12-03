@@ -20,8 +20,6 @@ object AppConfig {
 
   const val HTTP_TIMEOUT = 15000
 
-  val windowMillisMotion = 120000
-
   val GOOGLE_MAP_LINK = "https://www.google.com/maps"
 
   object Endpoints {
