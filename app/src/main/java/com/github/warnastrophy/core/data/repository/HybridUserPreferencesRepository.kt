@@ -27,16 +27,13 @@ class HybridUserPreferencesRepository(
     private val remote: UserPreferencesRepositoryRemote
 ) : UserPreferencesRepository {
 
-  private companion object {
-    /** Tag used for logging in this repository. */
-    const val HYBRID_REPOSITORY_TAG = "HybridUserPreferencesRepository"
-  }
-
   /** Mutex used to ensure safe concurrent access to remote preferences synchronization. */
   private val syncMutex = Mutex()
 
   /** Flag indicating whether the remote repository is available. */
   private var isRemoteAvailable = true
+
+  private val hybridRepositoryTag = "HybridUserPreferencesRepository"
 
   /**
    * A [Flow] that emits the current user preferences, first attempting to load from the local
@@ -99,12 +96,15 @@ class HybridUserPreferencesRepository(
   private suspend fun updateBothRepositories(update: suspend UserPreferencesRepository.() -> Unit) {
     local.update()
 
+    val shouldUpdateRemote = syncMutex.withLock { isRemoteAvailable }
+    if (!shouldUpdateRemote) return
+
     if (isRemoteAvailable) {
       try {
         remote.update()
       } catch (e: Exception) {
-        isRemoteAvailable = false
-        Log.w(HYBRID_REPOSITORY_TAG, "Remote update failed: ${e.localizedMessage}")
+        syncMutex.withLock { isRemoteAvailable = false }
+        Log.w(hybridRepositoryTag, "Remote update failed: ${e.localizedMessage}")
       }
     }
   }
@@ -131,7 +131,7 @@ class HybridUserPreferencesRepository(
         isRemoteAvailable = true
       } catch (e: Exception) {
         isRemoteAvailable = false
-        Log.w(HYBRID_REPOSITORY_TAG, "Remote update failed: ${e.localizedMessage}")
+        Log.w(hybridRepositoryTag, "Remote update failed: ${e.localizedMessage}")
       }
     }
   }
