@@ -64,10 +64,16 @@ class DangerModeCardViewModel(
 
   private val _autoActionsEnabled = MutableStateFlow(false)
   val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
-  private val _confirmTouchRequired = MutableStateFlow(false)
+  private val _confirmTouchRequired =
+      MutableStateFlow(
+          false) // This is tactile confirmation before the app takes actions like calling/emergency
+  // SMS
   val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
 
-  private val _confirmVoiceRequired = MutableStateFlow(false)
+  private val _confirmVoiceRequired =
+      MutableStateFlow(
+          false) // This is audio confirmation before the app takes actions like calling/emergency
+  // SMS
   val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
 
   /**
