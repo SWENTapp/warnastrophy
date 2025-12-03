@@ -1,7 +1,15 @@
 /**
- * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
+ * Communication screen UI for voice interactions.
  *
- * Author: Anas Sidi Mohamed Assistance: ChatGPT
+ * This file provides composable UI used when the app is in a voice communication mode. The screen
+ * collects UI state from a provided [SpeechToTextService] and renders:
+ * - a back navigation icon;
+ * - a status card showing whether the service is listening, the last recognized text and any error;
+ * - an animated microphone button that pulses with the RMS level and starts/stops listening.
+ *
+ * Note: the composables in this file are side-effect free except for the button callback which
+ * should start/stop the speech service. The speech service itself owns coroutines and platform
+ * resources such as the Android SpeechRecognizer.
  */
 package com.github.warnastrophy.core.ui.components
 
@@ -51,6 +59,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Top-level communication screen.
+ *
+ * The screen collects the [SpeechRecognitionUiState] from the given [speechToTextService] and
+ * displays a listening status card and a large animated microphone button. The microphone button
+ * callback should call the service to start/stop listening; the service exposes its state as a Flow
+ * so the UI updates reactively.
+ *
+ * Parameters:
+ *
+ * @param speechToTextService service exposing `uiState: Flow<SpeechRecognitionUiState>` and
+ *   `listenForConfirmation()` entry point used to start recognition.
+ * @param modifier optional [Modifier] applied to the root Surface.
+ * @param onBackClick callback invoked when the back arrow is pressed.
+ */
 @Composable
 fun CommunicationScreen(
     speechToTextService: SpeechToTextService,
@@ -94,6 +117,15 @@ fun CommunicationScreen(
   }
 }
 
+/**
+ * Small card that shows the current listening status, the last recognized text and an error message
+ * if present.
+ *
+ * This composable is pure (no side-effects) and only renders the provided [uiState].
+ *
+ * @param uiState UI state containing `isListening`, `recognizedText`, `rmsLevel` and
+ *   `errorMessage`.
+ */
 @Composable
 private fun ListeningStatusCard(uiState: SpeechRecognitionUiState) {
   ElevatedCard(
@@ -122,6 +154,16 @@ private fun ListeningStatusCard(uiState: SpeechRecognitionUiState) {
       }
 }
 
+/**
+ * Animated circular microphone button.
+ *
+ * The central button pulses based on the uiState rms level using a simple spring animation.
+ * Pressing the button triggers [onMicClick]. The visual state (pulsing and displayed icon) are
+ * driven entirely by the supplied [uiState].
+ *
+ * @param uiState state used to compute the animation scale (rmsLevel) and the "listening" label.
+ * @param onMicClick callback invoked when the user taps the central microphone control.
+ */
 @Composable
 private fun AnimatedMicButton(uiState: SpeechRecognitionUiState, onMicClick: () -> Unit) {
   val animatedScale by
