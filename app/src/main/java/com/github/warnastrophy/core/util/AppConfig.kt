@@ -33,8 +33,4 @@ object AppConfig {
   const val PREF_FILE_NAME = "warnastrophy_app_prefs"
 
   const val defaultUserId = "default_user"
-
-  // Default number used when automatic calls are enabled and no contact list is provided.
-  // You should replace this with a user-configurable value in production.
-  const val emergencyPhoneNumber = "+1234567890"
 }

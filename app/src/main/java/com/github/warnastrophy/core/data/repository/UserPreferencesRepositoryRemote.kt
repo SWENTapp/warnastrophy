@@ -144,7 +144,7 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
 
     try {
       document.update(fieldName, value).await()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
       // NOSONAR - This is a Firestore set() method, not a map accessor
       document.set(mapOf(fieldName to value), SetOptions.merge()).await()
     }
