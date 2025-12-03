@@ -16,8 +16,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.data.service.StateManagerService

@@ -22,6 +22,15 @@
     <string name="event_image_description">Event Image</string>
     <string name="loading">Loading…</string>
 
+    <!-- Dashboard Emergency Contacts Card -->
+    <string name="dashboard_emergency_contacts_title">Contacts</string>
+    <string name="dashboard_emergency_contacts_no_contacts">No emergency contacts added</string>
+    <string name="dashboard_emergency_contacts_item_format">%1$s: %2$s</string>
+
+    <!-- Dashboard Health Card -->
+    <string name="dashboard_health_card_title">Health</string>
+    <string name="dashboard_health_card_empty_text">Add your medical info,\nallergies and meds</string>
+
     <!-- Logout strings -->
     <string name="logout_string">Logout</string>
     <string name="logout_message">Are you sure you want to logout?</string>
@@ -69,5 +78,15 @@
     <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
     <string name="error_suggestion_check_internet">Please check your internet connection.</string>
     <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
+
+    <!-- Health Card Pop-Up -->
+    <string name="health_card_popup_title">HEALTH CARD</string>
+    <string name="health_card_popup_edit_button">Edit/Show Full</string>
+    <string name="health_card_popup_edit_button_cd">Go to full health card</string>
+    <string name="health_card_popup_empty_text">Empty Health Card</string>
+
+    <!-- Speech Recognition Error Messages -->
+    <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
+    <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
 
 </resources>

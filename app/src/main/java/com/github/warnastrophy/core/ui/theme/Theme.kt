@@ -32,6 +32,7 @@ data class ExtendedColorScheme(
     val dangerLevels: DangerLevelColors, // Danger level colors (green, yellow, amber, red)
     val newsCard: NewsCardColors, // Colors used in news card components
     val mapPreview: MapPreviewColors, // Colors for map preview
+    val healthCardPopUp: HealthCardColors, // Colors for health card pop-up components
     val backgroundGrey: Color, // Grey background color for light and dark themes
     val backgroundOffWhite: Color, // Off-white background color for light and dark themes
     val backgroundLightGreen: Color, // Light green background color for light and dark themes
@@ -44,6 +45,7 @@ val LocalExtendedColorScheme = staticCompositionLocalOf {
       dangerLevels = DangerLevelColorsLight,
       newsCard = NewsCardColorsLight,
       mapPreview = MapPreviewColorsLight,
+      healthCardPopUp = HealthCardColorsLight,
       backgroundGrey = BackgroundGreyLight,
       backgroundOffWhite = BackgroundOffWhiteLight,
       backgroundLightGreen = BackgroundLightGreenLight,
@@ -101,6 +103,7 @@ private val ExtendedLightColorScheme =
         dangerLevels = DangerLevelColorsLight,
         newsCard = NewsCardColorsLight,
         mapPreview = MapPreviewColorsLight,
+        healthCardPopUp = HealthCardColorsLight,
         backgroundGrey = BackgroundGreyLight,
         backgroundOffWhite = BackgroundOffWhiteLight,
         backgroundLightGreen = BackgroundLightGreenLight,
@@ -115,6 +118,7 @@ private val ExtendedDarkColorScheme =
         dangerLevels = DangerLevelColorsDark,
         newsCard = NewsCardColorsDark,
         mapPreview = MapPreviewColorsDark,
+        healthCardPopUp = HealthCardColorsDark,
         backgroundGrey = BackgroundGreyDark,
         backgroundOffWhite = BackgroundOffWhiteDark,
         backgroundLightGreen = BackgroundLightGreenDark,

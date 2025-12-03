@@ -45,6 +45,8 @@ val TextBlack = Color.Black // Black text color
 
 // Accent Colors (Light)
 val AccentMapBlueLight = Color(0xFF1E88E5) // Blue accent color
+val AccentPrimaryRedLight = Color(0xFF9D2A2C) // Primary red accent
+val AccentSecondaryWhiteLight = Color.White // Secondary white accent
 
 // ============================================================================
 // Dark Theme Colors
@@ -81,6 +83,8 @@ val TextWhite = Color.White // White text color for dark mode
 
 // Accent Colors (Dark)
 val AccentMapBlueDark = Color(0xFF42A5F5) // Blue accent color for dark mode
+val AccentPrimaryRedDark = Color(0xFF531213) // Primary red accent for dark mode
+val AccentSecondaryGreyDark = Color(0xFFD8D8D8) // Secondary grey accent for dark mode
 
 // ============================================================================
 // Semantic Color Sets (to ease usage)
@@ -104,6 +108,15 @@ data class NewsCardColors(
 
 /** Color set for map preview, including background and map marker colors. */
 data class MapPreviewColors(val background: Color, val mapMarker: Color)
+
+/**
+ * Defines the color palette for health card components.
+ *
+ * @property primary The background color of the card.
+ * @property secondary The background color within the card.
+ * @property fieldText The text color within the card.
+ */
+data class HealthCardColors(val primary: Color, val secondary: Color, val fieldText: Color)
 
 // ============================================================================
 // Color Sets for Light Theme
@@ -129,6 +142,12 @@ val NewsCardColorsLight =
 val MapPreviewColorsLight =
     MapPreviewColors(background = BackgroundWhite, mapMarker = AccentMapBlueLight)
 
+val HealthCardColorsLight =
+    HealthCardColors(
+        primary = AccentPrimaryRedLight,
+        secondary = AccentSecondaryWhiteLight,
+        fieldText = TextBlack)
+
 // ============================================================================
 // Color Sets for Dark Theme
 // ============================================================================
@@ -152,3 +171,7 @@ val NewsCardColorsDark =
 
 val MapPreviewColorsDark =
     MapPreviewColors(background = BackgroundLightGreyDark, mapMarker = AccentMapBlueDark)
+
+val HealthCardColorsDark =
+    HealthCardColors(
+        primary = AccentPrimaryRedDark, secondary = AccentSecondaryGreyDark, fieldText = TextBlack)

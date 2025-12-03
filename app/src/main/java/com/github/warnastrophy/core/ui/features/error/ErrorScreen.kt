@@ -177,6 +177,8 @@ private fun ErrorSuggestion(err: Error): String {
     ErrorType.FOREGROUND_ERROR -> stringResource(R.string.error_suggestion_allow_notifications)
     ErrorType.LOCATION_ERROR -> stringResource(R.string.error_suggestion_enable_location)
     ErrorType.HAZARD_FETCHING_ERROR -> stringResource(R.string.error_suggestion_check_internet)
+    ErrorType.SPEECH_RECOGNITION_ERROR ->
+        stringResource(R.string.error_suggestion_speech_recognition)
     ErrorType.NO_ERRORS -> ""
   }
 }
