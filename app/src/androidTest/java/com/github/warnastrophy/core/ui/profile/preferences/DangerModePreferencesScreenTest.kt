@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -59,6 +60,9 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_ITEM)
         .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM)
+        .assertIsDisplayed()
   }
 
   /** Applies a given [PermissionResult] to the view model. */
@@ -84,6 +88,9 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .assertIsOff()
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+        .assertIsOff()
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
         .assertIsOff()
   }
 
@@ -149,7 +156,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
    * initiated.
    */
   @Test
-  fun onPermissionsRequestStart_works_as_expected() = runTest {
+  fun onPermissionsRequestStart_works_asExpected() = runTest {
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
     setContent()
 
@@ -291,5 +298,40 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     applyPerm(PermissionResult.Granted)
 
     toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+  }
+
+  @Test
+  fun automaticCallsDescription_isDisplayed() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    val title =
+        composeTestRule.activity.getString(
+            com.github.warnastrophy.R.string.danger_mode_automatic_calls_title)
+
+    // The title text should be visible in the UI (more reliable than matching large description)
+    composeTestRule.onNodeWithText(title).assertIsDisplayed()
+  }
+
+  @Test
+  fun automaticCallsToggle_requestsPermission_whenNotGranted() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    // Toggle Alert Mode & Inactivity Detection to enable automatic calls switch
+    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+
+    // Simulate toggle the switch
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
+        .assertIsEnabled()
+        .assertIsOff()
+
+    applyPerm(PermissionResult.Granted)
+
+    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
   }
 }

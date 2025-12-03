@@ -35,6 +35,13 @@ interface UserPreferencesRepository {
   suspend fun setAutomaticSms(enabled: Boolean)
 
   /**
+   * Enables or disables automatic phone calls.
+   *
+   * @param enabled `true` to enable automatic calls, `false` to disable it.
+   */
+  suspend fun setAutomaticCalls(enabled: Boolean)
+
+  /**
    * Enables or disables dark mode for the app's UI.
    *
    * @param isDark `true` to enable dark mode, `false` to disable it (enabling light mode).

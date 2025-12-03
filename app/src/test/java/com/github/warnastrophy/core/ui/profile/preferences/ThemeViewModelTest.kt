@@ -34,7 +34,11 @@ class ThemeViewModelTest {
   private lateinit var viewModel: ThemeViewModel
 
   private val defaultDangerModePreferences =
-      DangerModePreferences(alertMode = false, inactivityDetection = false, automaticSms = false)
+      DangerModePreferences(
+          alertMode = false,
+          inactivityDetection = false,
+          automaticSms = false,
+          automaticCalls = false)
 
   @Before
   fun setUp() {

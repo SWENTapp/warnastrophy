@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.profile.preferences
 
+import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -34,9 +35,11 @@ object DangerModePreferencesScreenTestTags {
   const val ALERT_MODE_ITEM = "alertModeItem"
   const val INACTIVITY_DETECTION_ITEM = "inactivityDetectionItem"
   const val AUTOMATIC_SMS_ITEM = "automaticSmsItem"
+  const val AUTOMATIC_CALLS_ITEM = "automaticCallsItem"
   const val ALERT_MODE_SWITCH = "alertModeSwitch"
   const val INACTIVITY_DETECTION_SWITCH = "inactivitySwitch"
   const val AUTOMATIC_SMS_SWITCH = "automaticSmsSwitch"
+  const val AUTOMATIC_CALLS_SWITCH = "automaticCallsSwitch"
 }
 
 /**
@@ -81,6 +84,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
           PendingAction.TOGGLE_ALERT_MODE -> viewModel.alertModePermissions
           PendingAction.TOGGLE_INACTIVITY_DETECTION -> viewModel.inactivityDetectionPermissions
           PendingAction.TOGGLE_AUTOMATIC_SMS -> viewModel.smsPermissions
+          PendingAction.TOGGLE_AUTOMATIC_CALLS -> viewModel.callPermissions
         }
 
     viewModel.onPermissionsRequestStart(action = action)
@@ -159,7 +163,43 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                     enabled = uiState.inactivityDetectionEnabled,
                     isRequestInFlight = uiState.isOsRequestInFlight),
             switchTestTag = DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+
+        AutomaticCalls(
+            viewModel = viewModel,
+            uiState = uiState,
+            activity = activity,
+            requestPermission = ::requestPermission)
       }
+}
+
+@Composable
+fun AutomaticCalls(
+    viewModel: DangerModePreferencesViewModel,
+    uiState: DangerModePreferencesUiState,
+    activity: Activity,
+    requestPermission: (PendingAction) -> Unit
+) {
+  PreferenceItem(
+      modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM),
+      data =
+          PreferenceItemData(
+              title = stringResource(R.string.danger_mode_automatic_calls_title),
+              description = stringResource(R.string.danger_mode_automatic_calls_description),
+              checked = uiState.automaticCallsEnabled,
+              onCheckedChange = { isChecked ->
+                viewModel.handlePreferenceChange(
+                    isChecked = isChecked,
+                    permissionResult = uiState.callPermissionResult,
+                    onToggle = { viewModel.onAutomaticCallsToggled(it) },
+                    onPermissionDenied = {
+                      requestPermission(PendingAction.TOGGLE_AUTOMATIC_CALLS)
+                    },
+                    onPermissionPermDenied = { openAppSettings(activity) },
+                )
+              },
+              enabled = uiState.inactivityDetectionEnabled,
+              isRequestInFlight = uiState.isOsRequestInFlight),
+      switchTestTag = DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
 }
 
 /**

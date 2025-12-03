@@ -27,15 +27,22 @@ data class UserPreferences(
  * @property inactivityDetection Determines whether the app should monitor for user inactivity.
  * @property automaticSms Specifies if SMS messages should be sent automatically when an alert is
  *   triggered.
+ * @property automaticCalls Specifies if automatic phone calls should be made when an alert is
+ *   triggered.
  */
 data class DangerModePreferences(
     val alertMode: Boolean,
     val inactivityDetection: Boolean,
     val automaticSms: Boolean,
+    val automaticCalls: Boolean,
 ) {
   companion object {
     fun default() =
-        DangerModePreferences(alertMode = false, inactivityDetection = false, automaticSms = false)
+        DangerModePreferences(
+            alertMode = false,
+            inactivityDetection = false,
+            automaticSms = false,
+            automaticCalls = false)
   }
 }
 
@@ -50,6 +57,7 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val ALERT_MODE_KEY = booleanPreferencesKey("alert_mode")
     val INACTIVITY_DETECTION_KEY = booleanPreferencesKey("inactivity_detection")
     val AUTOMATIC_SMS_KEY = booleanPreferencesKey("automatic_sms")
+    val AUTOMATIC_CALLS_KEY = booleanPreferencesKey("automatic_calls")
     val DARK_MODE_KEY = booleanPreferencesKey("theme_preferences")
 
     // Add more keys for other preferences
@@ -78,6 +86,10 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     dataStore.edit { preferences -> preferences[AUTOMATIC_SMS_KEY] = enabled }
   }
 
+  override suspend fun setAutomaticCalls(enabled: Boolean) {
+    dataStore.edit { preferences -> preferences[AUTOMATIC_CALLS_KEY] = enabled }
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     dataStore.edit { preferences -> preferences[DARK_MODE_KEY] = isDark }
   }
@@ -94,9 +106,11 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val alertMode = preferences[ALERT_MODE_KEY] ?: false
     val inactivityDetection = preferences[INACTIVITY_DETECTION_KEY] ?: false
     val automaticSms = preferences[AUTOMATIC_SMS_KEY] ?: false
+    val automaticCalls = preferences[AUTOMATIC_CALLS_KEY] ?: false
     val themePreferences = preferences[DARK_MODE_KEY] ?: false
 
-    val dangerModePreferences = DangerModePreferences(alertMode, inactivityDetection, automaticSms)
+    val dangerModePreferences =
+        DangerModePreferences(alertMode, inactivityDetection, automaticSms, automaticCalls)
     return UserPreferences(dangerModePreferences, themePreferences)
   }
 }

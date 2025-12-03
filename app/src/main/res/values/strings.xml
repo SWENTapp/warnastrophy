@@ -55,6 +55,9 @@
     <string name="danger_mode_automatic_sms_title">Automatic SMS</string>
     <string name="danger_mode_automatic_sms_description">If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions</string>
 
+    <string name="danger_mode_automatic_calls_title">Automatic Calls</string>
+    <string name="danger_mode_automatic_calls_description">If this option is enabled and your phone detects that you are inactive in a hazard area, it will automatically initiate a phone call to your emergency contacts.\n\nThis mode requires CALL_PHONE and fine location permissions</string>
+
     <!-- No activity fallback -->
     <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
     

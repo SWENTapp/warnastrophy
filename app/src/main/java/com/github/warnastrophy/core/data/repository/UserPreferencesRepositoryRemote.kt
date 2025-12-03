@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
@@ -34,6 +35,7 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     const val FIELD_ALERT_MODE = "alertMode"
     const val FIELD_INACTIVITY_DETECTION = "inactivityDetection"
     const val FIELD_AUTOMATIC_SMS = "automaticSms"
+    const val FIELD_AUTOMATIC_CALLS = "automaticCalls"
     const val FIELD_DARK_MODE = "darkMode"
   }
 
@@ -120,6 +122,10 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     updateField(FIELD_AUTOMATIC_SMS, enabled)
   }
 
+  override suspend fun setAutomaticCalls(enabled: Boolean) {
+    updateField(FIELD_AUTOMATIC_CALLS, enabled)
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     updateField(FIELD_DARK_MODE, isDark)
   }
@@ -154,13 +160,15 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     val alertMode = data?.get(FIELD_ALERT_MODE) as? Boolean ?: false
     val inactivityDetection = data?.get(FIELD_INACTIVITY_DETECTION) as? Boolean ?: false
     val automaticSms = data?.get(FIELD_AUTOMATIC_SMS) as? Boolean ?: false
+    val automaticCalls = data?.get(FIELD_AUTOMATIC_CALLS) as? Boolean ?: false
     val darkMode = data?.get(FIELD_DARK_MODE) as? Boolean ?: false
 
     val dangerModePreferences =
         DangerModePreferences(
             alertMode = alertMode,
             inactivityDetection = inactivityDetection,
-            automaticSms = automaticSms)
+            automaticSms = automaticSms,
+            automaticCalls = automaticCalls)
 
     return UserPreferences(
         dangerModePreferences = dangerModePreferences, themePreferences = darkMode)
