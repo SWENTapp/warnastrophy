@@ -1,5 +1,8 @@
 package com.github.warnastrophy.core.ui.onboard
 
+import androidx.annotation.StringRes
+import com.github.warnastrophy.R
+
 /**
  * Represents a single page of the onboarding flow in the app.
  *
@@ -9,28 +12,16 @@ package com.github.warnastrophy.core.ui.onboard
  * @property title The main title displayed for the onboarding page.
  * @property description A descriptive text explaining the feature or permission.
  */
-sealed class OnboardingModel(val title: String, val description: String) {
+sealed class OnboardingModel(@StringRes val title: Int, @StringRes val description: Int) {
   data object FirstPage :
       OnboardingModel(
-          title = "Automatic Disaster Alert",
-          description =
-              "We track your location in the background, if you enter a high-risk area, " +
-                  "and we detect inactivity (no movement), " +
-                  "we automatically send a SMS to emergency contact you chose before")
+          title = R.string.title_first_page, description = R.string.description_first_page)
 
   data object SecondPage :
       OnboardingModel(
-          title = "Manual High-Risk Safety",
-          description =
-              "Use this for activities like climbing or solo hiking. " +
-                  "If we detect a fall followed " +
-                  "by prolonged stillness, we send your location to emergency service that " +
-                  "you chose before.")
+          title = R.string.title_second_page, description = R.string.description_second_page)
 
   data object ThirdPage :
       OnboardingModel(
-          title = "Ready for Protection?",
-          description =
-              "To monitor your location in the background and send emergency texts," +
-                  " we need location and SMS permission. We use these data only for your safety.")
+          title = R.string.title_third_page, description = R.string.description_third_page)
 }

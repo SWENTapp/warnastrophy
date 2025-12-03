@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -22,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -34,9 +36,67 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
+/** Test tag for onboarding screen */
 object OnboardingScreenTestTags {
   const val NEXT_BUTTON = "NextButton"
   const val INDICATOR = "indicator"
+}
+
+/**
+ * Represents the Back and Next button labels for a specific onboarding page.
+ *
+ * @property back Label for the back button.
+ * @property next Label for the next button.
+ */
+data class OnboardingButtons(val back: String, val next: String)
+
+/**
+ * Returns the Back and Next button labels for the given onboarding page index.
+ *
+ * @param page Current page index (0-based).
+ * @return An [OnboardingButtons] instance containing labels for the current page.
+ */
+private fun getButtonState(page: Int): OnboardingButtons =
+    when (page) {
+      0 -> OnboardingButtons("", "Next")
+      1 -> OnboardingButtons("Back", "Next")
+      2 -> OnboardingButtons("Back", "Start")
+      else -> OnboardingButtons("", "")
+    }
+
+/**
+ * Handles the Next button click behavior.
+ * - If the user is not on the last page, it advances to the next page.
+ * - If the user is on the last page, it triggers the onboarding completion callback.
+ *
+ * @param page Current page index.
+ * @param pageCount Total number of onboarding pages.
+ * @param pagerState Pager state used for animated scrolling.
+ * @param onFinished Callback invoked when onboarding finishes.
+ */
+private suspend fun handleNextClick(
+    page: Int,
+    pageCount: Int,
+    pagerState: PagerState,
+    onFinished: () -> Unit
+) {
+  if (page < pageCount - 1) {
+    pagerState.animateScrollToPage(page + 1)
+  } else {
+    onFinished()
+  }
+}
+
+/**
+ * Handles the Back button click behavior.
+ *
+ * @param page Current page index.
+ * @param pagerState Pager state used for animated scrolling.
+ */
+private suspend fun handleBackClick(page: Int, pagerState: PagerState) {
+  if (page > 0) {
+    pagerState.animateScrollToPage(page - 1)
+  }
 }
 
 /**
@@ -52,16 +112,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
 
   val pagerState = rememberPagerState(initialPage = 0) { pages.size }
 
-  val buttonState = remember {
-    derivedStateOf {
-      when (pagerState.currentPage) {
-        0 -> listOf("", "Next")
-        1 -> listOf("Back", "Next")
-        2 -> listOf("Back", "Start")
-        else -> listOf("", "")
-      }
-    }
-  }
+  val buttons by remember { derivedStateOf { getButtonState(pagerState.currentPage) } }
 
   val scope = rememberCoroutineScope()
 
@@ -72,16 +123,14 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                if (buttonState.value[0].isNotEmpty()) {
+                if (buttons.back.isNotEmpty()) {
                   // Back button
                   ButtonUi(
-                      text = buttonState.value[0],
+                      text = buttons.back,
                       backgroundColor = Color.Transparent,
                       textColor = Color.Gray) {
                         scope.launch {
-                          if (pagerState.currentPage > 0) {
-                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                          }
+                          handleBackClick(page = pagerState.currentPage, pagerState = pagerState)
                         }
                       }
                 }
@@ -94,15 +143,15 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                 // Next button
                 ButtonUi(
                     modifier = Modifier.testTag(OnboardingScreenTestTags.NEXT_BUTTON),
-                    text = buttonState.value[1],
+                    text = buttons.next,
                     backgroundColor = MaterialTheme.colorScheme.primary,
                     textColor = MaterialTheme.colorScheme.onPrimary) {
                       scope.launch {
-                        if (pagerState.currentPage < pages.size - 1) {
-                          pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        } else {
-                          onFinished()
-                        }
+                        handleNextClick(
+                            page = pagerState.currentPage,
+                            pageCount = pages.size,
+                            pagerState = pagerState,
+                            onFinished = onFinished)
                       }
                     }
               }

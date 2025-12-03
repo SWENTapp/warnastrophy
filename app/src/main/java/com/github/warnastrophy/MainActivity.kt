@@ -71,10 +71,11 @@ class MainActivity : ComponentActivity() {
   }
 }
 
+/** Defines the root-level navigation destinations for the application's main graph. */
 object rootNav {
   const val SIGN_IN = "root_sign_in"
   const val ONBOARDING = "root_onboarding"
-  const val MAINAPP = "main_app"
+  const val MAIN_APP = "main_app"
 }
 
 /**
@@ -83,6 +84,8 @@ object rootNav {
  * [CompositionLocalProvider].
  *
  * @param themeViewModel The [ThemeViewModel] responsible for managing theme-related state.
+ * @param appStateManagerViewModel The [AppStateManagerViewModel] used to check whether the user has
+ *   completed the initial onboarding process.
  */
 @Composable
 private fun ThemedApp(
@@ -103,7 +106,7 @@ private fun ThemedApp(
       when {
         currentUser == null -> rootNav.SIGN_IN
         !isOnboardingCompleted -> rootNav.ONBOARDING
-        else -> rootNav.MAINAPP
+        else -> rootNav.MAIN_APP
       }
   MainAppTheme(darkTheme = useDarkTheme) {
     CompositionLocalProvider(LocalThemeViewModel provides themeViewModel) {
@@ -117,8 +120,8 @@ private fun ThemedApp(
                     popUpTo(rootNav.ONBOARDING) { inclusive = true }
                   }
                 } else {
-                  navController.navigate(rootNav.MAINAPP) {
-                    popUpTo(rootNav.MAINAPP) { inclusive = true }
+                  navController.navigate(rootNav.MAIN_APP) {
+                    popUpTo(rootNav.MAIN_APP) { inclusive = true }
                   }
                 }
               })
@@ -128,17 +131,17 @@ private fun ThemedApp(
           OnboardingScreen(
               onFinished = {
                 appStateManagerViewModel.completeOnboarding()
-                navController.navigate(rootNav.MAINAPP) {
+                navController.navigate(rootNav.MAIN_APP) {
                   popUpTo(rootNav.ONBOARDING) { inclusive = true }
                 }
               })
         }
 
-        composable(rootNav.MAINAPP) {
+        composable(rootNav.MAIN_APP) {
           WarnastrophyComposable(
               onLogOutEvent = {
                 navController.navigate(rootNav.SIGN_IN) {
-                  popUpTo(rootNav.MAINAPP) { inclusive = true }
+                  popUpTo(rootNav.MAIN_APP) { inclusive = true }
                 }
               })
         }

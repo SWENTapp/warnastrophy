@@ -53,6 +53,20 @@ object WarnastrophyAppTestTags {
   const val MAIN_SCREEN = "mainScreen"
 }
 
+/**
+ * The root composable for the main application content, appearing after successful sign-in and
+ * onboarding.
+ *
+ * This composable sets up the navigation structure (NavHost), initializes all necessary ViewModels
+ * and services, manages the current authenticated user ID, and provides the main Scaffold with the
+ * bottom and top bars.
+ *
+ * @param mockMapScreen An optional composable lambda used primarily for testing or previewing,
+ *   which replaces the default [MapScreen] implementation. Defaults to null.
+ * @param onLogOutEvent Lambda function invoked when the user initiates a logout action from within
+ *   the application. This triggers navigation back to the sign-in route. Defaults to an empty
+ *   function.
+ */
 @Composable
 fun WarnastrophyComposable(
     mockMapScreen: (@Composable () -> Unit)? = null,
@@ -92,7 +106,6 @@ fun WarnastrophyComposable(
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
-        // SignIn.route -> SignIn
         Screen.DangerModePreferences.route -> Screen.DangerModePreferences
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
