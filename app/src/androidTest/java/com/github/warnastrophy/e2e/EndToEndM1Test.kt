@@ -32,7 +32,7 @@ class EndToEndM1Test : EndToEndUtils() {
     every { themeViewModel.isDarkMode } returns mockk(relaxed = true)
 
     ContactRepositoryProvider.initLocal(context)
-    ActivityRepositoryProvider.init()
+    ActivityRepositoryProvider.init(context)
     contactRepository = ContactRepositoryProvider.repository
     activityRepository = ActivityRepositoryProvider.repository
     StateManagerService.init(context)

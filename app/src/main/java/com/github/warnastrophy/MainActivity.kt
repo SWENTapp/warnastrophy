@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.initHybrid(applicationContext, db)
-    ActivityRepositoryProvider.init()
+    ActivityRepositoryProvider.init(applicationContext)
     StateManagerService.init(applicationContext)
 
     showUI()

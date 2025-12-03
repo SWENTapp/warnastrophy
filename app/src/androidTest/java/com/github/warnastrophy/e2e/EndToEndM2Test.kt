@@ -19,7 +19,7 @@ class EndToEndM2Test : EndToEndUtils() {
 
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.initLocal(context)
-    ActivityRepositoryProvider.init()
+    ActivityRepositoryProvider.init(context)
     contactRepository = ContactRepositoryProvider.repository
     activityRepository = ActivityRepositoryProvider.repository
     StateManagerService.init(context)
