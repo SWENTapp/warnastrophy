@@ -47,7 +47,11 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   /** Helper function to set the content of the test rule with a configured ViewModel. */
   private fun setContent() {
     viewModel = DangerModePreferencesViewModel(mockPermissionManager, userPreferencesRepository)
-    composeTestRule.setContent { DangerModePreferencesScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      CompositionLocalProvider(LocalContext provides composeTestRule.activity) {
+        DangerModePreferencesScreen(viewModel = viewModel)
+      }
+    }
 
     composeTestRule.waitForIdle()
 
@@ -61,8 +65,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_ITEM)
         .assertIsDisplayed()
     composeTestRule
-        .onNodeWithTag(
-            DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM, useUnmergedTree = true)
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM)
         .assertIsDisplayed()
   }
 
