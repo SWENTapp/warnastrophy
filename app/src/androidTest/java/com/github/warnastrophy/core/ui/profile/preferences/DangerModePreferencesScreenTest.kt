@@ -86,10 +86,10 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     viewModel.onPermissionsResult(composeTestRule.activity)
   }
 
-  private fun toggleSwitch(tag: String) {
+  private fun toggleSwitch(tag: String, stateSelector: () -> Boolean) {
     composeTestRule.onNodeWithTag(tag).assertIsEnabled().performClick()
 
-    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 5_000) { stateSelector() }
 
     composeTestRule.onNodeWithTag(tag).assertIsEnabled().assertIsOn()
   }
@@ -290,7 +290,9 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     applyPerm(PermissionResult.Granted)
 
-    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH) {
+      viewModel.uiState.value.alertModeAutomaticEnabled
+    }
   }
 
   @Test
@@ -299,7 +301,9 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     setContent()
 
     // Toggle Alert Mode to enable inactivity detection switch
-    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
 
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
@@ -311,7 +315,9 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     applyPerm(PermissionResult.Granted)
 
-    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH) {
+      viewModel.uiState.value.inactivityDetectionEnabled
+    }
   }
 
   @Test
@@ -320,8 +326,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     setContent()
 
     // Toggle Alert Mode & Inactivity Detection to enable automatic sms switch
-    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH,
+        { viewModel.uiState.value.inactivityDetectionEnabled })
 
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
@@ -333,7 +343,9 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     applyPerm(PermissionResult.Granted)
 
-    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH) {
+      viewModel.uiState.value.automaticSmsEnabled
+    }
   }
 
   @Test
@@ -356,8 +368,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     setContent()
 
     // Toggle Alert Mode & Inactivity Detection to enable automatic calls switch
-    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH,
+        { viewModel.uiState.value.inactivityDetectionEnabled })
 
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
@@ -369,6 +385,8 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     applyPerm(PermissionResult.Granted)
 
-    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH) {
+      viewModel.uiState.value.automaticCallsEnabled
+    }
   }
 }
