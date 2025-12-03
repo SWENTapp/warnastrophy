@@ -16,7 +16,7 @@ sealed class OnboardingModel(val title: String, val description: String) {
           description =
               "We track your location in the background, if you enter a high-risk area, " +
                   "and we detect inactivity (no movement), " +
-                  "we automatically trigger an alert")
+                  "we automatically send a SMS to emergency contact you chose before")
 
   data object SecondPage :
       OnboardingModel(
@@ -24,7 +24,8 @@ sealed class OnboardingModel(val title: String, val description: String) {
           description =
               "Use this for activities like climbing or solo hiking. " +
                   "If we detect a fall followed " +
-                  "by prolonged stillness, we send your location to emergency service.")
+                  "by prolonged stillness, we send your location to emergency service that " +
+                  "you chose before.")
 
   data object ThirdPage :
       OnboardingModel(
