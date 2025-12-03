@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -31,6 +33,7 @@ import com.github.warnastrophy.core.util.findActivity
 import com.github.warnastrophy.core.util.openAppSettings
 
 object DangerModePreferencesScreenTestTags {
+  const val SCROLL_CONTAINER = "dangerModePreferencesScrollContainer"
   const val ALERT_MODE_ITEM = "alertModeItem"
   const val INACTIVITY_DETECTION_ITEM = "inactivityDetectionItem"
   const val AUTOMATIC_SMS_ITEM = "automaticSmsItem"
@@ -91,7 +94,11 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
   }
 
   Column(
-      modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 24.dp),
+      modifier =
+          Modifier.fillMaxSize()
+              .verticalScroll(rememberScrollState())
+              .padding(horizontal = 16.dp, vertical = 24.dp)
+              .testTag(DangerModePreferencesScreenTestTags.SCROLL_CONTAINER),
       verticalArrangement = Arrangement.spacedBy(24.dp)) {
         PreferenceItem(
             modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.ALERT_MODE_ITEM),

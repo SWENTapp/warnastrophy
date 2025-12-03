@@ -7,9 +7,11 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
@@ -64,9 +66,18 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_ITEM)
         .assertIsDisplayed()
+
+    scrollToAutomaticCalls()
+
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM)
         .assertIsDisplayed()
+  }
+
+  private fun scrollToAutomaticCalls() {
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.SCROLL_CONTAINER)
+        .performScrollToNode(hasTestTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM))
   }
 
   /** Applies a given [PermissionResult] to the view model. */
@@ -132,6 +143,10 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsNotEnabled()
+    scrollToAutomaticCalls()
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
+        .assertIsNotEnabled()
   }
 
   @Test
@@ -152,6 +167,10 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .assertIsEnabled()
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+        .assertIsNotEnabled()
+    scrollToAutomaticCalls()
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
         .assertIsNotEnabled()
   }
 
@@ -214,6 +233,11 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .performClick()
 
+    scrollToAutomaticCalls()
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
+        .performClick()
+
     composeTestRule.waitForIdle()
 
     composeTestRule
@@ -224,6 +248,10 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .assertIsOn()
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+        .assertIsOn()
+    scrollToAutomaticCalls()
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
         .assertIsOn()
 
     composeTestRule
@@ -242,6 +270,10 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .assertIsNotEnabled()
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+        .assertIsNotEnabled()
+    scrollToAutomaticCalls()
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
         .assertIsNotEnabled()
   }
 
@@ -309,11 +341,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     mockPermissionManager.setPermissionResult(PermissionResult.Granted)
     setContent()
 
+    scrollToAutomaticCalls()
+
     val title =
         composeTestRule.activity.getString(
             com.github.warnastrophy.R.string.danger_mode_automatic_calls_title)
 
-    // The title text should be visible in the UI (more reliable than matching large description)
     composeTestRule.onNodeWithText(title).assertIsDisplayed()
   }
 
