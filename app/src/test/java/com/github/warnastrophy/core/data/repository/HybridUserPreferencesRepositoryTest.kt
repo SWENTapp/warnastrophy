@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -33,7 +34,10 @@ class HybridUserPreferencesRepositoryTest {
       UserPreferences(
           dangerModePreferences =
               DangerModePreferences(
-                  alertMode = true, inactivityDetection = true, automaticSms = true),
+                  alertMode = true,
+                  inactivityDetection = true,
+                  automaticSms = true,
+                  automaticCalls = false),
           themePreferences = true)
 
   @Before
@@ -78,7 +82,10 @@ class HybridUserPreferencesRepositoryTest {
         UserPreferences(
             dangerModePreferences =
                 DangerModePreferences(
-                    alertMode = true, inactivityDetection = false, automaticSms = true),
+                    alertMode = true,
+                    inactivityDetection = false,
+                    automaticSms = true,
+                    automaticCalls = false),
             themePreferences = false)
 
     every { mockLocal.getUserPreferences } returns flowOf(defaultPreferences)
@@ -272,7 +279,10 @@ class HybridUserPreferencesRepositoryTest {
         UserPreferences(
             dangerModePreferences =
                 DangerModePreferences(
-                    alertMode = true, inactivityDetection = false, automaticSms = true),
+                    alertMode = true,
+                    inactivityDetection = false,
+                    automaticSms = true,
+                    automaticCalls = false),
             themePreferences = true)
 
     every { mockRemote.getUserPreferences } returns flowOf(remotePrefs)
@@ -374,7 +384,7 @@ class HybridUserPreferencesRepositoryTest {
   fun `concurrent updates are handled correctly`() = runTest {
     val jobs = List(10) { index -> launch { repository.setAlertMode(index % 2 == 0) } }
 
-    jobs.forEach { it.join() }
+    jobs.joinAll()
 
     coVerify(exactly = 10) { mockLocal.setAlertMode(any()) }
     coVerify(exactly = 10) { mockRemote.setAlertMode(any()) }
