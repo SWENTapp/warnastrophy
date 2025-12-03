@@ -5,7 +5,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ColorScheme
@@ -22,13 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.components.Loading
-import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.firebase.auth.FirebaseAuth
@@ -44,7 +44,6 @@ object DashboardEmergencyContactsTestTags {
   const val TITLE = "dashboardEmergencyContactsTitle"
   const val CONTACT_ITEM_PREFIX = "dashboardEmergencyContactItem_"
   const val NO_CONTACTS_TEXT = "dashboardEmergencyContactsNoContacts"
-  const val MANAGE_BUTTON = "dashboardEmergencyContactsManageButton"
 }
 
 /**
@@ -52,6 +51,7 @@ object DashboardEmergencyContactsTestTags {
  *
  * Defines the visual appearance with a light yellow background and gray text variants.
  */
+// TODO remove hardcoded colors
 object DashboardEmergencyContactsCardColors {
   fun getColors(colorScheme: ColorScheme, isDarkTheme: Boolean): Colors {
     return Colors(
@@ -61,9 +61,8 @@ object DashboardEmergencyContactsCardColors {
             } else {
               colorScheme.surface.copy(red = 1f, green = 1f, blue = 0.5f)
             },
-        textColor = colorScheme.onSurface, // Dark Gray text
-        subtitleColor = colorScheme.onSurface // Medium Gray subtitle
-        )
+        textColor = Color.Black,
+        subtitleColor = Color.Black)
   }
 }
 
@@ -91,12 +90,14 @@ fun DashboardEmergencyContactsCardStateless(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
-  modifier.clickable { onManageContactsClick() }
   val colorScheme = MaterialTheme.colorScheme
   val isDarkTheme = isSystemInDarkTheme()
   val colors = DashboardEmergencyContactsCardColors.getColors(colorScheme, isDarkTheme)
   StandardDashboardCard(
-      modifier = modifier.testTag(DashboardEmergencyContactsTestTags.CARD),
+      modifier =
+          modifier.testTag(DashboardEmergencyContactsTestTags.CARD).clickable {
+            onManageContactsClick()
+          },
       backgroundColor = colors.backgroundColor,
       minHeight = 120.dp,
       maxHeight = 150.dp) {
@@ -104,23 +105,12 @@ fun DashboardEmergencyContactsCardStateless(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween) {
               // Header
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Contacts",
-                        color = colors.textColor,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.testTag(DashboardEmergencyContactsTestTags.TITLE),
-                        fontSize = 16.sp)
-
-                    Box(
-                        modifier =
-                            Modifier.testTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)) {
-                          StandardDashboardButton(label = "Manage", onClick = onManageContactsClick)
-                        }
-                  }
+              Text(
+                  text = stringResource(id = R.string.dashboard_emergency_contacts_title),
+                  color = colors.textColor,
+                  fontWeight = FontWeight.SemiBold,
+                  modifier = Modifier.testTag(DashboardEmergencyContactsTestTags.TITLE),
+                  fontSize = 16.sp)
 
               // Content area
               when {
@@ -133,7 +123,7 @@ fun DashboardEmergencyContactsCardStateless(
                 }
                 contacts.isEmpty() -> {
                   Text(
-                      text = "No emergency contacts added",
+                      text = stringResource(id = R.string.dashboard_emergency_contacts_no_contacts),
                       color = colors.subtitleColor,
                       fontSize = 14.sp,
                       modifier =
@@ -167,7 +157,11 @@ fun DashboardEmergencyContactsCardStateless(
 @Composable
 private fun ContactItem(contact: Contact, modifier: Modifier = Modifier, isDarkTheme: Boolean) {
   Text(
-      text = "${contact.fullName}: ${contact.phoneNumber}",
+      text =
+          stringResource(
+              id = R.string.dashboard_emergency_contacts_item_format,
+              contact.fullName,
+              contact.phoneNumber),
       color =
           DashboardEmergencyContactsCardColors.getColors(MaterialTheme.colorScheme, isDarkTheme)
               .textColor,
