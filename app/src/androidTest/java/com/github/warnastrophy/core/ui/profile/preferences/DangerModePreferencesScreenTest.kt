@@ -61,7 +61,8 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_ITEM)
         .assertIsDisplayed()
     composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM)
+        .onNodeWithTag(
+            DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM, useUnmergedTree = true)
         .assertIsDisplayed()
   }
 
