@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -33,39 +32,36 @@ object HealthCardPopUpTestTags {
   const val CONTENT_CARD = "healthCardContentCard"
   const val EMPTY_STATE_TEXT = "healthCardEmptyStateText"
 
-  // Fields
-  const val FULL_NAME_FIELD = "FullNameField"
-  const val BIRTH_DATE_FIELD = "BirthDateField"
-  const val SEX_FIELD = "SexField"
-  const val BLOOD_TYPE_FIELD = "BloodTypeField"
-  const val ALLERGIES_FIELD = "AllergiesField"
-  const val MEDICATIONS_FIELD = "MedicationsField"
-  const val ORGAN_DONOR_FIELD = "OrganDonorSwitch"
-  const val NOTES_FIELD = "NotesField"
+  // Fields titles
+  const val FULL_NAME_TITLE = "FullNameTitle"
+  const val BIRTH_DATE_TITLE = "BirthDateTitle"
+  const val SEX_TITLE = "SexTitle"
+  const val BLOOD_TYPE_TITLE = "BloodTypeTitle"
+  const val ALLERGIES_TITLE = "AllergiesTitle"
+  const val MEDICATIONS_TITLE = "MedicationsTitle"
+  const val ORGAN_DONOR_TITLE = "OrganDonorSwitch"
+  const val NOTES_TITLE = "NotesTitle"
+
+  // Field Values
+  const val FULL_NAME_VALUE = "FullNameValue"
+  const val BIRTH_DATE_VALUE = "BirthDateValue"
+  const val SEX_VALUE = "SexValue"
+  const val BLOOD_TYPE_VALUE = "BloodTypeValue"
+  const val ALLERGIES_VALUE = "AllergiesValue"
+  const val MEDICATIONS_VALUE = "MedicationsValue"
+  const val ORGAN_DONOR_VALUE = "OrganDonorValue"
+  const val NOTES_VALUE = "NotesValue"
 }
 
 /**
- * Represents the state of the Health Card form.
- *
- * This class manages all form fields and their validation states. It uses a "touched" pattern to
- * track user interaction with required fields, enabling validation feedback only after the user has
- * interacted with a field.
+ * Represents the state of the Health Card preview.
  *
  * @property fullName The full name of the card holder (required)
- * @property fullNameTouched Whether the full name field has been interacted with
  * @property birthDate The birth date in dd/MM/yyyy format (required)
- * @property birthDateTouched Whether the birth date field has been interacted with
- * @property socialSecurityNumber The social security number (required)
- * @property ssnTouched Whether the SSN field has been interacted with
  * @property sex The biological sex (optional)
  * @property bloodType The blood type (optional)
- * @property heightCm Height in centimeters (optional)
- * @property weightKg Weight in kilograms (optional)
- * @property chronicConditions Comma-separated list of chronic conditions (optional)
  * @property allergies Comma-separated list of allergies (optional)
  * @property medications Comma-separated list of medications (optional)
- * @property onGoingTreatments Comma-separated list of ongoing treatments (optional)
- * @property medicalHistory Comma-separated list of medical history items (optional)
  * @property organDonor Whether the person is an organ donor
  * @property notes Additional notes (optional)
  */
@@ -155,14 +151,46 @@ fun HealthCardPopUp(
 @Composable
 private fun HealthCardDetails(card: HealthCardPreviewState) {
   Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
-    HealthInfoEntry(label = "Name", value = card.fullName)
-    HealthInfoEntry(label = "Date of birth", value = card.birthDate)
-    HealthInfoEntry(label = "Gender", value = card.sex)
-    HealthInfoEntry(label = "Blood Type", value = card.bloodType)
-    HealthInfoEntry(label = "Allergies", value = card.allergies)
-    HealthInfoEntry(label = "Organ Donor", value = if (card.organDonor) "Yes" else "No")
-    HealthInfoEntry(label = "Medication", value = card.medications)
-    HealthInfoEntry(label = "Notes", value = card.notes)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_full_name),
+        value = card.fullName,
+        titleTestTag = HealthCardPopUpTestTags.FULL_NAME_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.FULL_NAME_VALUE)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_birth_date),
+        value = card.birthDate,
+        titleTestTag = HealthCardPopUpTestTags.BIRTH_DATE_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.BIRTH_DATE_VALUE)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_sex),
+        value = card.sex,
+        titleTestTag = HealthCardPopUpTestTags.SEX_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.SEX_VALUE)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_blood_type),
+        value = card.bloodType,
+        titleTestTag = HealthCardPopUpTestTags.BLOOD_TYPE_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.BLOOD_TYPE_VALUE)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_allergies),
+        value = card.allergies,
+        titleTestTag = HealthCardPopUpTestTags.ALLERGIES_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.ALLERGIES_VALUE)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_organ_donor),
+        value = if (card.organDonor) "Yes" else "No",
+        titleTestTag = HealthCardPopUpTestTags.ORGAN_DONOR_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.ORGAN_DONOR_VALUE)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_medications),
+        value = card.medications,
+        titleTestTag = HealthCardPopUpTestTags.MEDICATIONS_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.MEDICATIONS_VALUE)
+    HealthInfoEntry(
+        label = stringResource(id = R.string.health_card_notes),
+        value = card.notes,
+        titleTestTag = HealthCardPopUpTestTags.NOTES_TITLE,
+        valueTestTag = HealthCardPopUpTestTags.NOTES_VALUE)
   }
 }
 
@@ -180,25 +208,25 @@ private fun EmptyHealthCardPopUp() {
 }
 
 @Composable
-private fun HealthInfoEntry(label: String, value: String) {
+private fun HealthInfoEntry(
+    label: String,
+    value: String,
+    titleTestTag: String,
+    valueTestTag: String
+) {
   if (value.isNotBlank()) {
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
       Text(
           text = label,
           fontWeight = FontWeight.Bold,
           fontSize = 18.sp,
-          color = MaterialTheme.extendedColors.healthCardPopUp.primary)
+          color = MaterialTheme.extendedColors.healthCardPopUp.primary,
+          modifier = Modifier.testTag(titleTestTag))
       Text(
           text = value,
           fontSize = 16.sp,
-          color = MaterialTheme.extendedColors.healthCardPopUp.fieldText)
+          color = MaterialTheme.extendedColors.healthCardPopUp.fieldText,
+          modifier = Modifier.testTag(valueTestTag))
     }
   }
-}
-
-// TODO remove preview
-@Preview
-@Composable
-fun EmergencyCardPreview() {
-  HealthCardPopUp("user1234")
 }

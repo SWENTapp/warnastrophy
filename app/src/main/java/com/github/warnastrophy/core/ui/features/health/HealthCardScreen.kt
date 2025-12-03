@@ -33,15 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
-import com.github.warnastrophy.core.util.AppConfig
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
@@ -576,12 +573,4 @@ private fun LabeledRequiredTextField(
           modifier = Modifier.padding(start = 16.dp, top = 4.dp))
     }
   }
-}
-
-// TODO remove preview
-/** Preview function for the Health Card screen in Android Studio. */
-@Preview(showBackground = true)
-@Composable
-private fun HealthCardScreenPreview() {
-  MainAppTheme { HealthCardScreen(AppConfig.defaultUserId) }
 }
