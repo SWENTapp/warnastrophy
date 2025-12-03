@@ -1,4 +1,8 @@
-/** Made by Anas Sifi Mohamed and Gemini as assistant. */
+/**
+ * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
+ *
+ * Author: Anas Sidi Mohamed Assistance: ChatGPT
+ */
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context

@@ -1,3 +1,8 @@
+/**
+ * This file was written by Anas Sidi Mohamed with the assistance of ChatGPT.
+ *
+ * Author: Anas Sidi Mohamed Assistance: ChatGPT
+ */
 package com.github.warnastrophy.core.ui.components
 
 import androidx.compose.animation.core.Spring
