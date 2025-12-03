@@ -32,6 +32,16 @@ object HealthCardPopUpTestTags {
   const val EDIT_BUTTON = "healthCardEditButton"
   const val CONTENT_CARD = "healthCardContentCard"
   const val EMPTY_STATE_TEXT = "healthCardEmptyStateText"
+
+  // Fields
+  const val FULL_NAME_FIELD = "FullNameField"
+  const val BIRTH_DATE_FIELD = "BirthDateField"
+  const val SEX_FIELD = "SexField"
+  const val BLOOD_TYPE_FIELD = "BloodTypeField"
+  const val ALLERGIES_FIELD = "AllergiesField"
+  const val MEDICATIONS_FIELD = "MedicationsField"
+  const val ORGAN_DONOR_FIELD = "OrganDonorSwitch"
+  const val NOTES_FIELD = "NotesField"
 }
 
 /**
