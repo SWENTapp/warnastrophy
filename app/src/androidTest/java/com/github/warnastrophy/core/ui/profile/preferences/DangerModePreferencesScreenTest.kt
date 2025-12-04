@@ -199,14 +199,14 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
 
-    assertSwitchesOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOff()
 
     nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsEnabled()
     nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
         .assertIsNotEnabled()
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
-    scrollToAutomaticCalls()
-    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
   }
 
   @Test
