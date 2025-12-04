@@ -41,7 +41,8 @@ fun DashboardScreen(
     onHealthCardClick: () -> Unit = {},
     onEmergencyContactsClick: () -> Unit = {},
     onManageActivitiesClick: () -> Unit = {},
-    hazardsService: HazardsDataService
+    hazardsService: HazardsDataService,
+    userId: String
 ) {
   var showHealthCard by remember { mutableStateOf(false) }
 
@@ -95,6 +96,7 @@ fun DashboardScreen(
 
     if (showHealthCard) {
       HealthCardPopUp(
+          userId = userId,
           onDismissRequest = { onDismiss() },
           onClick = {
             onDismiss()

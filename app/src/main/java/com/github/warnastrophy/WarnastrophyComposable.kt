@@ -148,6 +148,7 @@ fun WarnastrophyComposable(
             modifier = Modifier.padding(innerPadding)) {
               composable(Dashboard.route) {
                 DashboardScreen(
+                    userId = userId,
                     hazardsService = hazardsService,
                     mapScreen = {
                       mockMapScreen?.invoke()

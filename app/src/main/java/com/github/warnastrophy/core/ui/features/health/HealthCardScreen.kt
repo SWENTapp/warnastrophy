@@ -31,15 +31,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
-import com.github.warnastrophy.core.ui.theme.MainAppTheme
-import com.github.warnastrophy.core.util.AppConfig
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
@@ -179,9 +178,11 @@ fun HealthCardScreen(
   val currentCard by viewModel.currentCard.collectAsState()
 
   LaunchedEffect(uiState) {
+    val successState = uiState as? HealthCardUiState.Success
     val isOperationSuccessful =
-        uiState is HealthCardUiState.Success &&
-            (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
+        successState?.message == context.getString(R.string.health_card_saved_message) ||
+            successState?.message == context.getString(R.string.health_card_deleted_message)
+
     if (isOperationSuccessful) {
       onDone()
       viewModel.resetUiState()
@@ -288,26 +289,29 @@ private fun RequiredFieldsSection(
     LabeledRequiredTextField(
         value = formState.fullName,
         onValueChange = { onFormStateChange(formState.copy(fullName = it)) },
-        label = "Full name",
+        label = stringResource(R.string.health_card_full_name),
         testTag = HealthCardTestTags.FULL_NAME_FIELD,
         touched = formState.fullNameTouched,
         onTouched = { onFormStateChange(formState.copy(fullNameTouched = true)) },
         error = formState.fullName.isBlank(),
-        errorText = if (formState.fullName.isBlank()) "Mandatory field" else null)
+        errorText =
+            if (formState.fullName.isBlank()) stringResource(R.string.error_mandatory_field)
+            else null)
 
     val birthDateErrorText =
         when {
-          formState.birthDate.isBlank() && formState.birthDateTouched -> "Mandatory field"
+          formState.birthDate.isBlank() && formState.birthDateTouched ->
+              stringResource(R.string.error_mandatory_field)
           formState.birthDate.isNotBlank() &&
               !formState.isDateValid() &&
-              formState.birthDateTouched -> "Invalid birth date (dd/mm/yyyy)"
+              formState.birthDateTouched -> stringResource(R.string.error_invalid_date)
           else -> null
         }
 
     LabeledRequiredTextField(
         value = formState.birthDate,
         onValueChange = { onFormStateChange(formState.copy(birthDate = it)) },
-        label = "Birth date",
+        label = stringResource(R.string.health_card_birth_date),
         testTag = HealthCardTestTags.BIRTH_DATE_FIELD,
         touched = formState.birthDateTouched,
         onTouched = { onFormStateChange(formState.copy(birthDateTouched = true)) },
@@ -317,12 +321,15 @@ private fun RequiredFieldsSection(
     LabeledRequiredTextField(
         value = formState.socialSecurityNumber,
         onValueChange = { onFormStateChange(formState.copy(socialSecurityNumber = it)) },
-        label = "National ID number",
+        label = stringResource(R.string.health_card_ssn),
         testTag = HealthCardTestTags.SSN_FIELD,
         touched = formState.ssnTouched,
         onTouched = { onFormStateChange(formState.copy(ssnTouched = true)) },
         error = formState.socialSecurityNumber.isBlank(),
-        errorText = if (formState.socialSecurityNumber.isBlank()) "Mandatory field" else null)
+        errorText =
+            if (formState.socialSecurityNumber.isBlank())
+                stringResource(R.string.error_mandatory_field)
+            else null)
   }
 }
 
@@ -343,57 +350,57 @@ private fun OptionalFieldsSection(
     LabeledTextField(
         value = formState.sex,
         onValueChange = { onFormStateChange(formState.copy(sex = it)) },
-        label = "Sex",
+        label = stringResource(R.string.health_card_sex),
         testTag = HealthCardTestTags.SEX_FIELD)
 
     LabeledTextField(
         value = formState.bloodType,
         onValueChange = { onFormStateChange(formState.copy(bloodType = it)) },
-        label = "Blood type",
+        label = stringResource(R.string.health_card_blood_type),
         testTag = HealthCardTestTags.BLOOD_TYPE_FIELD)
 
     LabeledTextField(
         value = formState.heightCm,
         onValueChange = { onFormStateChange(formState.copy(heightCm = it)) },
-        label = "Height (cm)",
+        label = stringResource(R.string.health_card_height),
         testTag = HealthCardTestTags.HEIGHT_FIELD,
         keyboardType = KeyboardType.Number)
 
     LabeledTextField(
         value = formState.weightKg,
         onValueChange = { onFormStateChange(formState.copy(weightKg = it)) },
-        label = "Weight (kg)",
+        label = stringResource(R.string.health_card_weight),
         testTag = HealthCardTestTags.WEIGHT_FIELD,
         keyboardType = KeyboardType.Number)
 
     LabeledTextField(
         value = formState.chronicConditions,
         onValueChange = { onFormStateChange(formState.copy(chronicConditions = it)) },
-        label = "Chronic conditions",
+        label = stringResource(R.string.health_card_chronic_conditions),
         testTag = HealthCardTestTags.CHRONIC_CONDITIONS_FIELD)
 
     LabeledTextField(
         value = formState.allergies,
         onValueChange = { onFormStateChange(formState.copy(allergies = it)) },
-        label = "Allergies",
+        label = stringResource(R.string.health_card_allergies),
         testTag = HealthCardTestTags.ALLERGIES_FIELD)
 
     LabeledTextField(
         value = formState.medications,
         onValueChange = { onFormStateChange(formState.copy(medications = it)) },
-        label = "Medications",
+        label = stringResource(R.string.health_card_medications),
         testTag = HealthCardTestTags.MEDICATIONS_FIELD)
 
     LabeledTextField(
         value = formState.onGoingTreatments,
         onValueChange = { onFormStateChange(formState.copy(onGoingTreatments = it)) },
-        label = "On going treatments",
+        label = stringResource(R.string.health_card_treatments),
         testTag = HealthCardTestTags.TREATMENTS_FIELD)
 
     LabeledTextField(
         value = formState.medicalHistory,
         onValueChange = { onFormStateChange(formState.copy(medicalHistory = it)) },
-        label = "Medical history",
+        label = stringResource(R.string.health_card_history),
         testTag = HealthCardTestTags.HISTORY_FIELD)
 
     OrganDonorSwitch(
@@ -403,7 +410,7 @@ private fun OptionalFieldsSection(
     LabeledTextField(
         value = formState.notes,
         onValueChange = { onFormStateChange(formState.copy(notes = it)) },
-        label = "Notes",
+        label = stringResource(R.string.health_card_notes),
         testTag = HealthCardTestTags.NOTES_FIELD)
   }
 }
@@ -425,7 +432,7 @@ private fun OrganDonorSwitch(
       modifier = modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically) {
-        Text("Organ donor")
+        Text(stringResource(R.string.health_card_organ_donor))
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
@@ -460,20 +467,20 @@ private fun ActionButtons(
           onClick = onSave,
           enabled = isFormValid,
           modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.ADD_BUTTON)) {
-            Text("Add")
+            Text(stringResource(R.string.add_button))
           }
     } else {
       Button(
           onClick = onUpdate,
           enabled = isFormValid,
           modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.UPDATE_BUTTON)) {
-            Text("Update")
+            Text(stringResource(R.string.update_button))
           }
 
       OutlinedButton(
           onClick = onDelete,
           modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.DELETE_BUTTON)) {
-            Text("Delete")
+            Text(stringResource(R.string.delete_button))
           }
     }
   }
@@ -506,7 +513,7 @@ private fun LabeledTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("$label (Optional)") },
+        label = { Text(label + " " + stringResource(R.string.optional_label_suffix)) },
         isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth().testTag(testTag))
@@ -574,11 +581,4 @@ private fun LabeledRequiredTextField(
           modifier = Modifier.padding(start = 16.dp, top = 4.dp))
     }
   }
-}
-
-/** Preview function for the Health Card screen in Android Studio. */
-@Preview(showBackground = true)
-@Composable
-private fun HealthCardScreenPreview() {
-  MainAppTheme { HealthCardScreen(AppConfig.defaultUserId) }
 }
