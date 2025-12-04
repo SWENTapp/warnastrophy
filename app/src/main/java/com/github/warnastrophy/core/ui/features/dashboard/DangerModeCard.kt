@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,7 +67,7 @@ object DangerModeTestTags {
 
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
 
-  fun modeTag(mode: DangerModePreset) = MODE_PREFIX + mode.label
+  fun activityTag(activityName: String) = MODE_PREFIX + activityName
 
   fun dangerLevelTag(level: Int) = COLOR_BOX_PREFIX + level
 }
@@ -87,14 +88,20 @@ fun DangerModeCard(
     viewModel: DangerModeCardViewModel = viewModel(),
     onManageActivitiesClick: () -> Unit = {}
 ) {
+  // Refresh activities whenever this composable is displayed
+  LaunchedEffect(Unit) { viewModel.refreshActivities() }
+
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
-  val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
+  val currentActivity by viewModel.currentActivity.collectAsState(null)
   val capabilities by viewModel.capabilities.collectAsState(emptySet())
   val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
   val autoActionsEnabled by viewModel.autoActionsEnabled.collectAsState(false)
 
   val confirmTouchRequired by viewModel.confirmTouchRequired.collectAsState(false)
   val confirmVoiceRequired by viewModel.confirmVoiceRequired.collectAsState(false)
+
+  val activities by viewModel.activities.collectAsState()
+  val hasActivities = activities.isNotEmpty()
 
   val colorScheme = MaterialTheme.colorScheme
   val extendedColors = MaterialTheme.extendedColors
@@ -126,32 +133,42 @@ fun DangerModeCard(
           Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
             Row(
                 modifier =
-                    Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable { expanded = true },
+                    Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable(
+                        enabled = hasActivities) {
+                          expanded = true
+                        },
                 verticalAlignment = Alignment.CenterVertically) {
                   StandardDashboardButton(
-                      label = currentModeName.label,
-                      color = colorScheme.errorContainer,
-                      onClick = { expanded = true },
-                      textColor = colorScheme.onErrorContainer,
+                      label = currentActivity?.activityName ?: "Select Activity",
+                      color =
+                          if (hasActivities) colorScheme.errorContainer
+                          else colorScheme.errorContainer.copy(alpha = 0.5f),
+                      onClick = { if (hasActivities) expanded = true },
+                      textColor =
+                          if (hasActivities) colorScheme.onErrorContainer
+                          else colorScheme.onErrorContainer.copy(alpha = 0.5f),
                       icon = {
                         Icon(
                             imageVector = Icons.Filled.ArrowDropDown,
                             contentDescription = "Dropdown Arrow",
-                            tint = colorScheme.onErrorContainer)
+                            tint =
+                                if (hasActivities) colorScheme.onErrorContainer
+                                else colorScheme.onErrorContainer.copy(alpha = 0.5f))
                       })
                 }
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL)) {
-                  DangerModePreset.entries.forEach { mode ->
+                  activities.forEach { activity ->
                     DropdownMenuItem(
-                        text = { Text(mode.label) },
+                        text = { Text(activity.activityName) },
                         onClick = {
-                          viewModel.onModeSelected(mode)
+                          viewModel.onActivitySelected(activity)
                           expanded = false
                         },
-                        modifier = Modifier.testTag(DangerModeTestTags.modeTag(mode)))
+                        modifier =
+                            Modifier.testTag(DangerModeTestTags.activityTag(activity.activityName)))
                   }
                 }
           }

@@ -1,16 +1,22 @@
 package com.github.warnastrophy.core.ui.dangermodecard
 
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
+import com.github.warnastrophy.core.util.AppConfig
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -21,6 +27,8 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class DangerModeCardViewModelTest {
   private lateinit var viewModel: DangerModeCardViewModel
+  private lateinit var repository: MockActivityRepository
+  private val testDispatcher = StandardTestDispatcher()
 
   @Before
   fun setup() {
@@ -29,7 +37,16 @@ class DangerModeCardViewModelTest {
         MockPermissionManager(currentResult = PermissionResult.Granted)
     StateManagerService.dangerModeService =
         DangerModeService(permissionManager = StateManagerService.permissionManager)
-    viewModel = DangerModeCardViewModel()
+    // Initialize the mock repository for testing
+    repository = MockActivityRepository()
+    viewModel =
+        DangerModeCardViewModel(
+            repository = repository, userId = AppConfig.defaultUserId, dispatcher = testDispatcher)
+  }
+
+  @After
+  fun tearDown() {
+    Dispatchers.resetMain()
   }
 
   @Test
@@ -47,17 +64,18 @@ class DangerModeCardViewModelTest {
   }
 
   @Test
-  fun `currentModeName initial state is DEFAULT_MODE`() = runTest {
-    assertEquals(DangerModePreset.DEFAULT_MODE, viewModel.currentMode.first())
+  fun `currentActivity initial state is null`() = runTest {
+    assertEquals(null, viewModel.currentActivity.first())
   }
 
   @Test
-  fun `onModeSelected updates currentModeName`() = runTest {
-    viewModel.onModeSelected(DangerModePreset.HIKING_MODE)
-    assertEquals(DangerModePreset.HIKING_MODE, viewModel.currentMode.first())
+  fun `onActivitySelected updates currentActivity`() = runTest {
+    val hikingActivity = Activity(id = "1", activityName = "Hiking")
+    viewModel.onActivitySelected(hikingActivity)
+    assertEquals(hikingActivity, viewModel.currentActivity.first())
 
-    viewModel.onModeSelected(DangerModePreset.DEFAULT_MODE)
-    assertEquals(DangerModePreset.DEFAULT_MODE, viewModel.currentMode.first())
+    viewModel.onActivitySelected(null)
+    assertEquals(null, viewModel.currentActivity.first())
   }
 
   @Test
@@ -84,5 +102,30 @@ class DangerModeCardViewModelTest {
     assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
     viewModel.onCapabilityToggled(DangerModeCapability.SMS)
     assertEquals(emptySet<DangerModeCapability>(), viewModel.capabilities.first())
+  }
+
+  @Test
+  fun `activities initial state is empty list`() = runTest {
+    testDispatcher.scheduler.advanceUntilIdle()
+    assertEquals(emptyList<Activity>(), viewModel.activities.first())
+  }
+
+  @Test
+  fun `refreshActivities updates activities from repository`() = runTest {
+    // Add activities to the repository
+    val activity1 = Activity(id = "1", activityName = "Hiking")
+    val activity2 = Activity(id = "2", activityName = "Climbing")
+    repository.addActivity(userId = AppConfig.defaultUserId, activity = activity1)
+    repository.addActivity(userId = AppConfig.defaultUserId, activity = activity2)
+
+    // Refresh the activities
+    viewModel.refreshActivities()
+
+    // Wait for the coroutine to complete
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    // Verify the activities are loaded
+    val activities = viewModel.activities.first()
+    assertEquals(2, activities.size)
   }
 }

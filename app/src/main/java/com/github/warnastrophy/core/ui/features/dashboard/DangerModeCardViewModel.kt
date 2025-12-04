@@ -4,28 +4,28 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
+import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.util.AppConfig
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /** Capabilities of the danger mode that can be enabled in Danger Mode with associated labels. */
 enum class DangerModeCapability(val label: String) {
   CALL("Call"),
   SMS("SMS"),
-}
-
-/** Preset modes for Danger Mode with associated labels. */
-enum class DangerModePreset(val label: String) {
-  CLIMBING_MODE("Climbing mode"),
-  HIKING_MODE("Hiking mode"),
-  DEFAULT_MODE("Default mode")
 }
 
 /**
@@ -35,22 +35,49 @@ enum class DangerModePreset(val label: String) {
  *   testing).
  * @param stopService Lambda function to stop the foreground GPS service (can be overridden for
  *   testing).
+ * @param repository The ActivityRepository to use for fetching activities.
+ * @param userId The user ID for loading activities. Defaults to current Firebase user or fallback.
+ * @param dispatcher The coroutine dispatcher to use for async operations.
  */
 class DangerModeCardViewModel(
     private val startService: (Context) -> Unit = { ctx -> startForegroundGpsService(ctx) },
-    private val stopService: (Context) -> Unit = { ctx -> stopForegroundGpsService(ctx) }
+    private val stopService: (Context) -> Unit = { ctx -> stopForegroundGpsService(ctx) },
+    private val repository: ActivityRepository = StateManagerService.activityRepository,
+    private val userId: String =
+        FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
   private val dangerModeService = StateManagerService.dangerModeService
+
+  private val _activities = MutableStateFlow<List<Activity>>(emptyList())
+  val activities: StateFlow<List<Activity>> = _activities.asStateFlow()
+
+  init {
+    refreshActivities()
+  }
+
+  /** Refreshes the activities list from the repository. */
+  fun refreshActivities() {
+    viewModelScope.launch(dispatcher) {
+      val result = repository.getAllActivities(userId)
+      result.fold(
+          onSuccess = { activityList -> _activities.value = activityList },
+          onFailure = { e ->
+            Log.e("DangerModeCardViewModel", "Error fetching activities", e)
+            _activities.value = emptyList()
+          })
+    }
+  }
 
   val isDangerModeEnabled =
       dangerModeService.state
           .map { it.isActive }
           .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
-  val currentMode =
+  val currentActivity =
       dangerModeService.state
-          .map { it.preset }
-          .stateIn(viewModelScope, SharingStarted.Lazily, DangerModePreset.DEFAULT_MODE)
+          .map { it.activity }
+          .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
   val dangerLevel =
       dangerModeService.state
@@ -94,12 +121,12 @@ class DangerModeCardViewModel(
   }
 
   /**
-   * Sets the selected Danger Mode preset
+   * Sets the selected Activity
    *
-   * @param mode The selected Danger Mode preset.
+   * @param activity The selected Activity.
    */
-  fun onModeSelected(mode: DangerModePreset) {
-    dangerModeService.setPreset(mode)
+  fun onActivitySelected(activity: Activity?) {
+    dangerModeService.setActivity(activity)
   }
 
   /**

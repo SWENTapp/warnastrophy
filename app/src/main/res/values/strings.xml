@@ -85,6 +85,34 @@
     <string name="health_card_popup_edit_button_cd">Go to full health card</string>
     <string name="health_card_popup_empty_text">Empty Health Card</string>
 
+    <!-- Health Card Fields -->
+    <string name="health_card_full_name">Full name</string>
+    <string name="health_card_birth_date">Birth date</string>
+    <string name="health_card_ssn">National ID number</string>
+    <string name="health_card_sex">Sex</string>
+    <string name="health_card_blood_type">Blood type</string>
+    <string name="health_card_height">Height (cm)</string>
+    <string name="health_card_weight">Weight (kg)</string>
+    <string name="health_card_chronic_conditions">Chronic conditions</string>
+    <string name="health_card_allergies">Allergies</string>
+    <string name="health_card_medications">Medications</string>
+    <string name="health_card_treatments">On going treatments</string>
+    <string name="health_card_history">Medical history</string>
+    <string name="health_card_organ_donor">Organ donor</string>
+    <string name="health_card_notes">Notes</string>
+    <string name="health_card_saved_message">Saved</string>
+    <string name="health_card_deleted_message">Deleted</string>
+
+    <!-- Fields Messages -->
+    <string name="error_mandatory_field">Mandatory field</string>
+    <string name="error_invalid_date">Invalid birth date (dd/mm/yyyy)</string>
+    <string name="optional_label_suffix">(Optional)</string>
+
+    <!-- Action Buttons -->
+    <string name="add_button">Add</string>
+    <string name="update_button">Update</string>
+    <string name="delete_button">Delete</string>
+
     <!-- Speech Recognition Error Messages -->
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
     <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>

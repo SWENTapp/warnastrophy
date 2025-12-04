@@ -15,6 +15,7 @@ enum class ErrorType(val message: Int) {
   LOCATION_ERROR(R.string.error_location_unavailable),
   HAZARD_FETCHING_ERROR(R.string.error_hazard_fetch_failed),
   SPEECH_RECOGNITION_ERROR(R.string.error_speech_recognition_failed),
+  ACTIVITY_REPOSITORY_ERROR(R.string.error_activity_repository_failed),
 }
 
 /** ViewModel responsible for managing error messages associated with different screens. */
