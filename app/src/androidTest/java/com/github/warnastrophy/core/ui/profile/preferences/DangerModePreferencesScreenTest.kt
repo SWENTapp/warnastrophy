@@ -85,6 +85,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOff()
     nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsOff()
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOff()
+    scrollToAutomaticCalls()
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsOff()
   }
 
@@ -198,7 +199,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
 
-    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      !viewModel.uiState.value.alertModeAutomaticEnabled &&
+          !viewModel.uiState.value.inactivityDetectionEnabled &&
+          !viewModel.uiState.value.automaticSmsEnabled &&
+          !viewModel.uiState.value.automaticCallsEnabled
+    }
 
     assertSwitchesOff()
 
@@ -314,6 +320,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     applyPerm(PermissionResult.Granted)
 
+    scrollToAutomaticCalls()
     toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH) {
       viewModel.uiState.value.automaticCallsEnabled
     }
