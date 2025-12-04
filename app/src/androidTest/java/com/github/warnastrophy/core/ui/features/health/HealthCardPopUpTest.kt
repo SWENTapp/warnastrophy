@@ -1,7 +1,10 @@
 package com.github.warnastrophy.core.ui.features.health
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
@@ -9,6 +12,7 @@ import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.junit.Before
@@ -49,89 +53,97 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT).assertIsDisplayed()
   }
 
-  //  @Test
-  //  fun healthCardPopUp_displaysCardDetails_whenCardIsAvailable() {
-  //    val card =
-  //        HealthCard(
-  //            fullName = "Jane Doe",
-  //            dateOfBirthIso = "1990-05-15",
-  //            idNumber = "987654321",
-  //            sex = "Female",
-  //            bloodType = "O-",
-  //            allergies = listOf("Peanuts", "Dust"),
-  //            medications = listOf("Painkiller"),
-  //            chronicConditions = listOf("Asthma"),
-  //            organDonor = true,
-  //            notes = "Regular check-ups needed.")
-  //    currentCardFlow.value = card
-  //
-  //    composeTestRule.setContent {
-  //      MainAppTheme {
-  //        HealthCardPopUp(
-  //            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
-  //      }
-  //    }
-  //
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.FULL_NAME_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("Jane Doe")
-  //
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.BIRTH_DATE_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("15/05/1990")
-  //
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.SEX_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("Female")
-  //
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.BLOOD_TYPE_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("O-")
-  //
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.ALLERGIES_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("Peanuts, Dust")
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.MEDICATIONS_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("Painkiller")
-  //
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.ORGAN_DONOR_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("Yes")
-  //
-  //    composeTestRule
-  //        .onNodeWithTag(HealthCardPopUpTestTags.NOTES_VALUE)
-  //        .assertIsDisplayed()
-  //        .assertTextContains("Regular check-ups needed.")
-  //
-  //    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
-  //  }
-  //
-  //  @Test
-  //  fun healthCardPopUp_editButtonTriggersOnClickCallback() {
-  //    var isClicked = false
-  //
-  //    composeTestRule.setContent {
-  //      MainAppTheme {
-  //        HealthCardPopUp(
-  //            onDismissRequest = {},
-  //            onClick = { isClicked = true },
-  //            viewModel = mockViewModel,
-  //            userId = fakeUserId)
-  //      }
-  //    }
-  //
-  //    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EDIT_BUTTON).performClick()
-  //
-  //    assertTrue(isClicked)
-  //  }
+  @Test
+  fun healthCardPopUp_displaysCardDetails_whenCardIsAvailable() {
+    val card =
+        HealthCard(
+            fullName = "Jane Doe",
+            dateOfBirthIso = "1990-05-15",
+            idNumber = "987654321",
+            sex = "Female",
+            bloodType = "O-",
+            allergies = listOf("Peanuts", "Dust"),
+            medications = listOf("Painkiller"),
+            chronicConditions = listOf("Asthma"),
+            organDonor = true,
+            notes = "Regular check-ups needed.")
+    currentCardFlow.value = card
+
+    composeTestRule.setContent {
+      MainAppTheme {
+        HealthCardPopUp(
+            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
+      }
+    }
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.FULL_NAME_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("Jane Doe")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.BIRTH_DATE_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("15/05/1990")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.SEX_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("Female")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.BLOOD_TYPE_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("O-")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.ALLERGIES_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("Peanuts, Dust")
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.MEDICATIONS_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("Painkiller")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.ORGAN_DONOR_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("Yes")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.NOTES_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains("Regular check-ups needed.")
+
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
+  }
+
+  @Test
+  fun healthCardPopUp_editButtonTriggersOnClickCallback() {
+    var isClicked = false
+
+    composeTestRule.setContent {
+      MainAppTheme {
+        HealthCardPopUp(
+            onDismissRequest = {},
+            onClick = { isClicked = true },
+            viewModel = mockViewModel,
+            userId = fakeUserId)
+      }
+    }
+
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EDIT_BUTTON).performClick()
+
+    assertTrue(isClicked)
+  }
 
   @Test
   fun healthCardPopUp_loadsHealthCard_onLaunch() {
