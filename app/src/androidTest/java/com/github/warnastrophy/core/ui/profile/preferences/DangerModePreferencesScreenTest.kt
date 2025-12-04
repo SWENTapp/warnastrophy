@@ -57,21 +57,8 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     composeTestRule.waitForIdle()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_ITEM)
-        .assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_ITEM)
-        .assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_ITEM)
-        .assertIsDisplayed()
-
-    scrollToAutomaticCalls()
-
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM)
-        .assertIsDisplayed()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_ITEM).assertIsDisplayed()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_ITEM).assertIsDisplayed()
   }
 
   private fun scrollToAutomaticCalls() {
@@ -87,26 +74,18 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   }
 
   private fun toggleSwitch(tag: String, stateSelector: () -> Boolean) {
-    composeTestRule.onNodeWithTag(tag).assertIsEnabled().performClick()
+    nodeWithTag(tag).assertIsEnabled().performClick()
 
     composeTestRule.waitUntil(timeoutMillis = 5_000) { stateSelector() }
 
-    composeTestRule.onNodeWithTag(tag).assertIsEnabled().assertIsOn()
+    nodeWithTag(tag).assertIsEnabled().assertIsOn()
   }
 
   private fun assertSwitchesOff() {
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOff()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsOff()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsOff()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
-        .assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsOff()
   }
 
   /** Verifies that a fallback error message is shown when the context is not an Activity. */
@@ -134,19 +113,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     assertSwitchesOff()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
         .assertIsNotEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
     scrollToAutomaticCalls()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
   }
 
   @Test
@@ -155,23 +127,13 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     setContent()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .performClick()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOn()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOn()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
     scrollToAutomaticCalls()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
   }
 
   /**
@@ -198,9 +160,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     setContent()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOff()
 
     viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_ALERT_MODE)
     composeTestRule.waitForIdle()
@@ -212,9 +172,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     assertFalse(viewModel.uiState.value.isOsRequestInFlight)
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOn()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOn()
   }
 
   @Test
@@ -223,58 +181,33 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     setContent()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .performClick()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .performClick()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .performClick()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).performClick()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).performClick()
 
     scrollToAutomaticCalls()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
-        .performClick()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).performClick()
 
     composeTestRule.waitForIdle()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOn()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsOn()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsOn()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOn()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsOn()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOn()
     scrollToAutomaticCalls()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
-        .assertIsOn()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsOn()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .performClick()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
 
     composeTestRule.waitForIdle()
 
     assertSwitchesOff()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
         .assertIsNotEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
     scrollToAutomaticCalls()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
   }
 
   @Test
@@ -283,8 +216,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     setContent()
 
     // Simulate toggle the switch
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .assertIsEnabled()
         .assertIsOff()
 
@@ -308,8 +240,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
     // Simulate toggle the switch
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
         .assertIsEnabled()
         .assertIsOff()
 
@@ -336,8 +267,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
     // Simulate toggle the switch
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsEnabled()
         .assertIsOff()
 
@@ -378,8 +308,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
     // Simulate toggle the switch
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
         .assertIsEnabled()
         .assertIsOff()
 
@@ -389,4 +318,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
       viewModel.uiState.value.automaticCallsEnabled
     }
   }
+
+  private fun nodeWithTag(tag: String) = composeTestRule.onNodeWithTag(tag, useUnmergedTree = true)
 }
