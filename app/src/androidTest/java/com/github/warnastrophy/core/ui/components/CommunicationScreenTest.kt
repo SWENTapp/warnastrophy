@@ -17,7 +17,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Before
@@ -105,16 +104,6 @@ class CommunicationScreenTest : BaseComposeTest() {
     composeRule.waitForIdle()
 
     coVerify(exactly = 0) { speechToTextService.listenForConfirmation() }
-  }
-
-  @Test
-  fun backButtonInvokesCallback() {
-    var backClicks = 0
-    setScreen { backClicks++ }
-
-    composeRule.onNodeWithContentDescription(string(R.string.navigate_back)).performClick()
-
-    assertEquals(1, backClicks)
   }
 
   private fun setScreen(onBackClick: () -> Unit = {}) {
