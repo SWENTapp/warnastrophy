@@ -126,4 +126,7 @@
         by prolonged stillness, we send your location to emergency service that you chose before.</string>
     <string name="description_third_page">To monitor your location in the background and send emergency texts, we need location and SMS permission. We use these data only for your safety.</string>
     <string name="title_third_page">Ready for Protection?</string>
+
+    <!-- Repository Errors -->
+    <string name="error_activity_repository_failed">Error in activity repository</string>
 </resources>

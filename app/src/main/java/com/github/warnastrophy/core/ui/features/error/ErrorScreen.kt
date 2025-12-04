@@ -180,5 +180,6 @@ private fun ErrorSuggestion(err: Error): String {
     ErrorType.SPEECH_RECOGNITION_ERROR ->
         stringResource(R.string.error_suggestion_speech_recognition)
     ErrorType.NO_ERRORS -> ""
+    ErrorType.ACTIVITY_REPOSITORY_ERROR -> stringResource(R.string.error_activity_repository_failed)
   }
 }

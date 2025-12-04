@@ -15,7 +15,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
@@ -64,7 +63,6 @@ class MainActivity : ComponentActivity() {
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.initHybrid(applicationContext, db)
     UserPreferencesRepositoryProvider.initHybrid(dataStore, db)
-    ActivityRepositoryProvider.init()
     StateManagerService.init(applicationContext)
     OnboardingRepositoryProvider.init(applicationContext)
     showUI()
