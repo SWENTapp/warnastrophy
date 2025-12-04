@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
@@ -34,9 +33,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   @Test
   fun dashboardScreen_rootIsScrollable() {
     val mockHazardService = HazardServiceMock()
-    composeTestRule.setContent {
-      MaterialTheme { DashboardScreen(userId = fakeUserId, hazardsService = mockHazardService) }
-    }
+    setContent(hazardsService = mockHazardService)
 
     composeTestRule
         .onNode(
@@ -60,9 +57,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
 
     ContactRepositoryProvider.repository = MockContactRepository()
 
-    composeTestRule.setContent {
-      MaterialTheme { DashboardScreen(userId = fakeUserId, hazardsService = mockHazardService) }
-    }
+    setContent(hazardsService = mockHazardService)
 
     composeTestRule.waitForIdle()
 
@@ -89,9 +84,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   @Test
   fun clickingHealthCard_showsHealthCardPopUp() {
     val mockHazardService = HazardServiceMock()
-    composeTestRule.setContent {
-      MainAppTheme { DashboardScreen(userId = fakeUserId, hazardsService = mockHazardService) }
-    }
+    setContent(hazardsService = mockHazardService)
 
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertDoesNotExist()
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).performClick()
@@ -103,20 +96,28 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     var onHealthCardClickCalled = false
     val mockHazardService = HazardServiceMock()
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        DashboardScreen(
-            userId = fakeUserId,
-            hazardsService = mockHazardService,
-            onHealthCardClick = { onHealthCardClickCalled = true })
-      }
-    }
+    setContent(
+        hazardsService = mockHazardService,
+        onHealthCardClick = { onHealthCardClickCalled = true },
+    )
 
     composeTestRule.onNodeWithTag(DashboardHealthCardTestTags.CARD).performClick()
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EDIT_BUTTON).performClick()
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertDoesNotExist()
     assertTrue("onHealthCardClick should have been called.", onHealthCardClickCalled)
+  }
+
+  private fun setContent(hazardsService: HazardServiceMock, onHealthCardClick: () -> Unit = {}) {
+    composeTestRule.setContent {
+      MainAppTheme {
+        DashboardScreen(
+            userId = fakeUserId,
+            hazardsService = hazardsService,
+            onHealthCardClick = onHealthCardClick,
+        )
+      }
+    }
   }
 
   private fun checkedDangerMode(on: Boolean) {

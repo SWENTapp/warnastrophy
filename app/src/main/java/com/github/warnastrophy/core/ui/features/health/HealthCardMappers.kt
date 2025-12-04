@@ -50,7 +50,7 @@ fun HealthCard.toFormState(): HealthCardFormState =
         organDonor = organDonor ?: false,
         notes = notes.orEmpty())
 
-/** Domain → Preview UI */
+/** This method converts a HealthCard to a HealthCardPreviewState */
 fun HealthCard.toPreviewState(): HealthCardPreviewState =
     HealthCardPreviewState(
         fullName = fullName,

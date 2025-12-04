@@ -148,6 +148,12 @@ fun HealthCardPopUp(
   }
 }
 
+/**
+ * A composable that displays the detailed information from a health card. It lays out the various
+ * health entries vertically in a scrollable column.
+ *
+ * @param card The [HealthCardPreviewState] data object containing the details to be displayed.
+ */
 @Composable
 private fun HealthCardDetails(card: HealthCardPreviewState) {
   Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
@@ -194,6 +200,10 @@ private fun HealthCardDetails(card: HealthCardPreviewState) {
   }
 }
 
+/**
+ * A composable that displays a message indicating that the health card is empty. This is shown
+ * within the `HealthCardPopUp` when no health card data is available to display.
+ */
 @Composable
 private fun EmptyHealthCardPopUp() {
   Column(
@@ -207,6 +217,15 @@ private fun EmptyHealthCardPopUp() {
       }
 }
 
+/**
+ * A composable that displays a labeled piece of health information. It shows a bolded label and its
+ * corresponding value underneath. The entry is only rendered if the provided [value] is not blank.
+ *
+ * @param label The text to display as the title for the information (e.g., "Blood Type").
+ * @param value The text to display as the value for the information (e.g., "O+").
+ * @param titleTestTag The test tag for the label's [Text] composable, used for UI testing.
+ * @param valueTestTag The test tag for the value's [Text] composable, used for UI testing.
+ */
 @Composable
 private fun HealthInfoEntry(
     label: String,

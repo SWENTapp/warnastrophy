@@ -42,12 +42,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
 
   @Test
   fun healthCardPopUp_displaysEmptyState_whenNoCardIsAvailable() {
-    composeTestRule.setContent {
-      MainAppTheme {
-        HealthCardPopUp(
-            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
-      }
-    }
+    setContent()
 
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.ROOT_CARD).assertIsDisplayed()
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.TITLE).assertIsDisplayed()
@@ -59,12 +54,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
   @Test
   fun healthCardPopUp_displaysCardDetails_whenCardIsAvailable() {
     currentCardFlow.value = dummyCard()
-    composeTestRule.setContent {
-      MainAppTheme {
-        HealthCardPopUp(
-            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
-      }
-    }
+    setContent()
 
     checkHealthCardTitles()
     checkHealthCardFields(dummyCard())
@@ -83,12 +73,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
         )
     currentCardFlow.value = cardWithNulls
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        HealthCardPopUp(
-            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
-      }
-    }
+    setContent()
 
     checkHealthCardTitles()
     checkHealthCardFields(cardWithNulls)
@@ -100,12 +85,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
     val cardWithNulls = dummyCard(sex = null, bloodType = null, organDonor = null, notes = null)
     currentCardFlow.value = cardWithNulls
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        HealthCardPopUp(
-            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
-      }
-    }
+    setContent()
 
     checkHealthCardTitles()
     checkHealthCardFields(cardWithNulls)
@@ -117,12 +97,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
     val cardWithNulls = dummyCard(sex = "", bloodType = "", notes = "")
     currentCardFlow.value = cardWithNulls
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        HealthCardPopUp(
-            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
-      }
-    }
+    setContent()
 
     checkHealthCardTitles()
     checkHealthCardFields(cardWithNulls)
@@ -133,15 +108,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
   fun healthCardPopUp_editButtonTriggersOnClickCallback() {
     var isClicked = false
 
-    composeTestRule.setContent {
-      MainAppTheme {
-        HealthCardPopUp(
-            onDismissRequest = {},
-            onClick = { isClicked = true },
-            viewModel = mockViewModel,
-            userId = fakeUserId)
-      }
-    }
+    setContent(onClick = { isClicked = true })
 
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EDIT_BUTTON).performClick()
 
@@ -150,18 +117,26 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
 
   @Test
   fun healthCardPopUp_loadsHealthCard_onLaunch() {
-
-    composeTestRule.setContent {
-      MainAppTheme {
-        // LaunchedEffect will trigger loadHealthCard
-        HealthCardPopUp(
-            onClick = {}, onDismissRequest = {}, viewModel = mockViewModel, userId = fakeUserId)
-      }
-    }
+    setContent()
 
     composeTestRule.waitForIdle()
 
     verify(exactly = 1) { mockViewModel.loadHealthCard(any(), fakeUserId) }
+  }
+
+  private fun setContent(
+      onDismissRequest: () -> Unit = {},
+      onClick: () -> Unit = {},
+  ) {
+    composeTestRule.setContent {
+      MainAppTheme {
+        HealthCardPopUp(
+            onDismissRequest = onDismissRequest,
+            onClick = onClick,
+            viewModel = mockViewModel,
+            userId = fakeUserId)
+      }
+    }
   }
 
   private fun dummyCard(
