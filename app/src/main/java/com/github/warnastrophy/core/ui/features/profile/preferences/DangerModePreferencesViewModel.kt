@@ -14,7 +14,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Represents actions that are pending a permission result from the user. */
+/**
+ * Represents actions that are pending a permission result from the user.
+ *
+ * When a user tries to enable a feature that requires a permission, and that permission has not yet
+ * been granted, the app will request the permission. This enum is used to track which feature's
+ * toggle action initiated the permission request, so the correct action can be completed if the
+ * user grants the permission.
+ */
 enum class PendingAction {
   TOGGLE_ALERT_MODE,
   TOGGLE_INACTIVITY_DETECTION,
@@ -22,7 +29,19 @@ enum class PendingAction {
   TOGGLE_AUTOMATIC_CALLS
 }
 
-/** UI state for the Danger Mode Preferences screen. */
+/**
+ * UI state for the Danger Mode Preferences screen.
+ *
+ * @property alertModeAutomaticEnabled State of the "Alert Mode Automatic" switch.
+ * @property inactivityDetectionEnabled State of the "Inactivity Detection" switch.
+ * @property automaticSmsEnabled State of the "Automatic SMS" switch.
+ * @property alertModePermissionResult The current status of the permissions required for Alert
+ *   Mode.
+ * @property inactivityDetectionPermissionResult The current status of the permissions required for
+ *   Inactivity Detection.
+ * @property smsPermissionResult The current status of the permission required for sending SMS.
+ * @property pendingPermissionAction The action that is waiting for a permission result.
+ */
 data class DangerModePreferencesUiState(
     val alertModeAutomaticEnabled: Boolean = false,
     val inactivityDetectionEnabled: Boolean = false,
@@ -34,10 +53,18 @@ data class DangerModePreferencesUiState(
     val callPermissionResult: PermissionResult,
     val pendingPermissionAction: PendingAction? = null
 ) {
+  /** A computed property that is true if a permission request is in flight. */
   val isOsRequestInFlight: Boolean
     get() = pendingPermissionAction != null
 }
 
+/**
+ * ViewModel for the Danger Mode Preferences screen.
+ *
+ * This ViewModel manages the UI state and business logic for the Danger Mode settings.
+ *
+ * @param permissionManager An interface for checking and managing app permissions.
+ */
 class DangerModePreferencesViewModel(
     private val permissionManager: PermissionManagerInterface,
     private val userPreferencesRepository: UserPreferencesRepository
@@ -73,6 +100,12 @@ class DangerModePreferencesViewModel(
         .launchIn(viewModelScope)
   }
 
+  /**
+   * Handles the toggling of the "Alert Mode Automatic" feature. If turned off, it also disables
+   * related features like "Inactivity Detection" and "Automatic SMS".
+   *
+   * @param enabled The new state of the "Alert Mode Automatic" switch.
+   */
   fun onAlertModeToggled(enabled: Boolean) {
     viewModelScope.launch {
       userPreferencesRepository.setAlertMode(enabled)
@@ -84,6 +117,12 @@ class DangerModePreferencesViewModel(
     }
   }
 
+  /**
+   * Handles the toggling of the "Inactivity Detection" feature. If turned off, it also disables
+   * "Automatic SMS".
+   *
+   * @param enabled The new state of the "Inactivity Detection" switch.
+   */
   fun onInactivityDetectionToggled(enabled: Boolean) {
     viewModelScope.launch {
       userPreferencesRepository.setInactivityDetection(enabled)
@@ -94,18 +133,39 @@ class DangerModePreferencesViewModel(
     }
   }
 
+  /**
+   * Handles the toggling of the "Automatic SMS" feature.
+   *
+   * @param enabled The new state of the "Automatic SMS" switch.
+   */
   fun onAutomaticSmsToggled(enabled: Boolean) {
     viewModelScope.launch { userPreferencesRepository.setAutomaticSms(enabled) }
   }
 
+  /**
+   * Handles the toggling of the "Automatic Calls" feature.
+   *
+   * @param enabled The new state of the "Automatic Calls" switch.
+   */
   fun onAutomaticCallsToggled(enabled: Boolean) {
     viewModelScope.launch { userPreferencesRepository.setAutomaticCalls(enabled) }
   }
 
+  /**
+   * Records that a permission request has been initiated for a specific action.
+   *
+   * @param action The action that is waiting for a permission result.
+   */
   fun onPermissionsRequestStart(action: PendingAction) {
     _uiState.update { it.copy(pendingPermissionAction = action) }
   }
 
+  /**
+   * Updates the permission results in the UI state after the user has responded to a system
+   * permission dialog.
+   *
+   * @param activity The current `Activity`, required to check the latest permission statuses.
+   */
   fun onPermissionsResult(activity: Activity) {
     val newAlertModeResult = permissionManager.getPermissionResult(alertModePermissions, activity)
     val newInactivityResult =
@@ -152,6 +212,16 @@ class DangerModePreferencesViewModel(
     _uiState.update { it.copy(pendingPermissionAction = null) }
   }
 
+  /**
+   * Handles the logic for a preference change, checking permissions and dispatching actions.
+   *
+   * @param isChecked The new state of the preference toggle.
+   * @param permissionResult The current permission status for this feature.
+   * @param onToggle The ViewModel function to call when the toggle state changes.
+   * @param onPermissionDenied Callback invoked if the necessary permissions were denied.
+   * @param onPermissionPermDenied Callback invoked if the necessary permissions were permanently
+   *   denied.
+   */
   fun handlePreferenceChange(
       isChecked: Boolean,
       permissionResult: PermissionResult,
