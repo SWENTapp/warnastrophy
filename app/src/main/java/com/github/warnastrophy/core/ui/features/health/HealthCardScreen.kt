@@ -513,7 +513,7 @@ private fun LabeledTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(stringResource(R.string.optional_label_suffix, label)) },
+        label = { Text(label + " " + stringResource(R.string.optional_label_suffix)) },
         isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth().testTag(testTag))
