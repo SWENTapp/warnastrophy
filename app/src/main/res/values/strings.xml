@@ -134,4 +134,6 @@
     <string name="communication_no_input_hint">We will show the transcript here.</string>
     <string name="communication_listen_button">Start listening</string>
     <string name="navigate_back">Back</string>
+
+    <string name="error_activity_repository_failed">Error in activity repository</string>
 </resources>
