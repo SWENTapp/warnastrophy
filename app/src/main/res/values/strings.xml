@@ -88,6 +88,9 @@
     <!-- Speech Recognition Error Messages -->
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
     <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
+    <string name="error_text_to_speech_unavailable">Text-to-speech service is not available on this device</string>
+    <string name="error_text_to_speech_failed">Unable to play the requested message</string>
+    <string name="error_text_to_speech_empty_input">Nothing to read</string>
 
     <!-- Onboarding screen -->
     <string name="description_first_page">We track your location in the background, if you enter a high-risk area,
