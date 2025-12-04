@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.credentials.CredentialManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -20,7 +19,6 @@ import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.NominatimService
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
@@ -46,7 +44,6 @@ import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.ui.navigation.Screen.Dashboard
 import com.github.warnastrophy.core.ui.navigation.Screen.Map
 import com.github.warnastrophy.core.ui.navigation.Screen.Profile
-import com.github.warnastrophy.core.ui.navigation.Screen.SignIn
 import com.github.warnastrophy.core.ui.navigation.TopBar
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.firebase.auth.FirebaseAuth
@@ -56,11 +53,27 @@ object WarnastrophyAppTestTags {
   const val MAIN_SCREEN = "mainScreen"
 }
 
+/**
+ * The root composable for the main application content, appearing after successful sign-in and
+ * onboarding.
+ *
+ * This composable sets up the navigation structure (NavHost), initializes all necessary ViewModels
+ * and services, manages the current authenticated user ID, and provides the main Scaffold with the
+ * bottom and top bars.
+ *
+ * @param mockMapScreen An optional composable lambda used primarily for testing or previewing,
+ *   which replaces the default [MapScreen] implementation. Defaults to null.
+ * @param onLogOutEvent Lambda function invoked when the user initiates a logout action from within
+ *   the application. This triggers navigation back to the sign-in route. Defaults to an empty
+ *   function.
+ */
 @Composable
-fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
+fun WarnastrophyComposable(
+    mockMapScreen: (@Composable () -> Unit)? = null,
+    onLogOutEvent: () -> Unit = {}
+) {
   val context = LocalContext.current
 
-  val credentialManager = CredentialManager.create(context)
   val firebaseAuth = remember { FirebaseAuth.getInstance() }
 
   var userId by remember {
@@ -93,15 +106,13 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
         // The route string from backStackEntry will be 'edit_contact/{id}' if defined
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
-        SignIn.route -> SignIn
         Screen.DangerModePreferences.route -> Screen.DangerModePreferences
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
         else -> Dashboard
       }
 
-  val startDestination =
-      if (FirebaseAuth.getInstance().currentUser == null) SignIn.route else Dashboard.route
+  val startDestination = Dashboard.route
 
   val errorHandler = remember { StateManagerService.errorHandler }
   val gpsService = remember { StateManagerService.gpsService }
@@ -135,11 +146,6 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
             navController,
             startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)) {
-              composable(SignIn.route) {
-                SignInScreen(
-                    credentialManager = credentialManager,
-                    onSignedIn = { navigationActions.navigateTo(Dashboard) })
-              }
               composable(Dashboard.route) {
                 DashboardScreen(
                     hazardsService = hazardsService,
@@ -160,7 +166,7 @@ fun WarnastrophyComposable(mockMapScreen: (@Composable () -> Unit)? = null) {
                 ProfileScreen(
                     onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
-                    onLogout = { navigationActions.navigateTo(SignIn) },
+                    onLogout = { onLogOutEvent() },
                     onDangerModePreferencesClick = {
                       navigationActions.navigateTo(Screen.DangerModePreferences)
                     })

@@ -5,11 +5,10 @@ import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onChild
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
-import com.github.warnastrophy.core.data.repository.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsCardStateful
@@ -55,7 +54,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     originalRepository =
         try {
           ContactRepositoryProvider.repository
-        } catch (e: UninitializedPropertyAccessException) {
+        } catch (_: UninitializedPropertyAccessException) {
           null
         }
 
@@ -77,13 +76,15 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0", useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
         .assert(hasText("Jane Doe: +1 555-123-4567", substring = true))
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1", useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
         .assert(hasText("John Smith: +1 555-987-6543", substring = true))
@@ -98,7 +99,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
   }
@@ -113,7 +114,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
         .assertTextEquals("No emergency contacts added")
@@ -134,17 +135,20 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0", useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1", useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}2")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}2", useUnmergedTree = true)
         .assertDoesNotExist()
   }
 
@@ -162,10 +166,9 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.CARD)
         .assertExists()
         .assertIsDisplayed()
-        .onChild()
         .assertHasClickAction()
         .performClick()
 
@@ -191,7 +194,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
         .assertIsDisplayed()
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.TITLE)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.TITLE, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
   }
@@ -207,7 +210,8 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0", useUnmergedTree = true)
         .assertExists()
         .assert(hasText("Jane Doe: +1 555-123-4567", substring = true))
   }
@@ -224,13 +228,15 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0", useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
         .assert(hasText("Jane Doe", substring = true))
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1", useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
         .assert(hasText("John Smith", substring = true))
@@ -248,7 +254,8 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.onNodeWithTag(DashboardEmergencyContactsTestTags.CARD).assertExists()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0", useUnmergedTree = true)
         .assertDoesNotExist()
   }
 
@@ -262,7 +269,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
         .assertTextEquals("No emergency contacts added")
@@ -279,12 +286,14 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}0", useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
 
     composeTestRule
-        .onNodeWithTag("${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1")
+        .onNodeWithTag(
+            "${DashboardEmergencyContactsTestTags.CONTACT_ITEM_PREFIX}1", useUnmergedTree = true)
         .assertDoesNotExist()
   }
 
@@ -298,7 +307,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.TITLE)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.TITLE, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
         .assertTextEquals("Contacts")
@@ -317,11 +326,9 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.CARD)
         .assertExists()
         .assertIsDisplayed()
-        // Check the child button has click action
-        .onChild()
         .assertHasClickAction()
   }
 
@@ -360,7 +367,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.NO_CONTACTS_TEXT, useUnmergedTree = true)
         .assertExists()
         .assertIsDisplayed()
   }
@@ -379,10 +386,9 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
     }
 
     composeTestRule
-        .onNodeWithTag(DashboardEmergencyContactsTestTags.MANAGE_BUTTON)
+        .onNodeWithTag(DashboardEmergencyContactsTestTags.CARD)
         .assertExists()
         .assertIsDisplayed()
-        .onChild()
         .assertHasClickAction()
         .performClick()
 
