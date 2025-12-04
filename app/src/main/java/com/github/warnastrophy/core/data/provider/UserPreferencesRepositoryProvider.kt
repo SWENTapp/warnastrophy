@@ -33,7 +33,7 @@ object UserPreferencesRepositoryProvider {
    */
   var repository: UserPreferencesRepository
     get() = _repo ?: error("UserPreferencesRepositoryProvider not initialized")
-    set(value) {
+    private set(value) {
       _repo = value
     }
 
