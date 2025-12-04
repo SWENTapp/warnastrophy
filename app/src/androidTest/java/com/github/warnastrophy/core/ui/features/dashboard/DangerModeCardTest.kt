@@ -211,4 +211,93 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
     assert(viewModel.dangerLevel.value.ordinal > DangerLevel.LOW.ordinal)
   }
+
+  @Test
+  fun dangerModeCard_advancedSection_shownWhenCapabilitySelected() {
+    lateinit var viewModel: DangerModeCardViewModel
+    composeTestRule.setContent {
+      viewModel = testViewModel
+      MaterialTheme { DangerModeCard(viewModel = viewModel) }
+    }
+
+    // Advanced section should not be visible initially
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
+        .assertDoesNotExist()
+
+    // Enable CALL capability
+    val callCapabilityNode =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
+    callCapabilityNode.performClick()
+
+    // Advanced section should now be visible
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
+        .assertIsDisplayed()
+
+    // Auto actions switch should exist and be off by default
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.AUTO_CALL_SWITCH, useUnmergedTree = true)
+        .assertIsOff()
+
+    // Confirmation switches should exist and be off by default
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.CONFIRM_TOUCH_SWITCH, useUnmergedTree = true)
+        .assertIsOff()
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.CONFIRM_VOICE_SWITCH, useUnmergedTree = true)
+        .assertIsOff()
+  }
+
+  /* Advanced switches update their respective state in the ViewModel independently */
+  @Test
+  fun dangerModeCard_advancedSwitches_updateViewModelState_independently() {
+    lateinit var viewModel: DangerModeCardViewModel
+    composeTestRule.setContent {
+      viewModel = testViewModel
+      MaterialTheme { DangerModeCard(viewModel = viewModel) }
+    }
+
+    // Enable CALL capability to show advanced section
+    val callCapabilityNode =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
+    callCapabilityNode.performClick()
+
+    val autoActionsSwitch =
+        composeTestRule.onNodeWithTag(DangerModeTestTags.AUTO_CALL_SWITCH, useUnmergedTree = true)
+    val confirmTouchSwitch =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.CONFIRM_TOUCH_SWITCH, useUnmergedTree = true)
+    val confirmVoiceSwitch =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.CONFIRM_VOICE_SWITCH, useUnmergedTree = true)
+
+    // Initial state: all off
+    autoActionsSwitch.assertIsOff()
+    confirmTouchSwitch.assertIsOff()
+    confirmVoiceSwitch.assertIsOff()
+    assert(!viewModel.autoActionsEnabled.value)
+    assert(!viewModel.confirmTouchRequired.value)
+    assert(!viewModel.confirmVoiceRequired.value)
+
+    // Toggle auto actions
+    autoActionsSwitch.performClick()
+    autoActionsSwitch.assertIsOn()
+    assert(viewModel.autoActionsEnabled.value)
+    // Confirm others are still independent
+    assert(!viewModel.confirmTouchRequired.value)
+    assert(!viewModel.confirmVoiceRequired.value)
+
+    // Toggle touch confirmation
+    confirmTouchSwitch.performClick()
+    confirmTouchSwitch.assertIsOn()
+    assert(viewModel.confirmTouchRequired.value)
+
+    // Toggle voice confirmation
+    confirmVoiceSwitch.performClick()
+    confirmVoiceSwitch.assertIsOn()
+    assert(viewModel.confirmVoiceRequired.value)
+  }
 }

@@ -111,14 +111,8 @@ class DangerModeService(
 
     for (cap in capabilities) {
 
-      // CALL capability is not supported yet
-      if (cap == DangerModeCapability.CALL) {
-        return Result.failure(IllegalStateException("CALL capability is not supported yet."))
-      }
-
       val requiredPermission =
           when (cap) {
-            DangerModeCapability.LOCATION -> AppPermissions.LocationFine
             DangerModeCapability.SMS -> AppPermissions.SendEmergencySms
             DangerModeCapability.CALL -> null
           }

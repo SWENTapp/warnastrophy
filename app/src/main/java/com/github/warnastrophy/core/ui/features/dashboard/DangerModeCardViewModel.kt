@@ -8,8 +8,11 @@ import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.github.warnastrophy.core.model.Activity
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -17,7 +20,6 @@ import kotlinx.coroutines.flow.stateIn
 enum class DangerModeCapability(val label: String) {
   CALL("Call"),
   SMS("SMS"),
-  LOCATION("Location")
 }
 
 /**
@@ -53,6 +55,20 @@ class DangerModeCardViewModel(
       dangerModeService.state
           .map { it.capabilities }
           .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
+
+  private val _autoActionsEnabled = MutableStateFlow(false)
+  val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
+  private val _confirmTouchRequired =
+      MutableStateFlow(
+          false) // This is tactile confirmation before the app takes actions like calling/emergency
+  // SMS
+  val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
+
+  private val _confirmVoiceRequired =
+      MutableStateFlow(
+          false) // This is audio confirmation before the app takes actions like calling/emergency
+  // SMS
+  val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
 
   /**
    * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
@@ -116,5 +132,20 @@ class DangerModeCardViewModel(
    */
   fun onDangerLevelChanged(level: DangerLevel) {
     dangerModeService.setDangerLevel(level)
+  }
+
+  fun onConfirmTouchChanged(enabled: Boolean) {
+    _confirmTouchRequired.value = enabled
+    // TODO: Persist & enforce tactile confirmation before actions.
+  }
+
+  fun onAutoActionsEnabled(enabled: Boolean) {
+    _autoActionsEnabled.value = enabled
+    // TODO: Persist & enforce tactile confirmation before actions.
+  }
+
+  fun onConfirmVoiceChanged(enabled: Boolean) {
+    _confirmVoiceRequired.value = enabled
+    // TODO: Persist & enforce voice confirmation before actions.
   }
 }

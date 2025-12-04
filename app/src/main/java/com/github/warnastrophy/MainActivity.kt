@@ -4,23 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.CredentialManager
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModelFactory
+import com.github.warnastrophy.core.ui.onboard.AppStateManagerViewModel
+import com.github.warnastrophy.core.ui.onboard.OnboardingScreen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -36,7 +42,6 @@ private val ComponentActivity.dataStore by preferencesDataStore(name = "user_pre
  * @see [setContent] - Used to set up the Compose UI.
  */
 class MainActivity : ComponentActivity() {
-
   /**
    * Sets the content of the `MainActivity` with the application's theme and UI. This method is
    * invoked during the `onCreate` lifecycle callback to initialize the UI.
@@ -61,9 +66,16 @@ class MainActivity : ComponentActivity() {
     ContactRepositoryProvider.initHybrid(applicationContext, db)
     ActivityRepositoryProvider.init(applicationContext)
     StateManagerService.init(applicationContext)
-
+    OnboardingRepositoryProvider.init(applicationContext)
     showUI()
   }
+}
+
+/** Defines the root-level navigation destinations for the application's main graph. */
+object rootNav {
+  const val SIGN_IN = "root_sign_in"
+  const val ONBOARDING = "root_onboarding"
+  const val MAIN_APP = "main_app"
 }
 
 /**
@@ -72,17 +84,68 @@ class MainActivity : ComponentActivity() {
  * [CompositionLocalProvider].
  *
  * @param themeViewModel The [ThemeViewModel] responsible for managing theme-related state.
+ * @param appStateManagerViewModel The [AppStateManagerViewModel] used to check whether the user has
+ *   completed the initial onboarding process.
  */
 @Composable
-private fun ThemedApp(themeViewModel: ThemeViewModel) {
+private fun ThemedApp(
+    themeViewModel: ThemeViewModel,
+    appStateManagerViewModel: AppStateManagerViewModel = viewModel()
+) {
+  val isOnboardingCompleted by appStateManagerViewModel.isOnboardingCompleted.collectAsState()
   val isDarkMode by themeViewModel.isDarkMode.collectAsState()
   val systemDarkTheme = isSystemInDarkTheme()
 
   val useDarkTheme = isDarkMode ?: systemDarkTheme
 
+  val firebaseAuth = FirebaseAuth.getInstance()
+  val currentUser = firebaseAuth.currentUser
+
+  val navController = rememberNavController()
+  val startDestination =
+      when {
+        currentUser == null -> rootNav.SIGN_IN
+        !isOnboardingCompleted -> rootNav.ONBOARDING
+        else -> rootNav.MAIN_APP
+      }
   MainAppTheme(darkTheme = useDarkTheme) {
     CompositionLocalProvider(LocalThemeViewModel provides themeViewModel) {
-      Surface(Modifier.fillMaxSize()) { WarnastrophyComposable() }
+      NavHost(navController = navController, startDestination = startDestination) {
+        composable(rootNav.SIGN_IN) {
+          SignInScreen(
+              credentialManager = CredentialManager.create(LocalContext.current),
+              onSignedIn = {
+                if (!isOnboardingCompleted) {
+                  navController.navigate(rootNav.ONBOARDING) {
+                    popUpTo(rootNav.ONBOARDING) { inclusive = true }
+                  }
+                } else {
+                  navController.navigate(rootNav.MAIN_APP) {
+                    popUpTo(rootNav.MAIN_APP) { inclusive = true }
+                  }
+                }
+              })
+        }
+
+        composable(rootNav.ONBOARDING) {
+          OnboardingScreen(
+              onFinished = {
+                appStateManagerViewModel.completeOnboarding()
+                navController.navigate(rootNav.MAIN_APP) {
+                  popUpTo(rootNav.ONBOARDING) { inclusive = true }
+                }
+              })
+        }
+
+        composable(rootNav.MAIN_APP) {
+          WarnastrophyComposable(
+              onLogOutEvent = {
+                navController.navigate(rootNav.SIGN_IN) {
+                  popUpTo(rootNav.MAIN_APP) { inclusive = true }
+                }
+              })
+        }
+      }
     }
   }
 }

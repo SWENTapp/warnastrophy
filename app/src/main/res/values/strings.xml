@@ -89,4 +89,13 @@
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
     <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
 
+    <!-- Onboarding screen -->
+    <string name="description_first_page">We track your location in the background, if you enter a high-risk area,
+        and we detect no movement, we automatically send a SMS to emergency contact you chose before</string>
+    <string name="title_first_page">Automatic Disaster Alert</string>
+    <string name="title_second_page">Manual High-Risk Safety</string>
+    <string name="description_second_page">Use this for activities like climbing or solo hiking. If we detect a fall followed
+        by prolonged stillness, we send your location to emergency service that you chose before.</string>
+    <string name="description_third_page">To monitor your location in the background and send emergency texts, we need location and SMS permission. We use these data only for your safety.</string>
+    <string name="title_third_page">Ready for Protection?</string>
 </resources>
