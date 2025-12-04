@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Warnastrophy</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="app_name">Warnastrophy</string><string name="title_activity_main">MainActivity</string>
     <string name="title_activity_second">SecondActivity</string>
     <string name="dashboard_screen_title">Dashboard</string>
     <string name="map_screen_title">Map</string>
@@ -57,7 +56,7 @@
 
     <!-- No activity fallback -->
     <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
-    
+
     <!-- Theme management strings -->
     <string name="theme_string">Theme</string>
     <string name="dark_string">Dark</string>
@@ -100,6 +99,18 @@
     <string name="health_card_history">Medical history</string>
     <string name="health_card_organ_donor">Organ donor</string>
     <string name="health_card_notes">Notes</string>
+    <string name="health_card_saved_message">Saved</string>
+    <string name="health_card_deleted_message">Deleted</string>
+
+    <!-- Fields Messages -->
+    <string name="error_mandatory_field">Mandatory field</string>
+    <string name="error_invalid_date">Invalid birth date (dd/mm/yyyy)</string>
+    <string name="optional_label_suffix">(Optional)</string>
+
+    <!-- Action Buttons -->
+    <string name="add_button">Add</string>
+    <string name="update_button">Update</string>
+    <string name="delete_button">Delete</string>
 
     <!-- Speech Recognition Error Messages -->
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>

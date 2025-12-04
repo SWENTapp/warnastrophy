@@ -178,9 +178,11 @@ fun HealthCardScreen(
   val currentCard by viewModel.currentCard.collectAsState()
 
   LaunchedEffect(uiState) {
+    val successState = uiState as? HealthCardUiState.Success
     val isOperationSuccessful =
-        uiState is HealthCardUiState.Success &&
-            (uiState as HealthCardUiState.Success).message in listOf("Saved", "Deleted")
+        successState?.message == context.getString(R.string.health_card_saved_message) ||
+            successState?.message == context.getString(R.string.health_card_deleted_message)
+
     if (isOperationSuccessful) {
       onDone()
       viewModel.resetUiState()
@@ -292,14 +294,17 @@ private fun RequiredFieldsSection(
         touched = formState.fullNameTouched,
         onTouched = { onFormStateChange(formState.copy(fullNameTouched = true)) },
         error = formState.fullName.isBlank(),
-        errorText = if (formState.fullName.isBlank()) "Mandatory field" else null)
+        errorText =
+            if (formState.fullName.isBlank()) stringResource(R.string.error_mandatory_field)
+            else null)
 
     val birthDateErrorText =
         when {
-          formState.birthDate.isBlank() && formState.birthDateTouched -> "Mandatory field"
+          formState.birthDate.isBlank() && formState.birthDateTouched ->
+              stringResource(R.string.error_mandatory_field)
           formState.birthDate.isNotBlank() &&
               !formState.isDateValid() &&
-              formState.birthDateTouched -> "Invalid birth date (dd/mm/yyyy)"
+              formState.birthDateTouched -> stringResource(R.string.error_invalid_date)
           else -> null
         }
 
@@ -321,7 +326,10 @@ private fun RequiredFieldsSection(
         touched = formState.ssnTouched,
         onTouched = { onFormStateChange(formState.copy(ssnTouched = true)) },
         error = formState.socialSecurityNumber.isBlank(),
-        errorText = if (formState.socialSecurityNumber.isBlank()) "Mandatory field" else null)
+        errorText =
+            if (formState.socialSecurityNumber.isBlank())
+                stringResource(R.string.error_mandatory_field)
+            else null)
   }
 }
 
@@ -459,20 +467,20 @@ private fun ActionButtons(
           onClick = onSave,
           enabled = isFormValid,
           modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.ADD_BUTTON)) {
-            Text("Add")
+            Text(stringResource(R.string.add_button))
           }
     } else {
       Button(
           onClick = onUpdate,
           enabled = isFormValid,
           modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.UPDATE_BUTTON)) {
-            Text("Update")
+            Text(stringResource(R.string.update_button))
           }
 
       OutlinedButton(
           onClick = onDelete,
           modifier = Modifier.fillMaxWidth().testTag(HealthCardTestTags.DELETE_BUTTON)) {
-            Text("Delete")
+            Text(stringResource(R.string.delete_button))
           }
     }
   }
@@ -505,7 +513,7 @@ private fun LabeledTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("$label (Optional)") },
+        label = { Text(stringResource(R.string.optional_label_suffix, label)) },
         isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         modifier = Modifier.fillMaxWidth().testTag(testTag))
