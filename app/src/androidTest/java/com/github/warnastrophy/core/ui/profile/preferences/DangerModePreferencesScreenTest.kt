@@ -199,13 +199,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
 
-    composeTestRule.waitUntil(timeoutMillis = 5_000) {
-      !viewModel.uiState.value.alertModeAutomaticEnabled &&
-          !viewModel.uiState.value.inactivityDetectionEnabled &&
-          !viewModel.uiState.value.automaticSmsEnabled &&
-          !viewModel.uiState.value.automaticCallsEnabled
-    }
-
     assertSwitchesOff()
 
     nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsEnabled()
