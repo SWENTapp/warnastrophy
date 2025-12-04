@@ -8,8 +8,8 @@ import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
-import kotlinx.coroutines.flow.MutableStateFlow
 import com.github.warnastrophy.core.model.Activity
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
