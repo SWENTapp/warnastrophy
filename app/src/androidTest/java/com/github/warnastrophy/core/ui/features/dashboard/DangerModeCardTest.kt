@@ -17,11 +17,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCard
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
@@ -132,7 +132,13 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
   /* Verify that the DangerModeCard's dropdown menu opens when the mode label is clicked */
   @Test
   fun dangerModeCard_dropdownMenu_opensOnClick() {
-    composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = testViewModel) } }
+    val testActivities =
+        listOf(
+            Activity(id = "1", activityName = "Hiking"),
+            Activity(id = "2", activityName = "Climbing"))
+    composeTestRule.setContent {
+      MaterialTheme { DangerModeCard(viewModel = testViewModel, activities = testActivities) }
+    }
 
     val modeLabelNode =
         composeTestRule.onNodeWithTag(DangerModeTestTags.MODE_LABEL, useUnmergedTree = true)
@@ -140,9 +146,9 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     modeLabelNode.performClick()
 
     // Verify that the dropdown menu is displayed by checking for one of the menu items
-    DangerModePreset.entries.forEach {
+    testActivities.forEach {
       composeTestRule
-          .onNodeWithTag(DangerModeTestTags.modeTag(it), useUnmergedTree = true)
+          .onNodeWithTag(DangerModeTestTags.activityTag(it.activityName), useUnmergedTree = true)
           .assertIsDisplayed()
     }
   }
@@ -150,12 +156,15 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
   /* Verify that toggles and dropdown selections update the DangerModeCard state in the view model */
   @Test
   fun dangerModeCard_interactions_updateViewModelState() {
-
+    val testActivities =
+        listOf(
+            Activity(id = "1", activityName = "Hiking"),
+            Activity(id = "2", activityName = "Climbing"))
     lateinit var viewModel: DangerModeCardViewModel
     composeTestRule.setContent {
       // Use a surface to get the background color
       viewModel = testViewModel
-      MaterialTheme { DangerModeCard(viewModel = viewModel) }
+      MaterialTheme { DangerModeCard(viewModel = viewModel, activities = testActivities) }
     }
 
     val switchNode =
@@ -166,11 +175,12 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     val modeLabelNode =
         composeTestRule.onNodeWithTag(DangerModeTestTags.MODE_LABEL, useUnmergedTree = true)
     modeLabelNode.performClick()
-    val selectedMode = DangerModePreset.entries[1]
+    val selectedActivity = testActivities[1]
     composeTestRule
-        .onNodeWithTag(DangerModeTestTags.modeTag(selectedMode), useUnmergedTree = true)
+        .onNodeWithTag(
+            DangerModeTestTags.activityTag(selectedActivity.activityName), useUnmergedTree = true)
         .performClick()
-    assert(viewModel.currentMode.value == selectedMode)
+    assert(viewModel.currentActivity.value == selectedActivity)
 
     val capability = DangerModeCapability.entries[1]
     val capabilityNode =

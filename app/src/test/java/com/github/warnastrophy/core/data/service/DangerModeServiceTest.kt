@@ -1,11 +1,11 @@
 package com.github.warnastrophy.core.data.service
 
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import kotlin.test.assertNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,8 +71,9 @@ class DangerModeServiceTest {
     service.setDangerLevel(DangerLevel.CRITICAL)
     assertEquals(DangerLevel.CRITICAL, service.state.value.dangerLevel)
 
-    service.setPreset(DangerModePreset.CLIMBING_MODE)
-    assertEquals(DangerModePreset.CLIMBING_MODE, service.state.value.preset)
+    val climbingActivity = Activity(id = "1", activityName = "Climbing")
+    service.setActivity(climbingActivity)
+    assertEquals(climbingActivity, service.state.value.activity)
 
     val capabilities = setOf(DangerModeCapability.LOCATION)
     service.setCapabilities(capabilities)
@@ -170,20 +171,21 @@ class DangerModeServiceTest {
   }
 
   /**
-   * Verifies that the configuration mutators (setPreset, setCapabilities, setDangerLevel) correctly
-   * update the exposed DangerModeState.
+   * Verifies that the configuration mutators (setActivity, setCapabilities, setDangerLevel)
+   * correctly update the exposed DangerModeState.
    *
    * In particular, this test checks that:
-   * - the preset value is updated to the selected DangerModePreset,
+   * - the activity value is updated to the selected Activity,
    * - the capabilities set is stored as given, and
    * - the dangerLevel value is coerced into the valid [0, 3] range.
    */
   @Test
-  fun setPreset_setCapabilities_and_setDangerLevel_update_state() = runTest {
+  fun setActivity_setCapabilities_and_setDangerLevel_update_state() = runTest {
     val fakePm = PermissionManagerMock(PermissionResult.Granted)
     val (service, _) = createService(permissionManager = fakePm)
 
-    service.setPreset(DangerModePreset.HIKING_MODE)
+    val hikingActivity = Activity(id = "1", activityName = "Hiking")
+    service.setActivity(hikingActivity)
     val caps = setOf(DangerModeCapability.LOCATION)
     service.setCapabilities(caps)
 
@@ -192,7 +194,7 @@ class DangerModeServiceTest {
     advanceUntilIdle()
     val state = service.state.value
 
-    assertEquals(DangerModePreset.HIKING_MODE, state.preset)
+    assertEquals(hikingActivity, state.activity)
     assertEquals(caps, state.capabilities)
     assertEquals(DangerLevel.CRITICAL, state.dangerLevel)
   }

@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.data.service.DangerLevel
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
@@ -60,7 +61,7 @@ object DangerModeTestTags {
 
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
 
-  fun modeTag(mode: DangerModePreset) = MODE_PREFIX + mode.label
+  fun activityTag(activityName: String) = MODE_PREFIX + activityName
 
   fun dangerLevelTag(level: Int) = COLOR_BOX_PREFIX + level
 }
@@ -79,10 +80,11 @@ object DangerModeTestTags {
 fun DangerModeCard(
     modifier: Modifier = Modifier,
     viewModel: DangerModeCardViewModel = viewModel(),
+    activities: List<Activity> = emptyList(),
     onManageActivitiesClick: () -> Unit = {}
 ) {
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
-  val currentModeName by viewModel.currentMode.collectAsState(DangerModePreset.DEFAULT_MODE)
+  val currentActivity by viewModel.currentActivity.collectAsState(null)
   val capabilities by viewModel.capabilities.collectAsState(emptySet())
   val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
   val colorScheme = MaterialTheme.colorScheme
@@ -118,7 +120,7 @@ fun DangerModeCard(
                     Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable { expanded = true },
                 verticalAlignment = Alignment.CenterVertically) {
                   StandardDashboardButton(
-                      label = currentModeName.label,
+                      label = currentActivity?.activityName ?: "Select Activity",
                       color = colorScheme.errorContainer,
                       onClick = { expanded = true },
                       textColor = colorScheme.onErrorContainer,
@@ -133,14 +135,15 @@ fun DangerModeCard(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL)) {
-                  DangerModePreset.entries.forEach { mode ->
+                  activities.forEach { activity ->
                     DropdownMenuItem(
-                        text = { Text(mode.label) },
+                        text = { Text(activity.activityName) },
                         onClick = {
-                          viewModel.onModeSelected(mode)
+                          viewModel.onActivitySelected(activity)
                           expanded = false
                         },
-                        modifier = Modifier.testTag(DangerModeTestTags.modeTag(mode)))
+                        modifier =
+                            Modifier.testTag(DangerModeTestTags.activityTag(activity.activityName)))
                   }
                 }
           }

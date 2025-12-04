@@ -8,6 +8,7 @@ import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
+import com.github.warnastrophy.core.model.Activity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -17,13 +18,6 @@ enum class DangerModeCapability(val label: String) {
   CALL("Call"),
   SMS("SMS"),
   LOCATION("Location")
-}
-
-/** Preset modes for Danger Mode with associated labels. */
-enum class DangerModePreset(val label: String) {
-  CLIMBING_MODE("Climbing mode"),
-  HIKING_MODE("Hiking mode"),
-  DEFAULT_MODE("Default mode")
 }
 
 /**
@@ -45,10 +39,10 @@ class DangerModeCardViewModel(
           .map { it.isActive }
           .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
-  val currentMode =
+  val currentActivity =
       dangerModeService.state
-          .map { it.preset }
-          .stateIn(viewModelScope, SharingStarted.Lazily, DangerModePreset.DEFAULT_MODE)
+          .map { it.activity }
+          .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
   val dangerLevel =
       dangerModeService.state
@@ -78,12 +72,12 @@ class DangerModeCardViewModel(
   }
 
   /**
-   * Sets the selected Danger Mode preset
+   * Sets the selected Activity
    *
-   * @param mode The selected Danger Mode preset.
+   * @param activity The selected Activity.
    */
-  fun onModeSelected(mode: DangerModePreset) {
-    dangerModeService.setPreset(mode)
+  fun onActivitySelected(activity: Activity?) {
+    dangerModeService.setActivity(activity)
   }
 
   /**

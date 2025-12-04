@@ -4,10 +4,10 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModePreset
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -47,17 +47,18 @@ class DangerModeCardViewModelTest {
   }
 
   @Test
-  fun `currentModeName initial state is DEFAULT_MODE`() = runTest {
-    assertEquals(DangerModePreset.DEFAULT_MODE, viewModel.currentMode.first())
+  fun `currentActivity initial state is null`() = runTest {
+    assertEquals(null, viewModel.currentActivity.first())
   }
 
   @Test
-  fun `onModeSelected updates currentModeName`() = runTest {
-    viewModel.onModeSelected(DangerModePreset.HIKING_MODE)
-    assertEquals(DangerModePreset.HIKING_MODE, viewModel.currentMode.first())
+  fun `onActivitySelected updates currentActivity`() = runTest {
+    val hikingActivity = Activity(id = "1", activityName = "Hiking")
+    viewModel.onActivitySelected(hikingActivity)
+    assertEquals(hikingActivity, viewModel.currentActivity.first())
 
-    viewModel.onModeSelected(DangerModePreset.DEFAULT_MODE)
-    assertEquals(DangerModePreset.DEFAULT_MODE, viewModel.currentMode.first())
+    viewModel.onActivitySelected(null)
+    assertEquals(null, viewModel.currentActivity.first())
   }
 
   @Test
