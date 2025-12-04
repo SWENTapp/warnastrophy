@@ -26,6 +26,7 @@ import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCard
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
+import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -50,7 +51,8 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
       DangerModeCardViewModel(
           startService = { _: Context -> /* no-op in tests */ },
           stopService = { _: Context -> /* no-op in tests */ },
-          repository = repository)
+          repository = repository,
+          userId = AppConfig.defaultUserId)
 
   private val testViewModel by lazy { createTestViewModel() }
 
@@ -152,6 +154,11 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     val viewModel = createTestViewModel(repository = mockRepo)
 
     composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = viewModel) } }
+
+    // Manually trigger refresh after content is set to ensure coroutine runs in proper context
+    viewModel.refreshActivities()
+
+    composeTestRule.waitUntilWithTimeout { viewModel.activities.value.isNotEmpty() }
 
     val modeLabelNode =
         composeTestRule.onNodeWithTag(DangerModeTestTags.MODE_LABEL, useUnmergedTree = true)
