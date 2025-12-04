@@ -79,7 +79,7 @@ class SpeechToTextService(
               }
               restartListening()
             }
-            else -> completeListening(confirmation, spokenText)
+            else -> completeListening(spokenText)
           }
         }
 
@@ -124,7 +124,7 @@ class SpeechToTextService(
     speechRecognizer?.startListening(speechRecognizerIntent)
   }
 
-  private fun completeListening(result: Boolean, spokenText: String) {
+  private fun completeListening(spokenText: String) {
     _uiState.update {
       it.copy(isListening = false, rmsLevel = 0f, recognizedText = spokenText, errorMessage = null)
     }

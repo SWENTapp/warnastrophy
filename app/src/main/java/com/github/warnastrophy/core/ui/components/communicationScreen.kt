@@ -31,12 +31,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -86,10 +84,6 @@ fun CommunicationScreen(
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.padding(24.dp).fillMaxSize()) {
       Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBackClick) {
-          Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
-        }
-
         Spacer(modifier = Modifier.size(8.dp))
 
         Text(
