@@ -12,6 +12,9 @@ import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,19 +58,30 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
 
   @Test
   fun healthCardPopUp_displaysCardDetails_whenCardIsAvailable() {
-    val card =
-        HealthCard(
-            fullName = "Jane Doe",
-            dateOfBirthIso = "1990-05-15",
-            idNumber = "987654321",
-            sex = "Female",
-            bloodType = "O-",
-            allergies = listOf("Peanuts", "Dust"),
-            medications = listOf("Painkiller"),
-            chronicConditions = listOf("Asthma"),
-            organDonor = true,
-            notes = "Regular check-ups needed.")
-    currentCardFlow.value = card
+    currentCardFlow.value = dummyCard()
+    composeTestRule.setContent {
+      MainAppTheme {
+        HealthCardPopUp(
+            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
+      }
+    }
+
+    checkHealthCardTitles()
+    checkHealthCardFields(dummyCard())
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
+  }
+
+  @Test
+  fun healthCardPopUp_displaysCardWithEmptyFields() {
+    val cardWithNulls =
+        dummyCard(
+            chronicConditions = emptyList(),
+            allergies = emptyList(),
+            medications = emptyList(),
+            onGoingTreatments = emptyList(),
+            medicalHistory = emptyList(),
+        )
+    currentCardFlow.value = cardWithNulls
 
     composeTestRule.setContent {
       MainAppTheme {
@@ -76,53 +90,42 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
       }
     }
 
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.FULL_NAME_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("Jane Doe")
+    checkHealthCardTitles()
+    checkHealthCardFields(cardWithNulls)
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
+  }
 
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.BIRTH_DATE_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("15/05/1990")
+  @Test
+  fun healthCardPopUp_displaysCardWithNullFields() {
+    val cardWithNulls = dummyCard(sex = null, bloodType = null, organDonor = null, notes = null)
+    currentCardFlow.value = cardWithNulls
 
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.SEX_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("Female")
+    composeTestRule.setContent {
+      MainAppTheme {
+        HealthCardPopUp(
+            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
+      }
+    }
 
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.BLOOD_TYPE_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("O-")
+    checkHealthCardTitles()
+    checkHealthCardFields(cardWithNulls)
+    composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
+  }
 
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.ALLERGIES_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("Peanuts, Dust")
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.MEDICATIONS_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("Painkiller")
+  @Test
+  fun healthCardPopUp_displaysCardWithEmptyStringsFields() {
+    val cardWithNulls = dummyCard(sex = "", bloodType = "", notes = "")
+    currentCardFlow.value = cardWithNulls
 
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.ORGAN_DONOR_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("Yes")
+    composeTestRule.setContent {
+      MainAppTheme {
+        HealthCardPopUp(
+            onDismissRequest = {}, onClick = {}, viewModel = mockViewModel, userId = fakeUserId)
+      }
+    }
 
-    composeTestRule
-        .onNodeWithTag(HealthCardPopUpTestTags.NOTES_VALUE)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .assertTextContains("Regular check-ups needed.")
-
+    checkHealthCardTitles()
+    checkHealthCardFields(cardWithNulls)
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT).assertDoesNotExist()
   }
 
@@ -147,18 +150,136 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
 
   @Test
   fun healthCardPopUp_loadsHealthCard_onLaunch() {
-    val testUserId = "testUser123"
 
     composeTestRule.setContent {
       MainAppTheme {
         // LaunchedEffect will trigger loadHealthCard
         HealthCardPopUp(
-            onClick = {}, onDismissRequest = {}, viewModel = mockViewModel, userId = testUserId)
+            onClick = {}, onDismissRequest = {}, viewModel = mockViewModel, userId = fakeUserId)
       }
     }
 
     composeTestRule.waitForIdle()
 
-    verify(exactly = 1) { mockViewModel.loadHealthCard(any(), testUserId) }
+    verify(exactly = 1) { mockViewModel.loadHealthCard(any(), fakeUserId) }
+  }
+
+  private fun dummyCard(
+      fullName: String = "John Doe",
+      dateOfBirthIso: String = "2000-01-01",
+      idNumber: String = "123-45-6789",
+      sex: String? = "Male",
+      bloodType: String? = "A+",
+      heightCm: Int? = 180,
+      weightKg: Double? = 75.0,
+      chronicConditions: List<String> = listOf("Diabetes"),
+      allergies: List<String> = listOf("Pollen"),
+      medications: List<String> = listOf("Metformin"),
+      onGoingTreatments: List<String> = listOf(),
+      medicalHistory: List<String> = listOf(),
+      organDonor: Boolean? = true,
+      notes: String? = "N/A"
+  ) =
+      HealthCard(
+          fullName = fullName,
+          dateOfBirthIso = dateOfBirthIso,
+          idNumber = idNumber,
+          sex = sex,
+          bloodType = bloodType,
+          heightCm = heightCm,
+          weightKg = weightKg,
+          chronicConditions = chronicConditions,
+          allergies = allergies,
+          medications = medications,
+          onGoingTreatments = onGoingTreatments,
+          medicalHistory = medicalHistory,
+          organDonor = organDonor,
+          notes = notes)
+
+  private fun checkHealthCardFields(card: HealthCard) {
+    val uiDf = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
+    val date = card.dateOfBirthIso.let { LocalDate.parse(it).format(uiDf) } ?: "-"
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.FULL_NAME_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(card.fullName)
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.BIRTH_DATE_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(date)
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.SEX_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(card.sex.takeIf { !it.isNullOrBlank() } ?: "-")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.BLOOD_TYPE_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(card.bloodType.takeIf { !it.isNullOrBlank() } ?: "-")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.ALLERGIES_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(card.allergies.takeIf { it.isNotEmpty() }?.joinToString(", ") ?: "-")
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.MEDICATIONS_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(card.medications.takeIf { it.isNotEmpty() }?.joinToString(", ") ?: "-")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.ORGAN_DONOR_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(if (card.organDonor == true) "Yes" else "No")
+
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.NOTES_VALUE)
+        .performScrollTo()
+        .assertIsDisplayed()
+        .assertTextContains(card.notes.takeIf { !it.isNullOrBlank() } ?: "-")
+  }
+
+  private fun checkHealthCardTitles() {
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.FULL_NAME_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.BIRTH_DATE_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.SEX_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.BLOOD_TYPE_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.ALLERGIES_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.MEDICATIONS_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.ORGAN_DONOR_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(HealthCardPopUpTestTags.NOTES_TITLE)
+        .performScrollTo()
+        .assertIsDisplayed()
   }
 }

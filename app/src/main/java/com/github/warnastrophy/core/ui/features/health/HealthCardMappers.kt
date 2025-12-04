@@ -55,12 +55,12 @@ fun HealthCard.toPreviewState(): HealthCardPreviewState =
     HealthCardPreviewState(
         fullName = fullName,
         birthDate = dateOfBirthIso.isoToUiOrBlank(),
-        sex = sex ?: "-",
-        bloodType = bloodType ?: "-",
+        sex = sex.orEmpty().ifBlank { "-" },
+        bloodType = bloodType.orEmpty().ifBlank { "-" },
         allergies = if (allergies.isEmpty()) "-" else allergies.joinToString(", "),
         medications = if (medications.isEmpty()) "-" else medications.joinToString(", "),
         organDonor = organDonor ?: false,
-        notes = notes ?: "-")
+        notes = notes.orEmpty().ifBlank { "-" })
 
 internal fun String.splitToList(): List<String> =
     split(",").map { it.trim() }.filter { it.isNotEmpty() }
