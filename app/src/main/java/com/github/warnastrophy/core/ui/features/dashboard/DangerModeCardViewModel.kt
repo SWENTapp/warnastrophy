@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
@@ -43,7 +42,7 @@ enum class DangerModeCapability(val label: String) {
 class DangerModeCardViewModel(
     private val startService: (Context) -> Unit = { ctx -> startForegroundGpsService(ctx) },
     private val stopService: (Context) -> Unit = { ctx -> stopForegroundGpsService(ctx) },
-    private val repository: ActivityRepository = ActivityRepositoryProvider.repository,
+    private val repository: ActivityRepository = StateManagerService.activityRepository,
     private val userId: String =
         FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
@@ -15,12 +16,14 @@ import org.junit.Test
 class LocalActivityRepositoryTest {
   private lateinit var context: Context
   private lateinit var repository: LocalActivityRepository
+  private lateinit var errorHandler: ErrorHandler
   private val userId = "testUser"
 
   @Before
   fun setUp() {
     context = ApplicationProvider.getApplicationContext()
-    repository = LocalActivityRepository(context)
+    errorHandler = ErrorHandler()
+    repository = LocalActivityRepository(context, errorHandler)
   }
 
   @After
@@ -183,7 +186,7 @@ class LocalActivityRepositoryTest {
     repository.addActivity(userId, activity)
 
     // Create a new repository instance
-    val newRepository = LocalActivityRepository(context)
+    val newRepository = LocalActivityRepository(context, errorHandler)
     val result = newRepository.getActivity("activity1", userId)
 
     assertTrue(result.isSuccess)

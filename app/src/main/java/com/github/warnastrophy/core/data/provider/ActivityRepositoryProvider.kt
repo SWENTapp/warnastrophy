@@ -4,6 +4,7 @@ import android.content.Context
 import com.github.warnastrophy.core.data.localStorage.LocalActivityRepository
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 
 object ActivityRepositoryProvider {
 
@@ -17,15 +18,15 @@ object ActivityRepositoryProvider {
     }
 
   /** Default: local encrypted (DataStore) */
-  fun init(context: Context) {
+  fun init(context: Context, errorHandler: ErrorHandler) {
     if (_repo == null) {
-      useLocalEncrypted(context)
+      useLocalEncrypted(context, errorHandler)
     }
   }
 
   /** Only local encrypted storage */
-  fun useLocalEncrypted(context: Context) {
-    repository = LocalActivityRepository(context.applicationContext)
+  fun useLocalEncrypted(context: Context, errorHandler: ErrorHandler) {
+    repository = LocalActivityRepository(context.applicationContext, errorHandler)
   }
 
   /** Use mock repository for testing */

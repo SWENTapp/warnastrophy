@@ -32,9 +32,9 @@ class ForegroundGpsServiceTest {
   @Before
   fun setup() {
     // Ensure ServiceStateManager is initialized for tests
+    ActivityRepositoryProvider.useMock()
     val context = ApplicationProvider.getApplicationContext<Context>()
     StateManagerService.init(context)
-    ActivityRepositoryProvider.useMock()
   }
 
   @Test
