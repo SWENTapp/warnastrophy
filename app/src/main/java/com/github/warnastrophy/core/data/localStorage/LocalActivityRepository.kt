@@ -10,6 +10,9 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
+import com.github.warnastrophy.core.ui.navigation.Screen
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -28,8 +31,10 @@ val Context.activityDataStore: DataStore<Preferences> by
  *
  * @param context Android context to access DataStore.
  */
-class LocalActivityRepository(private val context: Context) : ActivityRepository {
-
+class LocalActivityRepository(
+    private val context: Context,
+    private val errorHandler: ErrorHandler
+) : ActivityRepository {
   private val gson = Gson()
 
   companion object {
@@ -44,6 +49,7 @@ class LocalActivityRepository(private val context: Context) : ActivityRepository
     val activities = loadActivitiesMap(userId)
 
     require(!activities.containsKey(activity.id)) {
+      addError()
       "Activity ${activity.id} already exists for user $userId"
     }
 
@@ -61,8 +67,12 @@ class LocalActivityRepository(private val context: Context) : ActivityRepository
   override suspend fun getActivity(activityId: String, userId: String): Result<Activity> =
       runCatching {
         val activities = loadActivitiesMap(userId)
+
         activities[activityId]
-            ?: throw NoSuchElementException(getNotFoundErrorMessage(activityId, userId))
+            ?: run {
+              addError()
+              throw NoSuchElementException(getNotFoundErrorMessage(activityId, userId))
+            }
       }
 
   override suspend fun editActivity(
@@ -70,11 +80,15 @@ class LocalActivityRepository(private val context: Context) : ActivityRepository
       userId: String,
       newActivity: Activity
   ): Result<Unit> = runCatching {
-    require(activityId == newActivity.id) { "Activity ID mismatch" }
+    require(activityId == newActivity.id) {
+      addError()
+      "Activity ID mismatch"
+    }
 
     val activities = loadActivitiesMap(userId)
 
     if (!activities.containsKey(activityId)) {
+      addError()
       throw NoSuchElementException(getNotFoundErrorMessage(activityId, userId))
     }
 
@@ -121,6 +135,7 @@ class LocalActivityRepository(private val context: Context) : ActivityRepository
             CryptoUtils.decrypt(encrypted)
           } catch (e: Exception) {
             Log.e(TAG, "Decryption error for user: $userId", e)
+            addError()
             throw StorageException.DecryptionError(e)
           }
 
@@ -130,17 +145,20 @@ class LocalActivityRepository(private val context: Context) : ActivityRepository
             gson.fromJson<Map<String, Activity>>(decrypted, type)
           } catch (e: Exception) {
             Log.e(TAG, "Deserialization error for user: $userId", e)
+            addError()
             throw StorageException.DeserializationError(e)
           }
 
       activities ?: emptyMap()
     } catch (e: IOException) {
       Log.e(TAG, "DataStore access error", e)
+      addError()
       throw StorageException.DataStoreError(e)
     } catch (e: StorageException) {
       throw e
     } catch (e: Exception) {
       Log.e(TAG, "Unexpected error during load", e)
+      addError()
       throw StorageException.DataStoreError(e)
     }
   }
@@ -160,11 +178,21 @@ class LocalActivityRepository(private val context: Context) : ActivityRepository
       context.activityDataStore.edit { preferences -> preferences[getUserKey(userId)] = encrypted }
     } catch (e: Exception) {
       Log.e(TAG, "Error saving activities for user: $userId", e)
+      addError()
       throw StorageException.DataStoreError(e)
     }
   }
 
   private fun getNotFoundErrorMessage(activityId: String, userId: String): String {
     return "Activity $activityId not found for user $userId"
+  }
+
+  private fun addError() {
+    errorHandler.addErrorToScreens(
+        ErrorType.ACTIVITY_REPOSITORY_ERROR,
+        listOf(
+            Screen.AddActivity,
+            Screen.ActivitiesList,
+        ))
   }
 }
