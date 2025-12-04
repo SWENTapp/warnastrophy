@@ -30,7 +30,7 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
   private val auth = FirebaseAuth.getInstance()
 
   private companion object {
-    const val COLLECTION_NAME = "user_preferences"
+    const val COLLECTION_NAME = "userPreferences"
     const val FIELD_ALERT_MODE = "alertMode"
     const val FIELD_INACTIVITY_DETECTION = "inactivityDetection"
     const val FIELD_AUTOMATIC_SMS = "automaticSms"

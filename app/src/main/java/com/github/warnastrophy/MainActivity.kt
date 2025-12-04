@@ -18,8 +18,8 @@ import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
@@ -48,8 +48,7 @@ class MainActivity : ComponentActivity() {
    */
   private fun showUI() {
     setContent {
-      val repository = UserPreferencesRepositoryLocal(dataStore)
-      val themeViewModel: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(repository))
+      val themeViewModel: ThemeViewModel = viewModel(factory = ThemeViewModelFactory())
 
       ThemedApp(themeViewModel = themeViewModel)
     }
@@ -64,6 +63,7 @@ class MainActivity : ComponentActivity() {
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.initHybrid(applicationContext, db)
+    UserPreferencesRepositoryProvider.initHybrid(dataStore, db)
     ActivityRepositoryProvider.init()
     StateManagerService.init(applicationContext)
     OnboardingRepositoryProvider.init(applicationContext)

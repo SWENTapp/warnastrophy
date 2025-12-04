@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.ui.features.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,8 @@ import kotlinx.coroutines.launch
  * @param dispatcher A coroutine dispatcher. Defaults to [Dispatchers.Main]
  */
 class ThemeViewModel(
-    private val userPreferencesRepository: UserPreferencesRepository,
+    private val userPreferencesRepository: UserPreferencesRepository =
+        UserPreferencesRepositoryProvider.repository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ) : ViewModel() {
 
