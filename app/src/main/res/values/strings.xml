@@ -78,6 +78,7 @@
     <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
     <string name="error_suggestion_check_internet">Please check your internet connection.</string>
     <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
+    <string name="error_suggestion_retry">Please try again later.</string>
 
     <!-- Health Card Pop-Up -->
     <string name="health_card_popup_title">HEALTH CARD</string>

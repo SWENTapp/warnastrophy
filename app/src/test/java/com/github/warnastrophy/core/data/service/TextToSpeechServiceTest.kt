@@ -38,11 +38,13 @@ class TextToSpeechServiceTest {
     service.onInit(TextToSpeech.SUCCESS)
     service.speak("   ")
 
-    assertEquals("res-${R.string.error_text_to_speech_empty_input}", service.uiState.value.errorMessage)
+    assertEquals(
+        "res-${R.string.error_text_to_speech_empty_input}", service.uiState.value.errorMessage)
     assertNull(fakeEngine.lastSpokenText)
     assertTrue(
         errorHandler.state.value.errors.any {
-          it.type == ErrorType.TEXT_TO_SPEECH_ERROR && it.screenTypes.contains(com.github.warnastrophy.core.ui.navigation.Screen.Dashboard)
+          it.type == ErrorType.TEXT_TO_SPEECH_ERROR &&
+              it.screenTypes.contains(com.github.warnastrophy.core.ui.navigation.Screen.Dashboard)
         })
   }
 
@@ -86,8 +88,7 @@ class TextToSpeechServiceTest {
     service.speak("issue")
 
     assertEquals("res-${R.string.error_text_to_speech_failed}", service.uiState.value.errorMessage)
-    assertTrue(
-        errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
+    assertTrue(errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
   }
 
   @Test
@@ -99,8 +100,7 @@ class TextToSpeechServiceTest {
 
     assertEquals(
         "res-${R.string.error_text_to_speech_unavailable}", service.uiState.value.errorMessage)
-    assertTrue(
-        errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
+    assertTrue(errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
   }
 
   @Test
@@ -139,8 +139,7 @@ class TextToSpeechServiceTest {
     fakeEngine.listener?.onError("id")
 
     assertEquals("res-${R.string.error_text_to_speech_failed}", service.uiState.value.errorMessage)
-    assertTrue(
-        errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
+    assertTrue(errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
   }
 
   private fun createService(
@@ -178,4 +177,3 @@ class TextToSpeechServiceTest {
     }
   }
 }
-
