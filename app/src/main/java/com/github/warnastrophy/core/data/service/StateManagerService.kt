@@ -2,10 +2,9 @@ package com.github.warnastrophy.core.data.service
 
 import android.content.Context
 import com.github.warnastrophy.core.data.provider.HazardRepositoryProvider
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
-import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.domain.usecase.HazardCheckerService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.PermissionManager
@@ -31,8 +30,10 @@ object StateManagerService {
   lateinit var errorHandler: ErrorHandler
   lateinit var dangerModeService: DangerModeService
   lateinit var movementService: MovementService
-  lateinit var userPreferencesRepository: UserPreferencesRepository
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
+
+  val userPreferencesRepository: UserPreferencesRepository
+    get() = UserPreferencesRepositoryProvider.repository
 
   val activeHazardFlow: StateFlow<Hazard?> = _activeHazardFlow.asStateFlow()
 
@@ -62,7 +63,6 @@ object StateManagerService {
   fun init(context: Context) {
     if (initialized) return
 
-    userPreferencesRepository = UserPreferencesRepositoryLocal(context.userPrefsDataStore)
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
     errorHandler = ErrorHandler()
