@@ -151,6 +151,8 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
       }
     }
 
-    verify { mockViewModel.loadHealthCard(any(), testUserId) }
+    composeTestRule.waitForIdle()
+
+    verify(exactly = 1) { mockViewModel.loadHealthCard(any(), testUserId) }
   }
 }
