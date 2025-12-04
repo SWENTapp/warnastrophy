@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.domain.model.startForegroundGpsService
 import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import com.github.warnastrophy.core.ui.common.ErrorHandler
@@ -33,6 +34,7 @@ class ForegroundGpsServiceTest {
     // Ensure ServiceStateManager is initialized for tests
     val context = ApplicationProvider.getApplicationContext<Context>()
     StateManagerService.init(context)
+    ActivityRepositoryProvider.useMock()
   }
 
   @Test
@@ -113,7 +115,9 @@ class ForegroundGpsServiceTest {
               invoked = true
               receivedContext = ctx
             },
-            stopService = { _ -> })
+            stopService = { _ -> },
+            userId = "donotcare",
+        )
 
     val context = ApplicationProvider.getApplicationContext<Context>()
     vm.onDangerModeToggled(true, context)
