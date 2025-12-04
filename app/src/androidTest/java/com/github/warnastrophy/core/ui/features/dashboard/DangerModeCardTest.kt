@@ -14,6 +14,8 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
+import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
+import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
@@ -25,10 +27,13 @@ import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewMode
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
 
 class DangerModeCardTest : BaseAndroidComposeTest() {
+  private lateinit var mockActivityRepository: MockActivityRepository
+
   @Before
   fun setup() {
     StateManagerService.init(composeTestRule.activity.applicationContext)
@@ -36,14 +41,18 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         MockPermissionManager(currentResult = PermissionResult.Granted)
     StateManagerService.dangerModeService =
         DangerModeService(permissionManager = StateManagerService.permissionManager)
+    // Initialize the ActivityRepositoryProvider with mock for testing
+    mockActivityRepository = MockActivityRepository()
+    ActivityRepositoryProvider.useMock()
   }
 
-  private val testViewModel by lazy {
-    // provide no-op start/stop so tests do not attempt to start a real foreground service
-    DangerModeCardViewModel(
-        startService = { _: Context -> /* no-op in tests */ },
-        stopService = { _: Context -> /* no-op in tests */ })
-  }
+  private fun createTestViewModel(repository: MockActivityRepository = mockActivityRepository) =
+      DangerModeCardViewModel(
+          startService = { _: Context -> /* no-op in tests */ },
+          stopService = { _: Context -> /* no-op in tests */ },
+          repository = repository)
+
+  private val testViewModel by lazy { createTestViewModel() }
 
   @Before
   fun grantPermissions() {
@@ -136,9 +145,13 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         listOf(
             Activity(id = "1", activityName = "Hiking"),
             Activity(id = "2", activityName = "Climbing"))
-    composeTestRule.setContent {
-      MaterialTheme { DangerModeCard(viewModel = testViewModel, activities = testActivities) }
-    }
+
+    // Add activities to the mock repository
+    val mockRepo = MockActivityRepository()
+    runBlocking { testActivities.forEach { mockRepo.addActivity(activity = it) } }
+    val viewModel = createTestViewModel(repository = mockRepo)
+
+    composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = viewModel) } }
 
     val modeLabelNode =
         composeTestRule.onNodeWithTag(DangerModeTestTags.MODE_LABEL, useUnmergedTree = true)
@@ -160,12 +173,13 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         listOf(
             Activity(id = "1", activityName = "Hiking"),
             Activity(id = "2", activityName = "Climbing"))
-    lateinit var viewModel: DangerModeCardViewModel
-    composeTestRule.setContent {
-      // Use a surface to get the background color
-      viewModel = testViewModel
-      MaterialTheme { DangerModeCard(viewModel = viewModel, activities = testActivities) }
-    }
+
+    // Add activities to the mock repository
+    val mockRepo = MockActivityRepository()
+    runBlocking { testActivities.forEach { mockRepo.addActivity(activity = it) } }
+    val viewModel = createTestViewModel(repository = mockRepo)
+
+    composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = viewModel) } }
 
     val switchNode =
         composeTestRule.onNodeWithTag(DangerModeTestTags.SWITCH, useUnmergedTree = true)

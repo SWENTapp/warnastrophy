@@ -10,6 +10,7 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
@@ -27,6 +28,11 @@ import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
 class DashboardScreenTest : BaseAndroidComposeTest() {
+  @org.junit.Before
+  fun setupActivityRepository() {
+    ActivityRepositoryProvider.useMock()
+  }
+
   // Verify that the root of the DashboardScreen is scrollable
   @Test
   fun dashboardScreen_rootIsScrollable() {

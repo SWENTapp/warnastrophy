@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +43,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.data.service.DangerLevel
-import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
@@ -86,9 +86,11 @@ object DangerModeTestTags {
 fun DangerModeCard(
     modifier: Modifier = Modifier,
     viewModel: DangerModeCardViewModel = viewModel(),
-    activities: List<Activity> = emptyList(),
     onManageActivitiesClick: () -> Unit = {}
 ) {
+  // Refresh activities whenever this composable is displayed
+  LaunchedEffect(Unit) { viewModel.refreshActivities() }
+
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
   val currentActivity by viewModel.currentActivity.collectAsState(null)
   val capabilities by viewModel.capabilities.collectAsState(emptySet())
@@ -97,6 +99,9 @@ fun DangerModeCard(
 
   val confirmTouchRequired by viewModel.confirmTouchRequired.collectAsState(false)
   val confirmVoiceRequired by viewModel.confirmVoiceRequired.collectAsState(false)
+
+  val activities by viewModel.activities.collectAsState()
+  val hasActivities = activities.isNotEmpty()
 
   val colorScheme = MaterialTheme.colorScheme
   val extendedColors = MaterialTheme.extendedColors
@@ -128,18 +133,27 @@ fun DangerModeCard(
           Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
             Row(
                 modifier =
-                    Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable { expanded = true },
+                    Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable(
+                        enabled = hasActivities) {
+                          expanded = true
+                        },
                 verticalAlignment = Alignment.CenterVertically) {
                   StandardDashboardButton(
                       label = currentActivity?.activityName ?: "Select Activity",
-                      color = colorScheme.errorContainer,
-                      onClick = { expanded = true },
-                      textColor = colorScheme.onErrorContainer,
+                      color =
+                          if (hasActivities) colorScheme.errorContainer
+                          else colorScheme.errorContainer.copy(alpha = 0.5f),
+                      onClick = { if (hasActivities) expanded = true },
+                      textColor =
+                          if (hasActivities) colorScheme.onErrorContainer
+                          else colorScheme.onErrorContainer.copy(alpha = 0.5f),
                       icon = {
                         Icon(
                             imageVector = Icons.Filled.ArrowDropDown,
                             contentDescription = "Dropdown Arrow",
-                            tint = colorScheme.onErrorContainer)
+                            tint =
+                                if (hasActivities) colorScheme.onErrorContainer
+                                else colorScheme.onErrorContainer.copy(alpha = 0.5f))
                       })
                 }
             DropdownMenu(
