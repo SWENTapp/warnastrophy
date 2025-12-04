@@ -42,7 +42,7 @@ class UserPreferencesRepositoryRemoteTest {
     mockCollection = mockk(relaxed = true)
     mockDocument = mockk(relaxed = true)
 
-    every { mockFirestore.collection("user_preferences") } returns mockCollection
+    every { mockFirestore.collection("userPreferences") } returns mockCollection
     every { mockCollection.document(any()) } returns mockDocument
 
     mockkStatic(FirebaseAuth::class)
@@ -342,7 +342,7 @@ class UserPreferencesRepositoryRemoteTest {
   fun `repository uses correct collection name when authenticated`() = runTest {
     repository.setAlertMode(true)
 
-    verify { mockFirestore.collection("user_preferences") }
+    verify { mockFirestore.collection("userPreferences") }
   }
 
   @Test
