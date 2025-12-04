@@ -38,19 +38,6 @@ object UserPreferencesRepositoryProvider {
     }
 
   /**
-   * Initializes the repository with a local [UserPreferencesRepositoryLocal] using the provided
-   * [DataStore].
-   *
-   * This method should be called when you want to use the local repository backed by
-   * [Jetpack DataStore].
-   *
-   * @param dataStore The [DataStore] instance that will be used for storing preferences locally.
-   */
-  fun initLocal(dataStore: DataStore<Preferences>) {
-    repository = UserPreferencesRepositoryLocal(dataStore)
-  }
-
-  /**
    * Initializes the repository with a hybrid approach using both local and remote repositories.
    * This method sets up the repository to use a combination of [UserPreferencesRepositoryLocal] and
    * [UserPreferencesRepositoryRemote] with Firestore as the remote data source.
@@ -63,24 +50,5 @@ object UserPreferencesRepositoryProvider {
     val remote = UserPreferencesRepositoryRemote(firestore)
 
     repository = HybridUserPreferencesRepository(local, remote)
-  }
-
-  /**
-   * Resets the repository to `null`. This method is mainly intended for testing purposes, allowing
-   * the repository to be reinitialized or replaced.
-   */
-  fun resetForTests() {
-    _repo = null
-  }
-
-  /**
-   * Sets a custom repository instance for use. This method allows you to provide a fully custom
-   * implementation of [UserPreferencesRepository], replacing the default local or hybrid
-   * repository.
-   *
-   * @param repo The custom [UserPreferencesRepository] instance to be used.
-   */
-  fun setCustom(repo: UserPreferencesRepository) {
-    _repo = repo
   }
 }
