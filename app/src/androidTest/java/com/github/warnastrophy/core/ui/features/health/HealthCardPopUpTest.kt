@@ -4,24 +4,25 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * UI tests for the [HealthCardPopUp] composable. This class verifies the behavior and appearance of
  * the Health Card pop-up.
  */
+@RunWith(AndroidJUnit4::class)
 class HealthCardPopUpTest : BaseAndroidComposeTest() {
   private lateinit var mockViewModel: HealthCardViewModel
   private val currentCardFlow = MutableStateFlow<HealthCard?>(null)
@@ -74,9 +75,6 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
       }
     }
 
-    val expectedDate =
-        LocalDate.parse("1990-05-15").format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-
     composeTestRule
         .onNodeWithTag(HealthCardPopUpTestTags.FULL_NAME_VALUE)
         .assertIsDisplayed()
@@ -85,7 +83,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(HealthCardPopUpTestTags.BIRTH_DATE_VALUE)
         .assertIsDisplayed()
-        .assertTextContains(expectedDate)
+        .assertTextContains("15/05/1990")
 
     composeTestRule
         .onNodeWithTag(HealthCardPopUpTestTags.SEX_VALUE)
@@ -101,7 +99,6 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
         .onNodeWithTag(HealthCardPopUpTestTags.ALLERGIES_VALUE)
         .assertIsDisplayed()
         .assertTextContains("Peanuts, Dust")
-
     composeTestRule
         .onNodeWithTag(HealthCardPopUpTestTags.MEDICATIONS_VALUE)
         .assertIsDisplayed()
@@ -136,7 +133,7 @@ class HealthCardPopUpTest : BaseAndroidComposeTest() {
 
     composeTestRule.onNodeWithTag(HealthCardPopUpTestTags.EDIT_BUTTON).performClick()
 
-    assertTrue("The onClick callback should have been triggered.", isClicked)
+    assertTrue(isClicked)
   }
 
   @Test
