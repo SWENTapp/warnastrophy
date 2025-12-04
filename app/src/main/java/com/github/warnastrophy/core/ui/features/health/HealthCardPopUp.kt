@@ -77,6 +77,23 @@ data class HealthCardPreviewState(
     val notes: String = ""
 )
 
+/**
+ * A composable function that displays a user's health card information in a dialog pop-up.
+ *
+ * This dialog fetches the health card data for a given [userId] using the [HealthCardViewModel]. It
+ * shows a title and an "Edit" button that triggers the [onClick] lambda. The main content area
+ * either displays the detailed health information using [HealthCardDetails] if data is available,
+ * or an empty state message via [EmptyHealthCardPopUp] if no card data is found. The pop-up can be
+ * dismissed by triggering [onDismissRequest].
+ *
+ * @param userId The unique identifier for the user whose health card is to be displayed.
+ * @param onDismissRequest A lambda function to be invoked when the user requests to dismiss the
+ *   dialog (e.g., by tapping outside the dialog or pressing the back button).
+ * @param onClick A lambda function to be invoked when the "Edit" button is clicked. This is
+ *   typically used to navigate to a screen where the health card can be modified.
+ * @param viewModel An instance of [HealthCardViewModel] used to fetch and manage the state of the
+ *   health card data. Defaults to the instance provided by `viewModel()`.
+ */
 @Composable
 fun HealthCardPopUp(
     userId: String,
