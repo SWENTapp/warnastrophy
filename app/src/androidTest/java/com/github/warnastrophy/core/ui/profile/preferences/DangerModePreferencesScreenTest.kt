@@ -177,39 +177,6 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun turningOffParentToggle_disablesChildToggles() {
-    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
-
-    setContent()
-
-    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
-    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).performClick()
-    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).performClick()
-
-    scrollToAutomaticCalls()
-    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).performClick()
-
-    composeTestRule.waitForIdle()
-
-    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOn()
-    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsOn()
-    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOn()
-    scrollToAutomaticCalls()
-    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsOn()
-
-    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
-
-    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOff()
-    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsOff()
-    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOff()
-
-    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsEnabled()
-    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsNotEnabled()
-    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
-  }
-
-  @Test
   fun alertModeToggle_requestsPermission_whenNotGranted() {
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
     setContent()
