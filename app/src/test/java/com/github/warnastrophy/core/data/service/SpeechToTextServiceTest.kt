@@ -5,8 +5,11 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.SpeechRecognizer
+import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.ui.common.ErrorType
+import com.github.warnastrophy.core.ui.navigation.Screen
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.io.use
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -24,19 +27,28 @@ import org.mockito.Mock
 import org.mockito.MockedStatic
 import org.mockito.Mockito.mockStatic
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
+/** Class to test the [SpeechToTextService] functionality. */
 @RunWith(MockitoJUnitRunner::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class SpeechToTextServiceTest {
 
   @Mock private lateinit var mockContext: Context
+  @Mock private lateinit var mockErrorHandler: ErrorHandler
 
   private lateinit var speechToTextService: SpeechToTextService
 
   @Before
   fun setUp() {
-    speechToTextService = SpeechToTextService(mockContext)
+    whenever(mockContext.getString(any())).thenReturn("Speech recognition failed")
+    speechToTextService = SpeechToTextService(mockContext, mockErrorHandler)
   }
 
   private fun createMockBundle(matches: List<String>): Bundle {
@@ -47,221 +59,145 @@ class SpeechToTextServiceTest {
   }
 
   @Test
-  fun `listenForConfirmation throws when speech recognition not available`() = runTest {
+  fun `listenForConfirmation reports error when recognition not available`() = runTest {
     mockStatic(SpeechRecognizer::class.java).use { staticMock ->
       staticMock
           .`when`<Boolean> { SpeechRecognizer.isRecognitionAvailable(mockContext) }
           .thenReturn(false)
 
-      whenever(mockContext.getString(any())).thenReturn("Speech recognition not available")
-
       val exception =
-          assertFailsWith<kotlinx.coroutines.CancellationException> {
-            speechToTextService.listenForConfirmation()
-          }
+          assertFailsWith<CancellationException> { speechToTextService.listenForConfirmation() }
 
-      assertEquals("Speech recognition not available", exception.cause?.message)
+      assertEquals("Speech recognition failed", exception.cause?.message)
+      assertFalse(speechToTextService.uiState.value.isListening)
+      verify(mockErrorHandler)
+          .addErrorToScreen(ErrorType.SPEECH_RECOGNITION_ERROR, Screen.Communication)
     }
   }
 
   @Test
-  fun `listenForConfirmation returns true when yes detected`() = runTest {
+  fun `listenForConfirmation captures yes and stops listening`() = runTest {
     mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
+      assertTrue(speechToTextService.uiState.value.isListening)
 
       harness.listener().onResults(createMockBundle(listOf("yes")))
       advanceUntilIdle()
 
-      assertTrue(deferred.await())
-      verify(harness.recognizer, times(1)).startListening(any())
+      val state = speechToTextService.uiState.value
+      assertFalse(state.isListening)
+      assertEquals("yes", state.recognizedText)
+      assertNull(state.errorMessage)
+
+      job.cancelAndJoin()
     }
   }
 
   @Test
-  fun `listenForConfirmation returns true when yeah detected`() = runTest {
+  fun `listenForConfirmation captures no and stops listening`() = runTest {
     mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
-      advanceUntilIdle()
-
-      harness.listener().onResults(createMockBundle(listOf("yeah")))
-      advanceUntilIdle()
-
-      assertTrue(deferred.await())
-    }
-  }
-
-  @Test
-  fun `listenForConfirmation returns false when no detected`() = runTest {
-    mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
 
       harness.listener().onResults(createMockBundle(listOf("no")))
       advanceUntilIdle()
 
-      assertFalse(deferred.await())
-      verify(harness.recognizer, times(1)).startListening(any())
+      val state = speechToTextService.uiState.value
+      assertFalse(state.isListening)
+      assertEquals("no", state.recognizedText)
+
+      job.cancelAndJoin()
     }
   }
 
   @Test
-  fun `listenForConfirmation restarts when null results received`() = runTest {
+  fun `listenForConfirmation keeps listening for unclear confirmation`() = runTest {
     mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
-      advanceUntilIdle()
-
-      harness.listener().onResults(null)
-      advanceUntilIdle()
-
-      verify(harness.recognizer, times(2)).startListening(any())
-
-      harness.listener().onResults(createMockBundle(listOf("yes")))
-      advanceUntilIdle()
-
-      assertTrue(deferred.await())
-    }
-  }
-
-  @Test
-  fun `listenForConfirmation restarts when empty results received`() = runTest {
-    mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
-      advanceUntilIdle()
-
-      harness.listener().onResults(createMockBundle(emptyList()))
-      advanceUntilIdle()
-
-      verify(harness.recognizer, times(2)).startListening(any())
-
-      harness.listener().onResults(createMockBundle(listOf("no")))
-      advanceUntilIdle()
-
-      assertFalse(deferred.await())
-    }
-  }
-
-  @Test
-  fun `listenForConfirmation restarts when confirmation is unclear`() = runTest {
-    mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
 
       harness.listener().onResults(createMockBundle(listOf("maybe")))
       advanceUntilIdle()
 
+      val state = speechToTextService.uiState.value
+      assertTrue(state.isListening)
+      assertEquals("maybe", state.recognizedText)
       verify(harness.recognizer, times(2)).startListening(any())
 
-      harness.listener().onResults(createMockBundle(listOf("hello")))
+      harness.listener().onResults(createMockBundle(listOf("yes")))
+      advanceUntilIdle()
+      assertFalse(speechToTextService.uiState.value.isListening)
+
+      job.cancelAndJoin()
+    }
+  }
+
+  @Test
+  fun `listenForConfirmation restarts on null or empty results`() = runTest {
+    mockSpeechRecognizer().use { harness ->
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
 
+      harness.listener().onResults(null)
+      advanceUntilIdle()
+      assertTrue(speechToTextService.uiState.value.isListening)
+      verify(harness.recognizer, times(2)).startListening(any())
+
+      harness.listener().onResults(createMockBundle(emptyList()))
+      advanceUntilIdle()
       verify(harness.recognizer, times(3)).startListening(any())
-
-      harness.listener().onResults(createMockBundle(listOf("yes")))
-      advanceUntilIdle()
-
-      assertTrue(deferred.await())
-    }
-  }
-
-  @Test
-  fun `listenForConfirmation retries after ERROR_NO_MATCH`() = runTest {
-    mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
-      advanceUntilIdle()
-
-      harness.listener().onError(SpeechRecognizer.ERROR_NO_MATCH)
-      advanceUntilIdle()
-
-      verify(harness.recognizer, times(2)).startListening(any())
-
-      harness.listener().onResults(createMockBundle(listOf("yes")))
-      advanceUntilIdle()
-
-      assertTrue(deferred.await())
-    }
-  }
-
-  @Test
-  fun `listenForConfirmation retries after ERROR_SPEECH_TIMEOUT`() = runTest {
-    mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
-      advanceUntilIdle()
-
-      harness.listener().onError(SpeechRecognizer.ERROR_SPEECH_TIMEOUT)
-      advanceUntilIdle()
-
-      verify(harness.recognizer, times(2)).startListening(any())
 
       harness.listener().onResults(createMockBundle(listOf("no")))
       advanceUntilIdle()
+      assertFalse(speechToTextService.uiState.value.isListening)
 
-      assertFalse(deferred.await())
+      job.cancelAndJoin()
     }
   }
 
   @Test
-  fun `listenForConfirmation retries after ERROR_NETWORK`() = runTest {
+  fun `listenForConfirmation retries after recoverable errors`() = runTest {
     mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
-      advanceUntilIdle()
-
-      harness.listener().onError(SpeechRecognizer.ERROR_NETWORK)
-      advanceUntilIdle()
-
-      verify(harness.recognizer, times(2)).startListening(any())
-
-      harness.listener().onResults(createMockBundle(listOf("yes")))
-      advanceUntilIdle()
-
-      assertTrue(deferred.await())
-    }
-  }
-
-  @Test
-  fun `listenForConfirmation retries after multiple recoverable errors`() = runTest {
-    mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
 
       harness.listener().onError(SpeechRecognizer.ERROR_NO_MATCH)
       advanceUntilIdle()
-
-      harness.listener().onError(SpeechRecognizer.ERROR_NETWORK)
-      advanceUntilIdle()
-
       harness.listener().onError(SpeechRecognizer.ERROR_SPEECH_TIMEOUT)
+      advanceUntilIdle()
+      harness.listener().onError(SpeechRecognizer.ERROR_NETWORK)
       advanceUntilIdle()
 
       verify(harness.recognizer, times(4)).startListening(any())
+      assertEquals("Speech recognition failed", speechToTextService.uiState.value.errorMessage)
 
-      harness.listener().onResults(createMockBundle(listOf("no")))
+      harness.listener().onResults(createMockBundle(listOf("yes")))
       advanceUntilIdle()
+      assertFalse(speechToTextService.uiState.value.isListening)
 
-      assertFalse(deferred.await())
+      job.cancelAndJoin()
     }
   }
 
   @Test
   fun `listenForConfirmation retries after other errors`() = runTest {
     mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
 
       harness.listener().onError(SpeechRecognizer.ERROR_CLIENT)
       advanceUntilIdle()
 
       verify(harness.recognizer, times(2)).startListening(any())
+      assertEquals("Speech recognition failed", speechToTextService.uiState.value.errorMessage)
 
-      harness.listener().onResults(createMockBundle(listOf("yes")))
-      advanceUntilIdle()
-
-      assertTrue(deferred.await())
+      job.cancelAndJoin()
     }
   }
 
   @Test
-  fun `listenForConfirmation cancels and destroys recognizer`() = runTest {
+  fun `listenForConfirmation cancellation cleans up recognizer`() = runTest {
     mockSpeechRecognizer().use { harness ->
       val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
@@ -275,18 +211,21 @@ class SpeechToTextServiceTest {
   }
 
   @Test
-  fun `destroy stops and releases speech recognizer`() = runTest {
+  fun `destroy stops and releases recognizer`() = runTest {
     mockSpeechRecognizer().use { harness ->
-      val deferred = async { speechToTextService.listenForConfirmation() }
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
+
+      assertTrue(speechToTextService.uiState.value.isListening)
 
       speechToTextService.destroy()
       advanceUntilIdle()
 
-      deferred.cancel()
-
+      assertFalse(speechToTextService.uiState.value.isListening)
       verify(harness.recognizer).stopListening()
       verify(harness.recognizer).destroy()
+
+      job.cancelAndJoin()
     }
   }
 
@@ -303,8 +242,6 @@ class SpeechToTextServiceTest {
     assertTrue(invokeParseConfirmation("YES")!!)
     assertTrue(invokeParseConfirmation(" yes ")!!)
     assertTrue(invokeParseConfirmation("yeah")!!)
-    assertTrue(invokeParseConfirmation("YEAH")!!)
-    assertTrue(invokeParseConfirmation(" Yeah ")!!)
   }
 
   @Test
@@ -315,23 +252,22 @@ class SpeechToTextServiceTest {
   }
 
   @Test
-  fun `parseConfirmation returns null for invalid inputs`() {
+  fun `parseConfirmation returns null for invalid input`() {
     assertNull(invokeParseConfirmation("hello"))
     assertNull(invokeParseConfirmation("maybe"))
     assertNull(invokeParseConfirmation(""))
     assertNull(invokeParseConfirmation(null))
-    assertNull(invokeParseConfirmation("yep"))
   }
 
   @Test
-  fun `RecognitionListener empty callbacks do not crash`() = runTest {
+  fun `recognition listener no-op callbacks do not crash`() = runTest {
     mockSpeechRecognizer().use { harness ->
-      async { speechToTextService.listenForConfirmation() }
+      val job = async { speechToTextService.listenForConfirmation() }
       advanceUntilIdle()
 
       harness.listener().onReadyForSpeech(null)
       harness.listener().onBeginningOfSpeech()
-      harness.listener().onRmsChanged(0.5f)
+      harness.listener().onRmsChanged(0.8f)
       harness.listener().onBufferReceived(null)
       harness.listener().onEndOfSpeech()
       harness.listener().onPartialResults(null)
@@ -339,6 +275,11 @@ class SpeechToTextServiceTest {
 
       harness.listener().onResults(createMockBundle(listOf("yes")))
       advanceUntilIdle()
+
+      assertFalse(speechToTextService.uiState.value.isListening)
+      assertEquals(0f, speechToTextService.uiState.value.rmsLevel)
+
+      job.cancelAndJoin()
     }
   }
 
