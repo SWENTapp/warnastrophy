@@ -59,7 +59,10 @@ class DangerModePreferencesViewModelTest {
             flowOf(
                 UserPreferences(
                     DangerModePreferences(
-                        alertMode = false, inactivityDetection = false, automaticSms = false),
+                        alertMode = false,
+                        inactivityDetection = false,
+                        automaticSms = false,
+                        automaticCalls = false),
                     themePreferences = false)))
   }
 
@@ -89,10 +92,12 @@ class DangerModePreferencesViewModelTest {
     assertFalse(initialState.alertModeAutomaticEnabled)
     assertFalse(initialState.inactivityDetectionEnabled)
     assertFalse(initialState.automaticSmsEnabled)
+    assertFalse(initialState.automaticCallsEnabled)
     assertNull(initialState.pendingPermissionAction)
     assertEquals(deniedResult, initialState.alertModePermissionResult)
     assertEquals(deniedResult, initialState.inactivityDetectionPermissionResult)
     assertEquals(deniedResult, initialState.smsPermissionResult)
+    assertEquals(deniedResult, initialState.callPermissionResult)
   }
 
   @Test
@@ -122,6 +127,7 @@ class DangerModePreferencesViewModelTest {
     verify(userPreferencesRepository).setAlertMode(false)
     verify(userPreferencesRepository).setInactivityDetection(false)
     verify(userPreferencesRepository).setAutomaticSms(false)
+    verify(userPreferencesRepository).setAutomaticCalls(false)
   }
 
   @Test
@@ -184,6 +190,34 @@ class DangerModePreferencesViewModelTest {
   }
 
   @Test
+  fun onPermissionsResult_Calls_whenPermissionIsGranted_enablesToggle() = runTest {
+    createViewModel()
+    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_AUTOMATIC_CALLS)
+    permissionManager.setPermissionResult(PermissionResult.Granted)
+
+    viewModel.onPermissionsResult(activity)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    verify(permissionManager).markPermissionsAsAsked(viewModel.callPermissions)
+    verify(userPreferencesRepository).setAutomaticCalls(true)
+    assertNull(viewModel.uiState.value.pendingPermissionAction)
+  }
+
+  @Test
+  fun onPermissionsResult_Calls_whenPermissionIsDenied_doesNotEnableToggle() = runTest {
+    createViewModel()
+    viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_AUTOMATIC_CALLS)
+    permissionManager.setPermissionResult(PermissionResult.Denied(emptyList()))
+
+    viewModel.onPermissionsResult(activity)
+    testDispatcher.scheduler.advanceUntilIdle()
+
+    verify(permissionManager).markPermissionsAsAsked(viewModel.callPermissions)
+    verify(userPreferencesRepository, never()).setAutomaticCalls(true)
+    assertNull(viewModel.uiState.value.pendingPermissionAction)
+  }
+
+  @Test
   fun onPermissionsResult_with_no_pending_action_does_nothing() = runTest {
     createViewModel()
     assertNull(viewModel.uiState.value.pendingPermissionAction)
@@ -194,7 +228,9 @@ class DangerModePreferencesViewModelTest {
     verify(userPreferencesRepository, never()).setAlertMode(true)
     verify(userPreferencesRepository, never()).setInactivityDetection(true)
     verify(userPreferencesRepository, never()).setAutomaticSms(true)
+    verify(userPreferencesRepository, never()).setAutomaticCalls(true)
     verify(permissionManager, never()).markPermissionsAsAsked(viewModel.alertModePermissions)
     verify(permissionManager, never()).markPermissionsAsAsked(viewModel.smsPermissions)
+    verify(permissionManager, never()).markPermissionsAsAsked(viewModel.callPermissions)
   }
 }

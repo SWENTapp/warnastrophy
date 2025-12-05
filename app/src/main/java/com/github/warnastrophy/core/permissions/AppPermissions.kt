@@ -72,6 +72,17 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
           Manifest.permission.ACCESS_FINE_LOCATION,
       )
 
+  /**
+   * Permissions required to make an emergency phone call. Includes CALL_PHONE and fine location
+   * access to attach location when placing the call (if desired).
+   */
+  object MakeEmergencyCall :
+      AppPermissions(
+          key = "make_emergency_call",
+          Manifest.permission.CALL_PHONE,
+          Manifest.permission.ACCESS_FINE_LOCATION,
+      )
+
   companion object {
     /** A reusable check for SDK versions, annotated to help the compiler with smart casting. */
     @ChecksSdkIntAtLeast(parameter = 0)

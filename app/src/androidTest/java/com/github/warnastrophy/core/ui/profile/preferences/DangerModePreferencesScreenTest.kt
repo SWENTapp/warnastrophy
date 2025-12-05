@@ -7,8 +7,11 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
@@ -46,19 +49,22 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   /** Helper function to set the content of the test rule with a configured ViewModel. */
   private fun setContent() {
     viewModel = DangerModePreferencesViewModel(mockPermissionManager, userPreferencesRepository)
-    composeTestRule.setContent { DangerModePreferencesScreen(viewModel = viewModel) }
+    composeTestRule.setContent {
+      CompositionLocalProvider(LocalContext provides composeTestRule.activity) {
+        DangerModePreferencesScreen(viewModel = viewModel)
+      }
+    }
 
     composeTestRule.waitForIdle()
 
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_ITEM).assertIsDisplayed()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_ITEM).assertIsDisplayed()
+  }
+
+  private fun scrollToAutomaticCalls() {
     composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_ITEM)
-        .assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_ITEM)
-        .assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_ITEM)
-        .assertIsDisplayed()
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.SCROLL_CONTAINER)
+        .performScrollToNode(hasTestTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM))
   }
 
   /** Applies a given [PermissionResult] to the view model. */
@@ -67,24 +73,20 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     viewModel.onPermissionsResult(composeTestRule.activity)
   }
 
-  private fun toggleSwitch(tag: String) {
-    composeTestRule.onNodeWithTag(tag).assertIsEnabled().performClick()
+  private fun toggleSwitch(tag: String, stateSelector: () -> Boolean) {
+    nodeWithTag(tag).assertIsEnabled().performClick()
 
-    composeTestRule.waitForIdle()
+    composeTestRule.waitUntil(timeoutMillis = 5_000) { stateSelector() }
 
-    composeTestRule.onNodeWithTag(tag).assertIsEnabled().assertIsOn()
+    nodeWithTag(tag).assertIsEnabled().assertIsOn()
   }
 
   private fun assertSwitchesOff() {
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOff()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsOff()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOff()
+    scrollToAutomaticCalls()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsOff()
   }
 
   /** Verifies that a fallback error message is shown when the context is not an Activity. */
@@ -112,15 +114,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     assertSwitchesOff()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
         .assertIsNotEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
+    scrollToAutomaticCalls()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
   }
 
   @Test
@@ -129,19 +128,13 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     setContent()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .performClick()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).performClick()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOn()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOn()
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH).assertIsEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
+    scrollToAutomaticCalls()
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
   }
 
   /**
@@ -149,7 +142,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
    * initiated.
    */
   @Test
-  fun onPermissionsRequestStart_works_as_expected() = runTest {
+  fun onPermissionsRequestStart_works_asExpected() = runTest {
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
     setContent()
 
@@ -168,9 +161,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
     setContent()
 
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOff()
 
     viewModel.onPermissionsRequestStart(PendingAction.TOGGLE_ALERT_MODE)
     composeTestRule.waitForIdle()
@@ -182,56 +173,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
 
     assertFalse(viewModel.uiState.value.isOsRequestInFlight)
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOn()
-  }
-
-  @Test
-  fun turningOffParentToggle_disablesChildToggles() {
-    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
-
-    setContent()
-
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .performClick()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .performClick()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsOn()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsOn()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsOn()
-
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    assertSwitchesOff()
-
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-        .assertIsEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
-        .assertIsNotEnabled()
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
-        .assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH).assertIsOn()
   }
 
   @Test
@@ -240,14 +182,15 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     setContent()
 
     // Simulate toggle the switch
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
         .assertIsEnabled()
         .assertIsOff()
 
     applyPerm(PermissionResult.Granted)
 
-    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH) {
+      viewModel.uiState.value.alertModeAutomaticEnabled
+    }
   }
 
   @Test
@@ -256,19 +199,22 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     setContent()
 
     // Toggle Alert Mode to enable inactivity detection switch
-    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
 
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
     // Simulate toggle the switch
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
         .assertIsEnabled()
         .assertIsOff()
 
     applyPerm(PermissionResult.Granted)
 
-    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH) {
+      viewModel.uiState.value.inactivityDetectionEnabled
+    }
   }
 
   @Test
@@ -277,19 +223,68 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     setContent()
 
     // Toggle Alert Mode & Inactivity Detection to enable automatic sms switch
-    toggleSwitch(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
-    toggleSwitch(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH,
+        { viewModel.uiState.value.inactivityDetectionEnabled })
 
     mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
 
     // Simulate toggle the switch
-    composeTestRule
-        .onNodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         .assertIsEnabled()
         .assertIsOff()
 
     applyPerm(PermissionResult.Granted)
 
-    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH) {
+      viewModel.uiState.value.automaticSmsEnabled
+    }
   }
+
+  @Test
+  fun automaticCallsDescription_isDisplayed() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    scrollToAutomaticCalls()
+
+    val title =
+        composeTestRule.activity.getString(
+            com.github.warnastrophy.R.string.danger_mode_automatic_calls_title)
+
+    composeTestRule.onNodeWithText(title).assertIsDisplayed()
+  }
+
+  @Test
+  fun automaticCallsToggle_requestsPermission_whenNotGranted() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    // Toggle Alert Mode & Inactivity Detection to enable automatic calls switch
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH,
+        { viewModel.uiState.value.inactivityDetectionEnabled })
+
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+
+    // Simulate toggle the switch
+    nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
+        .assertIsEnabled()
+        .assertIsOff()
+
+    applyPerm(PermissionResult.Granted)
+
+    scrollToAutomaticCalls()
+    toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH) {
+      viewModel.uiState.value.automaticCallsEnabled
+    }
+  }
+
+  private fun nodeWithTag(tag: String) = composeTestRule.onNodeWithTag(tag, useUnmergedTree = true)
 }

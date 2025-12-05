@@ -54,6 +54,7 @@ class UserPreferencesRepositoryLocalTest {
     assertFalse(preferences.dangerModePreferences.alertMode)
     assertFalse(preferences.dangerModePreferences.inactivityDetection)
     assertFalse(preferences.dangerModePreferences.automaticSms)
+    assertFalse(preferences.dangerModePreferences.automaticCalls)
     assertFalse(preferences.themePreferences)
   }
 
@@ -101,6 +102,20 @@ class UserPreferencesRepositoryLocalTest {
   }
 
   @Test
+  fun setAutomaticCalls_updatesPreference() = runTest {
+    val testCases = listOf(true, false)
+
+    testCases.forEach { automaticCallsValue ->
+      repository.setAutomaticCalls(automaticCallsValue)
+      val preferences = repository.getUserPreferences.first()
+      assertEquals(automaticCallsValue, preferences.dangerModePreferences.automaticCalls)
+      assertFalse(preferences.dangerModePreferences.alertMode)
+      assertFalse(preferences.dangerModePreferences.inactivityDetection)
+      assertFalse(preferences.themePreferences)
+    }
+  }
+
+  @Test
   fun multipleSetters_whenCalledSequentially_updateAllPreferencesCorrectly() = runTest {
     repository.setAlertMode(true)
     repository.setInactivityDetection(true)
@@ -138,6 +153,7 @@ class UserPreferencesRepositoryLocalTest {
     assertFalse(preferences.dangerModePreferences.alertMode)
     assertFalse(preferences.dangerModePreferences.inactivityDetection)
     assertFalse(preferences.dangerModePreferences.automaticSms)
+    assertFalse(preferences.dangerModePreferences.automaticCalls)
     assertFalse(preferences.themePreferences)
   }
 

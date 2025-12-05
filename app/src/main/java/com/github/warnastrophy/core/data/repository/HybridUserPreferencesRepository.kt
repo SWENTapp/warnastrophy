@@ -75,6 +75,10 @@ class HybridUserPreferencesRepository(
     updateBothRepositories { setAutomaticSms(enabled) }
   }
 
+  override suspend fun setAutomaticCalls(enabled: Boolean) {
+    updateBothRepositories { setAutomaticCalls(enabled) }
+  }
+
   /**
    * Updates both local and remote repositories to set the dark mode preference.
    *

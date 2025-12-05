@@ -123,6 +123,7 @@ class UserPreferencesRepositoryRemoteTest {
             "alertMode" to true,
             "inactivityDetection" to true,
             "automaticSms" to false,
+            "automaticCalls" to false,
             "darkMode" to true)
 
     val mockSnapshot = mockk<DocumentSnapshot>()
@@ -143,6 +144,7 @@ class UserPreferencesRepositoryRemoteTest {
     assertTrue(result.dangerModePreferences.alertMode)
     assertTrue(result.dangerModePreferences.inactivityDetection)
     assertFalse(result.dangerModePreferences.automaticSms)
+    assertFalse(result.dangerModePreferences.automaticCalls)
     assertTrue(result.themePreferences)
   }
 
@@ -216,6 +218,13 @@ class UserPreferencesRepositoryRemoteTest {
     repository.setAutomaticSms(false)
 
     verify { mockDocument.update("automaticSms", false) }
+  }
+
+  @Test
+  fun `setAutomaticCalls updates field successfully when authenticated`() = runTest {
+    repository.setAutomaticCalls(true)
+
+    verify { mockDocument.update("automaticCalls", true) }
   }
 
   @Test
