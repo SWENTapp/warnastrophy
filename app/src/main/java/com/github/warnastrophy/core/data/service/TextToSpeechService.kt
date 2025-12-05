@@ -22,7 +22,7 @@ class TextToSpeechService(private val context: Context, private val errorHandler
     OnInitListener {
 
   companion object {
-    private const val DEFAULT_RMS = 0.5f
+    private const val DEFAULT_RMS = 20f
   }
 
   private var textToSpeech: TextToSpeech? = TextToSpeech(context, this)

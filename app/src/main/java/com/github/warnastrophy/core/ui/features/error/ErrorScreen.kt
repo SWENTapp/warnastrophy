@@ -182,5 +182,6 @@ private fun ErrorSuggestion(err: Error): String {
     ErrorType.TEXT_TO_SPEECH_ERROR -> stringResource(R.string.error_suggestion_retry)
     ErrorType.NO_ERRORS -> ""
     ErrorType.ACTIVITY_REPOSITORY_ERROR -> stringResource(R.string.error_activity_repository_failed)
+    ErrorType.TEXT_TO_SPEECH_INIT_ERROR -> "salut"
   }
 }

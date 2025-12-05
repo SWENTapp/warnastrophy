@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
 import com.github.warnastrophy.core.data.service.TextToSpeechUiState
+import kotlin.math.max
 
 @Composable
 fun CommunicationScreen(
@@ -69,13 +70,12 @@ fun CommunicationScreen(
       Spacer(modifier = Modifier.height(16.dp))
 
       TextToSpeechStatusCard(
-          uiState = textToSpeechState,
-          onSpeakClick = { viewModel.speak("Bonjour, comment puis-je vous aider ?") })
+          uiState = textToSpeechState, onSpeakClick = { viewModel.speak("Fuck you bitch") })
 
       Spacer(modifier = Modifier.height(32.dp))
 
       AnimatedMicButton(
-          uiState = speechState,
+          rms = max(speechState.rmsLevel, textToSpeechState.rms),
           onMicClick = {
             if (speechState.isListening) {
               viewModel.stopListening()
@@ -148,11 +148,10 @@ private fun TextToSpeechStatusCard(uiState: TextToSpeechUiState, onSpeakClick: (
 }
 
 @Composable
-private fun AnimatedMicButton(uiState: SpeechRecognitionUiState, onMicClick: () -> Unit) {
+private fun AnimatedMicButton(rms: Float, onMicClick: () -> Unit) {
   val animatedScale by
       animateFloatAsState(
-          targetValue =
-              remember(uiState.rmsLevel) { 1f + (uiState.rmsLevel / 10f) }.coerceIn(1f, 1.5f),
+          targetValue = remember(rms) { 1f + (rms / 10f) }.coerceIn(1f, 1.5f),
           animationSpec =
               spring(
                   dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),

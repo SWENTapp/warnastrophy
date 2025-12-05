@@ -121,6 +121,7 @@ class SpeechToTextService(
       }
 
   private fun restartListening() {
+    _uiState.update { it.copy(isListening = true, rmsLevel = 0f, errorMessage = null) }
     speechRecognizer?.startListening(speechRecognizerIntent)
   }
 
