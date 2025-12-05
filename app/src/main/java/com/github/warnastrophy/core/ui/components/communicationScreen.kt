@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
 import com.github.warnastrophy.core.data.service.SpeechToTextService
+import com.github.warnastrophy.core.data.service.TextToSpeechService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -75,11 +76,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun CommunicationScreen(
     speechToTextService: SpeechToTextService,
+    textToSpeechService: TextToSpeechService,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
 ) {
-  val uiStateFlow = speechToTextService.uiState.collectAsState()
-  val uiState = uiStateFlow.value
+  val uiStateFlowSpeechToText = speechToTextService.uiState.collectAsState()
+  val uiStateSpeechToText = uiStateFlowSpeechToText.value
+
+  val uiStateFlowTextToSpeech = textToSpeechService.uiState.collectAsState()
+  val uiStateTextToSpeech = uiStateFlowTextToSpeech.value
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.padding(24.dp).fillMaxSize()) {
@@ -93,16 +98,16 @@ fun CommunicationScreen(
 
       Spacer(modifier = Modifier.height(32.dp))
 
-      ListeningStatusCard(uiState = uiState)
+      ListeningStatusCard(uiState = uiStateSpeechToText)
 
       Spacer(modifier = Modifier.height(32.dp))
 
       AnimatedMicButton(
-          uiState = uiState,
+          uiState = uiStateSpeechToText,
           onMicClick = {
             // Replace CoroutineScope.launch with runBlocking for testing purposes
             CoroutineScope(Dispatchers.Main).launch {
-              if (!uiState.isListening) {
+              if (!uiStateSpeechToText.isListening) {
                 speechToTextService.listenForConfirmation()
               }
             }
