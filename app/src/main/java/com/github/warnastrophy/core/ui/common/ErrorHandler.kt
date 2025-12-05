@@ -15,6 +15,7 @@ enum class ErrorType(val message: Int) {
   LOCATION_ERROR(R.string.error_location_unavailable),
   HAZARD_FETCHING_ERROR(R.string.error_hazard_fetch_failed),
   SPEECH_RECOGNITION_ERROR(R.string.error_speech_recognition_failed),
+  TEXT_TO_SPEECH_ERROR(R.string.error_text_to_speech_failed),
   ACTIVITY_REPOSITORY_ERROR(R.string.error_activity_repository_failed),
 }
 

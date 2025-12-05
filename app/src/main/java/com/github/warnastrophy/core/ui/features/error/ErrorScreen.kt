@@ -179,6 +179,7 @@ private fun ErrorSuggestion(err: Error): String {
     ErrorType.HAZARD_FETCHING_ERROR -> stringResource(R.string.error_suggestion_check_internet)
     ErrorType.SPEECH_RECOGNITION_ERROR ->
         stringResource(R.string.error_suggestion_speech_recognition)
+    ErrorType.TEXT_TO_SPEECH_ERROR -> stringResource(R.string.error_suggestion_retry)
     ErrorType.NO_ERRORS -> ""
     ErrorType.ACTIVITY_REPOSITORY_ERROR -> stringResource(R.string.error_activity_repository_failed)
   }
