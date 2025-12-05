@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 data class TextToSpeechUiState(
     val error: ErrorType? = null,
     val isSpeaking: Boolean = false,
-    val rms: Float = 0f
+    val rms: Float = 0f,
+    val spokenText: String? = null,
 )
 
 class TextToSpeechService(private val context: Context, private val errorHandler: ErrorHandler) :
@@ -35,11 +36,13 @@ class TextToSpeechService(private val context: Context, private val errorHandler
   private val utteranceListener =
       object : UtteranceProgressListener() {
         override fun onStart(utteranceId: String?) {
-          _uiState.value = _uiState.value.copy(isSpeaking = true, rms = DEFAULT_RMS, error = null)
+          _uiState.value =
+              _uiState.value.copy(
+                  isSpeaking = true, rms = DEFAULT_RMS, error = null, spokenText = pendingText)
         }
 
         override fun onDone(utteranceId: String?) {
-          _uiState.value = _uiState.value.copy(isSpeaking = false, rms = 0f)
+          _uiState.value = _uiState.value.copy(isSpeaking = false, rms = 0f, spokenText = null)
         }
 
         @Deprecated("Deprecated in Java")

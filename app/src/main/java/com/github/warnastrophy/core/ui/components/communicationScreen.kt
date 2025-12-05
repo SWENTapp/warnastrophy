@@ -1,18 +1,6 @@
-/**
- * Communication screen UI for voice interactions.
- *
- * This file provides composable UI used when the app is in a voice communication mode. The screen
- * collects UI state from a provided [SpeechToTextService] and renders:
- * - a back navigation icon;
- * - a status card showing whether the service is listening, the last recognized text and any error;
- * - an animated microphone button that pulses with the RMS level and starts/stops listening.
- *
- * Note: the composables in this file are side-effect free except for the button callback which
- * should start/stop the speech service. The speech service itself owns coroutines and platform
- * resources such as the Android SpeechRecognizer.
- */
 package com.github.warnastrophy.core.ui.components
 
+import VoiceCommunicationViewModel
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -32,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -52,45 +41,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
-import com.github.warnastrophy.core.data.service.SpeechToTextService
-import com.github.warnastrophy.core.data.service.TextToSpeechService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.github.warnastrophy.core.data.service.TextToSpeechUiState
 
-/**
- * Top-level communication screen.
- *
- * The screen collects the [SpeechRecognitionUiState] from the given [speechToTextService] and
- * displays a listening status card and a large animated microphone button. The microphone button
- * callback should call the service to start/stop listening; the service exposes its state as a Flow
- * so the UI updates reactively.
- *
- * Parameters:
- *
- * @param speechToTextService service exposing `uiState: Flow<SpeechRecognitionUiState>` and
- *   `listenForConfirmation()` entry point used to start recognition.
- * @param modifier optional [Modifier] applied to the root Surface.
- * @param onBackClick callback invoked when the back arrow is pressed.
- */
 @Composable
 fun CommunicationScreen(
-    speechToTextService: SpeechToTextService,
-    textToSpeechService: TextToSpeechService,
+    viewModel: VoiceCommunicationViewModel,
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {},
+    onBackClick: () -> Unit = {}
 ) {
-  val uiStateFlowSpeechToText = speechToTextService.uiState.collectAsState()
-  val uiStateSpeechToText = uiStateFlowSpeechToText.value
-
-  val uiStateFlowTextToSpeech = textToSpeechService.uiState.collectAsState()
-  val uiStateTextToSpeech = uiStateFlowTextToSpeech.value
+  val uiState by viewModel.uiState.collectAsState()
+  val speechState = uiState.speechState
+  val textToSpeechState = uiState.textToSpeechState
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.padding(24.dp).fillMaxSize()) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Spacer(modifier = Modifier.size(8.dp))
-
         Text(
             text = stringResource(R.string.communication_screen_title),
             style = MaterialTheme.typography.titleLarge)
@@ -98,33 +64,29 @@ fun CommunicationScreen(
 
       Spacer(modifier = Modifier.height(32.dp))
 
-      ListeningStatusCard(uiState = uiStateSpeechToText)
+      ListeningStatusCard(uiState = speechState)
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      TextToSpeechStatusCard(
+          uiState = textToSpeechState,
+          onSpeakClick = { viewModel.speak("Bonjour, comment puis-je vous aider ?") })
 
       Spacer(modifier = Modifier.height(32.dp))
 
       AnimatedMicButton(
-          uiState = uiStateSpeechToText,
+          uiState = speechState,
           onMicClick = {
-            // Replace CoroutineScope.launch with runBlocking for testing purposes
-            CoroutineScope(Dispatchers.Main).launch {
-              if (!uiStateSpeechToText.isListening) {
-                speechToTextService.listenForConfirmation()
-              }
+            if (speechState.isListening) {
+              viewModel.stopListening()
+            } else {
+              viewModel.startListening()
             }
           })
     }
   }
 }
 
-/**
- * Small card that shows the current listening status, the last recognized text and an error message
- * if present.
- *
- * This composable is pure (no side-effects) and only renders the provided [uiState].
- *
- * @param uiState UI state containing `isListening`, `recognizedText`, `rmsLevel` and
- *   `errorMessage`.
- */
 @Composable
 private fun ListeningStatusCard(uiState: SpeechRecognitionUiState) {
   ElevatedCard(
@@ -153,16 +115,38 @@ private fun ListeningStatusCard(uiState: SpeechRecognitionUiState) {
       }
 }
 
-/**
- * Animated circular microphone button.
- *
- * The central button pulses based on the uiState rms level using a simple spring animation.
- * Pressing the button triggers [onMicClick]. The visual state (pulsing and displayed icon) are
- * driven entirely by the supplied [uiState].
- *
- * @param uiState state used to compute the animation scale (rmsLevel) and the "listening" label.
- * @param onMicClick callback invoked when the user taps the central microphone control.
- */
+@Composable
+private fun TextToSpeechStatusCard(uiState: TextToSpeechUiState, onSpeakClick: () -> Unit) {
+  ElevatedCard(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(24.dp),
+      colors =
+          CardDefaults.elevatedCardColors(
+              containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+        Column(
+            modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+              Text(
+                  text =
+                      if (uiState.isSpeaking)
+                          stringResource(R.string.communication_tts_speaking_label)
+                      else stringResource(R.string.communication_tts_idle_label),
+                  style = MaterialTheme.typography.titleMedium)
+              Text(
+                  text = stringResource(R.string.communication_tts_rms_label, uiState.rms),
+                  style = MaterialTheme.typography.bodyMedium)
+              uiState.error?.let {
+                Text(
+                    text = stringResource(R.string.communication_tts_error_label, it),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium)
+              }
+              Button(onClick = onSpeakClick, enabled = !uiState.isSpeaking) {
+                Text(text = stringResource(R.string.communication_tts_sample_button))
+              }
+            }
+      }
+}
+
 @Composable
 private fun AnimatedMicButton(uiState: SpeechRecognitionUiState, onMicClick: () -> Unit) {
   val animatedScale by

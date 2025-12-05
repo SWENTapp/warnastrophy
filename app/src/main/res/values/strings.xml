@@ -145,4 +145,11 @@
     <string name="navigate_back">Back</string>
 
     <string name="error_activity_repository_failed">Error in activity repository</string>
+
+    <!-- TTS Screen -->
+    <string name="communication_tts_speaking_label">En train de parler</string>
+    <string name="communication_tts_idle_label">Inactif</string>
+    <string name="communication_tts_rms_label">Niveau RMS : %1$.2f</string>
+    <string name="communication_tts_error_label">Erreur : %1$s</string>
+    <string name="communication_tts_sample_button">Lire un exemple</string>
 </resources>
