@@ -196,6 +196,7 @@ class SpeechToTextService(
     speechRecognizer?.stopListening()
     speechRecognizer?.destroy()
     speechRecognizer = null
+    _uiState.value.copy(rmsLevel = 0f)
     _uiState.update { it.copy(isListening = false) }
   }
 }

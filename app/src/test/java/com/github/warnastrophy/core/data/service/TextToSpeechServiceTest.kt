@@ -1,179 +1,151 @@
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context
-import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
-import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
-import java.util.Locale
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import com.github.warnastrophy.core.ui.navigation.Screen
+import io.mockk.Called
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.unmockkAll
+import io.mockk.verify
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
 
-@RunWith(MockitoJUnitRunner::class)
 class TextToSpeechServiceTest {
 
-  @Mock private lateinit var mockContext: Context
+  private lateinit var context: Context
+  private lateinit var errorHandler: ErrorHandler
+  private lateinit var service: TextToSpeechService
+  private lateinit var tts: TextToSpeech
 
   @Before
-  fun setUp() {
-    whenever(mockContext.getString(any())).thenAnswer { "res-${it.arguments.first()}" }
+  fun setup() {
+    mockkConstructor(TextToSpeech::class)
+    every { anyConstructed<TextToSpeech>().shutdown() } returns Unit
+    every { anyConstructed<TextToSpeech>().setOnUtteranceProgressListener(any()) } returns 0
+    every { anyConstructed<TextToSpeech>().language = any() } returns Unit
+
+    context = mockk(relaxed = true)
+    errorHandler = mockk(relaxed = true)
+    tts = mockk(relaxed = true)
+
+    service = TextToSpeechService(context, errorHandler)
+    service.setField("textToSpeech", tts)
+  }
+
+  @After
+  fun tearDown() {
+    unmockkAll()
   }
 
   @Test
-  fun `speak with blank text reports error and skips engine`() {
-    val errorHandler = ErrorHandler()
-    val fakeEngine = FakeEngine()
-    val service = createService(fakeEngine, errorHandler)
-
-    service.onInit(TextToSpeech.SUCCESS)
+  fun `speak blank text does nothing`() {
+    service.setField("isInitialized", true)
     service.speak("   ")
-
-    assertEquals(
-        "res-${R.string.error_text_to_speech_empty_input}", service.uiState.value.errorMessage)
-    assertNull(fakeEngine.lastSpokenText)
-    assertTrue(
-        errorHandler.state.value.errors.any {
-          it.type == ErrorType.TEXT_TO_SPEECH_ERROR &&
-              it.screenTypes.contains(com.github.warnastrophy.core.ui.navigation.Screen.Dashboard)
-        })
+    verify { tts wasNot Called }
   }
 
   @Test
-  fun `speak queues until initialization completes`() {
-    val fakeEngine = FakeEngine()
-    val service = createService(fakeEngine)
-
-    service.speak("hello")
-    assertNull(fakeEngine.lastSpokenText)
-
-    service.onInit(TextToSpeech.SUCCESS)
-    assertEquals("hello", fakeEngine.lastSpokenText)
+  fun `pending text is saved before initialization`() {
+    service.setField("isInitialized", false)
+    service.speak("pending review")
+    assertEquals("pending review", service.getField("pendingText"))
   }
 
   @Test
-  fun `successful speak updates ui state via progress callbacks`() {
-    val fakeEngine = FakeEngine()
-    val service = createService(fakeEngine)
+  fun `speak triggers engine when initialized`() {
+    service.setField("isInitialized", true)
+    every { tts.speak(any(), any(), any(), any()) } returns TextToSpeech.SUCCESS
 
-    service.onInit(TextToSpeech.SUCCESS)
-    service.speak("world")
-    assertNull(service.uiState.value.lastText)
+    service.speak("ready to speak")
 
-    fakeEngine.listener?.onStart("id")
+    verify { tts.speak("ready to speak", TextToSpeech.QUEUE_FLUSH, null, any()) }
     assertTrue(service.uiState.value.isSpeaking)
-
-    fakeEngine.listener?.onDone("id")
-    assertEquals("world", service.uiState.value.lastText)
-    assertEquals(0f, service.uiState.value.rmsLevel)
-    assertTrue(!service.uiState.value.isSpeaking)
   }
 
   @Test
-  fun `engine speak error surfaces to ui`() {
-    val fakeEngine = FakeEngine().apply { speakResult = TextToSpeech.ERROR }
-    val errorHandler = ErrorHandler()
-    val service = createService(fakeEngine, errorHandler)
+  fun `speak reports error when text to speech fails`() {
+    service.setField("isInitialized", true)
+    every { tts.speak(any(), any(), any(), any()) } returns TextToSpeech.ERROR
+
+    service.speak("bad request")
+
+    assertEquals("There was an error during speech synthesis.", service.uiState.value.errorMessage)
+    verify(exactly = 1) {
+      errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
+    }
+  }
+
+  @Test
+  fun `onInit success processes pending text`() {
+    service.setField("pendingText", "queued message")
+    every { tts.speak(any(), any(), any(), any()) } returns TextToSpeech.SUCCESS
 
     service.onInit(TextToSpeech.SUCCESS)
-    service.speak("issue")
 
-    assertEquals("res-${R.string.error_text_to_speech_failed}", service.uiState.value.errorMessage)
-    assertTrue(errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
+    verify { tts.setOnUtteranceProgressListener(any()) }
+    verify { tts.speak("queued message", TextToSpeech.QUEUE_FLUSH, null, any()) }
+    assertTrue(service.uiState.value.isSpeaking)
   }
 
   @Test
-  fun `language not supported during init reports error`() {
-    val fakeEngine = FakeEngine(languageResult = TextToSpeech.LANG_NOT_SUPPORTED)
-    val errorHandler = ErrorHandler()
-
-    val service = createService(fakeEngine, errorHandler)
-
+  fun `onInit failure reports initialization error`() {
+    service.onInit(TextToSpeech.ERROR)
     assertEquals(
-        "res-${R.string.error_text_to_speech_unavailable}", service.uiState.value.errorMessage)
-    assertTrue(errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
+        "There was an error during speech initialization.", service.uiState.value.errorMessage)
+    verify(exactly = 1) {
+      errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
+    }
   }
 
   @Test
-  fun `updateRmsLevel clamps negative values`() {
-    val service = createService(FakeEngine())
+  fun `utterance listener updates state lifecycle`() {
+    val listener = service.getField<UtteranceProgressListener>("utteranceListener")
+    service.setField("pendingText", "spoken text")
 
-    service.updateRmsLevel(-5f)
-    assertEquals(0f, service.uiState.value.rmsLevel)
+    listener.onStart("id")
+    assertTrue(service.uiState.value.isSpeaking)
+    assertEquals(20f, service.uiState.value.rms)
+    assertEquals("spoken text", service.uiState.value.spokenText)
+
+    listener.onDone("id")
+    assertFalse(service.uiState.value.isSpeaking)
+    assertNull(service.uiState.value.spokenText)
+
+    listener.onError("id")
+    assertEquals("There was an error during speech synthesis.", service.uiState.value.errorMessage)
+    verify(exactly = 1) {
+      errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
+    }
   }
 
   @Test
-  fun `destroy stops engine and resets state`() {
-    val fakeEngine = FakeEngine()
-    val service = createService(fakeEngine)
-
-    service.onInit(TextToSpeech.SUCCESS)
-    service.speak("bye")
-    fakeEngine.listener?.onStart("id")
-
+  fun `destroy resets state and shuts down engine`() {
+    service.setField("isInitialized", true)
     service.destroy()
 
-    assertTrue(fakeEngine.stopCalled)
-    assertTrue(fakeEngine.shutdownCalled)
+    verify { tts.shutdown() }
     assertEquals(TextToSpeechUiState(), service.uiState.value)
   }
 
-  @Test
-  fun `progress listener error routes through handler`() {
-    val fakeEngine = FakeEngine()
-    val errorHandler = ErrorHandler()
-    val service = createService(fakeEngine, errorHandler)
-
-    service.onInit(TextToSpeech.SUCCESS)
-    service.speak("test")
-
-    fakeEngine.listener?.onError("id")
-
-    assertEquals("res-${R.string.error_text_to_speech_failed}", service.uiState.value.errorMessage)
-    assertTrue(errorHandler.state.value.errors.any { it.type == ErrorType.TEXT_TO_SPEECH_ERROR })
+  private fun TextToSpeechService.setField(fieldName: String, value: Any?) {
+    val field = TextToSpeechService::class.java.getDeclaredField(fieldName)
+    field.isAccessible = true
+    field.set(this, value)
   }
 
-  private fun createService(
-      engine: FakeEngine,
-      handler: ErrorHandler = ErrorHandler()
-  ): TextToSpeechService {
-    return TextToSpeechService(mockContext, handler) { _, _ -> engine }
-  }
-
-  private class FakeEngine(private var languageResult: Int = TextToSpeech.LANG_AVAILABLE) :
-      TextToSpeechEngine {
-    var listener: UtteranceProgressListener? = null
-    var lastSpokenText: String? = null
-    var stopCalled = false
-    var shutdownCalled = false
-    var speakResult: Int = TextToSpeech.SUCCESS
-
-    override fun setLanguage(locale: Locale): Int = languageResult
-
-    override fun setOnUtteranceProgressListener(listener: UtteranceProgressListener) {
-      this.listener = listener
-    }
-
-    override fun speak(text: String, queueMode: Int, params: Bundle?, utteranceId: String): Int {
-      lastSpokenText = text
-      return speakResult
-    }
-
-    override fun stop() {
-      stopCalled = true
-    }
-
-    override fun shutdown() {
-      shutdownCalled = true
-    }
+  private fun <T> TextToSpeechService.getField(fieldName: String): T {
+    val field = TextToSpeechService::class.java.getDeclaredField(fieldName)
+    field.isAccessible = true
+    @Suppress("UNCHECKED_CAST") return field.get(this) as T
   }
 }

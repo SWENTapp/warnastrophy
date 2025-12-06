@@ -42,8 +42,15 @@ import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
 import com.github.warnastrophy.core.data.service.TextToSpeechUiState
-import kotlin.math.max
 
+/**
+ * Displays the communication screen for voice interactions, including listening and speaking
+ * status, a sample speak button, and an animated microphone button.
+ *
+ * @param viewModel The ViewModel managing voice communication state.
+ * @param modifier Modifier for the composable.
+ * @param onBackClick Callback for back navigation (currently unused).
+ */
 @Composable
 fun CommunicationScreen(
     viewModel: VoiceCommunicationViewModel,
@@ -53,6 +60,14 @@ fun CommunicationScreen(
   val uiState by viewModel.uiState.collectAsState()
   val speechState = uiState.speechState
   val textToSpeechState = uiState.textToSpeechState
+  val rms =
+      if (speechState.isListening) {
+        speechState.rmsLevel
+      } else if (textToSpeechState.isSpeaking) {
+        textToSpeechState.rms
+      } else {
+        0f
+      }
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.padding(24.dp).fillMaxSize()) {
@@ -65,17 +80,18 @@ fun CommunicationScreen(
 
       Spacer(modifier = Modifier.height(32.dp))
 
-      ListeningStatusCard(uiState = speechState)
+      VoiceStatusCard(speechUiState = speechState, listenUiState = textToSpeechState)
 
       Spacer(modifier = Modifier.height(16.dp))
 
-      TextToSpeechStatusCard(
-          uiState = textToSpeechState, onSpeakClick = { viewModel.speak("Fuck you bitch") })
+      Button(onClick = { viewModel.speak("small dog") }, enabled = true) {
+        Text(text = stringResource(R.string.communication_tts_sample_button))
+      }
 
       Spacer(modifier = Modifier.height(32.dp))
 
       AnimatedMicButton(
-          rms = max(speechState.rmsLevel, textToSpeechState.rms),
+          rms = rms,
           onMicClick = {
             if (speechState.isListening) {
               viewModel.stopListening()
@@ -87,8 +103,34 @@ fun CommunicationScreen(
   }
 }
 
+/**
+ * Displays the current voice status card, showing listening or speaking state, text, and errors.
+ *
+ * @param speechUiState The state of speech recognition.
+ * @param listenUiState The state of text-to-speech.
+ */
 @Composable
-private fun ListeningStatusCard(uiState: SpeechRecognitionUiState) {
+private fun VoiceStatusCard(
+    speechUiState: SpeechRecognitionUiState,
+    listenUiState: TextToSpeechUiState
+) {
+  var voiceText: String
+  var voiceLabel: String
+  var error: String? = null
+
+  if (speechUiState.isListening) {
+    voiceText = speechUiState.recognizedText ?: ""
+    voiceLabel = stringResource(R.string.communication_listening_label)
+    error = speechUiState.errorMessage
+  } else if (listenUiState.isSpeaking) {
+    voiceText = listenUiState.spokenText ?: ""
+    voiceLabel = stringResource(R.string.communication_tts_speaking_label)
+    error = listenUiState.errorMessage
+  } else {
+    voiceText = ""
+    voiceLabel = "Nothing going on"
+    error = listenUiState.errorMessage
+  }
   ElevatedCard(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
@@ -97,56 +139,24 @@ private fun ListeningStatusCard(uiState: SpeechRecognitionUiState) {
               containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
         Column(
             modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+              Text(text = voiceLabel, style = MaterialTheme.typography.titleMedium)
               Text(
-                  text =
-                      if (uiState.isListening)
-                          stringResource(R.string.communication_listening_label)
-                      else stringResource(R.string.communication_idle_label),
-                  style = MaterialTheme.typography.titleMedium)
-              Text(
-                  text =
-                      uiState.recognizedText
-                          ?: stringResource(R.string.communication_no_input_hint),
+                  text = voiceText,
                   style = MaterialTheme.typography.bodyLarge,
                   color = MaterialTheme.colorScheme.onSecondaryContainer,
                   textAlign = TextAlign.Start)
-              uiState.errorMessage?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
+              if (error != null) Text(text = error, color = MaterialTheme.colorScheme.error)
             }
       }
 }
 
-@Composable
-private fun TextToSpeechStatusCard(uiState: TextToSpeechUiState, onSpeakClick: () -> Unit) {
-  ElevatedCard(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(24.dp),
-      colors =
-          CardDefaults.elevatedCardColors(
-              containerColor = MaterialTheme.colorScheme.primaryContainer)) {
-        Column(
-            modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-              Text(
-                  text =
-                      if (uiState.isSpeaking)
-                          stringResource(R.string.communication_tts_speaking_label)
-                      else stringResource(R.string.communication_tts_idle_label),
-                  style = MaterialTheme.typography.titleMedium)
-              Text(
-                  text = stringResource(R.string.communication_tts_rms_label, uiState.rms),
-                  style = MaterialTheme.typography.bodyMedium)
-              uiState.error?.let {
-                Text(
-                    text = stringResource(R.string.communication_tts_error_label, it),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium)
-              }
-              Button(onClick = onSpeakClick, enabled = !uiState.isSpeaking) {
-                Text(text = stringResource(R.string.communication_tts_sample_button))
-              }
-            }
-      }
-}
-
+/**
+ * Displays an animated microphone button that scales based on RMS level and handles click to
+ * start/stop listening.
+ *
+ * @param rms The RMS level for animation scaling.
+ * @param onMicClick Callback for microphone button click.
+ */
 @Composable
 private fun AnimatedMicButton(rms: Float, onMicClick: () -> Unit) {
   val animatedScale by
