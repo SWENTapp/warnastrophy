@@ -11,21 +11,32 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertTrue
+import kotlinx.coroutines.test.setMain
+import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VoiceCommunicationViewModelTest {
+
+  @get:Rule val mainDispatcherRule = MainDispatcherRule()
+
   private lateinit var speechToTextService: SpeechToTextService
   private lateinit var textToSpeechService: TextToSpeechService
   private lateinit var speechFlow: MutableStateFlow<SpeechRecognitionUiState>
   private lateinit var ttsFlow: MutableStateFlow<TextToSpeechUiState>
-  private lateinit var viewModel: VoiceCommunicationViewModel
+  private lateinit var viewModel: TestableVoiceCommunicationViewModel
 
   @Before
   fun setup() {
@@ -35,31 +46,35 @@ class VoiceCommunicationViewModelTest {
     speechToTextService = mockk(relaxed = true)
     textToSpeechService = mockk(relaxed = true)
 
+    every { speechToTextService.uiState } returns speechFlow
+    every { textToSpeechService.uiState } returns ttsFlow
+
     coEvery { speechToTextService.listenForConfirmation() } returns true
     justRun { speechToTextService.destroy() }
     justRun { textToSpeechService.destroy() }
     justRun { textToSpeechService.speak(any()) }
 
-    every { speechToTextService.uiState } returns speechFlow
-    every { textToSpeechService.uiState } returns ttsFlow
-
-    viewModel = VoiceCommunicationViewModel(speechToTextService, textToSpeechService)
+    viewModel = TestableVoiceCommunicationViewModel(speechToTextService, textToSpeechService)
   }
 
   @Test
-  fun `combined state reflects each service updates`() = runTest {
-    speechFlow.value = SpeechRecognitionUiState(isListening = true)
-    ttsFlow.value = TextToSpeechUiState(isSpeaking = true)
+  fun `ui state mirrors upstream flows`() = runTest {
+    val speechState = SpeechRecognitionUiState(isListening = true, recognizedText = "yes")
+    val ttsState = TextToSpeechUiState(isSpeaking = true, spokenText = "hello")
+
+    speechFlow.value = speechState
+    ttsFlow.value = ttsState
     advanceUntilIdle()
 
-    val currentState = viewModel.uiState.value
-    assertTrue(currentState.speechState.isListening)
-    assertTrue(currentState.textToSpeechState.isSpeaking)
+    val combined = viewModel.uiState.value
+    assertEquals(speechState, combined.speechState)
+    assertEquals(ttsState, combined.textToSpeechState)
   }
 
   @Test
-  fun `startListening calls listen when not already listening`() = runTest {
+  fun `startListening invokes speech service when idle`() = runTest {
     speechFlow.value = SpeechRecognitionUiState(isListening = false)
+
     viewModel.startListening()
     advanceUntilIdle()
 
@@ -67,8 +82,9 @@ class VoiceCommunicationViewModelTest {
   }
 
   @Test
-  fun `startListening is no-op when already listening`() = runTest {
+  fun `startListening is skipped when already listening`() = runTest {
     speechFlow.value = SpeechRecognitionUiState(isListening = true)
+
     viewModel.startListening()
     advanceUntilIdle()
 
@@ -78,21 +94,44 @@ class VoiceCommunicationViewModelTest {
   @Test
   fun `stopListening destroys speech service`() = runTest {
     viewModel.stopListening()
+
     verify(exactly = 1) { speechToTextService.destroy() }
   }
 
   @Test
-  fun `speak delegates text to textToSpeechService`() = runTest {
-    viewModel.speak("hello world")
+  fun `speak delegates to text to speech`() = runTest {
+    val expected = "hello there"
 
-    verify { textToSpeechService.speak("hello world") }
+    viewModel.speak(expected)
+
+    verify { textToSpeechService.speak(expected) }
   }
 
   @Test
-  fun `onCleared releases both services`() = runTest {
-    viewModel.clear()
+  fun `onCleared destroys both services`() = runTest {
+    viewModel.invokeOnCleared()
 
     verify { speechToTextService.destroy() }
     verify { textToSpeechService.destroy() }
+  }
+
+  private class TestableVoiceCommunicationViewModel(
+      speechToTextService: SpeechToTextService,
+      textToSpeechService: TextToSpeechService
+  ) : VoiceCommunicationViewModel(speechToTextService, textToSpeechService) {
+    fun invokeOnCleared() = super.onCleared()
+  }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class MainDispatcherRule(private val dispatcher: TestDispatcher = UnconfinedTestDispatcher()) :
+    TestWatcher() {
+
+  override fun starting(description: Description) {
+    Dispatchers.setMain(dispatcher)
+  }
+
+  override fun finished(description: Description) {
+    Dispatchers.resetMain()
   }
 }
