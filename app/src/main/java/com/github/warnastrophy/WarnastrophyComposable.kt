@@ -155,7 +155,12 @@ fun WarnastrophyComposable(
                           ?: MapScreen(viewModel = mapViewModel, isPreview = true)
                     },
                     onHealthCardClick = { navigationActions.navigateTo(Screen.HealthCard) },
-                    onEmergencyContactsClick = { navigationActions.navigateTo(Screen.ContactList) },
+                    onEmergencyContactsCardClick = {
+                      navigationActions.navigateTo(Screen.ContactList)
+                    },
+                    onEmergencyContactsItemClick = {
+                      navigationActions.navigateTo(Screen.EditContact(it.id))
+                    },
                     onManageActivitiesClick = {
                       navigationActions.navigateTo(Screen.ActivitiesList)
                     })

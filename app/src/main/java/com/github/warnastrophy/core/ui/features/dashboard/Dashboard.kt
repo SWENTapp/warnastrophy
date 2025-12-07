@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.ui.features.contact.ContactPopUp
 import com.github.warnastrophy.core.ui.features.health.HealthCardPopUp
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.extendedColors
@@ -39,12 +40,14 @@ object DashboardScreenTestTags {
 fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
     onHealthCardClick: () -> Unit = {},
-    onEmergencyContactsClick: () -> Unit = {},
+    onEmergencyContactsCardClick: () -> Unit = {},
+    onEmergencyContactsItemClick: () -> Unit = {},
     onManageActivitiesClick: () -> Unit = {},
     hazardsService: HazardsDataService,
     userId: String
 ) {
   var showHealthCard by remember { mutableStateOf(false) }
+  var showContactCard by remember { mutableStateOf(false) }
 
   Scaffold(containerColor = MaterialTheme.extendedColors.backgroundOffWhite) { innerPadding ->
     Column(
@@ -74,7 +77,7 @@ fun DashboardScreen(
                     Modifier.fillMaxWidth().testTag(DashboardScreenTestTags.ROW_TWO_SMALL_CARDS),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                   DashboardEmergencyContactsCardStateful(
-                      onManageContactsClick = { onEmergencyContactsClick() },
+                      onManageContactsClick = { showContactCard = true },
                       modifier =
                           Modifier.weight(1f).testTag(DashboardEmergencyContactsTestTags.CARD))
                   DashboardHealthCardStateful(
@@ -92,7 +95,10 @@ fun DashboardScreen(
           }
         }
 
-    val onDismiss = { showHealthCard = false }
+    val onDismiss = {
+      showContactCard = false
+      showHealthCard = false
+    }
 
     if (showHealthCard) {
       HealthCardPopUp(
@@ -101,6 +107,20 @@ fun DashboardScreen(
           onClick = {
             onDismiss()
             onHealthCardClick()
+          })
+    }
+
+    if (showContactCard) {
+      ContactPopUp(
+          userId = userId,
+          onDismissRequest = { onDismiss() },
+          onClick = {
+            onDismiss()
+            onEmergencyContactsCardClick()
+          },
+          onContactClick = { // TODO
+            //                    onDismiss()
+            //                    onEmergencyContactsItemClick()
           })
     }
   }

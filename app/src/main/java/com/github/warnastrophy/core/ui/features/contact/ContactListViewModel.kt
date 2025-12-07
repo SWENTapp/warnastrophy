@@ -2,6 +2,7 @@ package com.github.warnastrophy.core.ui.features.contact
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
@@ -75,5 +76,16 @@ class ContactListViewModel(
             setErrorMsg("Failed to load contacts: ${e.message}")
           })
     }
+  }
+}
+
+/** Factory for creating a ContactListViewModel with a userId parameter. */
+@Suppress("UNCHECKED_CAST")
+class ContactListViewModelFactory(private val userId: String) : ViewModelProvider.Factory {
+  override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    if (modelClass.isAssignableFrom(ContactListViewModel::class.java)) {
+      return ContactListViewModel(userId = userId) as T
+    }
+    throw IllegalArgumentException("Unknown ViewModel class")
   }
 }

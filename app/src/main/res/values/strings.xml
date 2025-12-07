@@ -84,7 +84,7 @@
 
     <!-- Health Card Pop-Up -->
     <string name="health_card_popup_title">HEALTH CARD</string>
-    <string name="health_card_popup_edit_button">Edit/Show Full</string>
+    <string name="health_card_popup_edit_button">Edit/View all</string>
     <string name="health_card_popup_edit_button_cd">Go to full health card</string>
     <string name="health_card_popup_empty_text">Empty Health Card</string>
 
@@ -107,7 +107,8 @@
     <string name="health_card_deleted_message">Deleted</string>
 
     <!-- Emergency Contact Pop-Up -->
-    <string name="emergency_contacts_title">Emergency Contacts</string>
+    <string name="emergency_contacts_title">EMERGENCY CONTACTS</string>
+    <string name="emergency_contacts_show_full_button">View all</string>
 
     <!-- Emergency Contact -->
     <string name="emergency_contact_empty_list">"No contacts found. Tap '+' to add one."</string>
@@ -143,7 +144,7 @@
     <string name="description_third_page">To monitor your location in the background and send emergency texts, we need location and SMS permission. We use these data only for your safety.</string>
     <string name="title_third_page">Ready for Protection?</string>
 
-    <!-- communiction screen-->
+    <!-- communication screen-->
     <string name="communication_screen_title">Voice command</string>
     <string name="communication_listening_label">Listening…</string>
     <string name="communication_idle_label">Tap the mic to start listening</string>
