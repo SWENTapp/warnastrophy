@@ -33,8 +33,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Contact
 
 object ContactListScreenTestTags {
@@ -71,7 +73,8 @@ private fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
                 Text(text = contact.fullName, style = MaterialTheme.typography.titleMedium)
                 // Relationship
                 Text(
-                    text = "Relationship: ${contact.relationship}",
+                    text =
+                        "${stringResource(R.string.emergency_contact_relationship)}: ${contact.relationship}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
               }
@@ -82,7 +85,7 @@ private fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
               Row {
                 Icon(
                     imageVector = Icons.Default.Phone,
-                    contentDescription = "Phone",
+                    contentDescription = stringResource(R.string.emergency_contact_phone_number),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp).padding(end = 4.dp))
                 Text(text = contact.phoneNumber, style = MaterialTheme.typography.bodyMedium)
@@ -131,7 +134,7 @@ fun ContactListScreen(
         FloatingActionButton(
             onClick = { onAddButtonClick() },
             modifier = Modifier.testTag(ContactListScreenTestTags.ADD_CONTACT_BUTTON)) {
-              Icon(Icons.Filled.Add, contentDescription = "Add Contact")
+              Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_button))
             }
       }) { paddingValues ->
         if (contacts.isEmpty()) {
@@ -139,7 +142,7 @@ fun ContactListScreen(
               modifier = Modifier.fillMaxSize().padding(paddingValues),
               verticalArrangement = Arrangement.Center,
               horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("No contacts found. Tap '+' to add one.")
+                Text(stringResource(R.string.emergency_contact_empty_list))
               }
         } else {
           LazyColumn(

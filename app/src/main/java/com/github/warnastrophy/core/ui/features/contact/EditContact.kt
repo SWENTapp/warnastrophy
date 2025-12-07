@@ -21,8 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.warnastrophy.R
 
 object EditContactTestTags {
   const val INPUT_FULL_NAME = "inputFullName"
@@ -77,7 +79,7 @@ fun EditContactScreen(
       modifier = Modifier.fillMaxSize().padding(16.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Edit Contact Form",
+            text = stringResource(R.string.emergency_contact_edit_contact_title),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 32.dp))
 
@@ -85,7 +87,7 @@ fun EditContactScreen(
         OutlinedTextField(
             value = contactUIState.fullName,
             onValueChange = { editContactViewModel.setFullName(it) },
-            label = { Text("Full Name") },
+            label = { Text(stringResource(R.string.emergency_contact_name)) },
             isError = contactUIState.invalidFullNameMsg != null,
             supportingText = {
               contactUIState.invalidFullNameMsg?.let {
@@ -101,7 +103,7 @@ fun EditContactScreen(
         OutlinedTextField(
             value = contactUIState.phoneNumber,
             onValueChange = { editContactViewModel.setPhoneNumber(it) },
-            label = { Text("Phone number") },
+            label = { Text(stringResource(R.string.emergency_contact_phone_number)) },
             // Note: Use KeyboardOptions to hint at numeric input
             // keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             isError = contactUIState.invalidPhoneNumberMsg != null,
@@ -119,7 +121,7 @@ fun EditContactScreen(
         OutlinedTextField(
             value = contactUIState.relationship,
             onValueChange = { editContactViewModel.setRelationship(it) },
-            label = { Text("Relationship (e.g., family, friend, doctor, etc.)") },
+            label = { Text(stringResource(R.string.emergency_contact_relationship_with_examples)) },
             isError = contactUIState.invalidRelationshipMsg != null,
             supportingText = {
               contactUIState.invalidRelationshipMsg?.let {
@@ -137,7 +139,7 @@ fun EditContactScreen(
             enabled = isSaveButtonValid,
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.SAVE_BUTTON)) {
-              Text("Save Contact")
+              Text(stringResource(R.string.emergency_contact_save_contact_button))
             }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -152,7 +154,7 @@ fun EditContactScreen(
                     disabledContentColor = Color.DarkGray),
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(EditContactTestTags.DELETE_BUTTON)) {
-              Text("Delete", color = Color.White)
+              Text(stringResource(R.string.delete_button), color = Color.White)
             }
       }
 }

@@ -18,10 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.warnastrophy.core.util.AppConfig
+import com.github.warnastrophy.R
 
 object AddContactTestTags {
   const val INPUT_FULL_NAME = "inputFullName"
@@ -72,7 +72,7 @@ fun AddContactScreen(
       modifier = Modifier.fillMaxSize().padding(16.dp),
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Add Contact Form",
+            text = stringResource(R.string.emergency_contact_add_contact_title),
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 32.dp))
 
@@ -80,7 +80,7 @@ fun AddContactScreen(
         OutlinedTextField(
             value = contactUIState.fullName,
             onValueChange = { addContactViewModel.setFullName(it) },
-            label = { Text("Full Name") },
+            label = { Text(stringResource(R.string.emergency_contact_name)) },
             isError = contactUIState.invalidFullNameMsg != null,
             supportingText = {
               contactUIState.invalidFullNameMsg?.let {
@@ -96,7 +96,7 @@ fun AddContactScreen(
         OutlinedTextField(
             value = contactUIState.phoneNumber,
             onValueChange = { addContactViewModel.setPhoneNumber(it) },
-            label = { Text("Phone number") },
+            label = { Text(stringResource(R.string.emergency_contact_phone_number)) },
             // Note: Use KeyboardOptions to hint at numeric input
             // keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             isError = contactUIState.invalidPhoneNumberMsg != null,
@@ -114,7 +114,7 @@ fun AddContactScreen(
         OutlinedTextField(
             value = contactUIState.relationship,
             onValueChange = { addContactViewModel.setRelationShip(it) },
-            label = { Text("Relationship (e.g., family, friend, doctor, etc.)") },
+            label = { Text(stringResource(R.string.emergency_contact_relationship_with_examples)) },
             isError = contactUIState.invalidRelationshipMsg != null,
             supportingText = {
               contactUIState.invalidRelationshipMsg?.let {
@@ -128,21 +128,11 @@ fun AddContactScreen(
 
         // --- Save Button with Validation ---
         Button(
-            onClick = {
-              addContactViewModel.addContact()
-              // TODO: Add navigate back here
-            },
+            onClick = { addContactViewModel.addContact() },
             enabled = isSaveButtonValid,
             modifier =
                 Modifier.fillMaxWidth().height(50.dp).testTag(AddContactTestTags.SAVE_BUTTON)) {
-              Text("Save Contact")
+              Text(stringResource(R.string.emergency_contact_save_contact_button))
             }
       }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AddContactScreenPreview() {
-  // Assuming you have a MainAppTheme or just use the system default
-  MaterialTheme { AddContactScreen(userId = AppConfig.defaultUserId) }
 }
