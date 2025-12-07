@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.features.contact.ContactPopUp
 import com.github.warnastrophy.core.ui.features.health.HealthCardPopUp
 import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
@@ -41,7 +42,7 @@ fun DashboardScreen(
     mapScreen: (@Composable () -> Unit)? = null,
     onHealthCardClick: () -> Unit = {},
     onEmergencyContactsCardClick: () -> Unit = {},
-    onEmergencyContactsItemClick: () -> Unit = {},
+    onEmergencyContactsItemClick: (Contact) -> Unit = {},
     onManageActivitiesClick: () -> Unit = {},
     hazardsService: HazardsDataService,
     userId: String
@@ -118,9 +119,9 @@ fun DashboardScreen(
             onDismiss()
             onEmergencyContactsCardClick()
           },
-          onContactClick = { // TODO
-            //                    onDismiss()
-            //                    onEmergencyContactsItemClick()
+          onContactClick = {
+            onDismiss()
+            onEmergencyContactsItemClick(it)
           })
     }
   }
