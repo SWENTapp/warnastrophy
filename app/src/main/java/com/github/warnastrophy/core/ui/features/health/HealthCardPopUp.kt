@@ -133,14 +133,14 @@ fun HealthCardPopUp(
                             text = stringResource(id = R.string.health_card_popup_edit_button),
                             color = healthCardColors.secondary,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 12.sp)
+                            fontSize = 14.sp)
                         Spacer(Modifier.width(3.dp))
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription =
                                 stringResource(id = R.string.health_card_popup_edit_button_cd),
                             tint = healthCardColors.secondary,
-                            modifier = Modifier.size(12.dp))
+                            modifier = Modifier.size(14.dp))
                       }
                 }
 
