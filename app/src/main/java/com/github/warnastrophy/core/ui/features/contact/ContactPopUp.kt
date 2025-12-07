@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,7 +20,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,19 +45,22 @@ import com.github.warnastrophy.core.ui.theme.extendedColors
 /**
  * A composable function that displays a list of emergency contacts in a dialog pop-up.
  *
- * This dialog fetches the contact list using the [ContactListViewModel]. It shows a title and an
- * "Add" button that triggers the [onAddContactClick] lambda. The main content area displays a list
- * of contacts or a message if the list is empty. The pop-up can be dismissed via
- * [onDismissRequest].
+ * This dialog fetches the contact list using the [ContactListViewModel]. It shows a title and a
+ * forward arrow button that triggers the [onClick] lambda, which can be used to navigate to the
+ * full contact list view. The main content area displays a list of contacts, an empty state
+ * message, or an error message. Each contact in the list is clickable, triggering [onContactClick].
+ * The pop-up can be dismissed via [onDismissRequest].
  *
  * @param userId The unique identifier for the user whose contacts are to be displayed.
  * @param onDismissRequest A lambda function to be invoked when the user requests to dismiss the
  *   dialog.
- * @param onAddContactClick A lambda function to be invoked when the "Add" button is clicked.
+ * @param onClick A lambda function to be invoked when the forward arrow button is clicked,
+ *   typically for navigation.
+ * @param onContactClick A lambda function to be invoked when a specific contact item is clicked,
+ *   passing the [Contact] object.
  * @param viewModel An instance of [ContactListViewModel] used to fetch and manage the contact list.
  */
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun ContactPopUp(
     userId: String,
     onDismissRequest: () -> Unit,
@@ -114,6 +118,16 @@ fun ContactPopUp(
   }
 }
 
+/**
+ * A composable that displays a scrollable list of contacts.
+ *
+ * This function uses a `LazyColumn` to efficiently display a list of [Contact] objects. Each
+ * contact is rendered using the [ContactItem] composable.
+ *
+ * @param contacts The list of [Contact] objects to be displayed.
+ * @param onClick A lambda function to be invoked when a contact item is clicked, passing the
+ *   corresponding [Contact] object.
+ */
 @Composable
 private fun ContactList(contacts: List<Contact>, onClick: (Contact) -> Unit) {
   LazyColumn(modifier = Modifier.padding(8.dp)) {
@@ -124,6 +138,12 @@ private fun ContactList(contacts: List<Contact>, onClick: (Contact) -> Unit) {
   }
 }
 
+/**
+ * A composable that displays a single contact item in a card layout.
+ *
+ * @param contact The [Contact] object containing the data to be displayed.
+ * @param onClick A lambda function to be invoked when the contact item is clicked.
+ */
 @Composable
 private fun ContactItem(contact: Contact, onClick: () -> Unit) {
   val colors = MaterialTheme.extendedColors.healthCardPopUp
@@ -167,22 +187,32 @@ private fun ContactItem(contact: Contact, onClick: () -> Unit) {
   }
 }
 
+/**
+ * A composable function that displays a message indicating that the emergency contact list is
+ * empty.
+ */
 @Composable
 private fun EmptyState() {
   Column(
-      modifier = Modifier.fillMaxWidth().padding(16.dp),
+      modifier = Modifier.fillMaxSize(),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = stringResource(R.string.emergency_contact_empty_list),
-            color = MaterialTheme.extendedColors.healthCardPopUp.fieldText)
+            text = stringResource(id = R.string.emergency_contacts_popup_empty),
+            color = MaterialTheme.extendedColors.healthCardPopUp.fieldText,
+            modifier = Modifier.testTag("TODO"))
       }
 }
 
+/**
+ * A composable function that displays a centered error message.
+ *
+ * @param message The specific error message string to be displayed.
+ */
 @Composable
 private fun ErrorState(message: String) {
   Column(
-      modifier = Modifier.fillMaxWidth().padding(16.dp),
+      modifier = Modifier.fillMaxSize(),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = message, color = MaterialTheme.colorScheme.error)

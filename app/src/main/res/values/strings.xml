@@ -109,6 +109,7 @@
     <!-- Emergency Contact Pop-Up -->
     <string name="emergency_contacts_title">EMERGENCY CONTACTS</string>
     <string name="emergency_contacts_show_full_button">View all</string>
+    <string name="emergency_contacts_popup_empty">No contacts found</string>
 
     <!-- Emergency Contact -->
     <string name="emergency_contact_empty_list">"No contacts found. Tap '+' to add one."</string>
