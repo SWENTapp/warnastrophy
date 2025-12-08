@@ -1,35 +1,61 @@
 package com.github.warnastrophy.core.ui.features.map
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.ui.features.dashboard.getImageForEvent
 import com.github.warnastrophy.core.util.GeometryParser
+import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMapComposable
-import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.MarkerInfoWindowContent
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberMarkerState
+import java.util.Locale
 
 val Tint = SemanticsPropertyKey<Color>("Tint")
 var SemanticsPropertyReceiver.tint by Tint
@@ -70,6 +96,8 @@ enum class MapIcon(@DrawableRes val resId: Int?, val tag: String) {
   }
 }
 
+val LocalOnHazardClick = staticCompositionLocalOf<(Hazard) -> Unit> { {} }
+
 /**
  * Composable function to display a hazard marker on the map.
  *
@@ -89,8 +117,87 @@ fun HazardMarker(
             title: String?,
             snippet: String?,
             content: @Composable () -> Unit) -> Unit =
-        { state, title, snippet, content ->
-          MarkerComposable(state = state, title = title, snippet = snippet) { content() }
+        { state, title, snippet, _ /* we ignore content here for default impl */ ->
+          val ctx = LocalContext.current
+          MarkerInfoWindowContent(
+              state = state,
+              title = title,
+              snippet = snippet,
+              onClick = { false }, // keep default: click opens info window
+              onInfoWindowClick = {
+                // Open the news article in browser if available
+                hazard.articleUrl?.let { url ->
+                  val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                  ContextCompat.startActivity(ctx, intent, null)
+                }
+              }) { _ /* marker */ ->
+                // ✅ Custom info window content (only visible when marker is selected)
+                Column(
+                    modifier =
+                        Modifier.widthIn(max = 260.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
+                            .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)) {
+
+                      // Top row: small image + title
+                      Row(
+                          horizontalArrangement = Arrangement.spacedBy(8.dp),
+                          verticalAlignment = Alignment.CenterVertically) {
+                            // Use your HazardNewsImage with a fixed, small size
+                            HazardNewsImage(hazard = hazard, modifier = Modifier.size(48.dp))
+
+                            Text(
+                                text = hazard.description ?: (title ?: "Hazard"),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis)
+                          }
+
+                      // Second line: numeric severity (your snippet: "13590 ha")
+                      snippet
+                          ?.takeIf { it.isNotBlank() }
+                          ?.let { sevLine ->
+                            Text(
+                                text = sevLine,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.DarkGray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis)
+                          }
+
+                      // Optional: severityText from API
+                      hazard.severityText
+                          ?.takeIf { it.isNotBlank() }
+                          ?.let { sevText ->
+                            Text(
+                                text = sevText,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis)
+                          }
+
+                      // Optional: date (same as LatestNewsCard)
+                      hazard.date
+                          ?.takeIf { it.isNotBlank() }
+                          ?.let { dateStr ->
+                            Text(
+                                text = formatDate(dateStr),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                          }
+
+                      // Hint that tapping opens the full article
+                      if (hazard.articleUrl != null) {
+                        Text(
+                            text = "Tap this bubble to open the full news article",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold)
+                      }
+                    }
+              }
         }
 ) {
   // The markerLocation is the centroid of the geometry.
@@ -102,6 +209,17 @@ fun HazardMarker(
         // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
         GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
       }
+
+  val snippet: String? =
+      hazard.severity
+          ?.takeIf { it != 0.0 } // <- hide when 0.0
+          ?.let { value ->
+            val rounded =
+                if (value % 1.0 == 0.0) value.toInt().toString()
+                else String.format(Locale.US, "%.1f", value)
+            val unit = hazard.severityUnit.orEmpty().trim()
+            if (unit.isNotEmpty()) "$rounded $unit" else rounded
+          }
 
   affectedZone?.let { locations ->
     if (locations.size > 1) {
@@ -118,7 +236,7 @@ fun HazardMarker(
   markerContent(
       rememberMarkerState(position = Location.toLatLng(markerLocation)),
       hazard.description,
-      "${hazard.severity} ${hazard.severityUnit}",
+      snippet,
   ) {
     val icon: MapIcon =
         when (hazard.type) {
@@ -176,4 +294,33 @@ fun PolygonWrapper(polygonCoords: List<LatLng>) {
 fun bitmapDescriptorFromJpeg(context: Context, jpegResId: Int): BitmapDescriptor {
   val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, jpegResId)
   return BitmapDescriptorFactory.fromBitmap(bitmap)
+}
+
+@Composable
+fun HazardNewsImage(hazard: Hazard, modifier: Modifier = Modifier) {
+  val fallbackRes = getImageForEvent(hazard.type ?: "default")
+  val imageUrl = hazard.articleUrl
+
+  val clippedModifier = modifier.clip(RoundedCornerShape(8.dp))
+
+  if (!imageUrl.isNullOrBlank() &&
+      (imageUrl.endsWith(".jpg", true) ||
+          imageUrl.endsWith(".jpeg", true) ||
+          imageUrl.endsWith(".png", true))) {
+
+    // Coil will show nothing / placeholder if there’s no connection
+    AsyncImage(
+        model = imageUrl,
+        contentDescription = hazard.description ?: "Hazard image",
+        contentScale = ContentScale.Crop,
+        modifier = clippedModifier,
+        placeholder = painterResource(fallbackRes),
+        error = painterResource(fallbackRes))
+  } else {
+    Image(
+        painter = painterResource(fallbackRes),
+        contentDescription = hazard.description ?: "Hazard image",
+        contentScale = ContentScale.Crop,
+        modifier = clippedModifier)
+  }
 }
