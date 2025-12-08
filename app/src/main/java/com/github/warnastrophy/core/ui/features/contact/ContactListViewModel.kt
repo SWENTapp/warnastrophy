@@ -79,7 +79,17 @@ class ContactListViewModel(
   }
 }
 
-/** Factory for creating a ContactListViewModel with a userId parameter. */
+/**
+ * Factory for creating [ContactListViewModel] instances.
+ *
+ * This factory is required because the [ContactListViewModel] has a constructor dependency (the
+ * `userId`) that the default `ViewModelProvider.Factory` cannot satisfy. This class allows the
+ * `ViewModel` to be instantiated with the necessary `userId`.
+ *
+ * @param userId The unique identifier for the user whose contacts are to be loaded. This ID is
+ *   passed to the [ContactListViewModel] during its creation.
+ * @throws IllegalArgumentException if the class is not a [ContactListViewModel].
+ */
 @Suppress("UNCHECKED_CAST")
 class ContactListViewModelFactory(private val userId: String) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
