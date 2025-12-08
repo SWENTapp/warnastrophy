@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +28,9 @@ object EditActivityTestTags {
   const val SAVE_BUTTON = "activitySave"
   const val DELETE_BUTTON = "activityDelete"
   const val ERROR_MESSAGE = "errorMessage"
+  const val PRE_DANGER_THRESHOLD_INPUT = "inputPreDangerThreshold"
+  const val PRE_DANGER_TIMEOUT_INPUT = "inputPreDangerTimeout"
+  const val DANGER_AVERAGE_THRESHOLD_INPUT = "inputDangerAverageThreshold"
 }
 
 /**
@@ -71,20 +73,13 @@ fun EditActivityScreen(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 32.dp))
 
-        OutlinedTextField(
-            value = activityUIState.activityName,
-            onValueChange = { editActivityViewModel.setActivityName(it) },
-            label = { Text("Full Name") },
-            isError = activityUIState.invalidActivityNameMsg != null,
-            supportingText = {
-              activityUIState.invalidActivityNameMsg?.let {
-                Text(it, modifier = Modifier.testTag(EditActivityTestTags.ERROR_MESSAGE))
-              }
-            },
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(bottom = 16.dp)
-                    .testTag(EditActivityTestTags.INPUT_ACTIVITY_NAME))
+        ActivityFormFields(
+            viewModel = editActivityViewModel,
+            activityNameTestTag = EditActivityTestTags.INPUT_ACTIVITY_NAME,
+            errorMessageTestTag = EditActivityTestTags.ERROR_MESSAGE,
+            preDangerThresholdTestTag = EditActivityTestTags.PRE_DANGER_THRESHOLD_INPUT,
+            preDangerTimeoutTestTag = EditActivityTestTags.PRE_DANGER_TIMEOUT_INPUT,
+            dangerAverageThresholdTestTag = EditActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)
 
         Button(
             onClick = { editActivityViewModel.editActivity(activityID) },

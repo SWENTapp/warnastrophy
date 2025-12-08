@@ -4,10 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
-import com.github.warnastrophy.core.data.service.MovementConfig
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
-import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,48 +17,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Represents the mutable state of the UI for the screen where a user can add an activity. This
- * state is typically exposed by a ViewModel to be observed by a Composable function.
- *
- * @property activityName The current text input for the activity's name.
- * @property errorMsg A general error message to display, usually for repository/network failures.
- * @property invalidActivityName A specific error message for input validation failure on the
- *   activity name field.
- */
-data class AddActivityUIState(
-    val activityName: String = "",
-    val errorMsg: String? = null,
-    val invalidActivityName: String? = null,
-    val movementConfig: MovementConfig = MovementConfig()
-) {
-  val isValid: Boolean
-    get() =
-        activityName.isNotBlank() &&
-            movementConfig.preDangerThreshold >= 0 &&
-            movementConfig.dangerAverageThreshold >= 0 &&
-            movementConfig.preDangerTimeout >= Duration.ZERO
-}
-
-/**
- * ViewModel responsible for managing the state and logic for the Add Activity screen.
- *
- * It handles form input changes, validates fields, and manages the asynchronous operation of
- * persisting a new activity via the repository.
+ * ViewModel for managing Activity forms. Handles form input changes, validation, and creating new
+ * activities.
  *
  * @property repository The data source dependency used for activity persistence.
  * @property userId id of user using the app
- * @property dispatcher dispatcher defaut to [Dispatchers.IO]
+ * @property dispatcher dispatcher default to [Dispatchers.IO]
  */
-class AddActivityViewModel(
-    private val repository: ActivityRepository = StateManagerService.activityRepository,
-    private val userId: String,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+open class AddActivityViewModel(
+    protected val repository: ActivityRepository = StateManagerService.activityRepository,
+    protected val userId: String,
+    protected val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
-  private val _uiState = MutableStateFlow(AddActivityUIState())
-  val uiState: StateFlow<AddActivityUIState> = _uiState.asStateFlow()
 
-  private val _navigateBack = MutableSharedFlow<Unit>(replay = 0)
-  var navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
+  protected val _uiState = MutableStateFlow(ActivityFormState())
+  val uiState: StateFlow<ActivityFormState> = _uiState.asStateFlow()
+
+  protected val _navigateBack = MutableSharedFlow<Unit>(replay = 0)
+  val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
 
   /** Clears the error message in the UI state. */
   fun clearErrorMsg() {
@@ -68,43 +42,63 @@ class AddActivityViewModel(
   }
 
   /** Sets an error message in the UI state. */
-  private fun setErrorMsg(errorMsg: String) {
+  protected fun setErrorMsg(errorMsg: String) {
     _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
   }
 
-  /** Adds a Activity document. */
+  /** Adds a new activity. */
   fun addActivity() {
     val state = _uiState.value
     if (!state.isValid) {
       setErrorMsg("At least one field is not valid!")
       return
     }
-    addActivityToRepository(
-        Activity(id = repository.getNewUid(), activityName = state.activityName))
+    val config =
+        state.toMovementConfig()
+            ?: run {
+              setErrorMsg("Invalid movement configuration!")
+              return
+            }
+    val activity =
+        Activity(
+            id = repository.getNewUid(), activityName = state.activityName, movementConfig = config)
+    executeRepositoryOperation(
+        operation = { repository.addActivity(userId, activity) }, actionName = "add activity")
   }
 
   fun setActivityName(activityName: String) {
     _uiState.value =
         _uiState.value.copy(
             activityName = activityName,
-            invalidActivityName = if (activityName.isBlank()) "Full name cannot be empty" else null)
+            invalidActivityName =
+                if (activityName.isBlank()) "Activity name cannot be empty" else null)
   }
 
-  fun setConfig(config: MovementConfig) {
-    _uiState.value = _uiState.value.copy(movementConfig = config)
+  fun setPreDangerThreshold(value: String) {
+    _uiState.value = _uiState.value.copy(preDangerThresholdStr = value)
   }
 
-  private fun addActivityToRepository(activity: Activity) {
+  fun setPreDangerTimeout(value: String) {
+    _uiState.value = _uiState.value.copy(preDangerTimeoutStr = value)
+  }
+
+  fun setDangerAverageThreshold(value: String) {
+    _uiState.value = _uiState.value.copy(dangerAverageThresholdStr = value)
+  }
+
+  protected fun <T> executeRepositoryOperation(
+      operation: suspend () -> Result<T>,
+      actionName: String
+  ) {
     viewModelScope.launch(dispatcher) {
-      val result = repository.addActivity(userId, activity)
-      result
+      operation()
           .onSuccess {
             clearErrorMsg()
             _navigateBack.emit(Unit)
           }
           .onFailure { exception ->
-            Log.e("ActivityListViewModel", "Error add Activity", exception)
-            setErrorMsg("Failed to add Activity: ${exception.message ?: "Unknown error"}")
+            Log.e("ActivityViewModel", "Error $actionName", exception)
+            setErrorMsg("Failed to $actionName: ${exception.message ?: "Unknown error"}")
           }
     }
   }
