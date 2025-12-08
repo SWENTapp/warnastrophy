@@ -2,30 +2,14 @@ package com.github.warnastrophy.e2e
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
-import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
-import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
-import org.junit.Before
 import org.junit.Test
 
 class EndToEndM2Test : EndToEndUtils() {
 
-  @Before
-  override fun setUp() {
-    super.setUp()
-
-    val context = composeTestRule.activity.applicationContext
-    ContactRepositoryProvider.initLocal(context)
-    StateManagerService.init(context)
-    contactRepository = ContactRepositoryProvider.repository
-    HealthCardRepositoryProvider.useLocalEncrypted(context)
-  }
-
   @Test
   fun testTagsAreCorrectlySet() {
-    setContent()
     composeTestRule.onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.BOTTOM_NAV).assertIsDisplayed()
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).assertIsDisplayed()
@@ -41,7 +25,6 @@ class EndToEndM2Test : EndToEndUtils() {
 
   @Test
   fun create_edit_and_delete_contact() {
-    setContent()
     addNewContact()
     editContact(saveChanges = false)
     editContact(saveChanges = true)

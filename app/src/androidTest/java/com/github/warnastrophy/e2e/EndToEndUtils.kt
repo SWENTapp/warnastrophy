@@ -23,7 +23,10 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.WarnastrophyComposable
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
@@ -90,6 +93,11 @@ abstract class EndToEndUtils : UITest() {
       val repository = UserPreferencesRepositoryLocal(dataStoreInstance!!)
       val themeViewModel: ThemeViewModel = viewModel(factory = ThemeViewModelFactory(repository))
 
+      ContactRepositoryProvider.initLocal(context)
+      StateManagerService.init(context)
+      contactRepository = ContactRepositoryProvider.repository
+      HealthCardRepositoryProvider.useLocalEncrypted(context)
+
       MainAppTheme {
         CompositionLocalProvider(LocalThemeViewModel provides themeViewModel) {
           if (useFakeMap) {
@@ -106,6 +114,7 @@ abstract class EndToEndUtils : UITest() {
   override fun setUp() {
     super.setUp()
     setupMockFirebaseAuth()
+    setContent()
   }
 
   @After
