@@ -42,6 +42,18 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
+object ContactPopUpTestTags {
+  const val ROOT_CARD = "contactPopUpRootCard"
+  const val TITLE = "contactPopUpTitle"
+  const val VIEW_ALL_BUTTON = "contactPopUpViewAllButton"
+  const val CONTENT_CARD = "contactPopUpContentCard"
+  const val CONTACT_LIST = "contactPopUpContactList"
+  const val EMPTY_STATE = "contactPopUpEmptyState"
+  const val ERROR_STATE = "contactPopUpErrorState"
+
+  fun contactItem(contactId: String) = "contactPopUpItem_$contactId"
+}
+
 /**
  * A composable function that displays a list of emergency contacts in a dialog pop-up.
  *
@@ -76,7 +88,8 @@ fun ContactPopUp(
   Dialog(onDismissRequest = onDismissRequest) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().fillMaxHeight(0.7f),
+        modifier =
+            Modifier.fillMaxWidth().fillMaxHeight(0.7f).testTag(ContactPopUpTestTags.ROOT_CARD),
         colors = CardDefaults.cardColors(containerColor = colors.primary)) {
           Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -87,15 +100,18 @@ fun ContactPopUp(
                       text = stringResource(R.string.emergency_contacts_title),
                       color = colors.secondary,
                       fontWeight = FontWeight.Bold,
-                      fontSize = 20.sp)
-                  TextButton(onClick = onClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription =
-                            stringResource(R.string.emergency_contacts_show_full_button),
-                        tint = colors.secondary,
-                        modifier = Modifier.size(16.dp))
-                  }
+                      fontSize = 20.sp,
+                      modifier = Modifier.testTag(ContactPopUpTestTags.TITLE))
+                  TextButton(
+                      onClick = onClick,
+                      modifier = Modifier.testTag(ContactPopUpTestTags.VIEW_ALL_BUTTON)) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription =
+                                stringResource(R.string.emergency_contacts_show_full_button),
+                            tint = colors.secondary,
+                            modifier = Modifier.size(16.dp))
+                      }
                 }
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -103,7 +119,8 @@ fun ContactPopUp(
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = colors.secondary),
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier =
+                    Modifier.fillMaxWidth().weight(1f).testTag(ContactPopUpTestTags.CONTENT_CARD),
             ) {
               if (uiState.contacts.isEmpty() && uiState.errorMsg == null) {
                 EmptyState()
@@ -130,7 +147,7 @@ fun ContactPopUp(
  */
 @Composable
 private fun ContactList(contacts: List<Contact>, onClick: (Contact) -> Unit) {
-  LazyColumn(modifier = Modifier.padding(8.dp)) {
+  LazyColumn(modifier = Modifier.padding(8.dp).testTag(ContactPopUpTestTags.CONTACT_LIST)) {
     items(contacts) { contact ->
       ContactItem(contact = contact, onClick = { onClick(contact) })
       Spacer(modifier = Modifier.height(8.dp))
@@ -148,7 +165,7 @@ private fun ContactList(contacts: List<Contact>, onClick: (Contact) -> Unit) {
 private fun ContactItem(contact: Contact, onClick: () -> Unit) {
   val colors = MaterialTheme.extendedColors.healthCardPopUp
   Card(
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().testTag(ContactPopUpTestTags.contactItem(contact.id)),
       shape = RoundedCornerShape(12.dp),
       elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
       colors =
@@ -200,7 +217,7 @@ private fun EmptyState() {
         Text(
             text = stringResource(id = R.string.emergency_contacts_popup_empty),
             color = MaterialTheme.extendedColors.healthCardPopUp.fieldText,
-            modifier = Modifier.testTag("TODO"))
+            modifier = Modifier.testTag(ContactPopUpTestTags.EMPTY_STATE))
       }
 }
 
@@ -215,6 +232,9 @@ private fun ErrorState(message: String) {
       modifier = Modifier.fillMaxSize(),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = message, color = MaterialTheme.colorScheme.error)
+        Text(
+            text = message,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.testTag(ContactPopUpTestTags.ERROR_STATE))
       }
 }
