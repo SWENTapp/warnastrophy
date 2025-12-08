@@ -138,9 +138,10 @@ fun WarnastrophyComposable(
 
   val speechToTextService = SpeechToTextService(context, errorHandler)
   val textToSpeechService = TextToSpeechService(context, errorHandler)
-  val communicationViewModel =
-      VoiceCommunicationViewModel(
-          speechToTextService = speechToTextService, textToSpeechService = textToSpeechService)
+  val communicationViewModel = remember {
+    VoiceCommunicationViewModel(
+        speechToTextService = speechToTextService, textToSpeechService = textToSpeechService)
+  }
 
   Scaffold(
       modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
@@ -243,9 +244,7 @@ fun WarnastrophyComposable(
                                 StateManagerService.userPreferencesRepository))
               }
               composable(Screen.Communication.route) {
-                CommunicationScreen(
-                    viewModel = communicationViewModel,
-                    onBackClick = { navigationActions.goBack() })
+                CommunicationScreen(viewModel = communicationViewModel)
               }
             }
       }

@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.util.Log
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
@@ -41,17 +40,25 @@ data class SpeechRecognitionUiState(
     val isListening: Boolean = false,
     val rmsLevel: Float = 0f,
     val recognizedText: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isConfirmed: Boolean? = null,
 )
+
+interface SpeechToTextServiceInterface {
+  val uiState: StateFlow<SpeechRecognitionUiState>
+
+  suspend fun listenForConfirmation(): Boolean
+}
 
 class SpeechToTextService(
     private val context: Context,
     val errorHandler: ErrorHandler = ErrorHandler()
-) {
+) : SpeechToTextServiceInterface {
   private val _uiState = MutableStateFlow(SpeechRecognitionUiState())
-  val uiState: StateFlow<SpeechRecognitionUiState> = _uiState.asStateFlow()
 
-  private var speechRecognizer: SpeechRecognizer? = null
+  override val uiState: StateFlow<SpeechRecognitionUiState> = _uiState.asStateFlow()
+
+  private var speechRecognizer: SpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
   private var currentContinuation: Continuation<Boolean>? = null
   private val speechRecognizerIntent =
       Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -67,11 +74,11 @@ class SpeechToTextService(
             _uiState.update {
               it.copy(isListening = true, recognizedText = null, errorMessage = null)
             }
-            restartListening()
             return
           }
 
           val spokenText = matches[0]
+          _uiState.update { it.copy(recognizedText = spokenText) }
           when (val confirmation = parseConfirmation(spokenText)) {
             null -> {
               _uiState.update {
@@ -79,14 +86,20 @@ class SpeechToTextService(
               }
               restartListening()
             }
-            else -> completeListening(spokenText)
+            else -> {
+              if (confirmation) {
+                _uiState.update { it.copy(isConfirmed = true) }
+              } else {
+                _uiState.update { it.copy(isConfirmed = false) }
+              }
+              completeListening(spokenText)
+            }
           }
         }
 
         override fun onError(error: Int) {
           _uiState.update {
-            Log.d("SpeechToTextService", "Speech recognition error: $error")
-            it.copy(errorMessage = context.getString(R.string.error_speech_recognition_failed))
+            it.copy(errorMessage = "no matches found", isListening = false, rmsLevel = 0f)
           }
           restartListening()
         }
@@ -122,7 +135,7 @@ class SpeechToTextService(
 
   private fun restartListening() {
     _uiState.update { it.copy(isListening = true, rmsLevel = 0f, errorMessage = null) }
-    speechRecognizer?.startListening(speechRecognizerIntent)
+    speechRecognizer.startListening(speechRecognizerIntent)
   }
 
   private fun completeListening(spokenText: String) {
@@ -145,25 +158,22 @@ class SpeechToTextService(
    * @return `true` if the user confirms, `false` if they decline.
    * @throws Exception if the speech recognition service is not available on the device.
    */
-  suspend fun listenForConfirmation(): Boolean = suspendCancellableCoroutine { continuation ->
+  override suspend fun listenForConfirmation() = suspendCancellableCoroutine { continuation ->
     if (!SpeechRecognizer.isRecognitionAvailable(context)) {
       errorHandler.addErrorToScreen(ErrorType.SPEECH_RECOGNITION_ERROR, Screen.Communication)
-      Log.d("SpeechToTextService", "Speech recognition not available")
       continuation.cancel(
           CancellationException(context.getString(R.string.error_speech_recognition_failed)))
       return@suspendCancellableCoroutine
     }
-
     _uiState.value =
         _uiState.value.copy(
             isListening = true, rmsLevel = 0f, recognizedText = null, errorMessage = null)
     currentContinuation = continuation
 
-    speechRecognizer =
-        SpeechRecognizer.createSpeechRecognizer(context).apply {
-          setRecognitionListener(recognitionListener)
-          startListening(speechRecognizerIntent)
-        }
+    speechRecognizer.apply {
+      setRecognitionListener(recognitionListener)
+      startListening(speechRecognizerIntent)
+    }
 
     continuation.invokeOnCancellation {
       currentContinuation = null
@@ -193,10 +203,19 @@ class SpeechToTextService(
    */
   fun destroy() {
     currentContinuation = null
-    speechRecognizer?.stopListening()
-    speechRecognizer?.destroy()
-    speechRecognizer = null
+    speechRecognizer.stopListening()
+    speechRecognizer.destroy()
     _uiState.value.copy(rmsLevel = 0f)
     _uiState.update { it.copy(isListening = false) }
+  }
+}
+
+class MockSpeechToTextService : SpeechToTextServiceInterface {
+  private val _uiState = MutableStateFlow(SpeechRecognitionUiState())
+  override val uiState: StateFlow<SpeechRecognitionUiState> = _uiState
+
+  override suspend fun listenForConfirmation(): Boolean {
+    _uiState.value = SpeechRecognitionUiState(isListening = true, recognizedText = "yes")
+    return true
   }
 }

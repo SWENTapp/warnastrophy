@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
@@ -21,7 +22,7 @@ import kotlinx.coroutines.launch
  */
 data class VoiceCommunicationUiState(
     val speechState: SpeechRecognitionUiState = SpeechRecognitionUiState(),
-    val textToSpeechState: TextToSpeechUiState = TextToSpeechUiState()
+    val textToSpeechState: TextToSpeechUiState = TextToSpeechUiState(),
 )
 
 /**
@@ -46,10 +47,30 @@ class VoiceCommunicationViewModel(
 
   init {
     observeDataSources()
+    speak("Hello, I am your vocal assistant. Do you have any emergency?")
+    viewModelScope.launch {
+      var previousSpeakingState = false
+      textToSpeechService.uiState.collect { ttsState ->
+        if (!ttsState.isSpeaking && previousSpeakingState) {
+          startListening()
+        }
+        previousSpeakingState = ttsState.isSpeaking
+      }
+    }
+    viewModelScope.launch {
+      speechToTextService.uiState.collect { state ->
+        if (state.isConfirmed == true) {
+          speak("Help is on the way. Stay calm.")
+          Log.d("VoiceCommunicationViewModel", "Emergency confirmed, alert sent.")
+        } else if (state.isConfirmed == false) {
+          speak("Okay, we wont send an emergency alert.")
+        }
+      }
+    }
   }
 
   /**
-   * Observes changes in the speech-to-text and text-to-speech service states and updates the
+   * est-ce Observes changes in the speech-to-text and text-to-speech service states and updates the
    * combined UI state.
    */
   private fun observeDataSources() {
@@ -64,12 +85,11 @@ class VoiceCommunicationViewModel(
   }
 
   /** Starts listening for speech input if not already listening. */
-  fun startListening() {
-    if (_uiState.value.speechState.isListening) return
-    viewModelScope.launch { speechToTextService.listenForConfirmation() }
+  suspend fun startListening() {
+    speechToTextService.listenForConfirmation()
   }
 
-  /** Stops listening for speech input. */
+  /** Stops listenin g for speech input. */
   fun stopListening() {
     speechToTextService.destroy()
   }

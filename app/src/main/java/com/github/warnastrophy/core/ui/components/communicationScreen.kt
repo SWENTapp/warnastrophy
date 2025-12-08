@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -31,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +54,6 @@ import com.github.warnastrophy.core.data.service.TextToSpeechUiState
 fun CommunicationScreen(
     viewModel: VoiceCommunicationViewModel,
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {}
 ) {
   val uiState by viewModel.uiState.collectAsState()
   val speechState = uiState.speechState
@@ -84,21 +82,9 @@ fun CommunicationScreen(
 
       Spacer(modifier = Modifier.height(16.dp))
 
-      Button(onClick = { viewModel.speak("small dog") }, enabled = true) {
-        Text(text = stringResource(R.string.communication_tts_sample_button))
-      }
-
       Spacer(modifier = Modifier.height(32.dp))
 
-      AnimatedMicButton(
-          rms = rms,
-          onMicClick = {
-            if (speechState.isListening) {
-              viewModel.stopListening()
-            } else {
-              viewModel.startListening()
-            }
-          })
+      AnimatedMicButton(rms = rms, viewModel)
     }
   }
 }
@@ -158,7 +144,7 @@ private fun VoiceStatusCard(
  * @param onMicClick Callback for microphone button click.
  */
 @Composable
-private fun AnimatedMicButton(rms: Float, onMicClick: () -> Unit) {
+private fun AnimatedMicButton(rms: Float, viewModel: VoiceCommunicationViewModel) {
   val animatedScale by
       animateFloatAsState(
           targetValue = remember(rms) { 1f + (rms / 10f) }.coerceIn(1f, 1.5f),
@@ -188,8 +174,7 @@ private fun AnimatedMicButton(rms: Float, onMicClick: () -> Unit) {
         modifier =
             Modifier.size(130.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .clickable(onClick = onMicClick),
+                .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center) {
           Icon(
               imageVector = Icons.Default.PlayArrow,

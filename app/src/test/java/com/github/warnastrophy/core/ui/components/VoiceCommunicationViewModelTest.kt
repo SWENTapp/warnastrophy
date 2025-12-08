@@ -75,9 +75,9 @@ class VoiceCommunicationViewModelTest {
   fun `startListening invokes speech service when idle`() = runTest {
     speechFlow.value = SpeechRecognitionUiState(isListening = false)
 
-    viewModel.startListening()
-    advanceUntilIdle()
+    val result = viewModel.startListening()
 
+    assertEquals(true, result)
     coVerify(exactly = 1) { speechToTextService.listenForConfirmation() }
   }
 
@@ -85,9 +85,9 @@ class VoiceCommunicationViewModelTest {
   fun `startListening is skipped when already listening`() = runTest {
     speechFlow.value = SpeechRecognitionUiState(isListening = true)
 
-    viewModel.startListening()
-    advanceUntilIdle()
+    val result = viewModel.startListening()
 
+    assertEquals(true, result)
     coVerify(exactly = 0) { speechToTextService.listenForConfirmation() }
   }
 
