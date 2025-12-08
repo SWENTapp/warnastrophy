@@ -30,6 +30,13 @@ class AddActivityScreenTest : UITest() {
     composeTestRule.onNodeWithTag(AddActivityTestTags.SAVE_BUTTON).assertTextContains("Save")
     composeTestRule.onNodeWithTag(AddActivityTestTags.INPUT_ACTIVITY_NAME).assertIsDisplayed()
     composeTestRule
+        .onNodeWithTag(AddActivityTestTags.PRE_DANGER_THRESHOLD_INPUT)
+        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(AddActivityTestTags.PRE_DANGER_TIMEOUT_INPUT).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(AddActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)
+        .assertIsDisplayed()
+    composeTestRule
         .onNodeWithTag(AddActivityTestTags.ERROR_MESSAGE, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
@@ -67,4 +74,17 @@ class AddActivityScreenTest : UITest() {
           },
           userId,
           getAllEntities = { userId -> activityRepository.getAllActivities(userId) })
+
+  @Test
+  fun movementConfigFieldsHaveDefaultValues() {
+    composeTestRule
+        .onNodeWithTag(AddActivityTestTags.PRE_DANGER_THRESHOLD_INPUT)
+        .assertTextContains("50.0")
+    composeTestRule
+        .onNodeWithTag(AddActivityTestTags.PRE_DANGER_TIMEOUT_INPUT)
+        .assertTextContains("10s")
+    composeTestRule
+        .onNodeWithTag(AddActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)
+        .assertTextContains("1.0")
+  }
 }

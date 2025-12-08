@@ -30,6 +30,13 @@ class EditActivityScreenTest : UITest() {
     composeTestRule.onNodeWithTag(EditActivityTestTags.INPUT_ACTIVITY_NAME).assertIsDisplayed()
     composeTestRule.onNodeWithTag(EditActivityTestTags.DELETE_BUTTON).assertIsDisplayed()
     composeTestRule
+        .onNodeWithTag(EditActivityTestTags.PRE_DANGER_THRESHOLD_INPUT)
+        .assertIsDisplayed()
+    composeTestRule.onNodeWithTag(EditActivityTestTags.PRE_DANGER_TIMEOUT_INPUT).assertIsDisplayed()
+    composeTestRule
+        .onNodeWithTag(EditActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)
+        .assertIsDisplayed()
+    composeTestRule
         .onNodeWithTag(EditActivityTestTags.ERROR_MESSAGE, useUnmergedTree = true)
         .assertIsNotDisplayed()
   }
