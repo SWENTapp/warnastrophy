@@ -14,7 +14,9 @@ import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.features.contact.ContactPopUpTestTags
 import com.github.warnastrophy.core.ui.features.health.HealthCardPopUpTestTags
 import com.github.warnastrophy.core.ui.map.GpsServiceMock
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
@@ -32,6 +34,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   @org.junit.Before
   fun setupActivityRepository() {
     ActivityRepositoryProvider.useMock()
+    ContactRepositoryProvider.repository = MockContactRepository()
   }
 
   // Verify that the root of the DashboardScreen is scrollable
@@ -113,13 +116,48 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
     assertTrue("onHealthCardClick should have been called.", onHealthCardClickCalled)
   }
 
-  private fun setContent(hazardsService: HazardServiceMock, onHealthCardClick: () -> Unit = {}) {
+  @Test
+  fun clickingEmergencyContactCard_showsContactPopUp() {
+    val mockHazardService = HazardServiceMock()
+    setContent(hazardsService = mockHazardService)
+
+    composeTestRule.onNodeWithTag(ContactPopUpTestTags.ROOT_CARD).assertDoesNotExist()
+    composeTestRule.onNodeWithTag(DashboardEmergencyContactsTestTags.CARD).performClick()
+    composeTestRule.onNodeWithTag(ContactPopUpTestTags.ROOT_CARD).assertIsDisplayed()
+  }
+
+  @Test
+  fun contactPopUp_dismissesAndNavigates_whenViewAllButtonIsClicked() {
+    var onEmergencyContactsCardClickCalled = false
+    val mockHazardService = HazardServiceMock()
+
+    setContent(
+        hazardsService = mockHazardService,
+        onEmergencyContactsCardClick = { onEmergencyContactsCardClickCalled = true },
+    )
+
+    composeTestRule.onNodeWithTag(DashboardEmergencyContactsTestTags.CARD).performClick()
+    composeTestRule.onNodeWithTag(ContactPopUpTestTags.ROOT_CARD).assertIsDisplayed()
+    composeTestRule.onNodeWithTag(ContactPopUpTestTags.VIEW_ALL_BUTTON).performClick()
+    composeTestRule.onNodeWithTag(ContactPopUpTestTags.ROOT_CARD).assertDoesNotExist()
+    assertTrue(
+        "onEmergencyContactsCardClick should have been called.", onEmergencyContactsCardClickCalled)
+  }
+
+  private fun setContent(
+      hazardsService: HazardServiceMock,
+      onHealthCardClick: () -> Unit = {},
+      onEmergencyContactsCardClick: () -> Unit = {},
+      onEmergencyContactsItemClick: (Contact) -> Unit = {}
+  ) {
     composeTestRule.setContent {
       MainAppTheme {
         DashboardScreen(
             userId = fakeUserId,
             hazardsService = hazardsService,
             onHealthCardClick = onHealthCardClick,
+            onEmergencyContactsCardClick = onEmergencyContactsCardClick,
+            onEmergencyContactsItemClick = onEmergencyContactsItemClick,
         )
       }
     }
