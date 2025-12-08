@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.net.Uri
 import androidx.annotation.DrawableRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import coil.compose.AsyncImage
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
@@ -98,6 +102,28 @@ enum class MapIcon(@DrawableRes val resId: Int?, val tag: String) {
 
 val LocalOnHazardClick = staticCompositionLocalOf<(Hazard) -> Unit> { {} }
 
+private fun computeSeverityTint(
+    hazard: Hazard,
+    severities: Map<String, Pair<Double, Double>>
+): Color {
+  val severity = hazard.severity ?: return Color.Black
+  val type = hazard.type ?: return Color.Black
+
+  val (minSev, maxSev) =
+      severities[type]
+          ?: throw IllegalStateException("Max intensity not found for hazard type $type")
+
+  val denom = maxSev - minSev
+  val ratio =
+      if (denom != 0.0) {
+            (severity - minSev) / denom
+          } else {
+            1.0
+          }
+          .coerceIn(0.0, 1.0)
+
+  return lerp(Color.Gray, Color.Red, ratio.toFloat())
+}
 /**
  * Composable function to display a hazard marker on the map.
  *
@@ -119,9 +145,38 @@ fun HazardMarker(
             content: @Composable () -> Unit) -> Unit =
         { state, title, snippet, _ /* we ignore content here for default impl */ ->
           val ctx = LocalContext.current
+          val severityTint = computeSeverityTint(hazard, severities)
+          val iconRes: Int? =
+              when (hazard.type) {
+                "FL",
+                "FF",
+                "SS" -> R.drawable.material_symbols_outlined_flood
+                "DR" -> R.drawable.material_symbols_outlined_water_voc
+                "EQ",
+                "AV",
+                "LS",
+                "MS" -> R.drawable.material_symbols_outlined_earthquake
+                "TC",
+                "EC",
+                "VW",
+                "TO",
+                "ST" -> R.drawable.material_symbols_outlined_storm
+                "FR",
+                "WF" -> R.drawable.material_symbols_outlined_local_fire_department
+                "VO" -> R.drawable.material_symbols_outlined_volcano
+                "TS" -> R.drawable.material_symbols_outlined_tsunami
+                else -> null
+              }
+          val markerIcon: BitmapDescriptor? =
+              iconRes?.let {
+                bitmapDescriptorFromVector(
+                    context = ctx, vectorResId = it, sizeDp = 32f, tintColor = severityTint)
+              }
+
           MarkerInfoWindow(
               state = state,
               onClick = { false }, // keep default behaviour
+              icon = markerIcon,
               onInfoWindowClick = {
                 hazard.articleUrl?.let { url ->
                   val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -207,7 +262,6 @@ fun HazardMarker(
         // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
         GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
       }
-
   val snippet: String? =
       hazard.severity
           ?.takeIf { it != 0.0 } // <- hide when 0.0
@@ -230,6 +284,7 @@ fun HazardMarker(
       // Log or handle this case as an anomaly if necessary.
     }
   }
+  val severityTint = computeSeverityTint(hazard, severities)
 
   markerContent(
       rememberMarkerState(position = Location.toLatLng(markerLocation)),
@@ -257,25 +312,7 @@ fun HazardMarker(
           "TS" -> MapIcon.Tsunami
           else -> MapIcon.Unknown
         }
-
-    val tint: Color =
-        hazard.severity?.let {
-          val (minSev, maxSev) =
-              severities[hazard.type]
-                  ?: throw IllegalStateException(
-                      "Max intensity not found for hazard type ${hazard.type}")
-          val denom = maxSev - minSev
-          val intensityRatio =
-              if (denom != 0.0) {
-                    (it - minSev) / denom
-                  } else {
-                    1.0
-                  }
-                  .coerceIn(0.0, 1.0)
-          lerp(Color.Gray, Color.Red, intensityRatio.toFloat())
-        } ?: Color.Black
-
-    icon(tint = tint)
+    icon(tint = severityTint)
   }
 }
 
@@ -291,6 +328,30 @@ fun PolygonWrapper(polygonCoords: List<LatLng>) {
 
 fun bitmapDescriptorFromJpeg(context: Context, jpegResId: Int): BitmapDescriptor {
   val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, jpegResId)
+  return BitmapDescriptorFactory.fromBitmap(bitmap)
+}
+
+fun bitmapDescriptorFromVector(
+    context: Context,
+    @DrawableRes vectorResId: Int,
+    sizeDp: Float = 32f,
+    tintColor: Color? = null,
+): BitmapDescriptor {
+  val drawable =
+      AppCompatResources.getDrawable(context, vectorResId)
+          ?: return BitmapDescriptorFactory.defaultMarker()
+
+  val density = context.resources.displayMetrics.density
+  val sizePx = (sizeDp * density).toInt()
+
+  val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+  val canvas = Canvas(bitmap)
+
+  drawable.setBounds(0, 0, canvas.width, canvas.height)
+
+  tintColor?.let { color -> DrawableCompat.setTint(drawable, color.toArgb()) }
+
+  drawable.draw(canvas)
   return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
