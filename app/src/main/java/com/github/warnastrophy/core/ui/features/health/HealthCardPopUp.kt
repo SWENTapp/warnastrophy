@@ -101,7 +101,7 @@ fun HealthCardPopUp(
     onClick: () -> Unit = {},
     viewModel: HealthCardViewModel = viewModel()
 ) {
-  val healthCardColors = MaterialTheme.extendedColors.healthCardPopUp
+  val healthCardColors = MaterialTheme.extendedColors.dashboardPopUp
   val context = LocalContext.current
   val currentCard by viewModel.currentCard.collectAsState()
 
@@ -229,7 +229,7 @@ private fun EmptyHealthCardPopUp() {
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = stringResource(id = R.string.health_card_popup_empty_text),
-            color = MaterialTheme.extendedColors.healthCardPopUp.fieldText,
+            color = MaterialTheme.extendedColors.dashboardPopUp.fieldText,
             modifier = Modifier.testTag(HealthCardPopUpTestTags.EMPTY_STATE_TEXT))
       }
 }
@@ -256,12 +256,12 @@ private fun HealthInfoEntry(
           text = label,
           fontWeight = FontWeight.Bold,
           fontSize = 18.sp,
-          color = MaterialTheme.extendedColors.healthCardPopUp.primary,
+          color = MaterialTheme.extendedColors.dashboardPopUp.primary,
           modifier = Modifier.testTag(titleTestTag))
       Text(
           text = value,
           fontSize = 16.sp,
-          color = MaterialTheme.extendedColors.healthCardPopUp.fieldText,
+          color = MaterialTheme.extendedColors.dashboardPopUp.fieldText,
           modifier = Modifier.testTag(valueTestTag))
     }
   }

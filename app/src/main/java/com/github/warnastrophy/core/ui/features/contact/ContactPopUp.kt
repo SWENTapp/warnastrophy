@@ -81,7 +81,7 @@ fun ContactPopUp(
     viewModel: ContactListViewModel = viewModel(factory = ContactListViewModelFactory(userId))
 ) {
   val uiState by viewModel.uiState.collectAsState()
-  val colors = MaterialTheme.extendedColors.healthCardPopUp
+  val colors = MaterialTheme.extendedColors.dashboardPopUp
 
   LaunchedEffect(Unit) { viewModel.refreshUIState() }
 
@@ -163,7 +163,7 @@ private fun ContactList(contacts: List<Contact>, onClick: (Contact) -> Unit) {
  */
 @Composable
 private fun ContactItem(contact: Contact, onClick: () -> Unit) {
-  val colors = MaterialTheme.extendedColors.healthCardPopUp
+  val colors = MaterialTheme.extendedColors.dashboardPopUp
   Card(
       modifier = Modifier.fillMaxWidth().testTag(ContactPopUpTestTags.contactItem(contact.id)),
       shape = RoundedCornerShape(12.dp),
@@ -216,7 +216,7 @@ private fun EmptyState() {
       horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = stringResource(id = R.string.emergency_contacts_popup_empty),
-            color = MaterialTheme.extendedColors.healthCardPopUp.fieldText,
+            color = MaterialTheme.extendedColors.dashboardPopUp.fieldText,
             modifier = Modifier.testTag(ContactPopUpTestTags.EMPTY_STATE))
       }
 }
