@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -18,13 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlin.time.Duration
 
 object AddActivityTestTags {
   const val INPUT_ACTIVITY_NAME = "inputActivityName"
   const val ERROR_MESSAGE = "errorMessage"
   const val SAVE_BUTTON = "activitySave"
+  const val PRE_DANGER_THRESHOLD_INPUT = "inputPreDangerThreshold"
+  const val PRE_DANGER_TIMEOUT_INPUT = "inputPreDangerTimeout"
 }
 
 /**
@@ -77,6 +82,53 @@ fun AddActivityScreen(
                 Modifier.fillMaxWidth()
                     .padding(bottom = 16.dp)
                     .testTag(AddActivityTestTags.INPUT_ACTIVITY_NAME))
+
+        OutlinedTextField(
+            value = activityUIState.movementConfig.preDangerThreshold.toString(),
+            onValueChange = {
+              it.toDoubleOrNull()?.let {
+                addActivityViewModel.setConfig(
+                    activityUIState.movementConfig.copy(preDangerThreshold = it))
+              }
+            },
+            label = { Text("Initial shock threshold (m/s²)") },
+            isError = activityUIState.movementConfig.preDangerThreshold < 0,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .testTag(AddActivityTestTags.PRE_DANGER_THRESHOLD_INPUT))
+
+        OutlinedTextField(
+            value = activityUIState.movementConfig.preDangerTimeout.toString(),
+            onValueChange = {
+              try {
+                Duration.parse(it).let { duration ->
+                  addActivityViewModel.setConfig(
+                      activityUIState.movementConfig.copy(preDangerTimeout = duration))
+                }
+              } catch (_: IllegalArgumentException) {}
+            },
+            label = { Text("Initial shock timeout (e.g., 5s, 1m)") },
+            isError = activityUIState.movementConfig.preDangerTimeout < Duration.ZERO,
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .testTag(AddActivityTestTags.PRE_DANGER_TIMEOUT_INPUT),
+        )
+
+        OutlinedTextField(
+            value = activityUIState.movementConfig.dangerAverageThreshold.toString(),
+            onValueChange = {
+              it.toDoubleOrNull()?.let {
+                addActivityViewModel.setConfig(
+                    activityUIState.movementConfig.copy(dangerAverageThreshold = it))
+              }
+            },
+            label = { Text("Safe post shock minimal average movement (m/s²)") },
+            isError = activityUIState.movementConfig.dangerAverageThreshold < 0,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp))
 
         Button(
             onClick = { addActivityViewModel.addActivity() },

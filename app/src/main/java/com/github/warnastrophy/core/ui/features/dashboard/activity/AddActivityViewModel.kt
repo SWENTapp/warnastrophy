@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
+import com.github.warnastrophy.core.data.service.MovementConfig
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,10 +30,15 @@ import kotlinx.coroutines.launch
 data class AddActivityUIState(
     val activityName: String = "",
     val errorMsg: String? = null,
-    val invalidActivityName: String? = null
+    val invalidActivityName: String? = null,
+    val movementConfig: MovementConfig = MovementConfig()
 ) {
   val isValid: Boolean
-    get() = activityName.isNotBlank()
+    get() =
+        activityName.isNotBlank() &&
+            movementConfig.preDangerThreshold >= 0 &&
+            movementConfig.dangerAverageThreshold >= 0 &&
+            movementConfig.preDangerTimeout >= Duration.ZERO
 }
 
 /**
@@ -81,6 +88,10 @@ class AddActivityViewModel(
         _uiState.value.copy(
             activityName = activityName,
             invalidActivityName = if (activityName.isBlank()) "Full name cannot be empty" else null)
+  }
+
+  fun setConfig(config: MovementConfig) {
+    _uiState.value = _uiState.value.copy(movementConfig = config)
   }
 
   private fun addActivityToRepository(activity: Activity) {
