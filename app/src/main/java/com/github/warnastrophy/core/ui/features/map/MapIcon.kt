@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +43,7 @@ import coil.compose.AsyncImage
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.features.dashboard.getImageForEvent
 import com.github.warnastrophy.core.util.GeometryParser
 import com.github.warnastrophy.core.util.formatDate
@@ -51,7 +51,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMapComposable
-import com.google.maps.android.compose.MarkerInfoWindowContent
+import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberMarkerState
@@ -119,83 +119,81 @@ fun HazardMarker(
             content: @Composable () -> Unit) -> Unit =
         { state, title, snippet, _ /* we ignore content here for default impl */ ->
           val ctx = LocalContext.current
-          MarkerInfoWindowContent(
+          MarkerInfoWindow(
               state = state,
-              title = title,
-              snippet = snippet,
-              onClick = { false }, // keep default: click opens info window
+              onClick = { false }, // keep default behaviour
               onInfoWindowClick = {
-                // Open the news article in browser if available
                 hazard.articleUrl?.let { url ->
                   val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                   ContextCompat.startActivity(ctx, intent, null)
                 }
-              }) { _ /* marker */ ->
-                // ✅ Custom info window content (only visible when marker is selected)
-                Column(
-                    modifier =
-                        Modifier.widthIn(max = 260.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
-                            .padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)) {
+              }) { _ ->
+                StandardDashboardCard(
+                    modifier = Modifier.widthIn(max = 260.dp),
+                    backgroundColor = MaterialTheme.colorScheme.surface, // or your extended color
+                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)) {
+                      Column(
+                          modifier = Modifier.padding(8.dp),
+                          verticalArrangement = Arrangement.spacedBy(6.dp)) {
 
-                      // Top row: small image + title
-                      Row(
-                          horizontalArrangement = Arrangement.spacedBy(8.dp),
-                          verticalAlignment = Alignment.CenterVertically) {
-                            // Use your HazardNewsImage with a fixed, small size
-                            HazardNewsImage(hazard = hazard, modifier = Modifier.size(48.dp))
+                            // Top row: small image + title
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                  // Use your HazardNewsImage with a fixed, small size
+                                  HazardNewsImage(hazard = hazard, modifier = Modifier.size(48.dp))
 
-                            Text(
-                                text = hazard.description ?: (title ?: "Hazard"),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis)
+                                  Text(
+                                      text = hazard.description ?: (title ?: "Hazard"),
+                                      style = MaterialTheme.typography.titleSmall,
+                                      fontWeight = FontWeight.SemiBold,
+                                      maxLines = 2,
+                                      overflow = TextOverflow.Ellipsis)
+                                }
+
+                            // Second line: numeric severity (your snippet: "13590 ha")
+                            snippet
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { sevLine ->
+                                  Text(
+                                      text = sevLine,
+                                      style = MaterialTheme.typography.bodySmall,
+                                      color = Color.DarkGray,
+                                      maxLines = 1,
+                                      overflow = TextOverflow.Ellipsis)
+                                }
+
+                            // Optional: severityText from API
+                            hazard.severityText
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { sevText ->
+                                  Text(
+                                      text = sevText,
+                                      style = MaterialTheme.typography.bodySmall,
+                                      maxLines = 2,
+                                      overflow = TextOverflow.Ellipsis)
+                                }
+
+                            // Optional: date (same as LatestNewsCard)
+                            hazard.date
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { dateStr ->
+                                  Text(
+                                      text = formatDate(dateStr),
+                                      style = MaterialTheme.typography.bodySmall,
+                                      color =
+                                          MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                                }
+
+                            // Hint that tapping opens the full article
+                            if (hazard.articleUrl != null) {
+                              Text(
+                                  text = "Tap this bubble to open the full news article",
+                                  style = MaterialTheme.typography.labelSmall,
+                                  color = MaterialTheme.colorScheme.primary,
+                                  fontWeight = FontWeight.SemiBold)
+                            }
                           }
-
-                      // Second line: numeric severity (your snippet: "13590 ha")
-                      snippet
-                          ?.takeIf { it.isNotBlank() }
-                          ?.let { sevLine ->
-                            Text(
-                                text = sevLine,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.DarkGray,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis)
-                          }
-
-                      // Optional: severityText from API
-                      hazard.severityText
-                          ?.takeIf { it.isNotBlank() }
-                          ?.let { sevText ->
-                            Text(
-                                text = sevText,
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis)
-                          }
-
-                      // Optional: date (same as LatestNewsCard)
-                      hazard.date
-                          ?.takeIf { it.isNotBlank() }
-                          ?.let { dateStr ->
-                            Text(
-                                text = formatDate(dateStr),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                          }
-
-                      // Hint that tapping opens the full article
-                      if (hazard.articleUrl != null) {
-                        Text(
-                            text = "Tap this bubble to open the full news article",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold)
-                      }
                     }
               }
         }
