@@ -68,8 +68,11 @@ class TextToSpeechServiceTest {
 
     service.speak("ready to speak")
 
-    verify { tts.speak("ready to speak", TextToSpeech.QUEUE_FLUSH, null, any()) }
+    val listener = service.getField<UtteranceProgressListener>("utteranceListener")
+    listener.onStart("id")
+
     assertTrue(service.uiState.value.isSpeaking)
+    verify { tts.speak("ready to speak", TextToSpeech.QUEUE_FLUSH, null, any()) }
   }
 
   @Test
@@ -94,6 +97,10 @@ class TextToSpeechServiceTest {
 
     verify { tts.setOnUtteranceProgressListener(any()) }
     verify { tts.speak("queued message", TextToSpeech.QUEUE_FLUSH, null, any()) }
+
+    val listener = service.getField<UtteranceProgressListener>("utteranceListener")
+    listener.onStart("id")
+
     assertTrue(service.uiState.value.isSpeaking)
   }
 
