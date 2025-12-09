@@ -1,16 +1,155 @@
 <resources>
-    <!-- Base application theme. -->
-    <style name="Theme.MainApp" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
-    </style>
+    <string name="app_name">Warnastrophy</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_second">SecondActivity</string>
+    <string name="dashboard_screen_title">Dashboard</string>
+    <string name="map_screen_title">Map</string>
+    <string name="profile_screen_title">Profile</string>
+    <string name="add_contact_screen_title">Add Contact</string>
+    <string name="contact_list_title">Contact List</string>
+    <string name="edit_contact_screen_title">Edit Contact</string>
+    <string name="edit_activity_screen_title">Edit Activity</string>
+    <string name="add_activity_screen_title">Add Activity</string>
+    <string name="activity_list_title">Activities List</string>
+    <string name="health_card_screen_title">Emergency Card</string>
+    <string name="sign_in_title">Sign In</string>
+    <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
+
+    <!-- Dashboard Strings -->
+    <string name="latest_news">Latest news</string>
+    <string name="no_news_yet">No news yet !</string>
+    <string name="read">read</string>
+    <string name="event_image_description">Event Image</string>
+    <string name="loading">Loading…</string>
+
+    <!-- Dashboard Emergency Contacts Card -->
+    <string name="dashboard_emergency_contacts_title">Contacts</string>
+    <string name="dashboard_emergency_contacts_no_contacts">No emergency contacts added</string>
+    <string name="dashboard_emergency_contacts_item_format">%1$s: %2$s</string>
+
+    <!-- Dashboard Health Card -->
+    <string name="dashboard_health_card_title">Health</string>
+    <string name="dashboard_health_card_empty_text">Add your medical info,\nallergies and meds</string>
+
+    <!-- Logout strings -->
+    <string name="logout_string">Logout</string>
+    <string name="logout_message">Are you sure you want to logout?</string>
+    <string name="cancel_logout">Cancel</string>
+    <string name="logout_error">Error</string>
+    <string name="safe_zone_message">You are in a safe area</string>
+    <string name="danger_mode_active_message">Danger mode is enabled</string>
+
+    <!-- Search Bar Strings -->
+    <string name="search_bar_search">Search</string>
+    <string name="search_bar_icon">Search Icon</string>
+
+    <!-- Danger Mode Preferences -->
+    <string name="danger_mode_preferences_title">Danger Mode Preferences</string>
+    <string name="danger_mode_alert_mode_title">Alert Mode automatic</string>
+    <string name="danger_mode_alert_mode_description">If this option is enabled, you will receive an alert when you enter a dangerous area, i.e. when you enter an area where a disaster is occurring.\n\nThis mode require fine location permissions</string>
+
+    <string name="danger_mode_inactivity_detection_title">Inactivity Detection</string>
+    <string name="danger_mode_inactivity_detection_description">If this option is enabled and you are in Danger Mode, your phone will detect your activity and send an SMS alert to your registered emergency contacts if you remain inactive for a certain period of time in a dangerous area.\n\nThis mode require fine location permissions</string>
+    <string name="danger_mode_inactivity_detection_extra_description">It is strongly recommended that you enable the automatic SMS feature with this functionality.</string>
+
+    <string name="danger_mode_automatic_sms_title">Automatic SMS</string>
+    <string name="danger_mode_automatic_sms_description">If this option is enabled and your phone detects that you are inactive, it will automatically send an emergency text message to all your registered emergency contacts to request assistance.\n\nThis mode require fine location and SMS sending permissions</string>
+
+    <string name="danger_mode_automatic_calls_title">Automatic Calls</string>
+    <string name="danger_mode_automatic_calls_description">If this option is enabled and your phone detects that you are inactive in a hazard area, it will automatically initiate a phone call to your emergency contacts.\n\nThis mode requires CALL_PHONE and fine location permissions</string>
+
+    <!-- No activity fallback -->
+    <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
+
+    <!-- Theme management strings -->
+    <string name="theme_string">Theme</string>
+    <string name="dark_string">Dark</string>
+    <string name="light_string">Light</string>
+    <string name="theme_viewmodel_error">No ThemeViewModel provided</string>
+
+    <!-- Error Messages -->
+    <string name="no_errors">No errors</string>
+
+    <string name="error_location_not_granted">Location permission not granted</string>
+    <string name="error_location_update_failed">Location update failed</string>
+    <string name="error_foreground_start_failed">Failed to start foreground GPS service</string>
+    <string name="error_location_unavailable">No location available</string>
+
+    <string name="error_hazard_fetch_failed">Failed to fetch hazard data</string>
+
+    <!-- Error suggestions -->
+    <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
+    <string name="error_suggestion_check_internet">Please check your internet connection.</string>
+    <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
+    <string name="error_suggestion_retry">Please try again later.</string>
+
+    <!-- Health Card Pop-Up -->
+    <string name="health_card_popup_title">HEALTH CARD</string>
+    <string name="health_card_popup_edit_button">Edit/Show Full</string>
+    <string name="health_card_popup_edit_button_cd">Go to full health card</string>
+    <string name="health_card_popup_empty_text">Empty Health Card</string>
+
+    <!-- Health Card Fields -->
+    <string name="health_card_full_name">Full name</string>
+    <string name="health_card_birth_date">Birth date</string>
+    <string name="health_card_ssn">National ID number</string>
+    <string name="health_card_sex">Sex</string>
+    <string name="health_card_blood_type">Blood type</string>
+    <string name="health_card_height">Height (cm)</string>
+    <string name="health_card_weight">Weight (kg)</string>
+    <string name="health_card_chronic_conditions">Chronic conditions</string>
+    <string name="health_card_allergies">Allergies</string>
+    <string name="health_card_medications">Medications</string>
+    <string name="health_card_treatments">On going treatments</string>
+    <string name="health_card_history">Medical history</string>
+    <string name="health_card_organ_donor">Organ donor</string>
+    <string name="health_card_notes">Notes</string>
+    <string name="health_card_saved_message">Saved</string>
+    <string name="health_card_deleted_message">Deleted</string>
+
+    <!-- Fields Messages -->
+    <string name="error_mandatory_field">Mandatory field</string>
+    <string name="error_invalid_date">Invalid birth date (dd/mm/yyyy)</string>
+    <string name="optional_label_suffix">(Optional)</string>
+
+    <!-- Action Buttons -->
+    <string name="add_button">Add</string>
+    <string name="update_button">Update</string>
+    <string name="delete_button">Delete</string>
+
+    <!-- Speech Recognition Error Messages -->
+    <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
+    <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
+    <string name="error_text_to_speech_unavailable">Text-to-speech service is not available on this device</string>
+    <string name="error_text_to_speech_failed">Unable to play the requested message</string>
+    <string name="error_text_to_speech_init_failed">Unable to use speechToText on this device</string>
+
+    <string name="error_text_to_speech_empty_input">Nothing to read</string>
+
+    <!-- Onboarding screen -->
+    <string name="description_first_page">We track your location in the background, if you enter a high-risk area,
+        and we detect no movement, we automatically send a SMS to emergency contact you chose before</string>
+    <string name="title_first_page">Automatic Disaster Alert</string>
+    <string name="title_second_page">Manual High-Risk Safety</string>
+    <string name="description_second_page">Use this for activities like climbing or solo hiking. If we detect a fall followed
+        by prolonged stillness, we send your location to emergency service that you chose before.</string>
+    <string name="description_third_page">To monitor your location in the background and send emergency texts, we need location and SMS permission. We use these data only for your safety.</string>
+    <string name="title_third_page">Ready for Protection?</string>
+
+    <!-- communiction screen-->
+    <string name="communication_screen_title">Voice command</string>
+    <string name="communication_listening_label">Listening…</string>
+    <string name="communication_idle_label">Tap the mic to start listening</string>
+    <string name="communication_no_input_hint">We will show the transcript here.</string>
+    <string name="communication_listen_button">Start listening</string>
+    <string name="navigate_back">Back</string>
+
+    <string name="error_activity_repository_failed">Error in activity repository</string>
+
+    <!-- TTS Screen -->
+    <string name="communication_tts_speaking_label">En train de parler</string>
+    <string name="communication_tts_idle_label">Inactif</string>
+    <string name="communication_tts_rms_label">Niveau RMS : %1$.2f</string>
+    <string name="communication_tts_error_label">Erreur : %1$s</string>
+    <string name="communication_tts_sample_button">Lire un exemple</string>
 </resources>
