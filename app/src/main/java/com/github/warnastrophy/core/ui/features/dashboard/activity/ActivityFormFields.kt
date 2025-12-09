@@ -10,8 +10,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.github.warnastrophy.R
 
 /**
  * Shared composable for activity form input fields. Used by both AddActivity and EditActivity
@@ -38,7 +40,7 @@ fun ActivityFormFields(
   OutlinedTextField(
       value = state.activityName,
       onValueChange = { viewModel.setActivityName(it) },
-      label = { Text("Activity Name") },
+      label = { Text(stringResource(R.string.activity_name_label)) },
       isError = state.invalidActivityName != null,
       supportingText = {
         state.invalidActivityName?.let {
@@ -50,7 +52,7 @@ fun ActivityFormFields(
   OutlinedTextField(
       value = state.preDangerThresholdStr,
       onValueChange = { viewModel.setPreDangerThreshold(it) },
-      label = { Text("Initial shock threshold (m/s²)") },
+      label = { Text(stringResource(R.string.pre_danger_threshold_label)) },
       isError = state.isPreDangerThresholdError,
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag(preDangerThresholdTestTag))
@@ -58,14 +60,14 @@ fun ActivityFormFields(
   OutlinedTextField(
       value = state.preDangerTimeoutStr,
       onValueChange = { viewModel.setPreDangerTimeout(it) },
-      label = { Text("Initial shock timeout (e.g., 5s, 1m)") },
+      label = { Text(stringResource(R.string.pre_danger_timeout_label)) },
       isError = state.isPreDangerTimeoutError,
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag(preDangerTimeoutTestTag))
 
   OutlinedTextField(
       value = state.dangerAverageThresholdStr,
       onValueChange = { viewModel.setDangerAverageThreshold(it) },
-      label = { Text("Safe post shock minimal average movement (m/s²)") },
+      label = { Text(stringResource(R.string.danger_average_threshold_label)) },
       isError = state.isDangerAverageThresholdError,
       keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
       modifier =

@@ -139,4 +139,10 @@
     <string name="navigate_back">Back</string>
 
     <string name="error_activity_repository_failed">Error in activity repository</string>
+
+    <!-- Activity Form Field Labels -->
+    <string name="activity_name_label">Activity Name</string>
+    <string name="pre_danger_threshold_label">Initial shock threshold (m/s²)</string>
+    <string name="pre_danger_timeout_label">Initial shock timeout (e.g., 5s, 1m)</string>
+    <string name="danger_average_threshold_label">Safe post shock minimal average movement (m/s²)</string>
 </resources>
