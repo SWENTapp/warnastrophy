@@ -146,27 +146,7 @@ fun HazardMarker(
         { state, title, snippet, _ /* we ignore content here for default impl */ ->
           val ctx = LocalContext.current
           val severityTint = computeSeverityTint(hazard, severities)
-          val iconRes: Int? =
-              when (hazard.type) {
-                "FL",
-                "FF",
-                "SS" -> R.drawable.material_symbols_outlined_flood
-                "DR" -> R.drawable.material_symbols_outlined_water_voc
-                "EQ",
-                "AV",
-                "LS",
-                "MS" -> R.drawable.material_symbols_outlined_earthquake
-                "TC",
-                "EC",
-                "VW",
-                "TO",
-                "ST" -> R.drawable.material_symbols_outlined_storm
-                "FR",
-                "WF" -> R.drawable.material_symbols_outlined_local_fire_department
-                "VO" -> R.drawable.material_symbols_outlined_volcano
-                "TS" -> R.drawable.material_symbols_outlined_tsunami
-                else -> null
-              }
+          val iconRes = hazardTypeToDrawableRes(hazard.type)
           val markerIcon: BitmapDescriptor? =
               iconRes?.let {
                 bitmapDescriptorFromVector(
@@ -177,79 +157,8 @@ fun HazardMarker(
               state = state,
               onClick = { false }, // keep default behaviour
               icon = markerIcon,
-              onInfoWindowClick = {
-                hazard.articleUrl?.let { url ->
-                  val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                  ContextCompat.startActivity(ctx, intent, null)
-                }
-              }) { _ ->
-                StandardDashboardCard(
-                    modifier = Modifier.widthIn(max = 260.dp),
-                    backgroundColor = MaterialTheme.colorScheme.surface, // or your extended color
-                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)) {
-                      Column(
-                          modifier = Modifier.padding(8.dp),
-                          verticalArrangement = Arrangement.spacedBy(6.dp)) {
-
-                            // Top row: small image + title
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically) {
-                                  // Use your HazardNewsImage with a fixed, small size
-                                  HazardNewsImage(hazard = hazard, modifier = Modifier.size(48.dp))
-
-                                  Text(
-                                      text = hazard.description ?: (title ?: "Hazard"),
-                                      style = MaterialTheme.typography.titleSmall,
-                                      fontWeight = FontWeight.SemiBold,
-                                      maxLines = 2,
-                                      overflow = TextOverflow.Ellipsis)
-                                }
-
-                            // Second line: numeric severity (your snippet: "13590 ha")
-                            snippet
-                                ?.takeIf { it.isNotBlank() }
-                                ?.let { sevLine ->
-                                  Text(
-                                      text = sevLine,
-                                      style = MaterialTheme.typography.bodySmall,
-                                      color = Color.DarkGray,
-                                      maxLines = 1,
-                                      overflow = TextOverflow.Ellipsis)
-                                }
-
-                            // Optional: severityText from API
-                            hazard.severityText
-                                ?.takeIf { it.isNotBlank() }
-                                ?.let { sevText ->
-                                  Text(
-                                      text = sevText,
-                                      style = MaterialTheme.typography.bodySmall,
-                                      maxLines = 2,
-                                      overflow = TextOverflow.Ellipsis)
-                                }
-
-                            // Optional: date (same as LatestNewsCard)
-                            hazard.date
-                                ?.takeIf { it.isNotBlank() }
-                                ?.let { dateStr ->
-                                  Text(
-                                      text = formatDate(dateStr),
-                                      style = MaterialTheme.typography.bodySmall,
-                                      color =
-                                          MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                                }
-
-                            // Hint that tapping opens the full article
-                            if (hazard.articleUrl != null) {
-                              Text(
-                                  text = "Tap this bubble to open the full news article",
-                                  style = MaterialTheme.typography.labelSmall,
-                                  color = MaterialTheme.colorScheme.primary,
-                                  fontWeight = FontWeight.SemiBold)
-                            }
-                          }
-                    }
+              onInfoWindowClick = { openHazardArticle(ctx, hazard.articleUrl) }) {
+                HazardInfoWindowContent(hazard = hazard, title = title, snippet = snippet)
               }
         }
 ) {
@@ -262,16 +171,7 @@ fun HazardMarker(
         // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
         GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
       }
-  val snippet: String? =
-      hazard.severity
-          ?.takeIf { it != 0.0 } // <- hide when 0.0
-          ?.let { value ->
-            val rounded =
-                if (value % 1.0 == 0.0) value.toInt().toString()
-                else String.format(Locale.US, "%.1f", value)
-            val unit = hazard.severityUnit.orEmpty().trim()
-            if (unit.isNotEmpty()) "$rounded $unit" else rounded
-          }
+  val snippet: String? = formatSeveritySnippet(hazard)
 
   affectedZone?.let { locations ->
     if (locations.size > 1) {
@@ -291,29 +191,70 @@ fun HazardMarker(
       hazard.description,
       snippet,
   ) {
-    val icon: MapIcon =
-        when (hazard.type) {
-          "FL",
-          "FF",
-          "SS" -> MapIcon.Flood
-          "DR" -> MapIcon.Drought
-          "EQ",
-          "AV",
-          "LS",
-          "MS" -> MapIcon.Earthquake
-          "TC",
-          "EC",
-          "VW",
-          "TO",
-          "ST" -> MapIcon.Cyclone
-          "FR",
-          "WF" -> MapIcon.Fire
-          "VO" -> MapIcon.Volcano
-          "TS" -> MapIcon.Tsunami
-          else -> MapIcon.Unknown
-        }
+    val icon: MapIcon = hazardTypeToMapIcon(hazard.type)
     icon(tint = severityTint)
   }
+}
+
+private fun hazardTypeToDrawableRes(type: String?): Int? =
+    when (type) {
+      "FL",
+      "FF",
+      "SS" -> R.drawable.material_symbols_outlined_flood
+      "DR" -> R.drawable.material_symbols_outlined_water_voc
+      "EQ",
+      "AV",
+      "LS",
+      "MS" -> R.drawable.material_symbols_outlined_earthquake
+      "TC",
+      "EC",
+      "VW",
+      "TO",
+      "ST" -> R.drawable.material_symbols_outlined_storm
+      "FR",
+      "WF" -> R.drawable.material_symbols_outlined_local_fire_department
+      "VO" -> R.drawable.material_symbols_outlined_volcano
+      "TS" -> R.drawable.material_symbols_outlined_tsunami
+      else -> null
+    }
+
+private fun hazardTypeToMapIcon(type: String?): MapIcon =
+    when (type) {
+      "FL",
+      "FF",
+      "SS" -> MapIcon.Flood
+      "DR" -> MapIcon.Drought
+      "EQ",
+      "AV",
+      "LS",
+      "MS" -> MapIcon.Earthquake
+      "TC",
+      "EC",
+      "VW",
+      "TO",
+      "ST" -> MapIcon.Cyclone
+      "FR",
+      "WF" -> MapIcon.Fire
+      "VO" -> MapIcon.Volcano
+      "TS" -> MapIcon.Tsunami
+      else -> MapIcon.Unknown
+    }
+
+private fun formatSeveritySnippet(hazard: Hazard): String? {
+  val value = hazard.severity ?: return null
+  if (value == 0.0) return null
+
+  val rounded =
+      if (value % 1.0 == 0.0) value.toInt().toString() else String.format(Locale.US, "%.1f", value)
+
+  val unit = hazard.severityUnit.orEmpty().trim()
+  return if (unit.isNotEmpty()) "$rounded $unit" else rounded
+}
+
+private fun openHazardArticle(context: Context, articleUrl: String?) {
+  articleUrl ?: return
+  val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl))
+  ContextCompat.startActivity(context, intent, null)
 }
 
 @Composable
@@ -382,4 +323,75 @@ fun HazardNewsImage(hazard: Hazard, modifier: Modifier = Modifier) {
         contentScale = ContentScale.Crop,
         modifier = clippedModifier)
   }
+}
+
+@Composable
+private fun HazardInfoWindowContent(
+    hazard: Hazard,
+    title: String?,
+    snippet: String?,
+) {
+  StandardDashboardCard(
+      modifier = Modifier.widthIn(max = 260.dp),
+      backgroundColor = MaterialTheme.colorScheme.surface,
+      borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)) {
+        Column(
+            modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+              // Top row: small image + title
+              Row(
+                  horizontalArrangement = Arrangement.spacedBy(8.dp),
+                  verticalAlignment = Alignment.CenterVertically) {
+                    HazardNewsImage(hazard = hazard, modifier = Modifier.size(48.dp))
+
+                    Text(
+                        text = hazard.description ?: (title ?: "Hazard"),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis)
+                  }
+
+              // Numeric severity snippet (e.g., "13590 ha")
+              snippet
+                  ?.takeIf { it.isNotBlank() }
+                  ?.let { sevLine ->
+                    Text(
+                        text = sevLine,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.DarkGray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis)
+                  }
+
+              // Optional: severityText from API
+              hazard.severityText
+                  ?.takeIf { it.isNotBlank() }
+                  ?.let { sevText ->
+                    Text(
+                        text = sevText,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis)
+                  }
+
+              // Optional: date
+              hazard.date
+                  ?.takeIf { it.isNotBlank() }
+                  ?.let { dateStr ->
+                    Text(
+                        text = formatDate(dateStr),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+                  }
+
+              // Hint that tapping opens the full article
+              if (hazard.articleUrl != null) {
+                Text(
+                    text = "Tap this bubble to open the full news article",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold)
+              }
+            }
+      }
 }
