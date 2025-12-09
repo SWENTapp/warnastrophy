@@ -1,11 +1,13 @@
 package com.github.warnastrophy.core.ui.features.map
 
+import android.R.attr.type
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.net.Uri
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
@@ -22,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +35,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.SemanticsPropertyReceiver
@@ -100,16 +102,21 @@ enum class MapIcon(@DrawableRes val resId: Int?, val tag: String) {
   }
 }
 
-val LocalOnHazardClick = staticCompositionLocalOf<(Hazard) -> Unit> { {} }
-
+/*
+  Computes the severity tint color for a hazard based on its severity and type.
+  The color transitions from gray (low severity) to red (high severity).
+*/
 fun computeSeverityTint(hazard: Hazard, severities: Map<String, Pair<Double, Double>>): Color {
   val severity = hazard.severity ?: return Color.Black
   val type = hazard.type ?: return Color.Black
-
   val (minSev, maxSev) =
-      severities[type]
-          ?: throw IllegalStateException("Max intensity not found for hazard type $type")
-
+      try {
+        severities[type]
+            ?: throw IllegalStateException("Max intensity not found for hazard type $type")
+      } catch (e: Exception) {
+        Log.e("computeSeverityTint", "Error retrieving severities for type $type", e)
+        return Color.Black
+      }
   val denom = maxSev - minSev
   val ratio =
       if (denom != 0.0) {
@@ -193,6 +200,10 @@ fun HazardMarker(
   }
 }
 
+/*
+  This function maps hazard types to drawable resource IDs.
+  Returns null if the type is unrecognized.
+*/
 fun hazardTypeToDrawableRes(type: String?): Int? =
     when (type) {
       "FL",
@@ -215,6 +226,9 @@ fun hazardTypeToDrawableRes(type: String?): Int? =
       else -> null
     }
 
+/*
+   This function maps hazard types to MapIcon enum values.
+*/
 fun hazardTypeToMapIcon(type: String?): MapIcon =
     when (type) {
       "FL",
@@ -237,17 +251,28 @@ fun hazardTypeToMapIcon(type: String?): MapIcon =
       else -> MapIcon.Unknown
     }
 
+/*
+   Formats the severity of a hazard into a readable string.
+   Returns null if severity is null or zero.
+*/
 fun formatSeveritySnippet(hazard: Hazard): String? {
   val value = hazard.severity ?: return null
   if (value == 0.0) return null
 
   val rounded =
-      if (value % 1.0 == 0.0) value.toInt().toString() else String.format(Locale.US, "%.1f", value)
+      if (value == kotlin.math.floor(value)) value.toInt().toString()
+      else String.format(Locale.US, "%.1f", value)
 
   val unit = hazard.severityUnit.orEmpty().trim()
   return if (unit.isNotEmpty()) "$rounded $unit" else rounded
 }
 
+/*
+This function opens a hazard article URL in the device's default web browser.
+  If the URL is null, the function does nothing.
+  @param context The context used to start the activity.
+  @param articleUrl The URL of the hazard article to open.
+ */
 fun openHazardArticle(context: Context, articleUrl: String?) {
   articleUrl ?: return
   val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl))
@@ -264,11 +289,18 @@ fun PolygonWrapper(polygonCoords: List<LatLng>) {
       fillColor = MaterialTheme.colorScheme.error.copy(alpha = 0.18f))
 }
 
+/*
+  This function creates a BitmapDescriptor from a JPEG resource.
+*/
 fun bitmapDescriptorFromJpeg(context: Context, jpegResId: Int): BitmapDescriptor {
   val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, jpegResId)
   return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
+/*
+  This function creates a BitmapDescriptor from a vector drawable resource.
+  It allows specifying the size in dp and an optional tint color.
+*/
 fun bitmapDescriptorFromVector(
     context: Context,
     @DrawableRes vectorResId: Int,
@@ -293,6 +325,10 @@ fun bitmapDescriptorFromVector(
   return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
+/*
+   This Composable displays an image for a hazard.
+   It uses the articleUrl if it points to a valid image format; otherwise, it falls back to a default image.
+*/
 @Composable
 fun HazardNewsImage(hazard: Hazard, modifier: Modifier = Modifier) {
   val fallbackRes = getImageForEvent(hazard.type ?: "default")
@@ -322,6 +358,10 @@ fun HazardNewsImage(hazard: Hazard, modifier: Modifier = Modifier) {
   }
 }
 
+/*
+   This Composable displays the content of a hazard info window.
+   It includes the hazard image, title, severity snippet, severity text, date, and a hint to open the article.
+*/
 @Composable
 fun HazardInfoWindowContent(
     hazard: Hazard,
@@ -384,7 +424,7 @@ fun HazardInfoWindowContent(
               // Hint that tapping opens the full article
               if (hazard.articleUrl != null) {
                 Text(
-                    text = "Tap this bubble to open the full news article",
+                    text = stringResource(id = R.string.open_article_link),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold)
