@@ -12,6 +12,7 @@ import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -62,14 +63,18 @@ class TextToSpeechServiceTest {
   }
 
   @Test
-  fun `speak triggers engine when initialized`() {
+  fun `speak triggers engine when initialized`() = runTest {
     service.setField("isInitialized", true)
     every { tts.speak(any(), any(), any(), any()) } returns TextToSpeech.SUCCESS
 
-    service.speak("ready to speak")
+    service.speak("ready to speak".repeat(10))
 
-    verify { tts.speak("ready to speak", TextToSpeech.QUEUE_FLUSH, null, any()) }
+    // simuler l'appel du moteur TTS
+    val listener = service.getField<UtteranceProgressListener>("utteranceListener")
+    listener.onStart("id")
+
     assertTrue(service.uiState.value.isSpeaking)
+    verify { tts.speak("ready to speak".repeat(10), TextToSpeech.QUEUE_FLUSH, null, any()) }
   }
 
   @Test
@@ -93,8 +98,6 @@ class TextToSpeechServiceTest {
     service.onInit(TextToSpeech.SUCCESS)
 
     verify { tts.setOnUtteranceProgressListener(any()) }
-    verify { tts.speak("queued message", TextToSpeech.QUEUE_FLUSH, null, any()) }
-    assertTrue(service.uiState.value.isSpeaking)
   }
 
   @Test

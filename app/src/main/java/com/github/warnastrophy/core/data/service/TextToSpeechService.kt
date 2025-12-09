@@ -96,8 +96,8 @@ class TextToSpeechService(private val context: Context, private val errorHandler
   override fun onInit(status: Int) {
     isInitialized = status == TextToSpeech.SUCCESS
     if (isInitialized) {
-      textToSpeech?.language = Locale.getDefault()
-      textToSpeech?.setOnUtteranceProgressListener(utteranceListener)
+      textToSpeech.language = Locale.getDefault()
+      textToSpeech.setOnUtteranceProgressListener(utteranceListener)
       pendingText?.let {
         speak(it)
         pendingText = null
@@ -115,13 +115,8 @@ class TextToSpeechService(private val context: Context, private val errorHandler
    */
   override fun speak(text: String) {
     pendingText = text
-    Log.d("TextToSpeechService", "speak called with text: $pendingText")
-    if (text.isBlank()) return
-    val engine = textToSpeech ?: return
-
-    if (!isInitialized) {
-      return
-    }
+    if (text.isBlank() || !isInitialized) return
+    val engine = textToSpeech
 
     _uiState.value = _uiState.value.copy(spokenText = text)
     val utteranceId = System.currentTimeMillis().toString()
