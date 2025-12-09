@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertHasClickAction
@@ -11,9 +11,6 @@ import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockContactRepository
 import com.github.warnastrophy.core.model.Contact
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsCardStateful
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsCardStateless
-import com.github.warnastrophy.core.ui.features.dashboard.DashboardEmergencyContactsTestTags
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
@@ -59,7 +56,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
         }
 
     mockRepository = MockContactRepository()
-    ContactRepositoryProvider.repository = mockRepository
+    ContactRepositoryProvider.setCustom(mockRepository)
   }
 
   @Test
@@ -358,7 +355,7 @@ class DashboardEmergencyContactsCardTest : BaseAndroidComposeTest() {
           override fun getNewUid(): String = ""
         }
 
-    ContactRepositoryProvider.repository = failingRepository
+    ContactRepositoryProvider.setCustom(failingRepository)
 
     composeTestRule.setContent {
       MainAppTheme { DashboardEmergencyContactsCardStateful(onManageContactsClick = {}) }
