@@ -102,10 +102,7 @@ enum class MapIcon(@DrawableRes val resId: Int?, val tag: String) {
 
 val LocalOnHazardClick = staticCompositionLocalOf<(Hazard) -> Unit> { {} }
 
-private fun computeSeverityTint(
-    hazard: Hazard,
-    severities: Map<String, Pair<Double, Double>>
-): Color {
+fun computeSeverityTint(hazard: Hazard, severities: Map<String, Pair<Double, Double>>): Color {
   val severity = hazard.severity ?: return Color.Black
   val type = hazard.type ?: return Color.Black
 
@@ -196,7 +193,7 @@ fun HazardMarker(
   }
 }
 
-private fun hazardTypeToDrawableRes(type: String?): Int? =
+fun hazardTypeToDrawableRes(type: String?): Int? =
     when (type) {
       "FL",
       "FF",
@@ -218,7 +215,7 @@ private fun hazardTypeToDrawableRes(type: String?): Int? =
       else -> null
     }
 
-private fun hazardTypeToMapIcon(type: String?): MapIcon =
+fun hazardTypeToMapIcon(type: String?): MapIcon =
     when (type) {
       "FL",
       "FF",
@@ -240,7 +237,7 @@ private fun hazardTypeToMapIcon(type: String?): MapIcon =
       else -> MapIcon.Unknown
     }
 
-private fun formatSeveritySnippet(hazard: Hazard): String? {
+fun formatSeveritySnippet(hazard: Hazard): String? {
   val value = hazard.severity ?: return null
   if (value == 0.0) return null
 
@@ -251,7 +248,7 @@ private fun formatSeveritySnippet(hazard: Hazard): String? {
   return if (unit.isNotEmpty()) "$rounded $unit" else rounded
 }
 
-private fun openHazardArticle(context: Context, articleUrl: String?) {
+fun openHazardArticle(context: Context, articleUrl: String?) {
   articleUrl ?: return
   val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl))
   ContextCompat.startActivity(context, intent, null)
@@ -326,7 +323,7 @@ fun HazardNewsImage(hazard: Hazard, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun HazardInfoWindowContent(
+fun HazardInfoWindowContent(
     hazard: Hazard,
     title: String?,
     snippet: String?,
