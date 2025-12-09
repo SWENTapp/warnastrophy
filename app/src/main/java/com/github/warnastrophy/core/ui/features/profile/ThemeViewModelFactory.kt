@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.ui.features.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 
 /**
@@ -14,9 +13,8 @@ import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
  * @param repository The [UserPreferencesRepository] that provides access to the user's preferences,
  *   including theme-related settings.
  */
-class ThemeViewModelFactory(
-    private val repository: UserPreferencesRepository = UserPreferencesRepositoryProvider.repository
-) : ViewModelProvider.Factory {
+class ThemeViewModelFactory(private val repository: UserPreferencesRepository) :
+    ViewModelProvider.Factory {
 
   /**
    * Creates a [ThemeViewModel] instance.
