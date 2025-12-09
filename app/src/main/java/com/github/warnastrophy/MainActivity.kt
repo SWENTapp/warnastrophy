@@ -41,15 +41,32 @@ private val ComponentActivity.dataStore by preferencesDataStore(name = "user_pre
  * @see [setContent] - Used to set up the Compose UI.
  */
 class MainActivity : ComponentActivity() {
+  private lateinit var auth: FirebaseAuth
+  private lateinit var db: FirebaseFirestore
   /**
    * Sets the content of the `MainActivity` with the application's theme and UI. This method is
    * invoked during the `onCreate` lifecycle callback to initialize the UI.
    */
   private fun showUI() {
     setContent {
-      val themeViewModel: ThemeViewModel = viewModel(factory = ThemeViewModelFactory())
+      val themeViewModel: ThemeViewModel =
+          viewModel(
+              factory =
+                  ThemeViewModelFactory(repository = StateManagerService.userPreferencesRepository))
 
-      ThemedApp(themeViewModel = themeViewModel)
+      ThemedApp(
+          themeViewModel = themeViewModel,
+          onAuthenticationChanged = { isAuthenticated ->
+            initializeUserPreferencesRepository(isAuthenticated)
+          })
+    }
+  }
+
+  private fun initializeUserPreferencesRepository(isAuthenticated: Boolean) {
+    if (isAuthenticated) {
+      UserPreferencesRepositoryProvider.initHybrid(dataStore, db)
+    } else {
+      UserPreferencesRepositoryProvider.initLocal(dataStore)
     }
   }
 
@@ -57,12 +74,14 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     FirebaseApp.initializeApp(this)
 
-    val auth = FirebaseAuth.getInstance()
-    val db = FirebaseFirestore.getInstance()
+    auth = FirebaseAuth.getInstance()
+    db = FirebaseFirestore.getInstance()
+
+    val isAuthenticated = auth.currentUser != null
+    initializeUserPreferencesRepository(isAuthenticated)
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     ContactRepositoryProvider.initHybrid(applicationContext, db)
-    UserPreferencesRepositoryProvider.initHybrid(dataStore, db)
     StateManagerService.init(applicationContext)
     OnboardingRepositoryProvider.init(applicationContext)
     showUI()
@@ -88,7 +107,8 @@ object rootNav {
 @Composable
 private fun ThemedApp(
     themeViewModel: ThemeViewModel,
-    appStateManagerViewModel: AppStateManagerViewModel = viewModel()
+    appStateManagerViewModel: AppStateManagerViewModel = viewModel(),
+    onAuthenticationChanged: (Boolean) -> Unit
 ) {
   val isOnboardingCompleted by appStateManagerViewModel.isOnboardingCompleted.collectAsState()
   val isDarkMode by themeViewModel.isDarkMode.collectAsState()
@@ -113,6 +133,9 @@ private fun ThemedApp(
           SignInScreen(
               credentialManager = CredentialManager.create(LocalContext.current),
               onSignedIn = {
+                if (firebaseAuth.currentUser != null) {
+                  onAuthenticationChanged(true)
+                }
                 if (!isOnboardingCompleted) {
                   navController.navigate(rootNav.ONBOARDING) {
                     popUpTo(rootNav.ONBOARDING) { inclusive = true }
@@ -138,6 +161,7 @@ private fun ThemedApp(
         composable(rootNav.MAIN_APP) {
           WarnastrophyComposable(
               onLogOutEvent = {
+                onAuthenticationChanged(false)
                 navController.navigate(rootNav.SIGN_IN) {
                   popUpTo(rootNav.MAIN_APP) { inclusive = true }
                 }
