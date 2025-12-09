@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.features.map
 
-import android.R.attr.type
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -267,11 +266,12 @@ fun formatSeveritySnippet(hazard: Hazard): String? {
   return if (unit.isNotEmpty()) "$rounded $unit" else rounded
 }
 
-/*
-This function opens a hazard article URL in the device's default web browser.
-  If the URL is null, the function does nothing.
-  @param context The context used to start the activity.
-  @param articleUrl The URL of the hazard article to open.
+/**
+ * This function opens a hazard article URL in the device's default web browser. If the URL is null,
+ * the function does nothing.
+ *
+ * @param context The context used to start the activity.
+ * @param articleUrl The URL of the hazard article to open.
  */
 fun openHazardArticle(context: Context, articleUrl: String?) {
   articleUrl ?: return
