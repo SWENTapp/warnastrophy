@@ -64,8 +64,10 @@ class MainActivity : ComponentActivity() {
 
   private fun initializeUserPreferencesRepository(isAuthenticated: Boolean) {
     if (isAuthenticated) {
+      ContactRepositoryProvider.initHybrid(applicationContext, db)
       UserPreferencesRepositoryProvider.initHybrid(dataStore, db)
     } else {
+      ContactRepositoryProvider.initLocal(applicationContext)
       UserPreferencesRepositoryProvider.initLocal(dataStore)
     }
   }
@@ -81,7 +83,6 @@ class MainActivity : ComponentActivity() {
     initializeUserPreferencesRepository(isAuthenticated)
 
     HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
-    ContactRepositoryProvider.initHybrid(applicationContext, db)
     StateManagerService.init(applicationContext)
     OnboardingRepositoryProvider.init(applicationContext)
     showUI()
