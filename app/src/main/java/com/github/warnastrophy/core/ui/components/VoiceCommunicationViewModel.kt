@@ -2,8 +2,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
-import com.github.warnastrophy.core.data.service.SpeechToTextService
-import com.github.warnastrophy.core.data.service.TextToSpeechService
+import com.github.warnastrophy.core.data.service.SpeechToTextServiceInterface
+import com.github.warnastrophy.core.data.service.TextToSpeechServiceInterface
 import com.github.warnastrophy.core.data.service.TextToSpeechUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+interface VoiceCommunicationViewModelInterface {
+  val uiState: StateFlow<VoiceCommunicationUiState>
+}
 /**
  * Represents the combined UI state for voice communication, including speech recognition and
  * text-to-speech states.
@@ -34,16 +37,16 @@ data class VoiceCommunicationUiState(
  * @param textToSpeechService The service for text-to-speech operations.
  */
 class VoiceCommunicationViewModel(
-    private val speechToTextService: SpeechToTextService,
-    private val textToSpeechService: TextToSpeechService,
-) : ViewModel() {
+    private val speechToTextService: SpeechToTextServiceInterface,
+    private val textToSpeechService: TextToSpeechServiceInterface,
+) : ViewModel(), VoiceCommunicationViewModelInterface {
 
   private val _uiState =
       MutableStateFlow(
           VoiceCommunicationUiState(
               speechState = speechToTextService.uiState.value,
               textToSpeechState = textToSpeechService.uiState.value))
-  val uiState: StateFlow<VoiceCommunicationUiState> = _uiState.asStateFlow()
+  override val uiState: StateFlow<VoiceCommunicationUiState> = _uiState.asStateFlow()
 
   init {
     observeDataSources()
@@ -110,5 +113,15 @@ class VoiceCommunicationViewModel(
     speechToTextService.destroy()
     textToSpeechService.destroy()
     super.onCleared()
+  }
+}
+
+class MockVoiceCommunicationViewModel(initialState: VoiceCommunicationUiState) :
+    VoiceCommunicationViewModelInterface {
+  private val _uiState = MutableStateFlow(initialState)
+  override val uiState: StateFlow<VoiceCommunicationUiState> = _uiState
+
+  fun updateState(state: VoiceCommunicationUiState) {
+    _uiState.value = state
   }
 }

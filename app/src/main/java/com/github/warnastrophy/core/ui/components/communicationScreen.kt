@@ -1,6 +1,6 @@
 package com.github.warnastrophy.core.ui.components
 
-import VoiceCommunicationViewModel
+import VoiceCommunicationViewModelInterface
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -35,12 +35,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
 import com.github.warnastrophy.core.data.service.TextToSpeechUiState
+
+object CommunicationScreenTags {
+  const val TITLE = "communication-screen-title"
+  const val STATUS_CARD = "communication-status-card"
+  const val STATUS_LABEL = "communication-status-label"
+  const val STATUS_TEXT = "communication-status-text"
+  const val STATUS_ERROR = "communication-status-error"
+  const val MIC_BUTTON = "communication-mic-button"
+}
 
 /**
  * Displays the communication screen for voice interactions, including listening and speaking
@@ -52,7 +62,7 @@ import com.github.warnastrophy.core.data.service.TextToSpeechUiState
  */
 @Composable
 fun CommunicationScreen(
-    viewModel: VoiceCommunicationViewModel,
+    viewModel: VoiceCommunicationViewModelInterface,
     modifier: Modifier = Modifier,
 ) {
   val uiState by viewModel.uiState.collectAsState()
@@ -72,6 +82,7 @@ fun CommunicationScreen(
       Row(verticalAlignment = Alignment.CenterVertically) {
         Spacer(modifier = Modifier.size(8.dp))
         Text(
+            modifier = Modifier.testTag(CommunicationScreenTags.TITLE),
             text = stringResource(R.string.communication_screen_title),
             style = MaterialTheme.typography.titleLarge)
       }
@@ -118,20 +129,28 @@ private fun VoiceStatusCard(
     error = listenUiState.errorMessage
   }
   ElevatedCard(
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier.fillMaxWidth().testTag(CommunicationScreenTags.STATUS_CARD),
       shape = RoundedCornerShape(24.dp),
       colors =
           CardDefaults.elevatedCardColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
         Column(
             modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-              Text(text = voiceLabel, style = MaterialTheme.typography.titleMedium)
               Text(
+                  modifier = Modifier.testTag(CommunicationScreenTags.STATUS_LABEL),
+                  text = voiceLabel,
+                  style = MaterialTheme.typography.titleMedium)
+              Text(
+                  modifier = Modifier.testTag(CommunicationScreenTags.STATUS_TEXT),
                   text = voiceText,
                   style = MaterialTheme.typography.bodyLarge,
                   color = MaterialTheme.colorScheme.onSecondaryContainer,
                   textAlign = TextAlign.Start)
-              if (error != null) Text(text = error, color = MaterialTheme.colorScheme.error)
+              if (error != null)
+                  Text(
+                      modifier = Modifier.testTag(CommunicationScreenTags.STATUS_ERROR),
+                      text = error,
+                      color = MaterialTheme.colorScheme.error)
             }
       }
 }
@@ -144,7 +163,7 @@ private fun VoiceStatusCard(
  * @param onMicClick Callback for microphone button click.
  */
 @Composable
-private fun AnimatedMicButton(rms: Float, viewModel: VoiceCommunicationViewModel) {
+private fun AnimatedMicButton(rms: Float, viewModel: VoiceCommunicationViewModelInterface) {
   val animatedScale by
       animateFloatAsState(
           targetValue = remember(rms) { 1f + (rms / 10f) }.coerceIn(1f, 1.5f),
@@ -153,34 +172,36 @@ private fun AnimatedMicButton(rms: Float, viewModel: VoiceCommunicationViewModel
                   dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
           label = "mic-scale")
 
-  Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Box(
-        modifier =
-            Modifier.size(220.dp)
-                .clip(CircleShape)
-                .background(
-                    brush =
-                        Brush.radialGradient(
-                            colors =
-                                listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                                    Color.Transparent))))
-    Box(
-        modifier =
-            Modifier.size((140.dp * animatedScale))
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)))
-    Box(
-        modifier =
-            Modifier.size(130.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center) {
-          Icon(
-              imageVector = Icons.Default.PlayArrow,
-              contentDescription = stringResource(R.string.communication_listen_button),
-              tint = MaterialTheme.colorScheme.onPrimaryContainer,
-              modifier = Modifier.size(48.dp))
-        }
-  }
+  Box(
+      modifier = Modifier.fillMaxSize().testTag(CommunicationScreenTags.MIC_BUTTON),
+      contentAlignment = Alignment.Center) {
+        Box(
+            modifier =
+                Modifier.size(220.dp)
+                    .clip(CircleShape)
+                    .background(
+                        brush =
+                            Brush.radialGradient(
+                                colors =
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                                        Color.Transparent))))
+        Box(
+            modifier =
+                Modifier.size((140.dp * animatedScale))
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)))
+        Box(
+            modifier =
+                Modifier.size(130.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center) {
+              Icon(
+                  imageVector = Icons.Default.PlayArrow,
+                  contentDescription = stringResource(R.string.communication_listen_button),
+                  tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                  modifier = Modifier.size(48.dp))
+            }
+      }
 }

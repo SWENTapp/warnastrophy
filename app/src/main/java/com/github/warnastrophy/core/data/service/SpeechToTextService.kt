@@ -48,6 +48,8 @@ interface SpeechToTextServiceInterface {
   val uiState: StateFlow<SpeechRecognitionUiState>
 
   suspend fun listenForConfirmation(): Boolean
+
+  fun destroy(): Unit
 }
 
 class SpeechToTextService(
@@ -201,7 +203,7 @@ class SpeechToTextService(
    * Stops speech recognition and releases resources. Must be called when the service is no longer
    * needed to avoid memory leaks.
    */
-  fun destroy() {
+  override fun destroy() {
     currentContinuation = null
     speechRecognizer.stopListening()
     speechRecognizer.destroy()
@@ -217,5 +219,9 @@ class MockSpeechToTextService : SpeechToTextServiceInterface {
   override suspend fun listenForConfirmation(): Boolean {
     _uiState.value = SpeechRecognitionUiState(isListening = true, recognizedText = "yes")
     return true
+  }
+
+  override fun destroy() {
+    _uiState.value = SpeechRecognitionUiState(isListening = false)
   }
 }
