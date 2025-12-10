@@ -110,13 +110,13 @@ data class NewsCardColors(
 data class MapPreviewColors(val background: Color, val mapMarker: Color)
 
 /**
- * Defines the color palette for health card components.
+ * Defines the color palette for dashboard pop-up components.
  *
  * @property primary The background color of the card.
  * @property secondary The background color within the card.
  * @property fieldText The text color within the card.
  */
-data class HealthCardColors(val primary: Color, val secondary: Color, val fieldText: Color)
+data class DashboardPopUp(val primary: Color, val secondary: Color, val fieldText: Color)
 
 // ============================================================================
 // Color Sets for Light Theme
@@ -142,8 +142,8 @@ val NewsCardColorsLight =
 val MapPreviewColorsLight =
     MapPreviewColors(background = BackgroundWhite, mapMarker = AccentMapBlueLight)
 
-val HealthCardColorsLight =
-    HealthCardColors(
+val DashboardPopUpColorsLight =
+    DashboardPopUp(
         primary = AccentPrimaryRedLight,
         secondary = AccentSecondaryWhiteLight,
         fieldText = TextBlack)
@@ -172,6 +172,6 @@ val NewsCardColorsDark =
 val MapPreviewColorsDark =
     MapPreviewColors(background = BackgroundLightGreyDark, mapMarker = AccentMapBlueDark)
 
-val HealthCardColorsDark =
-    HealthCardColors(
+val DashboardPopUpColorsDark =
+    DashboardPopUp(
         primary = AccentPrimaryRedDark, secondary = AccentSecondaryGreyDark, fieldText = TextBlack)
