@@ -46,8 +46,6 @@ class SpeechToTextServiceTest {
 
   @Before
   fun setup() {
-    // Ne pas construire service ici : le mock statique doit être actif avant l'appel au
-    // constructeur.
     whenever(context.getString(any())).thenReturn("Speech recognition failed")
   }
 
@@ -170,7 +168,6 @@ class SpeechToTextServiceTest {
 
   @Test
   fun parseConfirmationVariants() {
-    // Même test : on doit mocker le SpeechRecognizer statique avant la création du service
     mockSpeechRecognizer().use { harness ->
       service = SpeechToTextService(context, errorHandler)
 

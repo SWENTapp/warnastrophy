@@ -69,7 +69,7 @@ class CommunicationScreenTest {
 
     composeRule
         .onNodeWithTag(CommunicationScreenTags.STATUS_LABEL)
-        .assertTextEquals("Nothing going on")
+        .assertTextEquals(composeRule.activity.getString(R.string.communication_no_input_hint))
     composeRule.onNodeWithTag(CommunicationScreenTags.STATUS_TEXT).assertTextEquals("")
   }
 }

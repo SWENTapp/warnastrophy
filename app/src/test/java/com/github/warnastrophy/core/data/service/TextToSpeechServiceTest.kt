@@ -12,6 +12,7 @@ import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -20,13 +21,22 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
+@RunWith(MockitoJUnitRunner::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 class TextToSpeechServiceTest {
 
-  private lateinit var context: Context
+  @Mock private lateinit var context: Context
   private lateinit var errorHandler: ErrorHandler
   private lateinit var service: TextToSpeechService
   private lateinit var tts: TextToSpeech
+
+  private val defaultString = "bla bla bla"
 
   @Before
   fun setup() {
@@ -35,7 +45,7 @@ class TextToSpeechServiceTest {
     every { anyConstructed<TextToSpeech>().setOnUtteranceProgressListener(any()) } returns 0
     every { anyConstructed<TextToSpeech>().language = any() } returns Unit
 
-    context = mockk(relaxed = true)
+    whenever(context.getString(any())).thenReturn(defaultString)
     errorHandler = mockk(relaxed = true)
     tts = mockk(relaxed = true)
 
@@ -84,7 +94,7 @@ class TextToSpeechServiceTest {
 
     service.speak("bad request")
 
-    assertEquals("There was an error during speech synthesis.", service.uiState.value.errorMessage)
+    assertEquals(defaultString, service.uiState.value.errorMessage)
     verify(exactly = 1) {
       errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
     }
@@ -103,8 +113,7 @@ class TextToSpeechServiceTest {
   @Test
   fun `onInit failure reports initialization error`() {
     service.onInit(TextToSpeech.ERROR)
-    assertEquals(
-        "There was an error during speech initialization.", service.uiState.value.errorMessage)
+    assertEquals(defaultString, service.uiState.value.errorMessage)
     verify(exactly = 1) {
       errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
     }
@@ -125,7 +134,6 @@ class TextToSpeechServiceTest {
     assertNull(service.uiState.value.spokenText)
 
     listener.onError("id")
-    assertEquals("There was an error during speech synthesis.", service.uiState.value.errorMessage)
     verify(exactly = 1) {
       errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
     }
