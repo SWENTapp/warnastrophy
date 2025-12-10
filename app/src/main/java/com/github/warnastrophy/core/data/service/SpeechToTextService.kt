@@ -89,11 +89,7 @@ class SpeechToTextService(
               restartListening()
             }
             else -> {
-              if (confirmation) {
-                _uiState.update { it.copy(isConfirmed = true) }
-              } else {
-                _uiState.update { it.copy(isConfirmed = false) }
-              }
+              _uiState.update { it.copy(isConfirmed = confirmation) }
               completeListening(spokenText)
             }
           }
