@@ -19,6 +19,7 @@ enum class ErrorType(val message: Int) {
   EMERGENCY_SMS_FAILED(R.string.error_emergency_sms_failed),
   EMERGENCY_CALL_FAILED(R.string.error_emergency_call_failed),
   EMERGENCY_ACTION_CANCELLED(R.string.error_emergency_action_cancelled),
+  NO_EMERGENCY_CONTACT(R.string.error_no_emergency_contact),
 }
 
 /** ViewModel responsible for managing error messages associated with different screens. */

@@ -125,10 +125,21 @@ class SpeechToTextService(
   }
 
   private fun completeListening(spokenText: String) {
+    val confirmed = parseConfirmation(spokenText) ?: false
+    val continuation = currentContinuation
+    currentContinuation = null
+
     _uiState.update {
       it.copy(isListening = false, rmsLevel = 0f, recognizedText = spokenText, errorMessage = null)
     }
-    destroy()
+
+    // Stop recognizer first
+    speechRecognizer?.stopListening()
+    speechRecognizer?.destroy()
+    speechRecognizer = null
+
+    // Resume the continuation with the result
+    continuation?.resumeWith(Result.success(confirmed))
   }
 
   /**

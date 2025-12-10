@@ -158,11 +158,15 @@
     <string name="error_emergency_sms_failed">Failed to send emergency SMS</string>
     <string name="error_emergency_call_failed">Failed to make emergency call</string>
     <string name="error_emergency_action_cancelled">Emergency action was cancelled</string>
+    <string name="error_no_emergency_contact">No emergency contact configured. Please add an emergency contact to use this feature.</string>
 
     <!-- Error suggestions for emergency actions -->
     <string name="error_suggestion_emergency_sms">Check SMS permissions and try again. Make sure you have a valid emergency contact.</string>
     <string name="error_suggestion_emergency_call">Check call permissions and try again. Make sure you have a valid emergency contact.</string>
     <string name="error_suggestion_action_cancelled">The emergency action was cancelled. You can trigger it again if needed.</string>
+    <string name="error_suggestion_activity_repository">Please check your internet connection and try again. If the problem persists, restart the app.</string>
+    <string name="error_suggestion_no_emergency_contact">Add an emergency contact in your profile to enable automatic SMS and call features.</string>
+
 
     <string name="voice_confirmation_title">Confirm Emergency Action</string>
     <string name="voice_confirmation_listening">Listening for confirmation…</string>

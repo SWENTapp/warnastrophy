@@ -180,10 +180,12 @@ private fun ErrorSuggestion(err: Error): String {
     ErrorType.SPEECH_RECOGNITION_ERROR ->
         stringResource(R.string.error_suggestion_speech_recognition)
     ErrorType.NO_ERRORS -> ""
-    ErrorType.ACTIVITY_REPOSITORY_ERROR -> stringResource(R.string.error_activity_repository_failed)
+    ErrorType.ACTIVITY_REPOSITORY_ERROR ->
+        stringResource(R.string.error_suggestion_activity_repository)
     ErrorType.EMERGENCY_SMS_FAILED -> stringResource(R.string.error_suggestion_emergency_sms)
     ErrorType.EMERGENCY_CALL_FAILED -> stringResource(R.string.error_suggestion_emergency_call)
     ErrorType.EMERGENCY_ACTION_CANCELLED ->
         stringResource(R.string.error_suggestion_action_cancelled)
+    ErrorType.NO_EMERGENCY_CONTACT -> stringResource(R.string.error_suggestion_no_emergency_contact)
   }
 }

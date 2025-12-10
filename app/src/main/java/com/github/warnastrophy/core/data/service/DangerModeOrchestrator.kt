@@ -2,10 +2,11 @@ package com.github.warnastrophy.core.data.service
 
 import android.content.Context
 import android.util.Log
+import com.github.warnastrophy.core.data.interfaces.ContactsRepository
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.DangerModePreferences
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
-import com.github.warnastrophy.core.domain.model.SmsSender
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
@@ -86,9 +87,10 @@ class DangerModeOrchestrator(
         StateManagerService.userPreferencesRepository,
     private val gpsService: PositionService = StateManagerService.gpsService,
     private val errorHandler: ErrorHandler = StateManagerService.errorHandler,
+    private val contactsRepository: ContactsRepository? = null,
     private val smsSender: SmsSender? = null,
     private val callSender: CallSender? = null,
-    private val emergencyPhoneNumber: String = DEFAULT_EMERGENCY_NUMBER,
+    private var emergencyPhoneNumber: String = DEFAULT_EMERGENCY_NUMBER,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
   companion object {
@@ -100,6 +102,8 @@ class DangerModeOrchestrator(
   private val scope = CoroutineScope(SupervisorJob() + dispatcher)
   private var monitoringJob: Job? = null
   private var confirmationJob: Job? = null
+
+  private var contactsRepo: ContactsRepository? = contactsRepository
 
   private val _state = MutableStateFlow(OrchestratorState())
   val state: StateFlow<OrchestratorState> = _state.asStateFlow()
@@ -118,10 +122,43 @@ class DangerModeOrchestrator(
    */
   fun initialize(context: Context) {
     if (smsSenderInstance == null) {
-      smsSenderInstance = com.github.warnastrophy.core.domain.model.SmsManagerSender(context)
+      smsSenderInstance = SmsManagerSender(context)
     }
-    if (callSenderInstance == null) {
-      callSenderInstance = CallIntentCaller(context, emergencyPhoneNumber)
+
+    // Initialize contacts repository if not provided
+    if (contactsRepo == null) {
+      try {
+        contactsRepo = ContactRepositoryProvider.repository
+      } catch (e: Exception) {
+        Log.w(TAG, "ContactsRepository not initialized yet")
+      }
+    }
+
+    // Fetch emergency phone number from first contact
+    scope.launch {
+      fetchEmergencyPhoneNumber()
+      // Initialize call sender after we have the phone number
+      if (callSenderInstance == null) {
+        callSenderInstance = CallIntentCaller(context, emergencyPhoneNumber)
+      }
+    }
+  }
+
+  /**
+   * Fetches the emergency phone number from the first contact in the repository. Falls back to
+   * DEFAULT_EMERGENCY_NUMBER if no contacts are available.
+   */
+  private suspend fun fetchEmergencyPhoneNumber() {
+    try {
+      val contacts = contactsRepo?.getAllContacts()?.getOrNull()
+      if (!contacts.isNullOrEmpty()) {
+        emergencyPhoneNumber = contacts.first().phoneNumber
+        Log.d(TAG, "Emergency phone number set to: $emergencyPhoneNumber")
+      } else {
+        Log.w(TAG, "No emergency contacts found, using default number")
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to fetch emergency contacts", e)
     }
   }
 
@@ -193,6 +230,13 @@ class DangerModeOrchestrator(
 
   /** Triggers the emergency protocol based on user preferences. */
   private fun triggerEmergencyProtocol(preferences: DangerModePreferences) {
+    // Check if we have a valid phone number
+    if (emergencyPhoneNumber.isBlank()) {
+      Log.w(TAG, "No emergency phone number configured - cannot trigger emergency protocol")
+      errorHandler.addErrorToScreen(ErrorType.NO_EMERGENCY_CONTACT, Screen.Dashboard)
+      return
+    }
+
     val currentLocation = gpsService.positionState.value.position
     val emergencyMessage =
         EmergencyMessage(location = Location(currentLocation.latitude, currentLocation.longitude))
@@ -257,6 +301,15 @@ class DangerModeOrchestrator(
 
   /** Executes the emergency action (SMS, Call, or both). */
   private fun executeEmergencyAction(action: PendingEmergencyAction) {
+    // Log the phone number being used for debugging
+    val phoneNumber =
+        when (action) {
+          is PendingEmergencyAction.SendSms -> action.phoneNumber
+          is PendingEmergencyAction.MakeCall -> action.phoneNumber
+          is PendingEmergencyAction.SendSmsAndCall -> action.phoneNumber
+        }
+    Log.d(TAG, "Executing emergency action with phone number: '$phoneNumber'")
+
     try {
       when (action) {
         is PendingEmergencyAction.SendSms -> {
@@ -264,12 +317,14 @@ class DangerModeOrchestrator(
           _state.value = OrchestratorState(lastActionTaken = EmergencyActionResult.Success("SMS"))
           // Clear any previous SMS errors
           errorHandler.clearErrorFromScreen(ErrorType.EMERGENCY_SMS_FAILED, Screen.Dashboard)
+          errorHandler.clearErrorFromScreen(ErrorType.NO_EMERGENCY_CONTACT, Screen.Dashboard)
         }
         is PendingEmergencyAction.MakeCall -> {
           callSenderInstance?.placeCall(action.phoneNumber)
           _state.value = OrchestratorState(lastActionTaken = EmergencyActionResult.Success("Call"))
           // Clear any previous call errors
           errorHandler.clearErrorFromScreen(ErrorType.EMERGENCY_CALL_FAILED, Screen.Dashboard)
+          errorHandler.clearErrorFromScreen(ErrorType.NO_EMERGENCY_CONTACT, Screen.Dashboard)
         }
         is PendingEmergencyAction.SendSmsAndCall -> {
           smsSenderInstance?.sendSms(action.phoneNumber, action.message)
@@ -279,9 +334,19 @@ class DangerModeOrchestrator(
           // Clear any previous errors
           errorHandler.clearErrorFromScreen(ErrorType.EMERGENCY_SMS_FAILED, Screen.Dashboard)
           errorHandler.clearErrorFromScreen(ErrorType.EMERGENCY_CALL_FAILED, Screen.Dashboard)
+          errorHandler.clearErrorFromScreen(ErrorType.NO_EMERGENCY_CONTACT, Screen.Dashboard)
         }
       }
       Log.d(TAG, "Emergency action executed successfully: $action")
+    } catch (e: IllegalArgumentException) {
+      // Invalid phone number - likely no emergency contact configured
+      Log.e(TAG, "Invalid phone number for emergency action", e)
+      errorHandler.addErrorToScreen(ErrorType.NO_EMERGENCY_CONTACT, Screen.Dashboard)
+      _state.value =
+          OrchestratorState(
+              lastActionTaken =
+                  EmergencyActionResult.Failure(
+                      action::class.simpleName ?: "Unknown", e.message ?: "Invalid phone number"))
     } catch (e: Exception) {
       Log.e(TAG, "Failed to execute emergency action", e)
 

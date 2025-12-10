@@ -34,6 +34,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.github.warnastrophy"
+    //noinspection GradleDependency
     compileSdk = 34
 
     defaultConfig {
