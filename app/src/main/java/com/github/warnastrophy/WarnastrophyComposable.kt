@@ -116,7 +116,7 @@ fun WarnastrophyComposable(
         else -> Dashboard
       }
 
-  val startDestination = Screen.Communication.route
+  val startDestination = Dashboard.route
 
   val errorHandler = remember { StateManagerService.errorHandler }
   val gpsService = remember { StateManagerService.gpsService }

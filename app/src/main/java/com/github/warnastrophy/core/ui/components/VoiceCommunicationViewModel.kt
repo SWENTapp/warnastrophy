@@ -50,10 +50,6 @@ class VoiceCommunicationViewModel(
               textToSpeechState = textToSpeechService.uiState.value))
   override val uiState: StateFlow<VoiceCommunicationUiState> = _uiState.asStateFlow()
 
-  init {
-    launch()
-  }
-
   fun launch() {
     observeDataSources()
     speak(context.getString(R.string.confirmation_request))
