@@ -38,6 +38,7 @@ object NavRoutes {
   const val EDIT_CONTACT = "edit_contact"
   const val SIGN_IN = "sign-in"
   const val DANGER_MODE_PREFERENCES = "danger_mode_preferences"
+  const val COMMUNICATION = "communication"
   const val VOICE_CONFIRMATION = "voice_confirmation"
 }
 
@@ -100,7 +101,7 @@ sealed class Screen(
       Screen(
           R.string.communication_screen_title,
           icon = Icons.Filled.Add,
-          route = NavRoutes.ADD_CONTACT)
+          route = NavRoutes.COMMUNICATION)
 
   object ContactList : Screen(R.string.contact_list_title, route = NavRoutes.CONTACT_LIST)
 

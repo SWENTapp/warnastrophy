@@ -111,6 +111,13 @@ class DangerModeOrchestrator(
   private val _showVoiceConfirmationScreen = MutableStateFlow(false)
   val showVoiceConfirmationScreen: StateFlow<Boolean> = _showVoiceConfirmationScreen.asStateFlow()
 
+  private var _voiceConfirmationEnabled = false
+
+  /** Sets whether voice confirmation is required before executing emergency actions. */
+  fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    _voiceConfirmationEnabled = enabled
+  }
+
   private var smsSenderInstance: SmsSender? = smsSender
   private var callSenderInstance: CallSender? = callSender
 
@@ -266,8 +273,15 @@ class DangerModeOrchestrator(
             pendingAction = pendingAction,
             confirmationTimeoutSeconds = CONFIRMATION_TIMEOUT_SECONDS)
 
-    // Show voice confirmation screen
-    _showVoiceConfirmationScreen.value = true
+    // Check if voice confirmation is enabled
+    if (_voiceConfirmationEnabled) {
+      // Show voice confirmation screen
+      _showVoiceConfirmationScreen.value = true
+    } else {
+      // Execute action directly without voice confirmation
+      Log.d(TAG, "Voice confirmation disabled - executing action directly")
+      scope.launch { executeEmergencyAction(pendingAction) }
+    }
   }
 
   /** Called when the user confirms the emergency action via voice ("yes"). */

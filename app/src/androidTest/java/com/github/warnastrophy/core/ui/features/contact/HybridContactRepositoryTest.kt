@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.contact
+package com.github.warnastrophy.core.ui.features.contact
 
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.data.repository.HybridContactRepository
@@ -71,7 +71,7 @@ class HybridContactRepositoryTest {
   }
 
   @Test
-  fun `get_new_uid_should_return_uid_from_remote`() = runTest {
+  fun get_new_uid_should_return_uid_from_remote() = runTest {
     coEvery { remote.getNewUid() } returns "new-uid"
 
     val result = hybrid.getNewUid()
@@ -81,7 +81,7 @@ class HybridContactRepositoryTest {
 
   // Test for addContact
   @Test
-  fun `add_contact_should_add_contact_to_local_and_remote`() = runTest {
+  fun add_contact_should_add_contact_to_local_and_remote() = runTest {
     coEvery { local.addContact(userId, contact) } returns Result.success(Unit)
 
     val result = hybrid.addContact(userId, contact)
@@ -93,7 +93,7 @@ class HybridContactRepositoryTest {
 
   // Test for editContact
   @Test
-  fun `edit_contact_should_update_local_and_remote_repositories`() = runTest {
+  fun edit_contact_should_update_local_and_remote_repositories() = runTest {
     coEvery { local.editContact(userId, "c1", contact) } returns Result.success(Unit)
 
     val result = hybrid.editContact(userId, "c1", contact)
@@ -105,7 +105,7 @@ class HybridContactRepositoryTest {
 
   // Test for deleteContact
   @Test
-  fun `delete_contact_should_delete_contact_from_local_and_remote`() = runTest {
+  fun delete_contact_should_delete_contact_from_local_and_remote() = runTest {
     coEvery { local.deleteContact(userId, "c1") } returns Result.success(Unit)
 
     val result = hybrid.deleteContact(userId, "c1")

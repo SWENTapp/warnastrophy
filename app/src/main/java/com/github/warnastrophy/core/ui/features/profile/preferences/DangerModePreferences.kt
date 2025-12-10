@@ -19,6 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -38,10 +41,12 @@ object DangerModePreferencesScreenTestTags {
   const val INACTIVITY_DETECTION_ITEM = "inactivityDetectionItem"
   const val AUTOMATIC_SMS_ITEM = "automaticSmsItem"
   const val AUTOMATIC_CALLS_ITEM = "automaticCallsItem"
+  const val VOICE_CONFIRMATION_ITEM = "voiceConfirmationItem"
   const val ALERT_MODE_SWITCH = "alertModeSwitch"
   const val INACTIVITY_DETECTION_SWITCH = "inactivitySwitch"
   const val AUTOMATIC_SMS_SWITCH = "automaticSmsSwitch"
   const val AUTOMATIC_CALLS_SWITCH = "automaticCallsSwitch"
+  const val VOICE_CONFIRMATION_SWITCH = "voiceConfirmationSwitch"
 }
 
 /**
@@ -191,6 +196,29 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                     enabled = uiState.inactivityDetectionEnabled,
                     isRequestInFlight = uiState.isOsRequestInFlight),
             switchTestTag = DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH)
+
+        // Voice confirmation - uses local state, not persisted
+        var voiceConfirmationEnabled by remember { mutableStateOf(false) }
+        val orchestrator = remember {
+          com.github.warnastrophy.core.data.service.StateManagerService.dangerModeOrchestrator
+        }
+
+        PreferenceItem(
+            modifier =
+                Modifier.testTag(DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_ITEM),
+            data =
+                PreferenceItemData(
+                    title = stringResource(R.string.danger_mode_voice_confirmation_title),
+                    description =
+                        stringResource(R.string.danger_mode_voice_confirmation_description),
+                    checked = voiceConfirmationEnabled,
+                    onCheckedChange = { isChecked ->
+                      voiceConfirmationEnabled = isChecked
+                      orchestrator.setVoiceConfirmationEnabled(isChecked)
+                    },
+                    enabled = uiState.inactivityDetectionEnabled,
+                    isRequestInFlight = uiState.isOsRequestInFlight),
+            switchTestTag = DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_SWITCH)
       }
 }
 

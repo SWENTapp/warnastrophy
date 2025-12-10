@@ -1,5 +1,6 @@
 package com.github.warnastrophy
 
+import VoiceCommunicationViewModel
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,16 +17,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.NominatimService
-import com.github.warnastrophy.core.data.service.PendingEmergencyAction
 import com.github.warnastrophy.core.data.service.SpeechToTextService
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.data.service.TextToSpeechService
+import com.github.warnastrophy.core.ui.components.CommunicationScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
@@ -44,7 +46,6 @@ import com.github.warnastrophy.core.ui.features.map.MapViewModel
 import com.github.warnastrophy.core.ui.features.profile.ProfileScreen
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesViewModel
-import com.github.warnastrophy.core.ui.features.voiceconfirmation.VoiceConfirmationScreen
 import com.github.warnastrophy.core.ui.navigation.BottomNavigationBar
 import com.github.warnastrophy.core.ui.navigation.NavigationActions
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -139,31 +140,45 @@ fun WarnastrophyComposable(
 
   val mapViewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
 
+  val speechToTextService = SpeechToTextService(context, errorHandler)
+  val textToSpeechService = TextToSpeechService(context, errorHandler)
+  val communicationViewModel = remember {
+    VoiceCommunicationViewModel(
+        speechToTextService = speechToTextService,
+        textToSpeechService = textToSpeechService,
+        context)
+  }
+
   // Voice confirmation for danger mode
   val dangerModeOrchestrator = remember { StateManagerService.dangerModeOrchestrator }
   val showVoiceConfirmation by dangerModeOrchestrator.showVoiceConfirmationScreen.collectAsState()
-  val orchestratorState by dangerModeOrchestrator.state.collectAsState()
-  val speechToTextService = remember { SpeechToTextService(context, errorHandler) }
 
-  // Get the action description for voice confirmation
-  val actionDescription =
-      when (orchestratorState.pendingAction) {
-        is PendingEmergencyAction.SendSms -> stringResource(R.string.voice_confirmation_action_sms)
-        is PendingEmergencyAction.MakeCall ->
-            stringResource(R.string.voice_confirmation_action_call)
-        is PendingEmergencyAction.SendSmsAndCall ->
-            stringResource(R.string.voice_confirmation_action_both)
-        null -> ""
-      }
+  // Observe confirmation state from the communication view model
+  val communicationUiState by communicationViewModel.uiState.collectAsState()
+  val isConfirmed = communicationUiState.speechState.isConfirmed
 
   // Show voice confirmation screen as overlay when triggered
   if (showVoiceConfirmation) {
+    // Launch the communication flow when screen becomes visible
+    LaunchedEffect(Unit) { communicationViewModel.launch() }
+
+    // Handle confirmation result - only when screen is showing and we have a result
+    LaunchedEffect(isConfirmed) {
+      if (isConfirmed != null) {
+        // Small delay to let TTS finish saying "alert sent" or "alert not sent"
+        kotlinx.coroutines.delay(2000)
+        if (isConfirmed) {
+          dangerModeOrchestrator.onConfirmation()
+        } else {
+          dangerModeOrchestrator.onCancellation()
+        }
+        // Reset the confirmation state in the viewmodel
+        communicationViewModel.resetConfirmation()
+      }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-      VoiceConfirmationScreen(
-          speechToTextService = speechToTextService,
-          onConfirmed = { dangerModeOrchestrator.onConfirmation() },
-          onCancelled = { dangerModeOrchestrator.onCancellation() },
-          actionDescription = actionDescription)
+      CommunicationScreen(viewModel = communicationViewModel)
     }
     return // Don't render the rest of the UI while voice confirmation is showing
   }
@@ -272,6 +287,9 @@ fun WarnastrophyComposable(
                             permissionManager = permissionManager,
                             userPreferencesRepository =
                                 StateManagerService.userPreferencesRepository))
+              }
+              composable(Screen.Communication.route) {
+                CommunicationScreen(viewModel = communicationViewModel)
               }
             }
       }
