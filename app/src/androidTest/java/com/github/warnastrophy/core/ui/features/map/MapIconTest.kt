@@ -14,7 +14,6 @@ import androidx.compose.ui.test.onNodeWithText
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
-import com.google.maps.android.compose.MarkerState
 import junit.framework.TestCase
 import org.junit.Test
 
@@ -58,61 +57,12 @@ class MapIconTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun intensityIsCoherent() {
-    val lowHazard =
-        Hazard(
-            id = 0,
-            type = "XX",
-            description = null,
-            country = null,
-            date = null,
-            severity = 1.0,
-            severityUnit = "unit",
-            articleUrl = null,
-            alertLevel = null,
-            bbox = null,
-            affectedZone = null,
-            centroid = null)
-
-    val highHazard = lowHazard.copy(severity = 10.0)
-
-    val hazard = mutableStateOf<Hazard?>(null)
-    val severities = mapOf("XX" to Pair(lowHazard.severity!!, highHazard.severity!!))
-
-    composeTestRule.setContent {
-      hazard.value?.let {
-        HazardMarker(it, severities, markerContent = { _, _, _, content -> Box { content() } })
-      }
-    }
-
-    hazard.value = lowHazard
-    composeTestRule.waitForIdle()
-    val lowNode = composeTestRule.onNodeWithTag(MapIcon.Unknown.tag)
-    lowNode.assertIsDisplayed()
-    val lowNodeIntensity = lowNode.fetchSemanticsNode().config.getOrNull(Tint)
-    TestCase.assertNotNull(lowNodeIntensity)
-
-    hazard.value = highHazard
-    composeTestRule.waitForIdle()
-    val highNode = composeTestRule.onNodeWithTag(MapIcon.Unknown.tag)
-    highNode.assertIsDisplayed()
-    val highNodeIntensity = highNode.fetchSemanticsNode().config.getOrNull(Tint)
-    TestCase.assertNotNull(highNodeIntensity)
-
-    val lowGrayscale =
-        (lowNodeIntensity!!.red + lowNodeIntensity.green + lowNodeIntensity.blue) / 3f
-    val highGrayscale =
-        (highNodeIntensity!!.red + highNodeIntensity.green + highNodeIntensity.blue) / 3f
-    assert(highGrayscale < lowGrayscale)
-  }
-
-  @Test
   fun hazardsHaveCorrectIcons() {
     val hazard: MutableState<Hazard?> = mutableStateOf(null)
 
     composeTestRule.setContent {
       hazard.value?.let {
-        HazardMarker(it, emptyMap(), markerContent = { _, _, _, content -> Box { content() } })
+        HazardMarker(it, markerContent = { _, _, _, content -> Box { content() } })
       }
     }
 
@@ -243,13 +193,9 @@ class MapIconTest : BaseAndroidComposeTest() {
             affectedZone = null,
             centroid = null)
 
-    // Must contain an entry for the hazard type, otherwise computeSeverityTint() throws
-    val severities = mapOf("FL" to (0.0 to 10.0))
-
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          severities = severities,
           markerContent = { _, title, snippet, _ ->
             HazardInfoWindowContent(
                 hazard = hazard,
@@ -282,19 +228,14 @@ class MapIconTest : BaseAndroidComposeTest() {
             affectedZone = null,
             centroid = null)
 
-    val severities = mapOf("XX" to (1.0 to 9.0))
-
     // capture what markerContent receives
-    lateinit var receivedState: MarkerState
     var receivedTitle: String? = null
     var receivedSnippet: String? = null
 
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          severities = severities,
-          markerContent = { state, title, snippet, content ->
-            receivedState = state
+          markerContent = { _, title, snippet, content ->
             receivedTitle = title
             receivedSnippet = snippet
             Box { content() }
