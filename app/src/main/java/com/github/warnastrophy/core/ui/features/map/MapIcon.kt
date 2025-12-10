@@ -5,8 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.net.Uri
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
@@ -27,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -43,7 +40,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
@@ -66,6 +65,21 @@ val Tint = SemanticsPropertyKey<Color>("Tint")
 var SemanticsPropertyReceiver.tint by Tint
 
 /**
+ * Defines a set of standard colors used to represent hazard severity levels. These colors are used
+ * throughout the UI to provide a consistent visual cue for the urgency or intensity of a hazard.
+ * - [HIGH] is red, for the most severe hazards.
+ * - [MEDIUM] is orange, for moderate hazards.
+ * - [LOW] is green, for minor hazards.
+ * - [UNKNOWN] is gray, for hazards with an undetermined severity level.
+ */
+object SeverityColors {
+  val HIGH = Color(0xFFC10C0B) // RED
+  val MEDIUM = Color(0xFFF1760E) // ORANGE
+  val LOW = Color(0xFF0A9900) // GREEN
+  val UNKNOWN = Color.Gray
+}
+
+/**
  * Enum class representing different map icons for various hazard types. Each icon is associated
  * with a drawable resource ID and a tag for testing purposes.
  *
@@ -74,7 +88,7 @@ var SemanticsPropertyReceiver.tint by Tint
  * - Applies the icon as a Composable function with an optional tint color.
  * - Semantics properties on the tint are for testing.
  */
-enum class MapIcon(@DrawableRes val resId: Int?, val tag: String) {
+enum class MapIcon(@param:DrawableRes val resId: Int?, val tag: String) {
   Tsunami(R.drawable.material_symbols_outlined_tsunami, "map_icon_tsunami"),
   Drought(R.drawable.material_symbols_outlined_water_voc, "map_icon_drought"),
   Earthquake(R.drawable.material_symbols_outlined_earthquake, "map_icon_earthquake"),
@@ -101,32 +115,28 @@ enum class MapIcon(@DrawableRes val resId: Int?, val tag: String) {
   }
 }
 
-/*
-  Computes the severity tint color for a hazard based on its severity and type.
-  The color transitions from gray (low severity) to red (high severity).
-*/
-fun computeSeverityTint(hazard: Hazard, severities: Map<String, Pair<Double, Double>>): Color {
-  val severity = hazard.severity ?: return Color.Black
-  val type = hazard.type ?: return Color.Black
-  val (minSev, maxSev) =
-      try {
-        severities[type]
-            ?: throw IllegalStateException("Max intensity not found for hazard type $type")
-      } catch (e: Exception) {
-        Log.e("computeSeverityTint", "Error retrieving severities for type $type", e)
-        return Color.Black
-      }
-  val denom = maxSev - minSev
-  val ratio =
-      if (denom != 0.0) {
-            (severity - minSev) / denom
-          } else {
-            1.0
-          }
-          .coerceIn(0.0, 1.0)
+/**
+ * Computes the severity tint color for a hazard based on its `alertLevel`. The colors are mapped to
+ * specific alert level scores:
+ * - `1.0`: [SeverityColors.LOW] (Green)
+ * - `2.0`: [SeverityColors.MEDIUM] (Orange)
+ * - `3.0`: [SeverityColors.HIGH] (Red)
+ * - `null` or any other value: [SeverityColors.UNKNOWN] (Gray)
+ *
+ * @param hazard The hazard object containing the alert level.
+ * @return The corresponding [Color] for the hazard's severity.
+ */
+fun getSeverityColor(hazard: Hazard): Color {
+  val alertScore = hazard.alertLevel ?: return SeverityColors.UNKNOWN
 
-  return lerp(Color.Gray, Color.Red, ratio.toFloat())
+  return when (alertScore) {
+    1.0 -> SeverityColors.LOW
+    2.0 -> SeverityColors.MEDIUM
+    3.0 -> SeverityColors.HIGH
+    else -> SeverityColors.UNKNOWN
+  }
 }
+
 /**
  * Composable function to display a hazard marker on the map.
  *
@@ -148,7 +158,7 @@ fun HazardMarker(
             content: @Composable () -> Unit) -> Unit =
         { state, title, snippet, _ /* we ignore content here for default impl */ ->
           val ctx = LocalContext.current
-          val severityTint = computeSeverityTint(hazard, severities)
+          val severityTint = getSeverityColor(hazard)
           val iconRes = hazardTypeToDrawableRes(hazard.type)
           val markerIcon: BitmapDescriptor? =
               iconRes?.let {
@@ -187,7 +197,7 @@ fun HazardMarker(
       // Log or handle this case as an anomaly if necessary.
     }
   }
-  val severityTint = computeSeverityTint(hazard, severities)
+  val severityTint = getSeverityColor(hazard)
 
   markerContent(
       rememberMarkerState(position = Location.toLatLng(markerLocation)),
@@ -199,10 +209,37 @@ fun HazardMarker(
   }
 }
 
-/*
-  This function maps hazard types to drawable resource IDs.
-  Returns null if the type is unrecognized.
-*/
+/**
+ * Maps a Global Disaster Alert and Coordination System (GDACS) hazard type code to a corresponding
+ * drawable resource ID.
+ *
+ * This function takes a two-letter GDACS event type code (e.g., "FL" for Flood, "EQ" for
+ * Earthquake) and returns the integer resource ID for the appropriate icon. If the hazard type is
+ * not recognized or is null, the function returns null.
+ *
+ * | Code | Hazard Type           | Icon                       |
+ * |------|-----------------------|----------------------------|
+ * | FL   | Flood                 | `flood`                    |
+ * | FF   | Flash Flood           | `flood`                    |
+ * | SS   | Storm Surge           | `flood`                    |
+ * | DR   | Drought               | `drought` (water scarcity) |
+ * | EQ   | Earthquake            | `earthquake`               |
+ * | AV   | Avalanche             | `earthquake`               |
+ * | LS   | Landslide             | `earthquake`               |
+ * | MS   | Mud Slide             | `earthquake`               |
+ * | TC   | Tropical Cyclone      | `storm`                    |
+ * | EC   | Extratropical Cyclone | `storm`                    |
+ * | VW   | Volcanic Ash          | `storm`                    |
+ * | TO   | Tornado               | `storm`                    |
+ * | ST   | Storm                 | `storm`                    |
+ * | FR   | Fire                  | `fire`                     |
+ * | WF   | Wild Fire             | `fire`                     |
+ * | VO   | Volcano               | `volcano`                  |
+ * | TS   | Tsunami               | `tsunami`                  |
+ *
+ * @param type The GDACS hazard type code as a String.
+ * @return A drawable resource ID (`Int?`) for the icon, or `null` if the type is unknown.
+ */
 fun hazardTypeToDrawableRes(type: String?): Int? =
     when (type) {
       "FL",
@@ -225,9 +262,7 @@ fun hazardTypeToDrawableRes(type: String?): Int? =
       else -> null
     }
 
-/*
-   This function maps hazard types to MapIcon enum values.
-*/
+/** This function maps hazard types to MapIcon enum values. */
 fun hazardTypeToMapIcon(type: String?): MapIcon =
     when (type) {
       "FL",
@@ -250,10 +285,22 @@ fun hazardTypeToMapIcon(type: String?): MapIcon =
       else -> MapIcon.Unknown
     }
 
-/*
-   Formats the severity of a hazard into a readable string.
-   Returns null if severity is null or zero.
-*/
+/**
+ * Formats the severity value and unit of a [Hazard] into a readable string for display.
+ *
+ * This function takes a `Hazard` object and processes its `severity` and `severityUnit` properties.
+ * - If the `severity` value is null or exactly 0.0, the function returns `null`.
+ * - If the `severity` is a whole number (e.g., 5.0), it's formatted as an integer string ("5").
+ * - If the `severity` has a fractional part (e.g., 5.23), it's formatted to one decimal place
+ *   ("5.2").
+ * - The `severityUnit`, if present, is trimmed and appended to the formatted value with a space in
+ *   between (e.g., "5.2 km").
+ * - If no unit is available, only the formatted value is returned.
+ *
+ * @param hazard The [Hazard] object containing the severity information.
+ * @return A formatted string representing the severity (e.g., "120 ha", "3.4", "5"), or `null` if
+ *   the severity is not applicable.
+ */
 fun formatSeveritySnippet(hazard: Hazard): String? {
   val value = hazard.severity ?: return null
   if (value == 0.0) return null
@@ -275,7 +322,7 @@ fun formatSeveritySnippet(hazard: Hazard): String? {
  */
 fun openHazardArticle(context: Context, articleUrl: String?) {
   articleUrl ?: return
-  val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl))
+  val intent = Intent(Intent.ACTION_VIEW, articleUrl.toUri())
   ContextCompat.startActivity(context, intent, null)
 }
 
@@ -289,18 +336,37 @@ fun PolygonWrapper(polygonCoords: List<LatLng>) {
       fillColor = MaterialTheme.colorScheme.error.copy(alpha = 0.18f))
 }
 
-/*
-  This function creates a BitmapDescriptor from a JPEG resource.
-*/
+/**
+ * Creates a [BitmapDescriptor] from a JPEG resource file.
+ *
+ * This function is useful for creating custom map markers from JPEG images stored in the
+ * application's drawable resources.
+ *
+ * @param context The application context, used to access resources.
+ * @param jpegResId The resource ID of the JPEG file (e.g., `R.drawable.my_jpeg_marker`).
+ * @return A [BitmapDescriptor] that can be used as a map marker icon.
+ */
 fun bitmapDescriptorFromJpeg(context: Context, jpegResId: Int): BitmapDescriptor {
   val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, jpegResId)
   return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
-/*
-  This function creates a BitmapDescriptor from a vector drawable resource.
-  It allows specifying the size in dp and an optional tint color.
-*/
+/**
+ * Creates a [BitmapDescriptor] from a vector drawable resource.
+ *
+ * This function converts a vector drawable into a bitmap of a specified size and applies an
+ * optional tint color. The resulting bitmap is then used to create a `BitmapDescriptor`, which is
+ * suitable for use as a custom map marker icon in Google Maps.
+ *
+ * If the drawable resource cannot be loaded, it returns a default marker icon.
+ *
+ * @param context The context used to access resources.
+ * @param vectorResId The resource ID of the vector drawable (e.g., `R.drawable.my_icon`).
+ * @param sizeDp The desired size of the icon in density-independent pixels (dp). Defaults to `32f`.
+ * @param tintColor An optional [Color] to apply to the drawable. If `null`, no tint is applied.
+ * @return A [BitmapDescriptor] representing the customized vector drawable, or a default marker if
+ *   the resource is not found.
+ */
 fun bitmapDescriptorFromVector(
     context: Context,
     @DrawableRes vectorResId: Int,
@@ -314,7 +380,7 @@ fun bitmapDescriptorFromVector(
   val density = context.resources.displayMetrics.density
   val sizePx = (sizeDp * density).toInt()
 
-  val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+  val bitmap = createBitmap(sizePx, sizePx)
   val canvas = Canvas(bitmap)
 
   drawable.setBounds(0, 0, canvas.width, canvas.height)
@@ -325,10 +391,19 @@ fun bitmapDescriptorFromVector(
   return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
-/*
-   This Composable displays an image for a hazard.
-   It uses the articleUrl if it points to a valid image format; otherwise, it falls back to a default image.
-*/
+/**
+ * A Composable that displays an image for a given [Hazard].
+ *
+ * This function attempts to load an image from the `hazard.articleUrl`. It first checks if the URL
+ * is a valid image link (ends with .jpg, .jpeg, or .png).
+ * - If it is a valid image URL, it uses [AsyncImage] (from Coil) to load the image asynchronously.
+ *   A placeholder and error image are set to a fallback resource determined by the hazard type.
+ * - If the URL is null, blank, or does not point to a supported image format, it directly displays
+ *   the fallback image using the standard [Image] Composable.
+ *
+ * @param hazard The [Hazard] object containing the data, including the `articleUrl` and `type`.
+ * @param modifier The [Modifier] to be applied to the image Composable. Defaults to [Modifier].
+ */
 @Composable
 fun HazardNewsImage(hazard: Hazard, modifier: Modifier = Modifier) {
   val fallbackRes = getImageForEvent(hazard.type ?: "default")
@@ -358,10 +433,20 @@ fun HazardNewsImage(hazard: Hazard, modifier: Modifier = Modifier) {
   }
 }
 
-/*
-   This Composable displays the content of a hazard info window.
-   It includes the hazard image, title, severity snippet, severity text, date, and a hint to open the article.
-*/
+/**
+ * A composable that displays the content for a hazard info window on the map.
+ *
+ * This view is typically shown when a user taps on a map marker. It presents a summary of the
+ * hazard information in a compact card format. The content includes a small image representing the
+ * hazard, its title, severity details (both as a numeric snippet and descriptive text), the date of
+ * the event, and a prompt to open the full article if available.
+ *
+ * @param hazard The [Hazard] data object containing details like description, severity, date, and
+ *   article URL.
+ * @param title A fallback title for the hazard, used if `hazard.description` is null.
+ * @param snippet A formatted string representing the numeric severity (e.g., "13590 ha"), which is
+ *   displayed prominently.
+ */
 @Composable
 fun HazardInfoWindowContent(
     hazard: Hazard,

@@ -14,7 +14,6 @@ import androidx.compose.ui.test.onNodeWithText
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
-import com.google.maps.android.compose.MarkerState
 import junit.framework.TestCase
 import org.junit.Test
 
@@ -55,55 +54,6 @@ class MapIconTest : BaseAndroidComposeTest() {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithTag(MapIcon.Tsunami.tag).assertIsDisplayed()
-  }
-
-  @Test
-  fun intensityIsCoherent() {
-    val lowHazard =
-        Hazard(
-            id = 0,
-            type = "XX",
-            description = null,
-            country = null,
-            date = null,
-            severity = 1.0,
-            severityUnit = "unit",
-            articleUrl = null,
-            alertLevel = null,
-            bbox = null,
-            affectedZone = null,
-            centroid = null)
-
-    val highHazard = lowHazard.copy(severity = 10.0)
-
-    val hazard = mutableStateOf<Hazard?>(null)
-    val severities = mapOf("XX" to Pair(lowHazard.severity!!, highHazard.severity!!))
-
-    composeTestRule.setContent {
-      hazard.value?.let {
-        HazardMarker(it, severities, markerContent = { _, _, _, content -> Box { content() } })
-      }
-    }
-
-    hazard.value = lowHazard
-    composeTestRule.waitForIdle()
-    val lowNode = composeTestRule.onNodeWithTag(MapIcon.Unknown.tag)
-    lowNode.assertIsDisplayed()
-    val lowNodeIntensity = lowNode.fetchSemanticsNode().config.getOrNull(Tint)
-    TestCase.assertNotNull(lowNodeIntensity)
-
-    hazard.value = highHazard
-    composeTestRule.waitForIdle()
-    val highNode = composeTestRule.onNodeWithTag(MapIcon.Unknown.tag)
-    highNode.assertIsDisplayed()
-    val highNodeIntensity = highNode.fetchSemanticsNode().config.getOrNull(Tint)
-    TestCase.assertNotNull(highNodeIntensity)
-
-    val lowGrayscale =
-        (lowNodeIntensity!!.red + lowNodeIntensity.green + lowNodeIntensity.blue) / 3f
-    val highGrayscale =
-        (highNodeIntensity!!.red + highNodeIntensity.green + highNodeIntensity.blue) / 3f
-    assert(highGrayscale < lowGrayscale)
   }
 
   @Test
@@ -285,7 +235,6 @@ class MapIconTest : BaseAndroidComposeTest() {
     val severities = mapOf("XX" to (1.0 to 9.0))
 
     // capture what markerContent receives
-    lateinit var receivedState: MarkerState
     var receivedTitle: String? = null
     var receivedSnippet: String? = null
 
@@ -293,8 +242,7 @@ class MapIconTest : BaseAndroidComposeTest() {
       HazardMarker(
           hazard = hazard,
           severities = severities,
-          markerContent = { state, title, snippet, content ->
-            receivedState = state
+          markerContent = { _, title, snippet, content ->
             receivedTitle = title
             receivedSnippet = snippet
             Box { content() }
