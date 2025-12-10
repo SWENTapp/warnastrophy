@@ -34,7 +34,11 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  * android:name="android.permission.RECORD_AUDIO" />` in its AndroidManifest.xml and obtain the
  * user's permission at runtime.
  *
- * @param context The application context, required to initialize the SpeechRecognizer.
+ * @property isListening Indicates whether the service is currently listening for speech input.
+ * @property rmsLevel The current RMS level of the audio input for visualization purposes.
+ * @property recognizedText The last recognized text from the speech input.
+ * @property errorMessage Any error message encountered during speech recognition.
+ * @property isConfirmed The result of the confirmation detection: `true` for "yes",
  */
 data class SpeechRecognitionUiState(
     val isListening: Boolean = false,
@@ -49,7 +53,7 @@ interface SpeechToTextServiceInterface {
 
   suspend fun listenForConfirmation(): Boolean
 
-  fun destroy(): Unit
+  fun destroy()
 }
 
 class SpeechToTextService(

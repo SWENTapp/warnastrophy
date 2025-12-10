@@ -33,7 +33,7 @@ interface TextToSpeechServiceInterface {
 
   fun speak(text: String)
 
-  fun destroy(): Unit
+  fun destroy()
 }
 /**
  * Service for handling text-to-speech operations using Android's TextToSpeech engine. It manages

@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,7 +57,6 @@ object CommunicationScreenTags {
  *
  * @param viewModel The ViewModel managing voice communication state.
  * @param modifier Modifier for the composable.
- * @param onBackClick Callback for back navigation (currently unused).
  */
 @Composable
 fun CommunicationScreen(
@@ -95,7 +93,7 @@ fun CommunicationScreen(
 
       Spacer(modifier = Modifier.height(32.dp))
 
-      AnimatedMicButton(rms = rms, viewModel)
+      AnimatedMicButton(rms = rms)
     }
   }
 }
@@ -113,7 +111,7 @@ private fun VoiceStatusCard(
 ) {
   var voiceText: String
   var voiceLabel: String
-  var error: String? = null
+  var error: String?
 
   if (speechUiState.isListening) {
     voiceText = speechUiState.recognizedText ?: ""
@@ -160,10 +158,10 @@ private fun VoiceStatusCard(
  * start/stop listening.
  *
  * @param rms The RMS level for animation scaling.
- * @param onMicClick Callback for microphone button click.
+ * @param
  */
 @Composable
-private fun AnimatedMicButton(rms: Float, viewModel: VoiceCommunicationViewModelInterface) {
+private fun AnimatedMicButton(rms: Float) {
   val animatedScale by
       animateFloatAsState(
           targetValue = remember(rms) { 1f + (rms / 10f) }.coerceIn(1f, 1.5f),
