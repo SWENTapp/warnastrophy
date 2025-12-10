@@ -7,10 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.domain.model.startForegroundGpsService
-import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.util.AppConfig
+import com.github.warnastrophy.core.util.startForegroundGpsService
+import com.github.warnastrophy.core.util.stopForegroundGpsService
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

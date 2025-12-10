@@ -9,10 +9,10 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
-import com.github.warnastrophy.core.domain.model.startForegroundGpsService
-import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
+import com.github.warnastrophy.core.util.startForegroundGpsService
+import com.github.warnastrophy.core.util.stopForegroundGpsService
 import com.google.android.gms.location.FusedLocationProviderClient
 import io.mockk.mockk
 import io.mockk.verify
@@ -91,8 +91,7 @@ class ForegroundGpsServiceTest {
     // call lifecycle method under test
     service.onDestroy()
 
-    verify { mockGps.clearErrorMsg() }
-    verify { mockGps.close() }
+    verify { mockGps.stopLocationUpdates() }
   }
 
   @Test

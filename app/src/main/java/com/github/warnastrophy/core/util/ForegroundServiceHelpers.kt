@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.domain.model
+package com.github.warnastrophy.core.util
 
 import android.content.Context
 import android.content.Intent

@@ -15,16 +15,32 @@ import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Global singleton object serving as the central Service Locator and orchestrator for core
+ * application services.
+ *
+ * This service is responsible for:
+ * 1. **Initialization:** Creating and wiring up all dependencies (GPS, Hazards, Permission Manager,
+ *    etc.) at application startup.
+ * 2. **Lifecycle Management:** Providing a unified `shutdown()` method to release resources.
+ * 3. **Data Coordination:** Combining the location stream (`gpsService.positionState`) with the
+ *    fetched hazard data (`hazardsService.fetcherState`) to trigger the hazard checking logic.
+ * 4. **State Management:** Exposing a central StateFlow (`activeHazardFlow`) to inform UI/other
+ *    services when the user enters a dangerous zone.
+ */
 object StateManagerService {
   private var initialized = false
   private val serviceScope = CoroutineScope(Dispatchers.IO)
   private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
+  private var hazardCheckerJob: Job? = null
 
   lateinit var gpsService: PositionService
   lateinit var hazardsService: HazardsDataService
@@ -33,6 +49,8 @@ object StateManagerService {
   lateinit var dangerModeService: DangerModeService
   lateinit var movementService: MovementService
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
+
+  private val dangerModeScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
   val userPreferencesRepository: UserPreferencesRepository
     get() = UserPreferencesRepositoryProvider.repository
@@ -80,7 +98,11 @@ object StateManagerService {
 
     permissionManager = PermissionManager(context)
 
-    dangerModeService = DangerModeService(permissionManager = permissionManager)
+    dangerModeService =
+        DangerModeService(
+            activeHazardFlow = activeHazardFlow,
+            serviceScope = dangerModeScope,
+            permissionManager = permissionManager)
 
     movementService = MovementService(MovementSensorRepository(context))
     movementService.startListening()
@@ -122,6 +144,17 @@ object StateManagerService {
     startHazardSubscription()
   }
 
+  /** This method cancel all services to release ressources */
+  fun shutdown() {
+    serviceScope.cancel()
+    dangerModeScope.cancel()
+    // Close services
+    movementService.stop()
+    gpsService.stopLocationUpdates()
+    hazardsService.close()
+    dangerModeService.close()
+  }
+
   /**
    * Starts a coroutine to monitor hazard and GPS position updates, checking for hazard alerts
    * whenever either changes.
@@ -139,10 +172,13 @@ object StateManagerService {
             fetcherState to positionState
           }
           .collect { (fetcherState, positionState) ->
-            hazardCheckerScope.cancel()
-            HazardCheckerService(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
-                .checkAndPublishAlert(
-                    positionState.position.longitude, positionState.position.latitude)
+            hazardCheckerJob?.cancel()
+            hazardCheckerJob =
+                hazardCheckerScope.launch {
+                  HazardCheckerService(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
+                      .checkAndPublishAlert(
+                          positionState.position.longitude, positionState.position.latitude)
+                }
           }
     }
   }
