@@ -141,14 +141,12 @@ fun getSeverityColor(hazard: Hazard): Color {
  * Composable function to display a hazard marker on the map.
  *
  * @param hazard The hazard data to be displayed.
- * @param severities A map containing the minimum and maximum severities for each hazard type.
  * @param markerContent A composable function mainly to test the marker content, because
  *   MarkerComposable is not directly testable because it's rasterized on the map.
  */
 @Composable
 fun HazardMarker(
     hazard: Hazard,
-    severities: Map<String, Pair<Double, Double>>,
     markerContent:
         @Composable
         (

@@ -62,7 +62,7 @@ class MapIconTest : BaseAndroidComposeTest() {
 
     composeTestRule.setContent {
       hazard.value?.let {
-        HazardMarker(it, emptyMap(), markerContent = { _, _, _, content -> Box { content() } })
+        HazardMarker(it, markerContent = { _, _, _, content -> Box { content() } })
       }
     }
 
@@ -193,13 +193,9 @@ class MapIconTest : BaseAndroidComposeTest() {
             affectedZone = null,
             centroid = null)
 
-    // Must contain an entry for the hazard type, otherwise computeSeverityTint() throws
-    val severities = mapOf("FL" to (0.0 to 10.0))
-
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          severities = severities,
           markerContent = { _, title, snippet, _ ->
             HazardInfoWindowContent(
                 hazard = hazard,
@@ -232,8 +228,6 @@ class MapIconTest : BaseAndroidComposeTest() {
             affectedZone = null,
             centroid = null)
 
-    val severities = mapOf("XX" to (1.0 to 9.0))
-
     // capture what markerContent receives
     var receivedTitle: String? = null
     var receivedSnippet: String? = null
@@ -241,7 +235,6 @@ class MapIconTest : BaseAndroidComposeTest() {
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          severities = severities,
           markerContent = { _, title, snippet, content ->
             receivedTitle = title
             receivedSnippet = snippet

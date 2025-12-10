@@ -221,7 +221,7 @@ fun HazardsGoogleMap(
               zoomControlsEnabled = true,
               mapToolbarEnabled = false),
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
-        hazards.forEach { hazard -> HazardMarker(hazard, uiState.severitiesByType) }
+        hazards.forEach { hazard -> HazardMarker(hazard) }
 
         uiState.selectedLocation?.let { loc ->
           val pos = toLatLng(loc)
