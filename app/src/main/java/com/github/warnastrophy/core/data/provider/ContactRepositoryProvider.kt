@@ -7,21 +7,20 @@ import com.github.warnastrophy.core.data.localStorage.contactDataStore
 import com.github.warnastrophy.core.data.repository.ContactRepositoryImpl
 import com.github.warnastrophy.core.data.repository.HybridContactRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
 
 object ContactRepositoryProvider {
-  @Volatile private var _repo: ContactsRepository? = null
 
-  var repository: ContactsRepository
-    get() = _repo ?: error("ContactRepositoryProvider not initialized")
-    set(value) {
-      _repo = value
-    }
+  private val _repositoryFlow = MutableStateFlow<ContactsRepository?>(null)
+
+  val repository: ContactsRepository
+    get() = _repositoryFlow.value ?: error("ContactRepositoryProvider not initialized")
   /**
    * Initializes the ContactsRepository with a local implementation. To be called once at
    * application startup.
    */
   fun initLocal(context: Context) {
-    repository = ContactsStorage(context.contactDataStore)
+    _repositoryFlow.value = ContactsStorage(context.contactDataStore)
   }
 
   /** Initialize Hybrid (local + remote) */
@@ -29,16 +28,16 @@ object ContactRepositoryProvider {
     val local = ContactsStorage(context.contactDataStore)
     val remote = ContactRepositoryImpl(firestore)
 
-    repository = HybridContactRepository(local, remote)
+    _repositoryFlow.value = HybridContactRepository(local, remote)
   }
 
   /** Reset for tests */
   fun resetForTests() {
-    _repo = null
+    _repositoryFlow.value = null
   }
 
   /** Override in unit tests */
   fun setCustom(repo: ContactsRepository) {
-    _repo = repo
+    _repositoryFlow.value = repo
   }
 }
