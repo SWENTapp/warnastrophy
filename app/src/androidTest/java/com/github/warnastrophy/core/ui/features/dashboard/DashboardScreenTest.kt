@@ -34,7 +34,7 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
   @org.junit.Before
   fun setupActivityRepository() {
     ActivityRepositoryProvider.useMock()
-    ContactRepositoryProvider.repository = MockContactRepository()
+    ContactRepositoryProvider.setCustom(MockContactRepository())
   }
 
   // Verify that the root of the DashboardScreen is scrollable
@@ -63,7 +63,8 @@ class DashboardScreenTest : BaseAndroidComposeTest() {
         hazardsService = mockHazardService,
         dangerModeService = dangerModeService)
 
-    ContactRepositoryProvider.repository = MockContactRepository()
+    // ContactRepositoryProvider.repository = MockContactRepository()
+    ContactRepositoryProvider.setCustom(MockContactRepository())
 
     setContent(hazardsService = mockHazardService)
 
