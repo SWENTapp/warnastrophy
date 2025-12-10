@@ -32,6 +32,7 @@ object StateManagerService {
   lateinit var errorHandler: ErrorHandler
   lateinit var dangerModeService: DangerModeService
   lateinit var movementService: MovementService
+  lateinit var dangerModeOrchestrator: DangerModeOrchestrator
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
   val userPreferencesRepository: UserPreferencesRepository
@@ -84,6 +85,15 @@ object StateManagerService {
 
     movementService = MovementService(MovementSensorRepository(context))
     movementService.startListening()
+
+    dangerModeOrchestrator =
+        DangerModeOrchestrator(
+            dangerModeService = dangerModeService,
+            movementService = movementService,
+            userPreferencesRepository = userPreferencesRepository,
+            gpsService = gpsService)
+    dangerModeOrchestrator.initialize(context)
+    dangerModeOrchestrator.startMonitoring()
 
     startHazardSubscription()
 

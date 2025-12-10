@@ -155,4 +155,21 @@
     <string name="navigate_back">Back</string>
 
     <string name="error_activity_repository_failed">Error in activity repository</string>
+    <string name="error_emergency_sms_failed">Failed to send emergency SMS</string>
+    <string name="error_emergency_call_failed">Failed to make emergency call</string>
+    <string name="error_emergency_action_cancelled">Emergency action was cancelled</string>
+
+    <!-- Error suggestions for emergency actions -->
+    <string name="error_suggestion_emergency_sms">Check SMS permissions and try again. Make sure you have a valid emergency contact.</string>
+    <string name="error_suggestion_emergency_call">Check call permissions and try again. Make sure you have a valid emergency contact.</string>
+    <string name="error_suggestion_action_cancelled">The emergency action was cancelled. You can trigger it again if needed.</string>
+
+    <string name="voice_confirmation_title">Confirm Emergency Action</string>
+    <string name="voice_confirmation_listening">Listening for confirmation…</string>
+    <string name="voice_confirmation_waiting">Please say "Yes" to proceed or "No" to abort.</string>
+    <string name="voice_confirmation_instructions">Say "Yes" to proceed or "No" to abort.</string>
+    <string name="voice_confirmation_cancel">Cancel</string>
+    <string name="voice_confirmation_action_sms">Send emergency SMS to your contacts?</string>
+    <string name="voice_confirmation_action_call">Make emergency call to your contacts?</string>
+    <string name="voice_confirmation_action_both">Send emergency SMS and make a call?</string>
 </resources>

@@ -16,6 +16,9 @@ enum class ErrorType(val message: Int) {
   HAZARD_FETCHING_ERROR(R.string.error_hazard_fetch_failed),
   SPEECH_RECOGNITION_ERROR(R.string.error_speech_recognition_failed),
   ACTIVITY_REPOSITORY_ERROR(R.string.error_activity_repository_failed),
+  EMERGENCY_SMS_FAILED(R.string.error_emergency_sms_failed),
+  EMERGENCY_CALL_FAILED(R.string.error_emergency_call_failed),
+  EMERGENCY_ACTION_CANCELLED(R.string.error_emergency_action_cancelled),
 }
 
 /** ViewModel responsible for managing error messages associated with different screens. */
