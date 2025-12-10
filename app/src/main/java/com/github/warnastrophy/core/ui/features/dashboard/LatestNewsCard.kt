@@ -1,7 +1,5 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,12 +38,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.HazardsDataService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.ui.theme.extendedColors
 import com.github.warnastrophy.core.util.formatDate
+import com.github.warnastrophy.core.util.openWebPage
 
 object LatestNewsTestTags {
   const val HEADER_ROW = "latestNewsHeader"
@@ -197,11 +195,7 @@ fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modi
                             textDecoration = TextDecoration.Underline,
                             modifier =
                                 Modifier.clickable {
-                                      val intent =
-                                          Intent(
-                                              Intent.ACTION_VIEW,
-                                              Uri.parse(currentHazard.articleUrl))
-                                      ContextCompat.startActivity(context, intent, null)
+                                      openWebPage(context, currentHazard.articleUrl)
                                     }
                                     .testTag(LatestNewsTestTags.LINK))
                       }

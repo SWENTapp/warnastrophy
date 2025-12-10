@@ -6,6 +6,10 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
+import com.github.warnastrophy.R
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -59,6 +63,41 @@ fun openAppSettings(context: Context) {
         data = Uri.fromParts("package", context.packageName, null)
       }
   context.startActivity(intent)
+}
+
+/**
+ * Opens a URL in a Chrome Custom Tab with a fallback to a standard browser. It validates the URL,
+ * displays user-friendly error messages for invalid URLs or if no browser is found.
+ *
+ * @param context The context to use for launching the intent and displaying Toasts.
+ * @param url The URL string to open.
+ */
+fun openWebPage(context: Context, url: String?) {
+  if (url.isNullOrBlank()) {
+    Toast.makeText(context, R.string.invalid_url, Toast.LENGTH_SHORT).show()
+    return
+  }
+
+  val webPageUri =
+      try {
+        url.toUri()
+      } catch (_: Exception) {
+        Toast.makeText(context, R.string.invalid_url, Toast.LENGTH_SHORT).show()
+        return
+      }
+
+  // Try Custom Tabs first, then browser, then toast
+  try {
+    val customTabsIntent = CustomTabsIntent.Builder().setShowTitle(true).build()
+    customTabsIntent.launchUrl(context, webPageUri)
+  } catch (_: Exception) {
+    try {
+      val browserIntent = Intent(Intent.ACTION_VIEW, webPageUri)
+      context.startActivity(browserIntent)
+    } catch (_: Exception) {
+      Toast.makeText(context, R.string.no_browser_found, Toast.LENGTH_LONG).show()
+    }
+  }
 }
 
 /**

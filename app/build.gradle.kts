@@ -315,6 +315,9 @@ dependencies {
     kaptAndroidTest(libs.dagger.hilt.android.compiler)
     testImplementation(libs.hilt.android.testing)
     kaptTest(libs.dagger.hilt.android.compiler)
+
+    // in-app browser
+    implementation(libs.androidx.browser)
 }
 
 tasks.withType<Test> {
