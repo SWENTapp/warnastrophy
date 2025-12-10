@@ -10,7 +10,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.CredentialManager
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,6 +19,7 @@ import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
 import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
@@ -30,8 +30,6 @@ import com.github.warnastrophy.core.ui.theme.MainAppTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-
-private val ComponentActivity.dataStore by preferencesDataStore(name = "user_preferences")
 
 /**
  * `MainActivity` is the entry point of the application. It initializes Firebase, sets up the data
@@ -65,10 +63,10 @@ class MainActivity : ComponentActivity() {
   private fun initializeUserPreferencesRepository(isAuthenticated: Boolean) {
     if (isAuthenticated) {
       ContactRepositoryProvider.initHybrid(applicationContext, db)
-      UserPreferencesRepositoryProvider.initHybrid(dataStore, db)
+      UserPreferencesRepositoryProvider.initHybrid(applicationContext.userPrefsDataStore, db)
     } else {
       ContactRepositoryProvider.initLocal(applicationContext)
-      UserPreferencesRepositoryProvider.initLocal(dataStore)
+      UserPreferencesRepositoryProvider.initLocal(applicationContext.userPrefsDataStore)
     }
   }
 
