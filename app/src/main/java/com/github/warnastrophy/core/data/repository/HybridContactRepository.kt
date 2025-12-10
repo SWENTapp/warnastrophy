@@ -43,7 +43,7 @@ class HybridContactRepository(
       }
     } catch (e: Exception) {
       syncMutex.withLock { isRemoteAvailable = false }
-      Log.w(hybridRepositoryTag, "Remote getAllContacts failed: ${e.localizedMessage}")
+      Log.e(hybridRepositoryTag, "Remote getAllContacts failed: ${e.localizedMessage}")
     }
 
     return local.getAllContacts(userId)
@@ -60,7 +60,7 @@ class HybridContactRepository(
       }
     } catch (e: Exception) {
       syncMutex.withLock { isRemoteAvailable = false }
-      Log.w(hybridRepositoryTag, "Remote getContact failed: ${e.localizedMessage}")
+      Log.e(hybridRepositoryTag, "Remote getContact failed: ${e.localizedMessage}")
     }
 
     return local.getContact(userId, contactID)
@@ -106,7 +106,7 @@ class HybridContactRepository(
         }
       }
     } catch (e: Exception) {
-      Log.w(hybridRepositoryTag, "Sync to local failed: ${e.localizedMessage}")
+      Log.e(hybridRepositoryTag, "Sync to local failed: ${e.localizedMessage}")
     }
   }
 
@@ -133,12 +133,16 @@ class HybridContactRepository(
     val shouldUpdateRemote = syncMutex.withLock { isRemoteAvailable }
     if (!shouldUpdateRemote) return localResult
 
-    try {
-      remoteOperation()
-      syncMutex.withLock { isRemoteAvailable = true }
-    } catch (e: Exception) {
+    val remoteResult = remoteOperation()
+    if (remoteResult.isFailure) {
       syncMutex.withLock { isRemoteAvailable = false }
-      Log.w(hybridRepositoryTag, "Remote update failed: ${e.localizedMessage}")
+      val exception = remoteResult.exceptionOrNull()
+      Log.e(
+          hybridRepositoryTag,
+          "Remote update failed, marking remote as unavailable: " +
+              "${exception?.localizedMessage}")
+
+      return remoteResult
     }
 
     return localResult
