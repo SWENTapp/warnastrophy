@@ -14,6 +14,7 @@
     <string name="health_card_screen_title">Emergency Card</string>
     <string name="sign_in_title">Sign In</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
+    <string name="open_article_link">Tap this bubble to open the full news article</string>
 
     <!-- Dashboard Strings -->
     <string name="latest_news">Latest news</string>
