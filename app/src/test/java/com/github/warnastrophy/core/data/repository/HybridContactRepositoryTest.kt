@@ -2,12 +2,7 @@ package com.github.warnastrophy.core.data.repository
 
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
-import io.mockk.clearMocks
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.test.runTest
@@ -175,24 +170,27 @@ class HybridContactRepositoryTest {
   }
 
   @Test
-  fun `addContact succeeds locally even when remote fails`() = runTest {
+  fun `addContact returns failure when remote fails`() = runTest {
+    val remoteException = Exception("Remote error")
     coEvery { local.addContact(userId, contact) } returns Result.success(Unit)
-    coEvery { remote.addContact(userId, contact) } throws Exception("Remote error")
+    coEvery { remote.addContact(userId, contact) } returns Result.failure(remoteException)
 
     val result = hybrid.addContact(userId, contact)
 
-    assertTrue(result.isSuccess)
+    assertTrue(result.isFailure)
+    assertEquals(remoteException, result.exceptionOrNull())
     coVerify { local.addContact(userId, contact) }
     coVerify { remote.addContact(userId, contact) }
   }
 
   @Test
   fun `addContact skips remote after remote becomes unavailable`() = runTest {
+    val remoteException = Exception("Remote error")
     coEvery { local.addContact(userId, contact) } returns Result.success(Unit)
-    coEvery { remote.addContact(userId, contact) } throws Exception("Remote error")
+    coEvery { remote.addContact(userId, contact) } returns Result.failure(remoteException)
 
     val firstResult = hybrid.addContact(userId, contact)
-    assertTrue(firstResult.isSuccess)
+    assertTrue(firstResult.isFailure)
 
     coVerify(exactly = 1) { remote.addContact(userId, contact) }
 
@@ -233,13 +231,15 @@ class HybridContactRepositoryTest {
   }
 
   @Test
-  fun `editContact succeeds locally even when remote fails`() = runTest {
+  fun `editContact returns failure when remote fails`() = runTest {
+    val remoteException = Exception("Remote error")
     coEvery { local.editContact(userId, "c1", contact) } returns Result.success(Unit)
-    coEvery { remote.editContact(userId, "c1", contact) } throws Exception("Remote error")
+    coEvery { remote.editContact(userId, "c1", contact) } returns Result.failure(remoteException)
 
     val result = hybrid.editContact(userId, "c1", contact)
 
-    assertTrue(result.isSuccess)
+    assertTrue(result.isFailure)
+    assertEquals(remoteException, result.exceptionOrNull())
     coVerify { local.editContact(userId, "c1", contact) }
     coVerify { remote.editContact(userId, "c1", contact) }
   }
@@ -268,24 +268,27 @@ class HybridContactRepositoryTest {
   }
 
   @Test
-  fun `deleteContact succeeds locally even when remote fails`() = runTest {
+  fun `deleteContact returns failure when remote fails`() = runTest {
+    val remoteException = Exception("Remote error")
     coEvery { local.deleteContact(userId, "c1") } returns Result.success(Unit)
-    coEvery { remote.deleteContact(userId, "c1") } throws Exception("Remote error")
+    coEvery { remote.deleteContact(userId, "c1") } returns Result.failure(remoteException)
 
     val result = hybrid.deleteContact(userId, "c1")
 
-    assertTrue(result.isSuccess)
+    assertTrue(result.isFailure)
+    assertEquals(remoteException, result.exceptionOrNull())
     coVerify { local.deleteContact(userId, "c1") }
     coVerify { remote.deleteContact(userId, "c1") }
   }
 
   @Test
   fun `remote becomes available again after successful operation`() = runTest {
+    val remoteException = Exception("Remote error")
     coEvery { local.addContact(userId, contact) } returns Result.success(Unit)
-    coEvery { remote.addContact(userId, contact) } throws Exception("Remote error")
+    coEvery { remote.addContact(userId, contact) } returns Result.failure(remoteException)
 
     val firstResult = hybrid.addContact(userId, contact)
-    assertTrue(firstResult.isSuccess)
+    assertTrue(firstResult.isFailure)
 
     coVerify(exactly = 1) { remote.addContact(userId, contact) }
 
@@ -308,4 +311,43 @@ class HybridContactRepositoryTest {
     coVerify(exactly = 1) { local.addContact(userId, contact2) }
     coVerify(exactly = 1) { remote.addContact(userId, contact2) }
   }
+
+  @Test
+  fun `write operations skip remote when marked unavailable but read operations re-enable it`() =
+      runTest {
+        val remoteException = Exception("Remote error")
+        coEvery { local.editContact(userId, "c1", contact) } returns Result.success(Unit)
+        coEvery { remote.editContact(userId, "c1", contact) } returns
+            Result.failure(remoteException)
+
+        val firstResult = hybrid.editContact(userId, "c1", contact)
+        assertTrue(firstResult.isFailure)
+
+        clearMocks(remote, local, recordedCalls = true, answers = false)
+        coEvery { local.deleteContact(userId, "c1") } returns Result.success(Unit)
+
+        val secondResult = hybrid.deleteContact(userId, "c1")
+        assertTrue(secondResult.isSuccess)
+
+        coVerify(exactly = 1) { local.deleteContact(userId, "c1") }
+        coVerify(exactly = 0) { remote.deleteContact(userId, "c1") }
+
+        clearMocks(remote, local, recordedCalls = true, answers = false)
+        coEvery { remote.getContact(userId, "c2") } returns Result.success(contact2)
+        coEvery { local.addContact(userId, contact2) } returns Result.success(Unit)
+
+        val thirdResult = hybrid.getContact(userId, "c2")
+        assertTrue(thirdResult.isSuccess)
+
+        coVerify(exactly = 1) { remote.getContact(userId, "c2") }
+
+        clearMocks(remote, local, recordedCalls = true, answers = false)
+        coEvery { local.addContact(userId, contact) } returns Result.success(Unit)
+        coEvery { remote.addContact(userId, contact) } returns Result.success(Unit)
+
+        val fourthResult = hybrid.addContact(userId, contact)
+        assertTrue(fourthResult.isSuccess)
+
+        coVerify(exactly = 1) { remote.addContact(userId, contact) }
+      }
 }
