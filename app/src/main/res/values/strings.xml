@@ -16,6 +16,8 @@
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
     <string name="open_article_link">Tap this bubble to open the full news article</string>
 
+    <string name="error_activity_repository_failed">Error in activity repository</string>
+
     <!-- Dashboard Strings -->
     <string name="latest_news">Latest news</string>
     <string name="no_news_yet">No news yet !</string>
@@ -82,6 +84,7 @@
     <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
     <string name="error_suggestion_check_internet">Please check your internet connection.</string>
     <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
+    <string name="error_suggestion_retry">Please try again later.</string>
 
     <!-- Health Card Pop-Up -->
     <string name="health_card_popup_title">HEALTH CARD</string>
@@ -135,6 +138,11 @@
     <!-- Speech Recognition Error Messages -->
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
     <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
+    <string name="error_text_to_speech_unavailable">Text-to-speech service is not available on this device</string>
+    <string name="error_text_to_speech_failed">Unable to play the requested message</string>
+    <string name="error_text_to_speech_init_failed">Unable to use speechToText on this device</string>
+
+    <string name="error_text_to_speech_empty_input">Nothing to read</string>
 
     <!-- Onboarding screen -->
     <string name="description_first_page">We track your location in the background, if you enter a high-risk area,
@@ -146,13 +154,18 @@
     <string name="description_third_page">To monitor your location in the background and send emergency texts, we need location and SMS permission. We use these data only for your safety.</string>
     <string name="title_third_page">Ready for Protection?</string>
 
-    <!-- communication screen-->
-    <string name="communication_screen_title">Voice command</string>
+    <!-- communiction screen-->
+    <string name="communication_tts_speaking_label">Speaking...</string>
+    <string name="communication_screen_title">Vocal communication</string>
     <string name="communication_listening_label">Listening…</string>
-    <string name="communication_idle_label">Tap the mic to start listening</string>
     <string name="communication_no_input_hint">We will show the transcript here.</string>
     <string name="communication_listen_button">Start listening</string>
     <string name="navigate_back">Back</string>
+    <string name="alert_sent">Help is on the way. Stay calm</string>
+    <string name="confirmation_request">Hello, I am your vocal assistant. Do you have any emergency?</string>
+    <string name="alert_not_sent">Okay, we wont send an emergency alert</string>
 
-    <string name="error_activity_repository_failed">Error in activity repository</string>
+
+    <!-- TTS service -->
+    <string name="tts_speech_synthesis_error">There was an error during speech synthesis</string>
 </resources>

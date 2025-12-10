@@ -1,5 +1,6 @@
 package com.github.warnastrophy
 
+import VoiceCommunicationViewModel
 import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -18,7 +19,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.repository.NominatimRepository
 import com.github.warnastrophy.core.data.service.NominatimService
+import com.github.warnastrophy.core.data.service.SpeechToTextService
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.data.service.TextToSpeechService
+import com.github.warnastrophy.core.ui.components.CommunicationScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactScreen
 import com.github.warnastrophy.core.ui.features.contact.AddContactViewModel
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
@@ -132,6 +136,15 @@ fun WarnastrophyComposable(
 
   val mapViewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
 
+  val speechToTextService = SpeechToTextService(context, errorHandler)
+  val textToSpeechService = TextToSpeechService(context, errorHandler)
+  val communicationViewModel = remember {
+    VoiceCommunicationViewModel(
+        speechToTextService = speechToTextService,
+        textToSpeechService = textToSpeechService,
+        context)
+  }
+
   Scaffold(
       modifier = Modifier.testTag(WarnastrophyAppTestTags.MAIN_SCREEN),
       bottomBar = { BottomNavigationBar(currentScreen, navController) },
@@ -236,6 +249,9 @@ fun WarnastrophyComposable(
                             permissionManager = permissionManager,
                             userPreferencesRepository =
                                 StateManagerService.userPreferencesRepository))
+              }
+              composable(Screen.Communication.route) {
+                CommunicationScreen(viewModel = communicationViewModel)
               }
             }
       }
