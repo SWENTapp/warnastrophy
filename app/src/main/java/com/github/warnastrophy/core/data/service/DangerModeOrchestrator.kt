@@ -400,10 +400,7 @@ class DangerModeOrchestrator(
     return emergencyPhoneNumber
   }
 
-  /**
-   * DEBUG ONLY: Manually trigger the voice confirmation screen for testing purposes. Remove this in
-   * production!
-   */
+  /** DEBUG ONLY: Manually trigger the voice confirmation screen for testing purposes. */
   fun debugTriggerVoiceConfirmation() {
     val currentLocation = gpsService.positionState.value.position
     val emergencyMessage =
