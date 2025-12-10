@@ -4,7 +4,7 @@ import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.TextToSpeech.OnInitListener
 import android.speech.tts.UtteranceProgressListener
-import android.util.Log
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -60,7 +60,6 @@ class TextToSpeechService(private val context: Context, private val errorHandler
   private val utteranceListener =
       object : UtteranceProgressListener() {
         override fun onStart(utteranceId: String?) {
-          Log.d("TextToSpeechService", "onStart called for utteranceId: $pendingText")
           _uiState.value =
               _uiState.value.copy(
                   isSpeaking = true,
@@ -70,7 +69,6 @@ class TextToSpeechService(private val context: Context, private val errorHandler
         }
 
         override fun onDone(utteranceId: String?) {
-          Log.d("TextToSpeechService", "onDone called for utteranceId: $utteranceId")
           _uiState.value = _uiState.value.copy(isSpeaking = false, rms = 0f, spokenText = null)
         }
 
@@ -78,15 +76,17 @@ class TextToSpeechService(private val context: Context, private val errorHandler
         override fun onError(utteranceId: String?) {
           _uiState.value =
               _uiState.value.copy(
-                  rms = 0f, errorMessage = "There was an error during speech synthesis.")
+                  rms = 0f, errorMessage = context.getString(R.string.tts_speech_synthesis_error))
           errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
+          destroy()
         }
 
         override fun onError(utteranceId: String?, errorCode: Int) {
           _uiState.value =
               _uiState.value.copy(
-                  rms = 0f, errorMessage = "There was an error during speech synthesis.")
+                  rms = 0f, errorMessage = context.getString(R.string.tts_speech_synthesis_error))
           errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
+          destroy()
         }
       }
 
@@ -105,7 +105,9 @@ class TextToSpeechService(private val context: Context, private val errorHandler
         pendingText = null
       }
     } else {
-      _uiState.update { it.copy(errorMessage = "There was an error during speech initialization.") }
+      _uiState.update {
+        it.copy(errorMessage = context.getString(R.string.tts_speech_synthesis_error))
+      }
       errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
     }
   }
@@ -126,7 +128,7 @@ class TextToSpeechService(private val context: Context, private val errorHandler
     if (result == TextToSpeech.ERROR) {
       _uiState.value =
           _uiState.value.copy(
-              rms = 0f, errorMessage = "There was an error during speech synthesis.")
+              rms = 0f, errorMessage = context.getString(R.string.tts_speech_synthesis_error))
       errorHandler.addErrorToScreen(ErrorType.TEXT_TO_SPEECH_ERROR, Screen.Communication)
     }
   }
@@ -140,6 +142,9 @@ class TextToSpeechService(private val context: Context, private val errorHandler
   }
 }
 
+/*
+ * Mock implementation of TextToSpeechServiceInterface for testing purposes.
+ * */
 class MockTextToSpeechService : TextToSpeechServiceInterface {
   private val _uiState = MutableStateFlow(TextToSpeechUiState())
   override val uiState: StateFlow<TextToSpeechUiState> = _uiState

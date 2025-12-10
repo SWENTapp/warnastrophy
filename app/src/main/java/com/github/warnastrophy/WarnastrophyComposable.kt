@@ -116,7 +116,7 @@ fun WarnastrophyComposable(
         else -> Dashboard
       }
 
-  val startDestination = Dashboard.route
+  val startDestination = Screen.Communication.route
 
   val errorHandler = remember { StateManagerService.errorHandler }
   val gpsService = remember { StateManagerService.gpsService }
@@ -140,7 +140,9 @@ fun WarnastrophyComposable(
   val textToSpeechService = TextToSpeechService(context, errorHandler)
   val communicationViewModel = remember {
     VoiceCommunicationViewModel(
-        speechToTextService = speechToTextService, textToSpeechService = textToSpeechService)
+        speechToTextService = speechToTextService,
+        textToSpeechService = textToSpeechService,
+        context)
   }
 
   Scaffold(

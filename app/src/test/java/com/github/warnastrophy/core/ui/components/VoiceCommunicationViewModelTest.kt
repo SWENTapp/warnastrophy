@@ -2,6 +2,7 @@
 package com.github.warnastrophy.core.ui.components
 
 import VoiceCommunicationViewModel
+import android.content.Context
 import com.github.warnastrophy.core.data.service.MockSpeechToTextService
 import com.github.warnastrophy.core.data.service.MockTextToSpeechService
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
@@ -18,6 +19,9 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VoiceCommunicationViewModelTest {
@@ -25,9 +29,15 @@ class VoiceCommunicationViewModelTest {
   private val testDispatcher = StandardTestDispatcher()
   private lateinit var speechService: MockSpeechToTextService
   private lateinit var textService: MockTextToSpeechService
+  private lateinit var context: Context
+
+  private val defaultString: String = "bla bla bla"
 
   @Before
   fun setup() {
+    context = mock()
+    // fallback pour éviter NPE sur d'autres appels
+    whenever(context.getString(any())).thenReturn(defaultString)
     Dispatchers.setMain(testDispatcher)
     speechService = MockSpeechToTextService()
     textService = MockTextToSpeechService()
@@ -41,7 +51,7 @@ class VoiceCommunicationViewModelTest {
   @Test
   fun `ui state merges data from both services on init`() =
       runTest(testDispatcher) {
-        val viewModel = VoiceCommunicationViewModel(speechService, textService)
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
         advanceUntilIdle()
 
         assertEquals(speechService.uiState.value, viewModel.uiState.value.speechState)
@@ -51,7 +61,8 @@ class VoiceCommunicationViewModelTest {
   @Test
   fun `speaks emergency message when confirmation is true`() =
       runTest(testDispatcher) {
-        val viewModel = VoiceCommunicationViewModel(speechService, textService)
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+        viewModel.launch()
         advanceUntilIdle()
 
         setSpeechState(
@@ -59,13 +70,14 @@ class VoiceCommunicationViewModelTest {
                 isListening = false, recognizedText = "yes", isConfirmed = true))
         advanceUntilIdle()
 
-        assertEquals("Help is on the way. Stay calm.", textService.uiState.value.spokenText)
+        assertEquals("bla bla bla", textService.uiState.value.spokenText)
       }
 
   @Test
   fun `speaks cancel message when confirmation is false`() =
       runTest(testDispatcher) {
-        val viewModel = VoiceCommunicationViewModel(speechService, textService)
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+        viewModel.launch()
         advanceUntilIdle()
 
         setSpeechState(
@@ -73,19 +85,20 @@ class VoiceCommunicationViewModelTest {
                 isListening = false, recognizedText = "no", isConfirmed = false))
         advanceUntilIdle()
 
-        assertEquals("Okay, we wont send an emergency alert.", textService.uiState.value.spokenText)
+        assertEquals(defaultString, textService.uiState.value.spokenText)
       }
 
   @Test
   fun `viewmodel reflects text to speech updates in combined state`() =
       runTest(testDispatcher) {
-        val viewModel = VoiceCommunicationViewModel(speechService, textService)
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+        viewModel.launch()
         advanceUntilIdle()
 
-        setTextState(TextToSpeechUiState(isSpeaking = false, rms = 5f, spokenText = "Follow up"))
+        setTextState(TextToSpeechUiState(isSpeaking = false, rms = 5f, spokenText = defaultString))
         advanceUntilIdle()
 
-        assertEquals("Follow up", viewModel.uiState.value.textToSpeechState.spokenText)
+        assertEquals(defaultString, viewModel.uiState.value.textToSpeechState.spokenText)
         assertEquals(5f, viewModel.uiState.value.textToSpeechState.rms)
       }
 

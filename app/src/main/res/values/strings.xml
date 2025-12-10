@@ -15,6 +15,8 @@
     <string name="sign_in_title">Sign In</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
 
+    <string name="error_activity_repository_failed">Error in activity repository</string>
+
     <!-- Dashboard Strings -->
     <string name="latest_news">Latest news</string>
     <string name="no_news_yet">No news yet !</string>
@@ -137,19 +139,17 @@
     <string name="title_third_page">Ready for Protection?</string>
 
     <!-- communiction screen-->
-    <string name="communication_screen_title">Voice command</string>
+    <string name="communication_tts_speaking_label">Speaking...</string>
+    <string name="communication_screen_title">Vocal communication</string>
     <string name="communication_listening_label">Listening…</string>
-    <string name="communication_idle_label">Tap the mic to start listening</string>
     <string name="communication_no_input_hint">We will show the transcript here.</string>
     <string name="communication_listen_button">Start listening</string>
     <string name="navigate_back">Back</string>
+    <string name="alert_sent">Help is on the way. Stay calm</string>
+    <string name="confirmation_request">Hello, I am your vocal assistant. Do you have any emergency?</string>
+    <string name="alert_not_sent">Okay, we wont send an emergency alert</string>
 
-    <string name="error_activity_repository_failed">Error in activity repository</string>
 
-    <!-- TTS Screen -->
-    <string name="communication_tts_speaking_label">En train de parler</string>
-    <string name="communication_tts_idle_label">Inactif</string>
-    <string name="communication_tts_rms_label">Niveau RMS : %1$.2f</string>
-    <string name="communication_tts_error_label">Erreur : %1$s</string>
-    <string name="communication_tts_sample_button">Lire un exemple</string>
+    <!-- TTS service -->
+    <string name="tts_speech_synthesis_error">There was an error during speech synthesis</string>
 </resources>

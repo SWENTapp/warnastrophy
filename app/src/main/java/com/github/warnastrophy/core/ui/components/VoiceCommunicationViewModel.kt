@@ -1,6 +1,7 @@
-import android.util.Log
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
 import com.github.warnastrophy.core.data.service.SpeechToTextServiceInterface
 import com.github.warnastrophy.core.data.service.TextToSpeechServiceInterface
@@ -25,7 +26,7 @@ interface VoiceCommunicationViewModelInterface {
  */
 data class VoiceCommunicationUiState(
     val speechState: SpeechRecognitionUiState = SpeechRecognitionUiState(),
-    val textToSpeechState: TextToSpeechUiState = TextToSpeechUiState(),
+    val textToSpeechState: TextToSpeechUiState = TextToSpeechUiState()
 )
 
 /**
@@ -39,6 +40,7 @@ data class VoiceCommunicationUiState(
 class VoiceCommunicationViewModel(
     private val speechToTextService: SpeechToTextServiceInterface,
     private val textToSpeechService: TextToSpeechServiceInterface,
+    private val context: Context
 ) : ViewModel(), VoiceCommunicationViewModelInterface {
 
   private val _uiState =
@@ -49,8 +51,12 @@ class VoiceCommunicationViewModel(
   override val uiState: StateFlow<VoiceCommunicationUiState> = _uiState.asStateFlow()
 
   init {
+    launch()
+  }
+
+  fun launch() {
     observeDataSources()
-    speak("Hello, I am your vocal assistant. Do you have any emergency?")
+    speak(context.getString(R.string.confirmation_request))
     viewModelScope.launch {
       var previousSpeakingState = false
       textToSpeechService.uiState.collect { ttsState ->
@@ -63,10 +69,9 @@ class VoiceCommunicationViewModel(
     viewModelScope.launch {
       speechToTextService.uiState.collect { state ->
         if (state.isConfirmed == true) {
-          speak("Help is on the way. Stay calm.")
-          Log.d("VoiceCommunicationViewModel", "Emergency confirmed, alert sent.")
+          speak(context.getString(R.string.alert_sent))
         } else if (state.isConfirmed == false) {
-          speak("Okay, we wont send an emergency alert.")
+          speak(context.getString(R.string.alert_not_sent))
         }
       }
     }

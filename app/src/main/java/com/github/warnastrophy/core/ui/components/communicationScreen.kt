@@ -125,7 +125,7 @@ private fun VoiceStatusCard(
     error = listenUiState.errorMessage
   } else {
     voiceText = ""
-    voiceLabel = "Nothing going on"
+    voiceLabel = stringResource(R.string.communication_no_input_hint)
     error = listenUiState.errorMessage
   }
   ElevatedCard(
