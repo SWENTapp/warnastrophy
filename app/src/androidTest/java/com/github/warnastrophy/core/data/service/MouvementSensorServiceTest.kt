@@ -7,9 +7,11 @@ package com.example.dangermode.service
 
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
+import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.MovementConfig
 import com.github.warnastrophy.core.data.service.MovementService
 import com.github.warnastrophy.core.data.service.MovementState
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
@@ -17,6 +19,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -161,6 +164,66 @@ class MouvementServiceTest : BaseAndroidComposeTest() {
         composeTestRule.waitUntil(timeoutMillis = 5000L) {
           service.movementState.value is MovementState.Safe
         }
+      }
+
+  @Test
+  fun dangerModeStateFlow_updates_movementConfig() =
+      runTest(testDispatcher) {
+        // Create a MutableStateFlow to simulate DangerModeService.DangerModeState changes
+        val dangerModeStateFlow = MutableStateFlow(DangerModeService.DangerModeState())
+
+        // Create a new MovementService instance with the dangerModeStateFlow
+        val serviceWithDangerMode =
+            MovementService(
+                repository = mockRepository,
+                initialConfig =
+                    MovementConfig(
+                        preDangerThreshold = 50.0,
+                        dangerAverageThreshold = 1.0,
+                        preDangerTimeout = 500.milliseconds),
+                timeSource = timeSource,
+                dispatcher = testDispatcher,
+                dangerModeStateFlow = dangerModeStateFlow)
+        serviceWithDangerMode.startListening()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Verify initial config - acceleration of 40 should NOT trigger PreDanger (threshold is 50)
+        dataFlow.emit(createMotionData(acceleration = Vector3D(40.0, 0.0, 0.0)))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertTrue(
+            "Should remain Safe with acceleration 40 (threshold 50)",
+            serviceWithDangerMode.movementState.value is MovementState.Safe)
+
+        // Update DangerModeState with a new Activity that has a lower preDangerThreshold
+        val newActivity =
+            Activity(
+                id = "test-activity",
+                activityName = "Test Activity",
+                movementConfig =
+                    MovementConfig(
+                        preDangerThreshold = 30.0, // Lower threshold
+                        dangerAverageThreshold = 1.0,
+                        preDangerTimeout = 500.milliseconds))
+        dangerModeStateFlow.value =
+            DangerModeService.DangerModeState(isActive = true, activity = newActivity)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Verify config was updated
+        assertEquals(
+            "Config should be updated from DangerModeState",
+            30.0,
+            serviceWithDangerMode.config.preDangerThreshold,
+            0.001)
+
+        // Now the same acceleration of 40 SHOULD trigger PreDanger (new threshold is 30)
+        dataFlow.emit(createMotionData(acceleration = Vector3D(40.0, 0.0, 0.0)))
+        testDispatcher.scheduler.advanceUntilIdle()
+        composeTestRule.waitUntil(timeoutMillis = 5000L) {
+          serviceWithDangerMode.movementState.value is MovementState.PreDanger
+        }
+
+        // Clean up
+        serviceWithDangerMode.stop()
       }
 
   /**
