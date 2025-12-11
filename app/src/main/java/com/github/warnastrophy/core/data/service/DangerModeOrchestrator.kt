@@ -157,6 +157,16 @@ class DangerModeOrchestrator(
    */
   private suspend fun fetchEmergencyPhoneNumber() {
     try {
+      // Try to get contacts repository if not already set
+      if (contactsRepo == null) {
+        try {
+          contactsRepo = ContactRepositoryProvider.repository
+        } catch (e: Exception) {
+          Log.w(TAG, "ContactsRepository not initialized yet")
+          return
+        }
+      }
+
       val contacts = contactsRepo?.getAllContacts()?.getOrNull()
       if (!contacts.isNullOrEmpty()) {
         emergencyPhoneNumber = contacts.first().phoneNumber
@@ -236,7 +246,12 @@ class DangerModeOrchestrator(
   }
 
   /** Triggers the emergency protocol based on user preferences. */
-  private fun triggerEmergencyProtocol(preferences: DangerModePreferences) {
+  private suspend fun triggerEmergencyProtocol(preferences: DangerModePreferences) {
+    // Re-fetch emergency phone number in case it wasn't available during init
+    if (emergencyPhoneNumber.isBlank()) {
+      fetchEmergencyPhoneNumber()
+    }
+
     // Check if we have a valid phone number
     if (emergencyPhoneNumber.isBlank()) {
       Log.w(TAG, "No emergency phone number configured - cannot trigger emergency protocol")
