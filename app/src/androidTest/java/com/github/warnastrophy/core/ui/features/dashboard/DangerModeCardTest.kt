@@ -1,7 +1,6 @@
-package com.github.warnastrophy.core.ui.dashboard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.Manifest
-import android.content.Context
 import android.os.Build
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertCountEquals
@@ -21,10 +20,6 @@ import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.permissions.PermissionResult
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCard
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModeTestTags
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
@@ -48,11 +43,7 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
   }
 
   private fun createTestViewModel(repository: MockActivityRepository = mockActivityRepository) =
-      DangerModeCardViewModel(
-          startService = { _: Context -> /* no-op in tests */ },
-          stopService = { _: Context -> /* no-op in tests */ },
-          repository = repository,
-          userId = AppConfig.defaultUserId)
+      DangerModeCardViewModel(repository = repository, userId = AppConfig.defaultUserId)
 
   private val testViewModel by lazy { createTestViewModel() }
 
