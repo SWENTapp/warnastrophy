@@ -403,16 +403,30 @@ class DangerModeOrchestrator(
 
   /** DEBUG ONLY: Manually trigger the voice confirmation screen for testing purposes. */
   fun debugTriggerVoiceConfirmation() {
-    val currentLocation = gpsService.positionState.value.position
-    val emergencyMessage =
-        EmergencyMessage(location = Location(currentLocation.latitude, currentLocation.longitude))
+    scope.launch {
+      // Try to fetch phone number if not already available
+      if (emergencyPhoneNumber.isBlank()) {
+        fetchEmergencyPhoneNumber()
+      }
 
-    _state.value =
-        OrchestratorState(
-            isWaitingForConfirmation = true,
-            pendingAction =
-                PendingEmergencyAction.SendSmsAndCall(emergencyPhoneNumber, emergencyMessage),
-            confirmationTimeoutSeconds = CONFIRMATION_TIMEOUT_SECONDS)
-    _showVoiceConfirmationScreen.value = true
+      // Check if we have a valid phone number
+      if (emergencyPhoneNumber.isBlank()) {
+        Log.w(TAG, "Cannot trigger voice confirmation - no emergency contact configured")
+        errorHandler.addErrorToScreen(ErrorType.NO_EMERGENCY_CONTACT, Screen.Dashboard)
+        return@launch
+      }
+
+      val currentLocation = gpsService.positionState.value.position
+      val emergencyMessage =
+          EmergencyMessage(location = Location(currentLocation.latitude, currentLocation.longitude))
+
+      _state.value =
+          OrchestratorState(
+              isWaitingForConfirmation = true,
+              pendingAction =
+                  PendingEmergencyAction.SendSmsAndCall(emergencyPhoneNumber, emergencyMessage),
+              confirmationTimeoutSeconds = CONFIRMATION_TIMEOUT_SECONDS)
+      _showVoiceConfirmationScreen.value = true
+    }
   }
 }
