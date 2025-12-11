@@ -7,35 +7,41 @@ import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryRemote
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
- * A singleton provider for accessing and initializing [UserPreferencesRepository] instances. This
- * object provides methods to initialize and manage different types of repositories that manage user
- * preferences, including local and hybrid (local + remote) repositories.
+ * Provides and manages a singleton instance of [UserPreferencesRepository].
  *
- * The repository can either be:
- * - **Local**: backed by [UserPreferencesRepositoryLocal] using Jetpack DataStore for local
- *   storage.
- * - **Hybrid**: backed by both [UserPreferencesRepositoryLocal] and
- *   [UserPreferencesRepositoryRemote] using Firestore for remote storage.
+ * This provider exposes a [StateFlow] that emits the currently active repository instance and
+ * offers methods to initialize it in different configurations. The repository can be:
+ * - **Local-only** — An instance of [UserPreferencesRepositoryLocal] backed by Jetpack DataStore.
+ * - **Hybrid** — A [HybridUserPreferencesRepository] that combines local persistence via
+ *   [UserPreferencesRepositoryLocal] with remote synchronization through
+ *   [UserPreferencesRepositoryRemote] (Firestore).
  *
- * This object is thread-safe and allows for different configurations depending on the needs of the
- * application. It also supports resetting and setting custom repositories, which is useful for
- * testing or advanced use cases.
+ * This object is thread-safe and intended to be initialized once during application startup. Custom
+ * repositories can be injected (e.g. during tests) by directly updating the internal flow.
+ *
+ * ### Usage
+ * Before accessing [repository], you must call either:
+ * - [initLocal], or
+ * - [initHybrid].
+ *
+ * Attempting to access [repository] before initialization will result in an
+ * [IllegalStateException].
  */
 object UserPreferencesRepositoryProvider {
-  @Volatile private var _repo: UserPreferencesRepository? = null
+
+  private val _repositoryFlow = MutableStateFlow<UserPreferencesRepository?>(null)
 
   /**
    * The current instance of the [UserPreferencesRepository].
    *
    * @throws IllegalStateException if the repository has not been initialized.
    */
-  var repository: UserPreferencesRepository
-    get() = _repo ?: error("UserPreferencesRepositoryProvider not initialized")
-    private set(value) {
-      _repo = value
-    }
+  val repository: UserPreferencesRepository
+    get() = _repositoryFlow.value ?: error("UserPreferencesRepositoryProvider not initialized")
 
   /**
    * Initializes the repository with a hybrid approach using both local and remote repositories.
@@ -49,6 +55,15 @@ object UserPreferencesRepositoryProvider {
     val local = UserPreferencesRepositoryLocal(dataStore)
     val remote = UserPreferencesRepositoryRemote(firestore)
 
-    repository = HybridUserPreferencesRepository(local, remote)
+    _repositoryFlow.value = HybridUserPreferencesRepository(local, remote)
+  }
+
+  /**
+   * Initializes the repository using a local-only configuration backed by Jetpack DataStore.
+   *
+   * @param dataStore The [DataStore] instance used for local storage.
+   */
+  fun initLocal(dataStore: DataStore<Preferences>) {
+    _repositoryFlow.value = UserPreferencesRepositoryLocal(dataStore)
   }
 }

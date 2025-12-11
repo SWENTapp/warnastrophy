@@ -14,6 +14,8 @@
     <string name="health_card_screen_title">Emergency Card</string>
     <string name="sign_in_title">Sign In</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
+    <string name="open_article_link">Tap this bubble to open the full news article</string>
+
 
     <!-- Dashboard Strings -->
     <string name="latest_news">Latest news</string>
@@ -69,22 +71,22 @@
 
     <!-- Error Messages -->
     <string name="no_errors">No errors</string>
-
     <string name="error_location_not_granted">Location permission not granted</string>
     <string name="error_location_update_failed">Location update failed</string>
     <string name="error_foreground_start_failed">Failed to start foreground GPS service</string>
     <string name="error_location_unavailable">No location available</string>
-
     <string name="error_hazard_fetch_failed">Failed to fetch hazard data</string>
+    <string name="error_activity_repository_failed">Error in activity repository</string>
 
     <!-- Error suggestions -->
     <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
     <string name="error_suggestion_check_internet">Please check your internet connection.</string>
     <string name="error_suggestion_allow_notifications">Please allow notifications for timely alerts.</string>
+    <string name="error_suggestion_retry">Please try again later.</string>
 
     <!-- Health Card Pop-Up -->
     <string name="health_card_popup_title">HEALTH CARD</string>
-    <string name="health_card_popup_edit_button">Edit/Show Full</string>
+    <string name="health_card_popup_edit_button">Edit/View all</string>
     <string name="health_card_popup_edit_button_cd">Go to full health card</string>
     <string name="health_card_popup_empty_text">Empty Health Card</string>
 
@@ -106,6 +108,21 @@
     <string name="health_card_saved_message">Saved</string>
     <string name="health_card_deleted_message">Deleted</string>
 
+    <!-- Emergency Contact Pop-Up -->
+    <string name="emergency_contacts_title">EMERGENCY CONTACTS</string>
+    <string name="emergency_contacts_show_full_button">View all</string>
+    <string name="emergency_contacts_popup_empty">No contacts found</string>
+
+    <!-- Emergency Contact -->
+    <string name="emergency_contact_empty_list">"No contacts found. Tap '+' to add one."</string>
+    <string name="emergency_contact_name">Full Name</string>
+    <string name="emergency_contact_relationship">Relationship</string>
+    <string name="emergency_contact_relationship_with_examples">Relationship (e.g., family, friend, doctor, etc.)</string>
+    <string name="emergency_contact_phone_number">Phone number</string>
+    <string name="emergency_contact_save_contact_button">Save Contact</string>
+    <string name="emergency_contact_add_contact_title">Add Contact Form</string>
+    <string name="emergency_contact_edit_contact_title">Edit Contact Form</string>
+
     <!-- Fields Messages -->
     <string name="error_mandatory_field">Mandatory field</string>
     <string name="error_invalid_date">Invalid birth date (dd/mm/yyyy)</string>
@@ -119,6 +136,10 @@
     <!-- Speech Recognition Error Messages -->
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
     <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
+    <string name="error_text_to_speech_unavailable">Text-to-speech service is not available on this device</string>
+    <string name="error_text_to_speech_failed">Unable to play the requested message</string>
+    <string name="error_text_to_speech_init_failed">Unable to use speechToText on this device</string>
+    <string name="error_text_to_speech_empty_input">Nothing to read</string>
 
     <!-- Onboarding screen -->
     <string name="description_first_page">We track your location in the background, if you enter a high-risk area,
@@ -131,16 +152,21 @@
     <string name="title_third_page">Ready for Protection?</string>
 
     <!-- communiction screen-->
-    <string name="communication_screen_title">Voice command</string>
+    <string name="communication_tts_speaking_label">Speaking...</string>
+    <string name="communication_screen_title">Vocal communication</string>
     <string name="communication_listening_label">Listening…</string>
-    <string name="communication_idle_label">Tap the mic to start listening</string>
     <string name="communication_no_input_hint">We will show the transcript here.</string>
     <string name="communication_listen_button">Start listening</string>
     <string name="navigate_back">Back</string>
+    <string name="alert_sent">Help is on the way. Stay calm</string>
+    <string name="confirmation_request">Hello, I am your vocal assistant. Do you have any emergency?</string>
+    <string name="alert_not_sent">Okay, we wont send an emergency alert</string>
 
-    <string name="error_activity_repository_failed">Error in activity repository</string>
 
-    <!-- Activity Form Field Labels -->
+    <!-- TTS service -->
+    <string name="tts_speech_synthesis_error">There was an error during speech synthesis</string>
+
+    <!-- Activities-->
     <string name="activity_name_label">Activity Name</string>
     <string name="pre_danger_threshold_label">Initial shock threshold (m/s²)</string>
     <string name="pre_danger_timeout_label">Initial shock timeout (e.g., 5s, 1m)</string>
