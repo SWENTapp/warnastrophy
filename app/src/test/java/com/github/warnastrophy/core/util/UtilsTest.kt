@@ -49,13 +49,11 @@ class UtilsTest {
     MockitoAnnotations.openMocks(this)
     context = ApplicationProvider.getApplicationContext()
 
-    // Mock the static Toast.makeText
     mockToast = mockStatic(Toast::class.java)
     val mockedToastInstance = mock(Toast::class.java)
     `when`(Toast.makeText(any(Context::class.java), anyInt(), anyInt()))
         .thenReturn(mockedToastInstance)
 
-    // Mock CustomTabsIntent builder
     mockCustomTabsIntent = mockStatic(CustomTabsIntent::class.java)
   }
 

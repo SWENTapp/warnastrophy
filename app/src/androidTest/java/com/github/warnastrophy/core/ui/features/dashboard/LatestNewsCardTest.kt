@@ -203,21 +203,17 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun readLink_onClick_callsOpenWebPageWithCorrectUrl() {
-    // Use AtomicReference for thread-safe access from the test thread.
     val capturedUrl = AtomicReference<String?>()
     val expectedUrl = hazards[0].articleUrl
 
     composeTestRule.setContent {
       MaterialTheme {
-        // Pass a test lambda that captures the URL into our AtomicReference.
         LatestNewsCard(hazardsService = hazardService) { _, url -> capturedUrl.set(url) }
       }
     }
 
-    // Find the link by its test tag and perform a click.
     composeTestRule.onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true).performClick()
 
-    // Assert that the captured URL is the one we expected.
     Assert.assertEquals(expectedUrl, capturedUrl.get())
   }
 }
