@@ -13,6 +13,7 @@ import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -34,6 +35,12 @@ class EndToEndM1Test : EndToEndUtils() {
     StateManagerService.init(context)
     contactRepository = ContactRepositoryProvider.repository
     activityRepository = StateManagerService.activityRepository
+  }
+
+  @After
+  override fun tearDown() {
+    super.tearDown()
+    StateManagerService.shutdown()
   }
 
   @Test

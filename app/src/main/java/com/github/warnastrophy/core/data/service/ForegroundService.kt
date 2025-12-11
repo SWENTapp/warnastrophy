@@ -4,36 +4,19 @@ import android.app.Service
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.RequiresApi
-import com.github.warnastrophy.core.ui.common.ErrorHandler
-import com.google.android.gms.location.LocationServices
 
 /**
- * A foreground service that provides continuous location updates using GPS.
+ * A foreground service that provides continuous location updates using GPS and keep all necessary
+ * services in background
  *
  * This service utilizes [GpsService] to manage location updates and runs in the foreground to
  * ensure it remains active even when the app is in the background.
  */
-class ForegroundGpsService() : Service() {
+class ForegroundService() : Service() {
 
   /** The GpsService instance used for location updates. */
-  private var gpsService: GpsService? = null
-
-  /**
-   * Initializes the BackgroundService and its dependencies.
-   *
-   * This method is called when the service is created. It sets up the GpsService using the
-   * FusedLocationProviderClient and an ErrorHandler.
-   */
-  override fun onCreate() {
-    super.onCreate()
-    if (gpsService == null) {
-      val fusedClient = LocationServices.getFusedLocationProviderClient(this)
-      val errorHandler = ErrorHandler()
-      gpsService = GpsServiceFactory(fusedClient, errorHandler).create()
-    }
-  }
+  private var gpsService = StateManagerService.gpsService
 
   /**
    * Sets a custom GpsService instance for testing purposes.
@@ -59,7 +42,8 @@ class ForegroundGpsService() : Service() {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     // ensure runtime location permissions (ACCESS_FINE_LOCATION / BACKGROUND) are granted before
     // calling
-    gpsService?.startForegroundLocationUpdates(this)
+    gpsService.startForegroundLocationUpdates(this)
+    gpsService.startLocationUpdates()
     return START_STICKY
   }
 
@@ -71,9 +55,7 @@ class ForegroundGpsService() : Service() {
    */
   override fun onDestroy() {
     super.onDestroy()
-    gpsService?.clearErrorMsg()
-    gpsService?.close()
-    Log.d("MapTrackingToggle", "BackgroundService destroyed and location updates stopped.")
+    gpsService.stopLocationUpdates()
   }
 
   /**
