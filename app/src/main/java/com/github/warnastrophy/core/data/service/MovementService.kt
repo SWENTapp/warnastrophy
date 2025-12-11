@@ -73,16 +73,10 @@ class MovementService(
 
     collectionJob =
         scope.launch {
-          // Launch a coroutine to collect DangerModeState changes if available
           dangerModeStateFlow?.let { stateFlow ->
             launch {
               stateFlow.collect { dangerModeState ->
-                dangerModeState.activity?.movementConfig?.let { newConfig ->
-                  Log.d(
-                      "MovementService",
-                      "Updating movement config from DangerModeState: $newConfig")
-                  config = newConfig
-                }
+                dangerModeState.activity?.movementConfig?.let { newConfig -> config = newConfig }
               }
             }
           }

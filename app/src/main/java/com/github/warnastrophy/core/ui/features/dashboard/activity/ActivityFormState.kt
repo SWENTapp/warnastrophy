@@ -9,8 +9,6 @@ import kotlin.time.Duration
  *
  * @property activityName The current text input for the activity's name.
  * @property errorMsg A general error message to display, usually for repository/network failures.
- * @property invalidActivityName A specific error message for input validation failure on the
- *   activity name field.
  * @property preDangerThresholdStr String representation of the preDangerThreshold value.
  * @property preDangerTimeoutStr String representation of the preDangerTimeout value.
  * @property dangerAverageThresholdStr String representation of the dangerAverageThreshold value.
@@ -18,7 +16,6 @@ import kotlin.time.Duration
 data class ActivityFormState(
     val activityName: String = "",
     val errorMsg: String? = null,
-    val invalidActivityName: String? = null,
     val preDangerThresholdStr: String = "50.0",
     val preDangerTimeoutStr: String = "10s",
     val dangerAverageThresholdStr: String = "1.0"
@@ -53,6 +50,7 @@ data class ActivityFormState(
             dangerAverageThreshold != null &&
             preDangerTimeout != null
 
+  /** Attempts to convert the current form state into a [MovementConfig] object. */
   fun toMovementConfig(): MovementConfig? {
     val threshold = preDangerThreshold ?: return null
     val timeout = preDangerTimeout ?: return null

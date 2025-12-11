@@ -67,11 +67,7 @@ open class AddActivityViewModel(
   }
 
   fun setActivityName(activityName: String) {
-    _uiState.value =
-        _uiState.value.copy(
-            activityName = activityName,
-            invalidActivityName =
-                if (activityName.isBlank()) "Activity name cannot be empty" else null)
+    _uiState.value = _uiState.value.copy(activityName = activityName)
   }
 
   fun setPreDangerThreshold(value: String) {
@@ -86,6 +82,13 @@ open class AddActivityViewModel(
     _uiState.value = _uiState.value.copy(dangerAverageThresholdStr = value)
   }
 
+  /**
+   * Executes a repository operation and handles success/failure. Useful to reduce Add/Edit screen
+   * code duplication.
+   *
+   * @param operation The suspend function doing the repository operation.
+   * @param actionName A descriptive name of the action for logging and error messages.
+   */
   protected fun <T> executeRepositoryOperation(
       operation: suspend () -> Result<T>,
       actionName: String

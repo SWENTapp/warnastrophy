@@ -29,11 +29,11 @@ import com.github.warnastrophy.R
 @Composable
 fun ActivityFormFields(
     viewModel: AddActivityViewModel,
-    activityNameTestTag: String = "inputActivityName",
-    errorMessageTestTag: String = "errorMessage",
-    preDangerThresholdTestTag: String = "inputPreDangerThreshold",
-    preDangerTimeoutTestTag: String = "inputPreDangerTimeout",
-    dangerAverageThresholdTestTag: String = "inputDangerAverageThreshold"
+    activityNameTestTag: String,
+    errorMessageTestTag: String,
+    preDangerThresholdTestTag: String,
+    preDangerTimeoutTestTag: String,
+    dangerAverageThresholdTestTag: String
 ) {
   val state by viewModel.uiState.collectAsState()
 
@@ -41,12 +41,7 @@ fun ActivityFormFields(
       value = state.activityName,
       onValueChange = { viewModel.setActivityName(it) },
       label = { Text(stringResource(R.string.activity_name_label)) },
-      isError = state.invalidActivityName != null,
-      supportingText = {
-        state.invalidActivityName?.let {
-          Text(it, modifier = Modifier.testTag(errorMessageTestTag))
-        }
-      },
+      isError = state.activityName.isBlank(),
       modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag(activityNameTestTag))
 
   OutlinedTextField(
