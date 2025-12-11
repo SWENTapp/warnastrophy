@@ -31,12 +31,14 @@ import kotlinx.coroutines.launch
  * @param initialConfig Initial configuration for movement detection thresholds.
  * @param timeSource Time source used for measuring elapsed time. Defaults to monotonic time. Useful
  *   for testing.
+ * @param dangerModeStateFlow Optional state flow providing danger mode state and configuration.
  */
 class MovementService(
     private val repository: MovementSensorRepository,
     initialConfig: MovementConfig = MovementConfig(),
     private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val dangerModeStateFlow: StateFlow<DangerModeService.DangerModeState>? = null,
 ) {
 
   /** Root job for the service coroutine scope. Cancelling this stops the collector. */
@@ -71,6 +73,21 @@ class MovementService(
 
     collectionJob =
         scope.launch {
+          // Launch a coroutine to collect DangerModeState changes if available
+          dangerModeStateFlow?.let { stateFlow ->
+            launch {
+              stateFlow.collect { dangerModeState ->
+                dangerModeState.activity?.movementConfig?.let { newConfig ->
+                  Log.d(
+                      "MovementService",
+                      "Updating movement config from DangerModeState: $newConfig")
+                  config = newConfig
+                }
+              }
+            }
+          }
+
+          // Collect motion data
           repository.data.collect { motion ->
             _movementState.value = processMotion(motion.accelerationMagnitude, _movementState.value)
           }

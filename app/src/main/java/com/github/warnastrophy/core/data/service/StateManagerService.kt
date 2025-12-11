@@ -82,7 +82,9 @@ object StateManagerService {
 
     dangerModeService = DangerModeService(permissionManager = permissionManager)
 
-    movementService = MovementService(MovementSensorRepository(context))
+    movementService =
+        MovementService(
+            MovementSensorRepository(context), dangerModeStateFlow = dangerModeService.state)
     movementService.startListening()
 
     startHazardSubscription()
