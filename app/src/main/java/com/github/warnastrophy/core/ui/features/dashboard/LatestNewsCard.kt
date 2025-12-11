@@ -60,15 +60,6 @@ object LatestNewsTestTags {
   const val LINK = "latestNewsLink"
 }
 
-object LatestNewsCardColors {
-  val BORDER_COLOR: Color = Color(0xFFBDBDBD) // Shadow Grey
-  val HEADER_BACKGROUND_COLOR: Color = Color(0xFFFFEBEE) // Light Red
-  val HEADER_TEXT_COLOR: Color = Color(0xFFD32F2F) // Dark Red
-  val BODY_BACKGROUND_COLOR: Color = Color(0xFFF6F4F4) // Off White
-  val WEATHER_TEXT_COLOR: Color = Color(0xFF616161) // Dark Grey
-  val READ_ARTICLE_TEXT_COLOR: Color = Color(0xFF8A2301) // Orange
-}
-
 /**
  * Displays a card with the latest news related to hazards.
  *

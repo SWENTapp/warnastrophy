@@ -107,6 +107,13 @@ class UtilsTest {
   }
 
   @Test
+  fun openWebPage_malformedUrlShowsInvalidUrlToastAndReturns() {
+    openWebPage(context, "://invalid")
+
+    verify(Toast.makeText(context, R.string.invalid_url, Toast.LENGTH_SHORT)).show()
+  }
+
+  @Test
   fun openWebPage_validUrlWithCustomTabsSuccessLaunchesCustomTabs() {
     val validUrl = "https://example.com"
 
@@ -143,7 +150,7 @@ class UtilsTest {
     `when`(mockCustomTabsIntent.launchUrl(any(), any()))
         .thenThrow(RuntimeException("CustomTabs failed"))
 
-    // Mock missing browser.
+    // Mock missing browser
     doThrow(ActivityNotFoundException("No browser"))
         .`when`(spyContext)
         .startActivity(any(Intent::class.java))
