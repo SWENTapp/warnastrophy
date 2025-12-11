@@ -8,30 +8,27 @@ import com.github.warnastrophy.core.data.repository.HybridHealthCardRepository
 import com.github.warnastrophy.core.data.service.DeviceIdProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.MutableStateFlow
 
 object HealthCardRepositoryProvider {
 
+  private val _repositoryFlow = MutableStateFlow<HealthCardRepository?>(null)
+
   const val COLLECTION = "healthCards"
 
-  @Volatile private var _repo: HealthCardRepository? = null
-
-  // Public access point
-  var repository: HealthCardRepository
-    get() = _repo ?: error("HealthCardRepositoryProvider not initialized")
-    private set(value) {
-      _repo = value
-    }
+  val repository: HealthCardRepository
+    get() = _repositoryFlow.value ?: error("HealthCardRepositoryProvider not initialized")
 
   /** Default: local encrypted (DataStore) */
   fun init(context: Context) {
-    if (_repo == null) {
+    if (_repositoryFlow.value == null) {
       useLocalEncrypted(context)
     }
   }
 
   /** Only local encrypted storage */
   fun useLocalEncrypted(context: Context) {
-    repository = LocalHealthCardRepository(context.applicationContext)
+    _repositoryFlow.value = LocalHealthCardRepository(context.applicationContext)
   }
 
   /** Hybrid: local DataStore + Firestore */
@@ -40,18 +37,18 @@ object HealthCardRepositoryProvider {
 
     val remote: HealthCardRepository =
         HealthCardRepositoryImpl(
-            auth = null,
+            auth = auth,
             db = db,
             collectionName = COLLECTION,
             fallbackUidProvider = fallbackUidProvider)
 
     val local: HealthCardRepository = LocalHealthCardRepository(context.applicationContext)
 
-    repository = HybridHealthCardRepository(local, remote)
+    _repositoryFlow.value = HybridHealthCardRepository(local, remote)
   }
 
   /** Optional helper for tests / re-init */
   fun resetForTests() {
-    _repo = null
+    _repositoryFlow.value = null
   }
 }

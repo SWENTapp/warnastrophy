@@ -3,13 +3,10 @@
  *
  * Author: Anas Sidi Mohamed Assistance: ChatGPT
  */
-package com.example.dangermode.service
+package com.github.warnastrophy.core.data.service
 
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
-import com.github.warnastrophy.core.data.service.MovementConfig
-import com.github.warnastrophy.core.data.service.MovementService
-import com.github.warnastrophy.core.data.service.MovementState
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import io.mockk.every
 import io.mockk.mockk
@@ -24,7 +21,7 @@ import org.junit.Before
 import org.junit.Test
 import org.locationtech.jts.math.Vector3D
 
-class MouvementServiceTest : BaseAndroidComposeTest() {
+class MovementServiceTest : BaseAndroidComposeTest() {
   private lateinit var mockRepository: MovementSensorRepository
   private lateinit var dataFlow: MutableSharedFlow<MotionData>
   private lateinit var timeSource: TestTimeSource

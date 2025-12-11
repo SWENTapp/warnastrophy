@@ -11,17 +11,14 @@ import androidx.test.core.app.ApplicationProvider
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.di.userPrefsDataStore
-import com.github.warnastrophy.core.domain.model.startForegroundGpsService
-import com.github.warnastrophy.core.domain.model.stopForegroundGpsService
 import com.github.warnastrophy.core.ui.common.ErrorHandler
-import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
+import com.github.warnastrophy.core.util.startForegroundGpsService
+import com.github.warnastrophy.core.util.stopForegroundGpsService
 import com.google.android.gms.location.FusedLocationProviderClient
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,7 +27,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
-class ForegroundGpsServiceTest {
+class ForegroundServiceTest {
   @Before
   fun setup() {
     // Ensure ServiceStateManager is initialized for tests
@@ -43,7 +40,7 @@ class ForegroundGpsServiceTest {
   @Test
   fun onStartCommand_callsStartForegroundLocationUpdatesOnGpsService() {
     val mockGps = mockk<GpsService>(relaxed = true)
-    val service = ForegroundGpsService()
+    val service = ForegroundService()
     service.setGpsServiceForTest(mockGps)
 
     val context = ApplicationProvider.getApplicationContext<Context>()
@@ -64,7 +61,7 @@ class ForegroundGpsServiceTest {
     assertNotNull("Expected a started service intent", started)
     assertEquals(
         "Started service should be ForegroundGpsService",
-        ForegroundGpsService::class.java.name,
+        ForegroundService::class.java.name,
         started.component?.className)
   }
 
@@ -81,52 +78,29 @@ class ForegroundGpsServiceTest {
     assertNotNull("Expected a stopped service intent", stopped)
     assertEquals(
         "Stopped service should be ForegroundGpsService",
-        ForegroundGpsService::class.java.name,
+        ForegroundService::class.java.name,
         stopped.component?.className)
   }
 
   @Test
   fun onDestroy_callsClearErrorAndCloseOnInjectedGps() {
     val mockGps = mockk<GpsService>(relaxed = true)
-    val service = ForegroundGpsService()
+    val service = ForegroundService()
     service.setGpsServiceForTest(mockGps)
 
     // call lifecycle method under test
     service.onDestroy()
 
-    verify { mockGps.clearErrorMsg() }
-    verify { mockGps.close() }
+    verify { mockGps.stopLocationUpdates() }
   }
 
   @Test
   fun onStartCommand_returnsStartSticky_whenNoGpsInjected() {
-    val service = ForegroundGpsService()
+    val service = ForegroundService()
 
     val result = service.onStartCommand(null, 0, 0)
 
     assertEquals(Service.START_STICKY, result)
-  }
-
-  @Test
-  fun `toggling on starts foreground service`() = runTest {
-    var invoked = false
-    var receivedContext: Context? = null
-
-    val vm =
-        DangerModeCardViewModel(
-            startService = { ctx ->
-              invoked = true
-              receivedContext = ctx
-            },
-            stopService = { _ -> },
-            userId = "donotcare",
-        )
-
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    vm.onDangerModeToggled(true, context)
-
-    assertTrue("startService should be invoked", invoked)
-    assertEquals("context passed to startService should match", context, receivedContext)
   }
 
   private class TestService : Service() {

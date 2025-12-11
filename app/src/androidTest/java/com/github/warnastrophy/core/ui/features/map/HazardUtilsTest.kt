@@ -75,30 +75,21 @@ class HazardUtilsTest {
   @Test
   fun computeSeverityTint_respectsMinMaxAndNulls() {
     val hazardBase = baseHazard().copy(type = "X", severity = 5.0)
-    val severities = mapOf("X" to (0.0 to 10.0))
 
-    val mid = computeSeverityTint(hazardBase, severities)
-    // Midway between Gray and Red: just assert it’s “not black”
-    assertTrue(mid != Color.Black)
+    val hazardLow = hazardBase.copy(alertLevel = 1.0)
+    val hazardMedium = hazardBase.copy(alertLevel = 2.0)
+    val hazardHigh = hazardBase.copy(alertLevel = 3.0)
+    val hazardOther = hazardBase.copy(alertLevel = 4.0)
 
-    val hazardLow = hazardBase.copy(severity = 0.0)
-    val hazardHigh = hazardBase.copy(severity = 10.0)
-    val low = computeSeverityTint(hazardLow, severities)
-    val high = computeSeverityTint(hazardHigh, severities)
+    assertEquals(SeverityColors.LOW, getSeverityColor(hazardLow))
+    assertEquals(SeverityColors.MEDIUM, getSeverityColor(hazardMedium))
+    assertEquals(SeverityColors.HIGH, getSeverityColor(hazardHigh))
+    assertEquals(SeverityColors.UNKNOWN, getSeverityColor(hazardOther))
 
-    val lowGray = (low.red + low.green + low.blue) / 3f
-    val highGray = (high.red + high.green + high.blue) / 3f
-    assertTrue(highGray < lowGray)
-
-    // severity == null -> Color.Black
-    val hazardNull = hazardBase.copy(severity = null)
-    val nullColor = computeSeverityTint(hazardNull, severities)
-    assertEquals(Color.Black, nullColor)
-
-    // type == null -> Color.Black
-    val hazardNoType = hazardBase.copy(type = null, severity = 5.0)
-    val noTypeColor = computeSeverityTint(hazardNoType, severities)
-    assertEquals(Color.Black, noTypeColor)
+    // alertLevel == null -> UNKNOWN
+    val hazardNull = hazardBase.copy(alertLevel = null)
+    val nullColor = getSeverityColor(hazardNull)
+    assertEquals(SeverityColors.UNKNOWN, nullColor)
   }
 
   @Test
