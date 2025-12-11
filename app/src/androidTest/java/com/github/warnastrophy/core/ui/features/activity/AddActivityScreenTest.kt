@@ -1,12 +1,13 @@
 package com.github.warnastrophy.core.ui.features.activity
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.ui.features.UITest
-import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.activity.AddActivityScreen
 import com.github.warnastrophy.core.ui.features.dashboard.activity.AddActivityTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.activity.AddActivityViewModel
@@ -36,9 +37,6 @@ class AddActivityScreenTest : UITest() {
     composeTestRule
         .onNodeWithTag(AddActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)
         .assertIsDisplayed()
-    composeTestRule
-        .onNodeWithTag(AddActivityTestTags.ERROR_MESSAGE, useUnmergedTree = true)
-        .assertIsNotDisplayed()
   }
 
   @Test
@@ -48,9 +46,6 @@ class AddActivityScreenTest : UITest() {
     composeTestRule
         .onNodeWithTag(AddActivityTestTags.INPUT_ACTIVITY_NAME)
         .assertTextContains(actName)
-    composeTestRule
-        .onNodeWithTag(AddActivityTestTags.ERROR_MESSAGE, useUnmergedTree = true)
-        .assertIsNotDisplayed()
   }
 
   @Test
@@ -58,8 +53,8 @@ class AddActivityScreenTest : UITest() {
     val invalidText = " "
     composeTestRule.enterAddActivityName(invalidText)
     composeTestRule
-        .onNodeWithTag(AddContactTestTags.ERROR_MESSAGE, useUnmergedTree = true)
-        .assertIsDisplayed()
+        .onNodeWithTag(AddActivityTestTags.INPUT_ACTIVITY_NAME)
+        .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Error))
   }
 
   @Test

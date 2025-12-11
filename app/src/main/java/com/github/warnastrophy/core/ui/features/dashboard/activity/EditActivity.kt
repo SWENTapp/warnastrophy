@@ -27,7 +27,6 @@ object EditActivityTestTags {
   const val INPUT_ACTIVITY_NAME = "inputActivityName"
   const val SAVE_BUTTON = "activitySave"
   const val DELETE_BUTTON = "activityDelete"
-  const val ERROR_MESSAGE = "errorMessage"
   const val PRE_DANGER_THRESHOLD_INPUT = "inputPreDangerThreshold"
   const val PRE_DANGER_TIMEOUT_INPUT = "inputPreDangerTimeout"
   const val DANGER_AVERAGE_THRESHOLD_INPUT = "inputDangerAverageThreshold"
@@ -76,7 +75,6 @@ fun EditActivityScreen(
         ActivityFormFields(
             viewModel = editActivityViewModel,
             activityNameTestTag = EditActivityTestTags.INPUT_ACTIVITY_NAME,
-            errorMessageTestTag = EditActivityTestTags.ERROR_MESSAGE,
             preDangerThresholdTestTag = EditActivityTestTags.PRE_DANGER_THRESHOLD_INPUT,
             preDangerTimeoutTestTag = EditActivityTestTags.PRE_DANGER_TIMEOUT_INPUT,
             dangerAverageThresholdTestTag = EditActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)

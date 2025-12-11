@@ -22,7 +22,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 object AddActivityTestTags {
   const val INPUT_ACTIVITY_NAME = "inputActivityName"
-  const val ERROR_MESSAGE = "errorMessage"
   const val SAVE_BUTTON = "activitySave"
   const val PRE_DANGER_THRESHOLD_INPUT = "inputPreDangerThreshold"
   const val PRE_DANGER_TIMEOUT_INPUT = "inputPreDangerTimeout"
@@ -68,7 +67,6 @@ fun AddActivityScreen(
         ActivityFormFields(
             viewModel = addActivityViewModel,
             activityNameTestTag = AddActivityTestTags.INPUT_ACTIVITY_NAME,
-            errorMessageTestTag = AddActivityTestTags.ERROR_MESSAGE,
             preDangerThresholdTestTag = AddActivityTestTags.PRE_DANGER_THRESHOLD_INPUT,
             preDangerTimeoutTestTag = AddActivityTestTags.PRE_DANGER_TIMEOUT_INPUT,
             dangerAverageThresholdTestTag = AddActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)

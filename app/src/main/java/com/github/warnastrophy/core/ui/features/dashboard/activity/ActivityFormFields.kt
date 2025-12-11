@@ -21,7 +21,6 @@ import com.github.warnastrophy.R
  *
  * @param viewModel The ViewModel (AddActivityViewModel or EditActivityViewModel)
  * @param activityNameTestTag Test tag for the activity name field
- * @param errorMessageTestTag Test tag for error messages
  * @param preDangerThresholdTestTag Test tag for pre-danger threshold field
  * @param preDangerTimeoutTestTag Test tag for pre-danger timeout field
  * @param dangerAverageThresholdTestTag Test tag for danger average threshold field
@@ -30,7 +29,6 @@ import com.github.warnastrophy.R
 fun ActivityFormFields(
     viewModel: AddActivityViewModel,
     activityNameTestTag: String,
-    errorMessageTestTag: String,
     preDangerThresholdTestTag: String,
     preDangerTimeoutTestTag: String,
     dangerAverageThresholdTestTag: String
