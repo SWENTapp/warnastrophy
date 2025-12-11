@@ -41,8 +41,20 @@ interface HazardsDataService {
   ): List<Hazard>
 
   fun fetchHazardsAroundUser()
+
+  fun close()
 }
 
+/**
+ * Implementation of [HazardsDataService] responsible for fetching and managing hazard data from the
+ * data source ([repository]).
+ *
+ * @property repository The data source (API/Database access) for fetching hazard information.
+ * @property gpsService The service providing the user's current location, required to define the
+ *   fetch area.
+ * @property errorHandler The component used to report and clear application-wide error states,
+ *   default to [ErrorHandler()]
+ */
 class HazardsService(
     override val repository: HazardsDataSource,
     override val gpsService: PositionService,
@@ -117,7 +129,7 @@ class HazardsService(
   }
 
   /** Cancels the background hazard fetching and releases resources. */
-  fun close() {
+  override fun close() {
     serviceScope.cancel()
   }
 }
@@ -130,13 +142,3 @@ class HazardsService(
  * @property isLoading Indicates whether a fetch operation is in progress.
  */
 data class FetcherState(val hazards: List<Hazard> = emptyList(), val isLoading: Boolean = false)
-
-class HazardsServiceFactory(
-    private val repository: HazardsDataSource,
-    private val gpsService: PositionService,
-    private val errorHandler: ErrorHandler
-) {
-  fun create(): HazardsService {
-    return HazardsService(repository, gpsService, errorHandler)
-  }
-}

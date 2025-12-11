@@ -195,6 +195,8 @@ class HazardServiceMock(hazards: List<Hazard> = hazardList, position: LatLng = p
   fun assertFetchCalled(expectedCount: Int) {
     assertEquals(expectedCount, fetchCount)
   }
+
+  override fun close() {}
 }
 
 /**

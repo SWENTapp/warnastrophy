@@ -97,7 +97,6 @@ class GpsService(
 
   /** Public state flow exposing the current GPS position state. */
   override val positionState: StateFlow<GpsPositionState> = _positionState.asStateFlow()
-
   private val locationCallBack =
       object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -318,13 +317,4 @@ sealed class GpsResult {
    * @property message Success message.
    */
   data class Success(val message: String = "Success") : GpsResult()
-}
-
-class GpsServiceFactory(
-    private val locationClient: FusedLocationProviderClient,
-    private val errorHandler: ErrorHandler
-) {
-  fun create(): GpsService {
-    return GpsService(locationClient, errorHandler)
-  }
 }
