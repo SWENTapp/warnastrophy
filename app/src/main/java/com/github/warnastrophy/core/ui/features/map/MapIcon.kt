@@ -1,7 +1,6 @@
 package com.github.warnastrophy.core.ui.features.map
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -39,10 +38,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Hazard
@@ -51,6 +48,7 @@ import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.features.dashboard.getImageForEvent
 import com.github.warnastrophy.core.util.GeometryParser
 import com.github.warnastrophy.core.util.formatDate
+import com.github.warnastrophy.core.util.openWebPage
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -168,7 +166,7 @@ fun HazardMarker(
               state = state,
               onClick = { false }, // keep default behaviour
               icon = markerIcon,
-              onInfoWindowClick = { openHazardArticle(ctx, hazard.articleUrl) }) {
+              onInfoWindowClick = { openWebPage(ctx, hazard.articleUrl) }) {
                 HazardInfoWindowContent(hazard = hazard, title = title, snippet = snippet)
               }
         }
@@ -309,19 +307,6 @@ fun formatSeveritySnippet(hazard: Hazard): String? {
 
   val unit = hazard.severityUnit.orEmpty().trim()
   return if (unit.isNotEmpty()) "$rounded $unit" else rounded
-}
-
-/**
- * This function opens a hazard article URL in the device's default web browser. If the URL is null,
- * the function does nothing.
- *
- * @param context The context used to start the activity.
- * @param articleUrl The URL of the hazard article to open.
- */
-fun openHazardArticle(context: Context, articleUrl: String?) {
-  articleUrl ?: return
-  val intent = Intent(Intent.ACTION_VIEW, articleUrl.toUri())
-  ContextCompat.startActivity(context, intent, null)
 }
 
 @Composable

@@ -447,17 +447,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun openHazardArticle_handlesNullAndValidUrl() {
-    val context = composeTestRule.activity
-
-    // Null URL → no crash
-    openHazardArticle(context, null)
-
-    // Valid URL → should attempt to startActivity, but we just verify it doesn't crash.
-    openHazardArticle(context, "https://example.com/news")
-  }
-
-  @Test
   fun hazardNewsImage_usesAsyncImage_whenUrlLooksLikeImage() {
     val hazard =
         Hazard(

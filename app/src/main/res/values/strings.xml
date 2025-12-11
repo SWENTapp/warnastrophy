@@ -165,6 +165,9 @@
     <string name="confirmation_request">Hello, I am your vocal assistant. Do you have any emergency?</string>
     <string name="alert_not_sent">Okay, we wont send an emergency alert</string>
 
+    <!-- Open web page  -->
+    <string name="invalid_url">Invalid URL</string>
+    <string name="no_browser_found">No browser found to open this link.</string>
 
     <!-- TTS service -->
     <string name="tts_speech_synthesis_error">There was an error during speech synthesis</string>
