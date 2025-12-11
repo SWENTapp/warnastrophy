@@ -1,6 +1,5 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,8 +8,6 @@ import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.util.AppConfig
-import com.github.warnastrophy.core.util.startForegroundGpsService
-import com.github.warnastrophy.core.util.stopForegroundGpsService
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -31,17 +28,11 @@ enum class DangerModeCapability(val label: String) {
 /**
  * ViewModel for managing the state of the Danger Mode card in the dashboard UI.
  *
- * @param startService Lambda function to start the foreground GPS service (can be overridden for
- *   testing).
- * @param stopService Lambda function to stop the foreground GPS service (can be overridden for
- *   testing).
  * @param repository The ActivityRepository to use for fetching activities.
  * @param userId The user ID for loading activities. Defaults to current Firebase user or fallback.
  * @param dispatcher The coroutine dispatcher to use for async operations.
  */
 class DangerModeCardViewModel(
-    private val startService: (Context) -> Unit = { ctx -> startForegroundGpsService(ctx) },
-    private val stopService: (Context) -> Unit = { ctx -> stopForegroundGpsService(ctx) },
     private val repository: ActivityRepository = StateManagerService.activityRepository,
     private val userId: String =
         FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId,
@@ -110,12 +101,10 @@ class DangerModeCardViewModel(
    * @param enabled True to enable Danger Mode, false to disable it.
    * @param context The context used to start or stop the GPS service.
    */
-  fun onDangerModeToggled(enabled: Boolean, context: Context? = null) {
+  fun onDangerModeToggled(enabled: Boolean) {
     if (enabled) {
-      context?.let { startService(it) }
       dangerModeService.manualActivate()
     } else {
-      context?.let { stopService(it) }
       dangerModeService.manualDeactivate()
     }
   }

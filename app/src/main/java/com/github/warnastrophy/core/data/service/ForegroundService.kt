@@ -7,12 +7,13 @@ import android.os.IBinder
 import androidx.annotation.RequiresApi
 
 /**
- * A foreground service that provides continuous location updates using GPS.
+ * A foreground service that provides continuous location updates using GPS and keep all necessary
+ * services in background
  *
  * This service utilizes [GpsService] to manage location updates and runs in the foreground to
  * ensure it remains active even when the app is in the background.
  */
-class ForegroundGpsService() : Service() {
+class ForegroundService() : Service() {
 
   /** The GpsService instance used for location updates. */
   private var gpsService = StateManagerService.gpsService

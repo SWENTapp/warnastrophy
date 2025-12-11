@@ -119,6 +119,22 @@ class GpsService(
         }
       }
 
+  private fun startPositionLogging() {
+    // Launch on the Dispatchers.IO serviceScope
+    serviceScope.launch {
+      // Collect every update from the positionState flow
+      positionState.collect { state ->
+        // Log the critical data using a unique tag for easy filtering
+        Log.i(
+            "GPS_HEARTBEAT",
+            "Position Update: IsLoading=${state.isLoading}, " +
+                "Lat=${state.position.latitude}, " +
+                "Lon=${state.position.longitude}, " +
+                "Result=${state.result}")
+      }
+    }
+  }
+
   /**
    * Requests the user's current location and updates [positionState] with the new position or the
    * corresponding error.
@@ -170,6 +186,7 @@ class GpsService(
               .build()
 
       locationClient.requestLocationUpdates(request, locationCallBack, Looper.getMainLooper())
+      startPositionLogging()
       clearError(ErrorType.LOCATION_NOT_GRANTED_ERROR)
       clearError(ErrorType.LOCATION_UPDATE_ERROR)
     } catch (_: SecurityException) {
@@ -318,13 +335,4 @@ sealed class GpsResult {
    * @property message Success message.
    */
   data class Success(val message: String = "Success") : GpsResult()
-}
-
-class GpsServiceFactory(
-    private val locationClient: FusedLocationProviderClient,
-    private val errorHandler: ErrorHandler
-) {
-  fun create(): GpsService {
-    return GpsService(locationClient, errorHandler)
-  }
 }

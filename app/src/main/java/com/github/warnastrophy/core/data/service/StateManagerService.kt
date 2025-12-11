@@ -12,6 +12,7 @@ import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.ui.common.ErrorHandler
+import com.github.warnastrophy.core.util.startForegroundGpsService
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -106,6 +107,7 @@ object StateManagerService {
 
     movementService = MovementService(MovementSensorRepository(context))
     movementService.startListening()
+    startForegroundGpsService(context)
 
     startHazardSubscription()
 
