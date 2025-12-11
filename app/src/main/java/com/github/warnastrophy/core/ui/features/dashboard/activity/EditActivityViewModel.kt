@@ -1,115 +1,59 @@
 package com.github.warnastrophy.core.ui.features.dashboard.activity
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Represents the mutable state of the UI for the screen where a user can edit an activity. This
- * state is typically exposed by a ViewModel to be observed by a Composable function.
- *
- * @property activityName The current text input for the activity's name.
- * @property errorMsg A general error message to display, usually for repository/network failures.
- * @property invalidActivityNameMsg A specific error message for input validation failure on the
- *   activity name field.
- */
-data class EditActivityUIState(
-    val activityName: String = "",
-    val errorMsg: String? = null,
-    val invalidActivityNameMsg: String? = null
-) {
-  val isValid: Boolean
-    get() = activityName.isNotBlank()
-}
-
-/**
- * ViewModel responsible for managing the state and logic for the Edit Activity screen.
- *
- * It handles form input changes, validates fields, and manages the asynchronous operation of
- * persisting a new activity via the repository.
+ * ViewModel for editing existing activities. Extends AddActivityViewModel and adds edit and delete
+ * functionality.
  *
  * @property repository The data source dependency used for activity persistence.
  * @property userId id of user using the app
- * @property dispatcher dispatcher defaut to [Dispatchers.IO]
+ * @property dispatcher dispatcher default to [Dispatchers.IO]
  */
 class EditActivityViewModel(
-    private val repository: ActivityRepository = StateManagerService.activityRepository,
-    private val userId: String,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) : ViewModel() {
-  private val _uiState = MutableStateFlow(EditActivityUIState())
-  val uiState: StateFlow<EditActivityUIState> = _uiState.asStateFlow()
-
-  private val _navigateBack = MutableSharedFlow<Unit>(replay = 0)
-  val navigateBack: SharedFlow<Unit> = _navigateBack.asSharedFlow()
-
-  /** Clears the error message in the UI state. */
-  fun clearErrorMsg() {
-    _uiState.value = _uiState.value.copy(errorMsg = null)
-  }
-
-  /** Sets an error message in the UI state. */
-  private fun setErrorMsg(errorMsg: String) {
-    _uiState.value = _uiState.value.copy(errorMsg = errorMsg)
-  }
-
-  private fun <T> executeRepositoryOperation(
-      operation: suspend () -> Result<T>,
-      actionName: String // e.g., "edit Contact" or "delete Contact"
-  ) {
-    viewModelScope.launch(dispatcher) {
-      val result = operation()
-
-      result
-          .onSuccess {
-            clearErrorMsg()
-            _navigateBack.emit(Unit)
-          }
-          .onFailure { exception ->
-            val logTag = "EditActivityViewModel"
-            val errorMessage = "Failed to $actionName: ${exception.message ?: "Unknown error"}"
-
-            Log.e(logTag, "Error $actionName", exception)
-            setErrorMsg(errorMessage)
-          }
-    }
-  }
+    repository: ActivityRepository = StateManagerService.activityRepository,
+    userId: String,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
+) : AddActivityViewModel(repository, userId, dispatcher) {
 
   /**
-   * Loads a Activity by its ID and updates the UI state.
+   * Loads an activity by its ID and updates the UI state.
    *
-   * @param activityId The ID of the Contact to be loaded.
+   * @param activityId The ID of the activity to be loaded.
    */
   fun loadActivity(activityId: String) {
     viewModelScope.launch(dispatcher) {
-      val res = repository.getActivity(activityId, userId)
-      res.fold(
-          onSuccess = { activity ->
-            _uiState.value = EditActivityUIState(activityName = activity.activityName)
-          },
-          onFailure = { e ->
-            Log.e("EditActivityViewModel", "Error fetching contacts", e)
-            setErrorMsg("Failed to load contacts: ${e.message}")
-          })
+      repository
+          .getActivity(activityId, userId)
+          .fold(
+              onSuccess = { activity ->
+                _uiState.value =
+                    ActivityFormState(
+                        activityName = activity.activityName,
+                        preDangerThresholdStr =
+                            activity.movementConfig.preDangerThreshold.toString(),
+                        preDangerTimeoutStr = activity.movementConfig.preDangerTimeout.toString(),
+                        dangerAverageThresholdStr =
+                            activity.movementConfig.dangerAverageThreshold.toString())
+              },
+              onFailure = { e ->
+                Log.e("EditActivityViewModel", "Error loading activity", e)
+                setErrorMsg("Failed to load activity: ${e.message}")
+              })
     }
   }
 
   /**
-   * Adds a Activity document.
+   * Updates an existing activity with the current form values.
    *
-   * @param id The activity document to be added.
+   * @param id The activity ID to update.
    */
   fun editActivity(id: String) {
     val state = _uiState.value
@@ -117,28 +61,25 @@ class EditActivityViewModel(
       setErrorMsg("At least one field is not valid!")
       return
     }
-    val newActivity = Activity(id = id, activityName = state.activityName)
+    val config =
+        state.toMovementConfig()
+            ?: run {
+              setErrorMsg("Invalid movement configuration!")
+              return
+            }
+    val activity = Activity(id = id, activityName = state.activityName, movementConfig = config)
     executeRepositoryOperation(
-        operation = { repository.editActivity(id, userId, newActivity) },
-        actionName = "edit activity")
+        operation = { repository.editActivity(id, userId, activity) }, actionName = "edit activity")
   }
 
   /**
-   * Deletes a Contact document by its ID.
+   * Deletes an activity by its ID.
    *
-   * @param activityID The ID of the Contact document to be deleted.
+   * @param activityID The ID of the activity to delete.
    */
   fun deleteActivity(activityID: String) {
     executeRepositoryOperation(
         operation = { repository.deleteActivity(userId, activityID) },
         actionName = "delete activity")
-  }
-
-  fun setActivityName(activityName: String) {
-    _uiState.value =
-        _uiState.value.copy(
-            activityName = activityName,
-            invalidActivityNameMsg =
-                if (activityName.isBlank()) "Full name cannot be empty" else null)
   }
 }
