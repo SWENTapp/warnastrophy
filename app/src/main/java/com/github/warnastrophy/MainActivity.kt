@@ -54,17 +54,17 @@ class MainActivity : ComponentActivity() {
 
       ThemedApp(
           themeViewModel = themeViewModel,
-          onAuthenticationChanged = { isAuthenticated ->
-            initializeUserPreferencesRepository(isAuthenticated)
-          })
+          onAuthenticationChanged = { isAuthenticated -> initializeRepositories(isAuthenticated) })
     }
   }
 
-  private fun initializeUserPreferencesRepository(isAuthenticated: Boolean) {
+  private fun initializeRepositories(isAuthenticated: Boolean) {
     if (isAuthenticated) {
+      HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
       ContactRepositoryProvider.initHybrid(applicationContext, db)
       UserPreferencesRepositoryProvider.initHybrid(applicationContext.userPrefsDataStore, db)
     } else {
+      HealthCardRepositoryProvider.init(applicationContext)
       ContactRepositoryProvider.initLocal(applicationContext)
       UserPreferencesRepositoryProvider.initLocal(applicationContext.userPrefsDataStore)
     }
@@ -78,9 +78,8 @@ class MainActivity : ComponentActivity() {
     db = FirebaseFirestore.getInstance()
 
     val isAuthenticated = auth.currentUser != null
-    initializeUserPreferencesRepository(isAuthenticated)
+    initializeRepositories(isAuthenticated)
 
-    HealthCardRepositoryProvider.useHybridEncrypted(applicationContext, db, auth)
     StateManagerService.init(applicationContext)
     OnboardingRepositoryProvider.init(applicationContext)
     showUI()
