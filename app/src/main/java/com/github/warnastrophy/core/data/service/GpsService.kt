@@ -97,7 +97,6 @@ class GpsService(
 
   /** Public state flow exposing the current GPS position state. */
   override val positionState: StateFlow<GpsPositionState> = _positionState.asStateFlow()
-
   private val locationCallBack =
       object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -118,22 +117,6 @@ class GpsService(
           setLoading(false)
         }
       }
-
-  private fun startPositionLogging() {
-    // Launch on the Dispatchers.IO serviceScope
-    serviceScope.launch {
-      // Collect every update from the positionState flow
-      positionState.collect { state ->
-        // Log the critical data using a unique tag for easy filtering
-        Log.i(
-            "GPS_HEARTBEAT",
-            "Position Update: IsLoading=${state.isLoading}, " +
-                "Lat=${state.position.latitude}, " +
-                "Lon=${state.position.longitude}, " +
-                "Result=${state.result}")
-      }
-    }
-  }
 
   /**
    * Requests the user's current location and updates [positionState] with the new position or the
@@ -186,7 +169,6 @@ class GpsService(
               .build()
 
       locationClient.requestLocationUpdates(request, locationCallBack, Looper.getMainLooper())
-      startPositionLogging()
       clearError(ErrorType.LOCATION_NOT_GRANTED_ERROR)
       clearError(ErrorType.LOCATION_UPDATE_ERROR)
     } catch (_: SecurityException) {
