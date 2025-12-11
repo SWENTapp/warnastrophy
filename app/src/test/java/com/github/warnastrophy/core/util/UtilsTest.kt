@@ -21,10 +21,10 @@ import org.mockito.Mockito.doNothing
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.spy
 import org.robolectric.RobolectricTestRunner
 
 /**
@@ -108,7 +108,8 @@ class UtilsTest {
 
   @Test
   fun openWebPage_malformedUrlShowsInvalidUrlToastAndReturns() {
-    openWebPage(context, "://invalid")
+    // This URL will cause `toUri()` to throw an exception because of space
+    openWebPage(context, "https://exa mple.com")
 
     verify(Toast.makeText(context, R.string.invalid_url, Toast.LENGTH_SHORT)).show()
   }
@@ -141,7 +142,7 @@ class UtilsTest {
   @Test
   fun openWebPage_bothCustomTabsAndBrowserFailShowsNoBrowserToast() {
     val validUrl = "https://example.com"
-    val spyContext = org.mockito.Mockito.spy(context)
+    val spyContext = spy(context)
 
     // Mock CustomTabsIntent to throw exception
     val mockBuilder = mock(CustomTabsIntent.Builder::class.java)

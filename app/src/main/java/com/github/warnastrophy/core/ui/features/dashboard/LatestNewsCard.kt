@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -75,7 +76,11 @@ object LatestNewsTestTags {
  * @see HazardsDataService
  */
 @Composable
-fun LatestNewsCard(hazardsService: HazardsDataService, modifier: Modifier = Modifier) {
+fun LatestNewsCard(
+    hazardsService: HazardsDataService,
+    modifier: Modifier = Modifier,
+    openWebPage: (context: Context, url: String?) -> Unit = ::openWebPage // For testing
+) {
   val fetcherState = hazardsService.fetcherState.collectAsState()
   val state = fetcherState.value
   var currentIndex by remember { mutableIntStateOf(0) }

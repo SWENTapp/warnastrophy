@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.latestNewsCard
+package com.github.warnastrophy.core.ui.features.dashboard
 
 import android.content.Context
 import androidx.compose.material3.MaterialTheme
@@ -9,14 +9,14 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsCard
-import com.github.warnastrophy.core.ui.features.dashboard.LatestNewsTestTags
 import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.hazards
 import com.github.warnastrophy.core.ui.map.no_url_hazard
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.MapsInitializer
+import java.util.concurrent.atomic.AtomicReference
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
@@ -199,5 +199,25 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true)
         .assertIsNotDisplayed()
+  }
+
+  @Test
+  fun readLink_onClick_callsOpenWebPageWithCorrectUrl() {
+    // Use AtomicReference for thread-safe access from the test thread.
+    val capturedUrl = AtomicReference<String?>()
+    val expectedUrl = hazards[0].articleUrl
+
+    composeTestRule.setContent {
+      MaterialTheme {
+        // Pass a test lambda that captures the URL into our AtomicReference.
+        LatestNewsCard(hazardsService = hazardService) { _, url -> capturedUrl.set(url) }
+      }
+    }
+
+    // Find the link by its test tag and perform a click.
+    composeTestRule.onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true).performClick()
+
+    // Assert that the captured URL is the one we expected.
+    Assert.assertEquals(expectedUrl, capturedUrl.get())
   }
 }
