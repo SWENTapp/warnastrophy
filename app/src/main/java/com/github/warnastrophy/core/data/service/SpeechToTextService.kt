@@ -53,6 +53,10 @@ interface SpeechToTextServiceInterface {
 
   suspend fun listenForConfirmation(): Boolean
 
+  /**
+   * Stops speech recognition and releases resources. Must be called when the service is no longer
+   * needed to avoid memory leaks.
+   */
   fun destroy()
 }
 

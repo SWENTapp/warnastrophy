@@ -170,7 +170,6 @@ class DangerModeOrchestrator(
       val contacts = contactsRepo?.getAllContacts()?.getOrNull()
       if (!contacts.isNullOrEmpty()) {
         emergencyPhoneNumber = contacts.first().phoneNumber
-        Log.d(TAG, "Emergency phone number set to: $emergencyPhoneNumber")
       } else {
         Log.w(TAG, "No emergency contacts found, using default number")
       }
@@ -241,7 +240,6 @@ class DangerModeOrchestrator(
       return
     }
 
-    Log.d(TAG, "Danger conditions met - triggering emergency protocol")
     triggerEmergencyProtocol(preferences)
   }
 
@@ -278,7 +276,6 @@ class DangerModeOrchestrator(
         }
 
     if (pendingAction == null) {
-      Log.d(TAG, "No emergency actions configured")
       return
     }
 
@@ -294,7 +291,6 @@ class DangerModeOrchestrator(
       _showVoiceConfirmationScreen.value = true
     } else {
       // Execute action directly without voice confirmation
-      Log.d(TAG, "Voice confirmation disabled - executing action directly")
       scope.launch { executeEmergencyAction(pendingAction) }
     }
   }
@@ -330,15 +326,6 @@ class DangerModeOrchestrator(
 
   /** Executes the emergency action (SMS, Call, or both). */
   private fun executeEmergencyAction(action: PendingEmergencyAction) {
-    // Log the phone number being used for debugging
-    val phoneNumber =
-        when (action) {
-          is PendingEmergencyAction.SendSms -> action.phoneNumber
-          is PendingEmergencyAction.MakeCall -> action.phoneNumber
-          is PendingEmergencyAction.SendSmsAndCall -> action.phoneNumber
-        }
-    Log.d(TAG, "Executing emergency action with phone number: '$phoneNumber'")
-
     try {
       when (action) {
         is PendingEmergencyAction.SendSms -> {
@@ -366,7 +353,6 @@ class DangerModeOrchestrator(
           errorHandler.clearErrorFromScreen(ErrorType.NO_EMERGENCY_CONTACT, Screen.Dashboard)
         }
       }
-      Log.d(TAG, "Emergency action executed successfully: $action")
     } catch (e: IllegalArgumentException) {
       // Invalid phone number - likely no emergency contact configured
       Log.e(TAG, "Invalid phone number for emergency action", e)

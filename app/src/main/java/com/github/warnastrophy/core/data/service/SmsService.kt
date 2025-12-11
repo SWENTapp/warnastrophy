@@ -25,14 +25,10 @@ class SmsManagerSender(context: Context) : SmsSender {
       }
 
   override fun sendSms(phoneNumber: String, message: EmergencyMessage) {
-    if (phoneNumber.isBlank()) {
-      throw IllegalArgumentException(
-          "Phone number cannot be empty. Please add an emergency contact.")
+    require(!(phoneNumber.isBlank())) {
+      "Phone number cannot be empty. Please add an emergency contact."
     }
-    // Basic phone number validation - must contain at least some digits
-    if (!phoneNumber.any { it.isDigit() }) {
-      throw IllegalArgumentException("Invalid phone number format: $phoneNumber")
-    }
+    require(phoneNumber.any { it.isDigit() }) { "Invalid phone number format: $phoneNumber" }
     smsManager.sendTextMessage(phoneNumber, null, message.toStringMessage(), null, null)
   }
 }

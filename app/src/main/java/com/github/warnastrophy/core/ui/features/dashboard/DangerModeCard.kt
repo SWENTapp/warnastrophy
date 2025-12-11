@@ -243,17 +243,6 @@ fun DangerModeCard(
             onConfirmVoiceChanged = viewModel::onConfirmVoiceChanged)
       }
 
-      // DEBUG: Test voice confirmation screen - Remove in production!
-      Spacer(modifier = Modifier.height(8.dp))
-      StandardDashboardButton(
-          label = "🧪 Test Voice Confirm",
-          color = colorScheme.errorContainer,
-          onClick = {
-            com.github.warnastrophy.core.data.service.StateManagerService.dangerModeOrchestrator
-                .debugTriggerVoiceConfirmation()
-          },
-          textColor = colorScheme.onErrorContainer)
-
       Spacer(modifier = Modifier.height(4.dp))
     }
   }
