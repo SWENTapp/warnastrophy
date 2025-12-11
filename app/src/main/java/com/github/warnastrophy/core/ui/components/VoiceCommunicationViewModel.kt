@@ -55,6 +55,7 @@ class VoiceCommunicationViewModel(
   private var isLaunched = false
   private var ttsListenerJob: kotlinx.coroutines.Job? = null
   private var speechListenerJob: kotlinx.coroutines.Job? = null
+  private var observerJob: kotlinx.coroutines.Job? = null
   private var hasSpokenFinalMessage = false
 
   fun launch() {
@@ -101,14 +102,17 @@ class VoiceCommunicationViewModel(
    * combined UI state.
    */
   private fun observeDataSources() {
-    combine(speechToTextService.uiState, textToSpeechService.uiState) {
-            speechState,
-            textToSpeechState ->
-          VoiceCommunicationUiState(
-              speechState = speechState, textToSpeechState = textToSpeechState)
-        }
-        .onEach { _uiState.value = it }
-        .launchIn(viewModelScope)
+    // Cancel any existing observer job to prevent duplicates
+    observerJob?.cancel()
+    observerJob =
+        combine(speechToTextService.uiState, textToSpeechService.uiState) {
+                speechState,
+                textToSpeechState ->
+              VoiceCommunicationUiState(
+                  speechState = speechState, textToSpeechState = textToSpeechState)
+            }
+            .onEach { _uiState.value = it }
+            .launchIn(viewModelScope)
   }
 
   /** Starts listening for speech input if not already listening. */
@@ -138,8 +142,10 @@ class VoiceCommunicationViewModel(
     // Cancel ongoing jobs
     ttsListenerJob?.cancel()
     speechListenerJob?.cancel()
+    observerJob?.cancel()
     ttsListenerJob = null
     speechListenerJob = null
+    observerJob = null
     isLaunched = false
     hasSpokenFinalMessage = false
 

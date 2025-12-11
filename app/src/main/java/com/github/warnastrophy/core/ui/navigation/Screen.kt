@@ -137,13 +137,6 @@ sealed class Screen(
 
   object DangerModePreferences :
       Screen(R.string.danger_mode_preferences_title, route = NavRoutes.DANGER_MODE_PREFERENCES)
-
-  object VoiceConfirmation :
-      Screen(
-          R.string.voice_confirmation_title,
-          route = NavRoutes.VOICE_CONFIRMATION,
-          hasBottomBar = false,
-          hasTopBar = false)
 }
 
 val BOTTOM_NAVIGATION_BAR_SCREENS = setOf(Screen.Dashboard, Screen.Map, Screen.Profile)

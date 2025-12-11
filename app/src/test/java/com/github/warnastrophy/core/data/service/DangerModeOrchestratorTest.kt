@@ -15,6 +15,8 @@ import com.github.warnastrophy.core.ui.common.getScreenErrors
 import com.github.warnastrophy.core.ui.navigation.Screen
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TestTimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -37,6 +39,7 @@ class DangerModeOrchestratorTest {
 
   private lateinit var orchestrator: DangerModeOrchestrator
   private lateinit var dangerModeService: DangerModeService
+  private lateinit var movementService: MovementService
   private lateinit var hazardFlow: MutableStateFlow<Hazard?>
   private lateinit var mockSmsSender: MockSmsSender
   private lateinit var mockCallSender: MockCallSender
@@ -44,6 +47,7 @@ class DangerModeOrchestratorTest {
   private lateinit var preferencesFlow: MutableStateFlow<UserPreferences>
   private lateinit var mockMovementRepository: MovementSensorRepository
   private lateinit var dataFlow: MutableSharedFlow<MotionData>
+  private lateinit var testTimeSource: TestTimeSource
 
   private val fakePermissionManager =
       object : PermissionManagerInterface {
@@ -68,6 +72,7 @@ class DangerModeOrchestratorTest {
     dataFlow = MutableSharedFlow(replay = 0, extraBufferCapacity = 50)
     mockMovementRepository = mockk(relaxed = true)
     every { mockMovementRepository.data } returns dataFlow
+    testTimeSource = TestTimeSource()
   }
 
   private fun TestScope.initOrchestrator(emergencyPhoneNumber: String = "1234567890") {
@@ -81,8 +86,11 @@ class DangerModeOrchestratorTest {
             serviceScope = scope,
             permissionManager = fakePermissionManager)
 
-    val movementService =
-        MovementService(repository = mockMovementRepository, dispatcher = dispatcher)
+    movementService =
+        MovementService(
+            repository = mockMovementRepository,
+            timeSource = testTimeSource,
+            dispatcher = dispatcher)
     val mockGpsService = MockGpsServiceImpl(errorHandler)
     val mockPreferencesRepo = MockUserPreferencesRepository(preferencesFlow)
 
@@ -248,6 +256,121 @@ class DangerModeOrchestratorTest {
     assertFalse(orchestrator.showVoiceConfirmationScreen.value)
     assertNull(orchestrator.state.value.pendingAction)
   }
+
+  @Test
+  fun `voice confirmation screen shows when danger mode and movement service both detect danger`() =
+      runTest {
+        initOrchestrator()
+        orchestrator.setVoiceConfirmationEnabled(true)
+
+        // Set preferences to enable all required conditions
+        preferencesFlow.value =
+            UserPreferences.default()
+                .copy(
+                    dangerModePreferences =
+                        com.github.warnastrophy.core.data.repository.DangerModePreferences(
+                            alertMode = true,
+                            inactivityDetection = true,
+                            automaticSms = true,
+                            automaticCalls = false))
+
+        // Set hazard flow - this will auto-activate danger mode with the hazard
+        hazardFlow.value =
+            Hazard(id = 1, type = "EQ", description = "Test hazard", alertLevel = 2.0)
+        testScheduler.advanceUntilIdle()
+
+        // Start movement service and orchestrator
+        movementService.startListening()
+        orchestrator.startMonitoring()
+        testScheduler.advanceUntilIdle()
+
+        // Trigger danger state through motion data sequence:
+        // 1. High acceleration to enter PreDanger
+        dataFlow.emit(createMotionData(accelerationMagnitude = 100.0))
+        testScheduler.advanceUntilIdle()
+
+        // 2. Low acceleration to enter PreDangerAcc
+        dataFlow.emit(createMotionData(accelerationMagnitude = 0.5))
+        testScheduler.advanceUntilIdle()
+
+        // 3. Continue with low acceleration and advance time past the timeout (10s)
+        repeat(12) {
+          dataFlow.emit(createMotionData(accelerationMagnitude = 0.5))
+          testTimeSource += 1.seconds // Advance the time source
+          testScheduler.advanceUntilIdle()
+        }
+        testScheduler.advanceUntilIdle()
+
+        // Check if we reached Danger state - if not, the test should tell us what state we're in
+        val currentMovementState = movementService.movementState.value
+        val dangerModeState = dangerModeService.state.value
+
+        // Debug output
+        println("Movement state: ${currentMovementState::class.simpleName}")
+        println("Danger mode active: ${dangerModeState.isActive}")
+        println("Activating hazard: ${dangerModeState.activatingHazard}")
+        println("Voice confirmation screen: ${orchestrator.showVoiceConfirmationScreen.value}")
+
+        // The voice confirmation should be shown if all conditions are met
+        assertTrue(
+            "Voice confirmation screen should be shown",
+            orchestrator.showVoiceConfirmationScreen.value)
+      }
+
+  private fun createMotionData(accelerationMagnitude: Double): MotionData =
+      MotionData(
+          timestamp = System.currentTimeMillis(),
+          acceleration = org.locationtech.jts.math.Vector3D(0.0, 0.0, 0.0),
+          rotation = org.locationtech.jts.math.Vector3D(0.0, 0.0, 0.0),
+          accelerationMagnitude = accelerationMagnitude)
+
+  // ==================== executeEmergencyAction Tests ====================
+
+  @Test
+  fun `executeEmergencyAction handles IllegalArgumentException`() = runTest {
+    mockSmsSender.shouldThrowIllegalArgument = true
+    initOrchestrator()
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    testScheduler.runCurrent()
+
+    assertTrue(orchestrator.state.value.lastActionTaken is EmergencyActionResult.Failure)
+    assertTrue(
+        errorHandler.state.value.getScreenErrors(Screen.Dashboard).any {
+          it.type == ErrorType.NO_EMERGENCY_CONTACT
+        })
+  }
+
+  @Test
+  fun `executeEmergencyAction clears errors on success`() = runTest {
+    errorHandler.addErrorToScreen(ErrorType.EMERGENCY_SMS_FAILED, Screen.Dashboard)
+    initOrchestrator()
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    testScheduler.runCurrent()
+
+    assertFalse(
+        errorHandler.state.value.getScreenErrors(Screen.Dashboard).any {
+          it.type == ErrorType.EMERGENCY_SMS_FAILED
+        })
+  }
+
+  @Test
+  fun `executeEmergencyAction adds SMS error on failure`() = runTest {
+    mockSmsSender.shouldThrowException = true
+    initOrchestrator()
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    testScheduler.runCurrent()
+
+    assertTrue(
+        errorHandler.state.value.getScreenErrors(Screen.Dashboard).any {
+          it.type == ErrorType.EMERGENCY_SMS_FAILED
+        })
+  }
 }
 
 // ==================== Mock Classes ====================
@@ -257,11 +380,11 @@ class MockSmsSender : SmsSender {
   var lastPhoneNumber: String? = null
   var lastMessage: EmergencyMessage? = null
   var shouldThrowException = false
+  var shouldThrowIllegalArgument = false
 
   override fun sendSms(phoneNumber: String, message: EmergencyMessage) {
-    if (shouldThrowException) {
-      throw RuntimeException("SMS sending failed")
-    }
+    if (shouldThrowIllegalArgument) throw IllegalArgumentException("Invalid phone")
+    if (shouldThrowException) throw RuntimeException("SMS sending failed")
     smsSent = true
     lastPhoneNumber = phoneNumber
     lastMessage = message

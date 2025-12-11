@@ -3,9 +3,7 @@ package com.github.warnastrophy.core.domain.usecase
 import android.util.Log
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Hazard
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -24,14 +22,11 @@ import org.locationtech.jts.geom.Point
  * hazard zone for the duration defined by [HAZARD_TIME_THRESHOLD_MS].
  *
  * @property allHazards A static list of all known hazards, including geometry and priority level.
- * @property dispatcher The CoroutineDispatcher used for executing geofencing checks and scheduling
- *   delays.
  * @property scope The parent CoroutineScope that manages the lifecycle of the checker jobs.
  */
 class HazardCheckerService(
     private val allHazards: List<Hazard>,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
-    private val scope: CoroutineScope
+    @Suppress("unused") private val scope: CoroutineScope
 ) {
   private val geometryFactory = GeometryFactory()
   private val hazardLock = Mutex()

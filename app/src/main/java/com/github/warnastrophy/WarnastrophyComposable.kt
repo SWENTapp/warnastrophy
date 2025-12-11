@@ -135,13 +135,24 @@ fun WarnastrophyComposable(
   val editActivityViewModel = EditActivityViewModel(userId = userId)
   val activitiesListViewModel = ActivityListViewModel(userId = userId)
 
-  val nominatimRepository = NominatimRepository()
-  val nominatimService = NominatimService(nominatimRepository)
+  val nominatimRepository = remember { NominatimRepository() }
+  val nominatimService = remember { NominatimService(nominatimRepository) }
 
-  val mapViewModel = MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
+  val mapViewModel = remember {
+    MapViewModel(gpsService, hazardsService, permissionManager, nominatimService)
+  }
 
-  val speechToTextService = SpeechToTextService(context, errorHandler)
-  val textToSpeechService = TextToSpeechService(context, errorHandler)
+  val speechToTextService = remember { SpeechToTextService(context, errorHandler) }
+  val textToSpeechService = remember { TextToSpeechService(context, errorHandler) }
+
+  // Clean up speech services when composable is disposed
+  DisposableEffect(Unit) {
+    onDispose {
+      speechToTextService.destroy()
+      textToSpeechService.destroy()
+    }
+  }
+
   val communicationViewModel = remember {
     VoiceCommunicationViewModel(
         speechToTextService = speechToTextService,
@@ -175,6 +186,11 @@ fun WarnastrophyComposable(
         // Reset the confirmation state in the viewmodel
         communicationViewModel.resetConfirmation()
       }
+    }
+
+    // Clean up speech services when voice confirmation is dismissed
+    DisposableEffect(showVoiceConfirmation) {
+      onDispose { communicationViewModel.resetConfirmation() }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

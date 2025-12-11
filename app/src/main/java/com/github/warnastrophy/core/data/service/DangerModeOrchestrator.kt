@@ -131,24 +131,21 @@ class DangerModeOrchestrator(
     if (smsSenderInstance == null) {
       smsSenderInstance = SmsManagerSender(context)
     }
+    if (callSenderInstance == null) {
+      callSenderInstance = CallIntentCaller(context, "")
+    }
 
     // Initialize contacts repository if not provided
     if (contactsRepo == null) {
       try {
         contactsRepo = ContactRepositoryProvider.repository
-      } catch (e: Exception) {
+      } catch (_: Exception) {
         Log.w(TAG, "ContactsRepository not initialized yet")
       }
     }
 
     // Fetch emergency phone number from first contact
-    scope.launch {
-      fetchEmergencyPhoneNumber()
-      // Initialize call sender after we have the phone number
-      if (callSenderInstance == null) {
-        callSenderInstance = CallIntentCaller(context, emergencyPhoneNumber)
-      }
-    }
+    scope.launch { fetchEmergencyPhoneNumber() }
   }
 
   /**

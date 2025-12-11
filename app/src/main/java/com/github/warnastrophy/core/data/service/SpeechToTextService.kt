@@ -68,13 +68,19 @@ class SpeechToTextService(
 
   override val uiState: StateFlow<SpeechRecognitionUiState> = _uiState.asStateFlow()
 
-  private var speechRecognizer: SpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+  private var speechRecognizer: SpeechRecognizer? = null
   private var currentContinuation: Continuation<Boolean>? = null
   private val speechRecognizerIntent =
       Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH.toString())
       }
+
+  // Lazily create speech recognizer only when needed
+  private fun getOrCreateSpeechRecognizer(): SpeechRecognizer {
+    return speechRecognizer
+        ?: SpeechRecognizer.createSpeechRecognizer(context).also { speechRecognizer = it }
+  }
 
   private val recognitionListener =
       object : RecognitionListener {
@@ -83,6 +89,10 @@ class SpeechToTextService(
           if (matches.isNullOrEmpty()) {
             _uiState.update {
               it.copy(isListening = true, recognizedText = null, errorMessage = null)
+            }
+            // Only restart if we're still waiting for confirmation
+            if (_uiState.value.isConfirmed == null && currentContinuation != null) {
+              restartListening()
             }
             return
           }
@@ -94,7 +104,10 @@ class SpeechToTextService(
               _uiState.update {
                 it.copy(isListening = true, recognizedText = spokenText, errorMessage = null)
               }
-              restartListening()
+              // Only restart if we're still waiting for confirmation
+              if (_uiState.value.isConfirmed == null && currentContinuation != null) {
+                restartListening()
+              }
             }
             else -> {
               _uiState.update { it.copy(isConfirmed = confirmation) }
@@ -107,7 +120,19 @@ class SpeechToTextService(
           _uiState.update {
             it.copy(errorMessage = "no matches found", isListening = false, rmsLevel = 0f)
           }
-          restartListening()
+          // Only restart if we're still waiting for confirmation and haven't been destroyed
+          if (_uiState.value.isConfirmed == null && currentContinuation != null) {
+            // Add delay to prevent tight error loops
+            android.os
+                .Handler(android.os.Looper.getMainLooper())
+                .postDelayed(
+                    {
+                      if (_uiState.value.isConfirmed == null && currentContinuation != null) {
+                        restartListening()
+                      }
+                    },
+                    500)
+          }
         }
 
         override fun onReadyForSpeech(params: Bundle?) {
@@ -119,7 +144,12 @@ class SpeechToTextService(
         }
 
         override fun onRmsChanged(rmsdB: Float) {
-          _uiState.update { it.copy(rmsLevel = rmsdB.coerceAtLeast(0f)) }
+          // Only update if the change is significant (>1.0) to reduce UI updates
+          val newRms = rmsdB.coerceAtLeast(0f)
+          val currentRms = _uiState.value.rmsLevel
+          if (kotlin.math.abs(newRms - currentRms) > 1.0f) {
+            _uiState.update { it.copy(rmsLevel = newRms) }
+          }
         }
 
         override fun onBufferReceived(buffer: ByteArray?) {
@@ -141,7 +171,7 @@ class SpeechToTextService(
 
   private fun restartListening() {
     _uiState.update { it.copy(isListening = true, rmsLevel = 0f, errorMessage = null) }
-    speechRecognizer.startListening(speechRecognizerIntent)
+    getOrCreateSpeechRecognizer().startListening(speechRecognizerIntent)
   }
 
   private fun completeListening(spokenText: String) {
@@ -153,10 +183,10 @@ class SpeechToTextService(
       it.copy(isListening = false, rmsLevel = 0f, recognizedText = spokenText, errorMessage = null)
     }
 
-    // Stop recognizer first
-    speechRecognizer.stopListening()
-    speechRecognizer.destroy()
-    speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+    // Stop and destroy recognizer - will be recreated lazily when needed
+    speechRecognizer?.stopListening()
+    speechRecognizer?.destroy()
+    speechRecognizer = null
 
     // Resume the continuation with the result
     continuation?.resumeWith(Result.success(confirmed))
@@ -187,7 +217,7 @@ class SpeechToTextService(
             isListening = true, rmsLevel = 0f, recognizedText = null, errorMessage = null)
     currentContinuation = continuation
 
-    speechRecognizer.apply {
+    getOrCreateSpeechRecognizer().apply {
       setRecognitionListener(recognitionListener)
       startListening(speechRecognizerIntent)
     }
@@ -220,8 +250,9 @@ class SpeechToTextService(
    */
   override fun destroy() {
     currentContinuation = null
-    speechRecognizer.stopListening()
-    speechRecognizer.destroy()
+    speechRecognizer?.stopListening()
+    speechRecognizer?.destroy()
+    speechRecognizer = null
     _uiState.value =
         SpeechRecognitionUiState() // Reset to initial state including isConfirmed = null
   }

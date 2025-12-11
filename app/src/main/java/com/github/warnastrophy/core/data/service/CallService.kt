@@ -27,12 +27,15 @@ class CallIntentCaller(private val appContext: Context, private val defaultNumbe
     CallSender {
   override fun placeCall(phoneNumber: String) {
     val num = phoneNumber.ifBlank { defaultNumber }
+    android.util.Log.d("CallIntentCaller", "Attempting to call: $num")
+
     // Check CALL_PHONE permission before trying to start the call.
     val granted =
         ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.CALL_PHONE) ==
             PackageManager.PERMISSION_GRANTED
     if (!granted) {
-      // Silently return if permission missing — caller should ensure permission beforehand.
+      android.util.Log.e(
+          "CallIntentCaller", "CALL_PHONE permission not granted - cannot place call")
       return
     }
 
@@ -42,6 +45,7 @@ class CallIntentCaller(private val appContext: Context, private val defaultNumbe
           flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
 
+    android.util.Log.d("CallIntentCaller", "Starting call activity")
     appContext.startActivity(intent)
   }
 }

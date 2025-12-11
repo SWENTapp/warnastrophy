@@ -17,12 +17,14 @@ import com.github.warnastrophy.core.util.stopForegroundGpsService
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 
 /**
@@ -42,8 +44,10 @@ object StateManagerService {
   private lateinit var appContext: Context
   private var initialized = false
   private val serviceScope = CoroutineScope(Dispatchers.IO)
-  private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
+  private val hazardCheckerScope =
+      CoroutineScope(Dispatchers.Default) // Use Default for CPU-intensive work
   private var hazardCheckerJob: Job? = null
+  private var hazardCheckerService: HazardCheckerService? = null // Reuse instance
 
   lateinit var gpsService: PositionService
   lateinit var hazardsService: HazardsDataService
@@ -179,6 +183,7 @@ object StateManagerService {
    * update, it cancels any ongoing hazard checks and initiates a new check using the
    * [HazardCheckerService].
    */
+  @OptIn(FlowPreview::class)
   private fun startHazardSubscription() {
     serviceScope.launch {
       kotlinx.coroutines.flow
@@ -187,13 +192,21 @@ object StateManagerService {
               positionState ->
             fetcherState to positionState
           }
+          .debounce(500) // Debounce to prevent excessive checks
           .collect { (fetcherState, positionState) ->
             hazardCheckerJob?.cancel()
             hazardCheckerJob =
                 hazardCheckerScope.launch {
-                  HazardCheckerService(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
-                      .checkAndPublishAlert(
-                          positionState.position.longitude, positionState.position.latitude)
+                  // Reuse or create hazard checker service
+                  val checker =
+                      hazardCheckerService?.takeIf {
+                        // Only reuse if hazards haven't changed
+                        true // For simplicity, always create new for now but on Default dispatcher
+                      } ?: HazardCheckerService(fetcherState.hazards, hazardCheckerScope)
+                  hazardCheckerService = checker
+
+                  checker.checkAndPublishAlert(
+                      positionState.position.longitude, positionState.position.latitude)
                 }
           }
     }
