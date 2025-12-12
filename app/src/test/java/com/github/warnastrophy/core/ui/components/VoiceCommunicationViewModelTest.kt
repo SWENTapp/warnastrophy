@@ -1,6 +1,8 @@
 // kotlin
 package com.github.warnastrophy.core.ui.components
 
+import MockVoiceCommunicationViewModel
+import VoiceCommunicationUiState
 import VoiceCommunicationViewModel
 import android.content.Context
 import com.github.warnastrophy.core.data.service.MockSpeechToTextService
@@ -100,6 +102,141 @@ class VoiceCommunicationViewModelTest {
 
         assertEquals(defaultString, viewModel.uiState.value.textToSpeechState.spokenText)
         assertEquals(5f, viewModel.uiState.value.textToSpeechState.rms)
+      }
+
+  @Test
+  fun `resetConfirmation resets state and stops listening`() =
+      runTest(testDispatcher) {
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+        viewModel.launch()
+        advanceUntilIdle()
+
+        // Set some state
+        setSpeechState(
+            SpeechRecognitionUiState(
+                isListening = true, recognizedText = "hello", isConfirmed = null))
+        advanceUntilIdle()
+
+        // Reset
+        viewModel.resetConfirmation()
+        advanceUntilIdle()
+
+        // Verify speech state is reset (stopListening calls destroy on speechService)
+        assertEquals(SpeechRecognitionUiState(), viewModel.uiState.value.speechState)
+      }
+
+  @Test
+  fun `launch can be called again after resetConfirmation`() =
+      runTest(testDispatcher) {
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+
+        // First launch
+        viewModel.launch()
+        advanceUntilIdle()
+
+        // Reset
+        viewModel.resetConfirmation()
+        advanceUntilIdle()
+
+        // Second launch should work
+        viewModel.launch()
+        advanceUntilIdle()
+
+        // Verify it spoke the confirmation request again
+        assertEquals(defaultString, textService.uiState.value.spokenText)
+      }
+
+  @Test
+  fun `multiple launches are prevented`() =
+      runTest(testDispatcher) {
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+
+        viewModel.launch()
+        advanceUntilIdle()
+
+        // Clear the spoken text
+        setTextState(TextToSpeechUiState(spokenText = null))
+        advanceUntilIdle()
+
+        // Second launch should be ignored
+        viewModel.launch()
+        advanceUntilIdle()
+
+        // spokenText should still be null (not spoken again)
+        assertEquals(null, textService.uiState.value.spokenText)
+      }
+
+  @Test
+  fun `stopListening destroys speech service`() =
+      runTest(testDispatcher) {
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+        viewModel.launch()
+        advanceUntilIdle()
+
+        viewModel.stopListening()
+        advanceUntilIdle()
+
+        // Speech service should be destroyed (reset state)
+        assertEquals(SpeechRecognitionUiState(), speechService.uiState.value)
+      }
+
+  @Test
+  fun `speak delegates to text to speech service`() =
+      runTest(testDispatcher) {
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+
+        viewModel.speak("Hello world")
+        advanceUntilIdle()
+
+        assertEquals("Hello world", textService.uiState.value.spokenText)
+      }
+
+  @Test
+  fun `starts listening when TTS finishes speaking`() =
+      runTest(testDispatcher) {
+        val viewModel = VoiceCommunicationViewModel(speechService, textService, context)
+        viewModel.launch()
+        advanceUntilIdle()
+
+        // Simulate TTS starting to speak
+        setTextState(TextToSpeechUiState(isSpeaking = true, spokenText = defaultString))
+        advanceUntilIdle()
+
+        // Simulate TTS finishing
+        setTextState(TextToSpeechUiState(isSpeaking = false, spokenText = defaultString))
+        advanceUntilIdle()
+
+        // Speech service should start listening
+        assertEquals(true, speechService.uiState.value.isListening)
+      }
+
+  @Test
+  fun `MockVoiceCommunicationViewModel resetConfirmation works`() =
+      runTest(testDispatcher) {
+        val mockViewModel =
+            MockVoiceCommunicationViewModel(
+                VoiceCommunicationUiState(
+                    speechState = SpeechRecognitionUiState(isConfirmed = true)))
+
+        mockViewModel.resetConfirmation()
+        advanceUntilIdle()
+
+        assertEquals(null, mockViewModel.uiState.value.speechState.isConfirmed)
+      }
+
+  @Test
+  fun `MockVoiceCommunicationViewModel updateState works`() =
+      runTest(testDispatcher) {
+        val mockViewModel = MockVoiceCommunicationViewModel(VoiceCommunicationUiState())
+
+        val newState =
+            VoiceCommunicationUiState(
+                speechState = SpeechRecognitionUiState(recognizedText = "test"))
+
+        mockViewModel.updateState(newState)
+        advanceUntilIdle()
+
+        assertEquals("test", mockViewModel.uiState.value.speechState.recognizedText)
       }
 
   private fun setSpeechState(state: SpeechRecognitionUiState) {

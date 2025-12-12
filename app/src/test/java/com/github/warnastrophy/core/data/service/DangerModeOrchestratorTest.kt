@@ -248,6 +248,136 @@ class DangerModeOrchestratorTest {
     assertFalse(orchestrator.showVoiceConfirmationScreen.value)
     assertNull(orchestrator.state.value.pendingAction)
   }
+
+  // ==================== executeEmergencyAction Tests ====================
+
+  @Test
+  fun `executeEmergencyAction SendSms only sends SMS`() = runTest {
+    initOrchestrator()
+
+    // Manually set up state with SendSms action
+    orchestrator.setVoiceConfirmationEnabled(false)
+
+    // Set preferences for SMS only
+    preferencesFlow.value =
+        UserPreferences.default()
+            .copy(
+                dangerModePreferences =
+                    com.github.warnastrophy.core.data.repository.DangerModePreferences(
+                        alertMode = true,
+                        inactivityDetection = true,
+                        automaticSms = true,
+                        automaticCalls = false))
+    advanceUntilIdle()
+
+    // Trigger via debug which creates SendSmsAndCall, then test direct SMS
+    mockSmsSender.smsSent = false
+    mockCallSender.callPlaced = false
+
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    advanceUntilIdle()
+
+    assertTrue(mockSmsSender.smsSent)
+  }
+
+  @Test
+  fun `executeEmergencyAction MakeCall only places call`() = runTest {
+    initOrchestrator()
+
+    mockSmsSender.smsSent = false
+    mockCallSender.callPlaced = false
+
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    advanceUntilIdle()
+
+    assertTrue(mockCallSender.callPlaced)
+  }
+
+  @Test
+  fun `executeEmergencyAction SendSmsAndCall does both`() = runTest {
+    initOrchestrator()
+
+    mockSmsSender.smsSent = false
+    mockCallSender.callPlaced = false
+
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    advanceUntilIdle()
+
+    assertTrue(mockSmsSender.smsSent)
+    assertTrue(mockCallSender.callPlaced)
+  }
+
+  @Test
+  fun `executeEmergencyAction clears previous errors on success`() = runTest {
+    initOrchestrator()
+
+    // Add some errors first
+    errorHandler.addErrorToScreen(ErrorType.EMERGENCY_SMS_FAILED, Screen.Dashboard)
+    errorHandler.addErrorToScreen(ErrorType.EMERGENCY_CALL_FAILED, Screen.Dashboard)
+
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    advanceUntilIdle()
+
+    val errors = errorHandler.state.value.getScreenErrors(Screen.Dashboard)
+    assertFalse(errors.any { it.type == ErrorType.EMERGENCY_SMS_FAILED })
+    assertFalse(errors.any { it.type == ErrorType.EMERGENCY_CALL_FAILED })
+  }
+
+  @Test
+  fun `executeEmergencyAction with invalid phone number adds error`() = runTest {
+    mockSmsSender.shouldThrowException = true
+    initOrchestrator()
+
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+    orchestrator.onConfirmation()
+    // Run the coroutine but don't advance past the 60 second reset delay
+    testScheduler.runCurrent()
+
+    val result = orchestrator.state.value.lastActionTaken
+    assertTrue("Expected Failure but got $result", result is EmergencyActionResult.Failure)
+  }
+
+  // ==================== Voice Confirmation Flow Tests ====================
+
+  @Test
+  fun `voice confirmation enabled shows screen on trigger`() = runTest {
+    initOrchestrator()
+    orchestrator.setVoiceConfirmationEnabled(true)
+
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+
+    assertTrue(orchestrator.showVoiceConfirmationScreen.value)
+    assertTrue(orchestrator.state.value.isWaitingForConfirmation)
+  }
+
+  @Test
+  fun `onCancellation resets state after delay`() = runTest {
+    initOrchestrator()
+    orchestrator.debugTriggerVoiceConfirmation()
+    advanceUntilIdle()
+
+    orchestrator.onCancellation()
+
+    // Before delay, state should show cancelled
+    testScheduler.runCurrent()
+    assertTrue(orchestrator.state.value.lastActionTaken is EmergencyActionResult.Cancelled)
+
+    // After 5 second delay, state should be reset
+    testScheduler.advanceTimeBy(6000)
+    testScheduler.runCurrent()
+
+    assertNull(orchestrator.state.value.lastActionTaken)
+  }
 }
 
 // ==================== Mock Classes ====================
