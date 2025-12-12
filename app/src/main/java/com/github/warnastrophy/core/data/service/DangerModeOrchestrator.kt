@@ -11,6 +11,8 @@ import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
+import com.github.warnastrophy.core.util.AppConfig
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -167,7 +169,8 @@ class DangerModeOrchestrator(
         }
       }
 
-      val contacts = contactsRepo?.getAllContacts()?.getOrNull()
+      val userId = FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId
+      val contacts = contactsRepo?.getAllContacts(userId)?.getOrNull()
       if (!contacts.isNullOrEmpty()) {
         emergencyPhoneNumber = contacts.first().phoneNumber
       } else {
@@ -222,7 +225,7 @@ class DangerModeOrchestrator(
     // Check if all conditions are met for triggering emergency actions
     val shouldTrigger =
         dangerState.isActive &&
-            dangerState.activatingHazard != null &&
+            //            dangerState.activatingHazard != null &&
             preferences.alertMode &&
             preferences.inactivityDetection &&
             movementState is MovementState.Danger
