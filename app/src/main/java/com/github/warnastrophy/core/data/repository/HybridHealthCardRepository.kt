@@ -143,7 +143,6 @@ class HybridHealthCardRepository(
 
     val shouldUpdateRemote = syncMutex.withLock { isRemoteAvailable }
     if (!shouldUpdateRemote) {
-      Log.d(hybridRepositoryTag, "Skipping remote update - remote marked unavailable")
       return
     }
 

@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
  */
 @Suppress("unused")
 class EmergencyActionsService(
-    private val smsSender: com.github.warnastrophy.core.domain.model.SmsSender,
+    private val smsSender: SmsSender,
     private val callSender: CallSender,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {

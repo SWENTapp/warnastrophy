@@ -36,8 +36,8 @@ enum class DangerLevel {
  */
 class DangerModeService(
     /**
-     * Source of the current active hazard. By default, uses [StateManagerService.activeHazardFlow],
-     * which is updated by [HazardChecker].
+     * Flow emitting the currently active hazard, if any. Used to auto-activate/deactivate Danger
+     * Mode based on hazard presence.
      */
     private val activeHazardFlow: StateFlow<Hazard?> = StateManagerService.activeHazardFlow,
     private val permissionManager: PermissionManagerInterface,

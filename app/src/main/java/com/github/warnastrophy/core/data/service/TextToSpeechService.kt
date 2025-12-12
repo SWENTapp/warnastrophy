@@ -33,7 +33,7 @@ interface TextToSpeechServiceInterface {
 
   fun speak(text: String)
 
-  fun destroy(): Unit
+  fun destroy()
 }
 /**
  * Service for handling text-to-speech operations using Android's TextToSpeech engine. It manages
@@ -119,7 +119,14 @@ class TextToSpeechService(private val context: Context, private val errorHandler
    */
   override fun speak(text: String) {
     pendingText = text
-    if (text.isBlank() || !isInitialized) return
+    if (text.isBlank()) return
+
+    // Reinitialize if needed
+    if (!isInitialized) {
+      textToSpeech = TextToSpeech(context, this)
+      return // will speak via pendingText after onInit
+    }
+
     val engine = textToSpeech
 
     _uiState.value = _uiState.value.copy(spokenText = text)
@@ -135,10 +142,16 @@ class TextToSpeechService(private val context: Context, private val errorHandler
 
   /** Destroys the text-to-speech engine and resets the state. */
   override fun destroy() {
-    textToSpeech?.shutdown()
+    textToSpeech.stop()
+    _uiState.value = TextToSpeechUiState() // reset state
+  }
+
+  /** Fully shuts down the text-to-speech engine. Call this when the service is no longer needed. */
+  fun shutdown() {
+    textToSpeech.shutdown()
     isInitialized = false
     pendingText = null
-    _uiState.value = TextToSpeechUiState() // reset state
+    _uiState.value = TextToSpeechUiState()
   }
 }
 

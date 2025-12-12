@@ -143,6 +143,7 @@ class TextToSpeechServiceTest {
   fun `destroy resets state and shuts down engine`() {
     service.setField("isInitialized", true)
     service.destroy()
+    service.shutdown()
 
     verify { tts.shutdown() }
     assertEquals(TextToSpeechUiState(), service.uiState.value)

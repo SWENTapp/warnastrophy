@@ -10,7 +10,6 @@ import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.io.use
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -168,7 +167,7 @@ class SpeechToTextServiceTest {
 
   @Test
   fun parseConfirmationVariants() {
-    mockSpeechRecognizer().use { harness ->
+    mockSpeechRecognizer().use { _ ->
       service = SpeechToTextService(context, errorHandler)
 
       val method =

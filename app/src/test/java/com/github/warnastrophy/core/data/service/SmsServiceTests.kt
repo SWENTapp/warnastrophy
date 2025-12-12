@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import android.telephony.SmsManager
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
-import com.github.warnastrophy.core.domain.model.SmsManagerSender
 import com.github.warnastrophy.core.model.Location
 import java.time.Instant
 import java.time.ZoneId

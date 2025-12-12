@@ -34,6 +34,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.github.warnastrophy"
+    //noinspection GradleDependency
     compileSdk = 34
 
     defaultConfig {
@@ -230,6 +231,8 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     // Material Design 3
     implementation(libs.compose.material3)
+    // Material Icons Extended (for icons like Mic)
+    implementation(libs.androidx.material.icons.extended)
     // Integration with activities
     implementation(libs.compose.activity)
     // Integration with ViewModels

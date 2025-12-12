@@ -18,6 +18,10 @@ enum class ErrorType(val message: Int) {
   TEXT_TO_SPEECH_ERROR(R.string.error_text_to_speech_failed),
   TEXT_TO_SPEECH_INIT_ERROR(R.string.error_text_to_speech_init_failed),
   ACTIVITY_REPOSITORY_ERROR(R.string.error_activity_repository_failed),
+  EMERGENCY_SMS_FAILED(R.string.error_emergency_sms_failed),
+  EMERGENCY_CALL_FAILED(R.string.error_emergency_call_failed),
+  EMERGENCY_ACTION_CANCELLED(R.string.error_emergency_action_cancelled),
+  NO_EMERGENCY_CONTACT(R.string.error_no_emergency_contact),
 }
 
 /** ViewModel responsible for managing error messages associated with different screens. */

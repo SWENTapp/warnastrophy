@@ -11,6 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.warnastrophy.core.ui.onboard.OnboardingScreenTestTags
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import io.mockk.every
 import io.mockk.mockk
@@ -40,6 +41,9 @@ class MainActivityTest {
       every { FirebaseApp.getApps(any()) } returns listOf(mockApp)
 
       val mockAuth: FirebaseAuth = mockk(relaxed = true)
+      val mockUser: FirebaseUser = mockk(relaxed = true)
+      every { mockUser.uid } returns "test-user-id"
+      every { mockAuth.currentUser } returns mockUser
       every { FirebaseAuth.getInstance() } returns mockAuth
 
       val mockFirestore: FirebaseFirestore = mockk(relaxed = true)

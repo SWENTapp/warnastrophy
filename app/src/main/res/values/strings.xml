@@ -60,6 +60,9 @@
     <string name="danger_mode_automatic_calls_title">Automatic Calls</string>
     <string name="danger_mode_automatic_calls_description">If this option is enabled and your phone detects that you are inactive in a hazard area, it will automatically initiate a phone call to your emergency contacts.\n\nThis mode requires CALL_PHONE and fine location permissions</string>
 
+    <string name="danger_mode_voice_confirmation_title">Voice Confirmation</string>
+    <string name="danger_mode_voice_confirmation_description">If this option is enabled, you will be prompted to confirm emergency actions by voice before they are executed. Say "Yes" to proceed or "No" to cancel.\n\nIf disabled, emergency actions will be executed automatically without confirmation.</string>
+
     <!-- No activity fallback -->
     <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
     
@@ -151,8 +154,8 @@
     <string name="description_third_page">To monitor your location in the background and send emergency texts, we need location and SMS permission. We use these data only for your safety.</string>
     <string name="title_third_page">Ready for Protection?</string>
 
-    <!-- communiction screen-->
-    <string name="communication_tts_speaking_label">Speaking...</string>
+    <!-- communication screen-->
+    <string name="communication_tts_speaking_label">Speaking…</string>
     <string name="communication_screen_title">Vocal communication</string>
     <string name="communication_listening_label">Listening…</string>
     <string name="communication_no_input_hint">We will show the transcript here.</string>
@@ -174,4 +177,17 @@
     <string name="pre_danger_threshold_label">Initial shock threshold (m/s²)</string>
     <string name="pre_danger_timeout_label">Initial shock timeout (e.g., 5s, 1m)</string>
     <string name="danger_average_threshold_label">Safe post shock minimal average movement (m/s²)</string>
+
+    <string name="error_emergency_sms_failed">Failed to send emergency SMS</string>
+    <string name="error_emergency_call_failed">Failed to make emergency call</string>
+    <string name="error_emergency_action_cancelled">Emergency action was cancelled</string>
+    <string name="error_no_emergency_contact">No emergency contact configured. Please add an emergency contact to use this feature.</string>
+
+    <!-- Error suggestions for emergency actions -->
+    <string name="error_suggestion_emergency_sms">Check SMS permissions and try again. Make sure you have a valid emergency contact.</string>
+    <string name="error_suggestion_emergency_call">Check call permissions and try again. Make sure you have a valid emergency contact.</string>
+    <string name="error_suggestion_action_cancelled">The emergency action was cancelled. You can trigger it again if needed.</string>
+    <string name="error_suggestion_no_emergency_contact">Add an emergency contact in your profile to enable automatic SMS and call features.</string>
+
+    <string name="voice_confirmation_title">Confirm Emergency Action</string>
 </resources>

@@ -14,10 +14,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
@@ -32,6 +34,8 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
   @Before
   fun setup() {
+    UserPreferencesRepositoryProvider.initLocal(
+        composeTestRule.activity.applicationContext.userPrefsDataStore)
     StateManagerService.init(composeTestRule.activity.applicationContext)
     StateManagerService.permissionManager =
         MockPermissionManager(currentResult = PermissionResult.Granted)

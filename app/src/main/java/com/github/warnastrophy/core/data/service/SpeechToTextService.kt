@@ -34,7 +34,11 @@ import kotlinx.coroutines.suspendCancellableCoroutine
  * android:name="android.permission.RECORD_AUDIO" />` in its AndroidManifest.xml and obtain the
  * user's permission at runtime.
  *
- * @param context The application context, required to initialize the SpeechRecognizer.
+ * @property isListening Indicates whether the service is currently listening for speech input.
+ * @property rmsLevel The current RMS level of the audio input for visualization purposes.
+ * @property recognizedText The last recognized text from the speech input.
+ * @property errorMessage Any error message encountered during speech recognition.
+ * @property isConfirmed The result of the confirmation detection: `true` for "yes",
  */
 data class SpeechRecognitionUiState(
     val isListening: Boolean = false,
@@ -49,7 +53,11 @@ interface SpeechToTextServiceInterface {
 
   suspend fun listenForConfirmation(): Boolean
 
-  fun destroy(): Unit
+  /**
+   * Stops speech recognition and releases resources. Must be called when the service is no longer
+   * needed to avoid memory leaks.
+   */
+  fun destroy()
 }
 
 class SpeechToTextService(
@@ -137,10 +145,21 @@ class SpeechToTextService(
   }
 
   private fun completeListening(spokenText: String) {
+    val confirmed = parseConfirmation(spokenText) ?: false
+    val continuation = currentContinuation
+    currentContinuation = null
+
     _uiState.update {
       it.copy(isListening = false, rmsLevel = 0f, recognizedText = spokenText, errorMessage = null)
     }
-    destroy()
+
+    // Stop recognizer first
+    speechRecognizer.stopListening()
+    speechRecognizer.destroy()
+    speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+
+    // Resume the continuation with the result
+    continuation?.resumeWith(Result.success(confirmed))
   }
 
   /**
@@ -203,8 +222,8 @@ class SpeechToTextService(
     currentContinuation = null
     speechRecognizer.stopListening()
     speechRecognizer.destroy()
-    _uiState.value.copy(rmsLevel = 0f)
-    _uiState.update { it.copy(isListening = false) }
+    _uiState.value =
+        SpeechRecognitionUiState() // Reset to initial state including isConfirmed = null
   }
 }
 
@@ -218,6 +237,6 @@ class MockSpeechToTextService : SpeechToTextServiceInterface {
   }
 
   override fun destroy() {
-    _uiState.value = SpeechRecognitionUiState(isListening = false)
+    _uiState.value = SpeechRecognitionUiState() // Reset to initial state
   }
 }

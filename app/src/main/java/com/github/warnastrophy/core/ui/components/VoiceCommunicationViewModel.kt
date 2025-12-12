@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 
 interface VoiceCommunicationViewModelInterface {
   val uiState: StateFlow<VoiceCommunicationUiState>
+
+  fun resetConfirmation()
 }
 /**
  * Represents the combined UI state for voice communication, including speech recognition and
@@ -50,27 +52,48 @@ class VoiceCommunicationViewModel(
               textToSpeechState = textToSpeechService.uiState.value))
   override val uiState: StateFlow<VoiceCommunicationUiState> = _uiState.asStateFlow()
 
+  private var isLaunched = false
+  private var ttsListenerJob: kotlinx.coroutines.Job? = null
+  private var speechListenerJob: kotlinx.coroutines.Job? = null
+  private var hasSpokenFinalMessage = false
+
   fun launch() {
+    // Prevent multiple launches
+    if (isLaunched) return
+    isLaunched = true
+    hasSpokenFinalMessage = false
+
     observeDataSources()
     speak(context.getString(R.string.confirmation_request))
-    viewModelScope.launch {
-      var previousSpeakingState = false
-      textToSpeechService.uiState.collect { ttsState ->
-        if (!ttsState.isSpeaking && previousSpeakingState) {
-          startListening()
+
+    ttsListenerJob =
+        viewModelScope.launch {
+          var previousSpeakingState = false
+          textToSpeechService.uiState.collect { ttsState ->
+            // Only start listening if TTS finished and we haven't spoken the final message yet
+            if (!ttsState.isSpeaking && previousSpeakingState && !hasSpokenFinalMessage) {
+              startListening()
+            }
+            previousSpeakingState = ttsState.isSpeaking
+          }
         }
-        previousSpeakingState = ttsState.isSpeaking
-      }
-    }
-    viewModelScope.launch {
-      speechToTextService.uiState.collect { state ->
-        if (state.isConfirmed == true) {
-          speak(context.getString(R.string.alert_sent))
-        } else if (state.isConfirmed == false) {
-          speak(context.getString(R.string.alert_not_sent))
+
+    speechListenerJob =
+        viewModelScope.launch {
+          var previousConfirmed: Boolean? = null
+          speechToTextService.uiState.collect { state ->
+            // Only speak the message once when isConfirmed changes from null to a value
+            if (state.isConfirmed != null && previousConfirmed == null) {
+              hasSpokenFinalMessage = true
+              if (state.isConfirmed == true) {
+                speak(context.getString(R.string.alert_sent))
+              } else {
+                speak(context.getString(R.string.alert_not_sent))
+              }
+            }
+            previousConfirmed = state.isConfirmed
+          }
         }
-      }
-    }
   }
 
   /**
@@ -110,6 +133,22 @@ class VoiceCommunicationViewModel(
   /** Cleans up resources when the ViewModel is cleared. */
   fun clear() = { onCleared() }
 
+  /** Resets the confirmation state to null for the next voice confirmation flow. */
+  override fun resetConfirmation() {
+    // Cancel ongoing jobs
+    ttsListenerJob?.cancel()
+    speechListenerJob?.cancel()
+    ttsListenerJob = null
+    speechListenerJob = null
+    isLaunched = false
+    hasSpokenFinalMessage = false
+
+    // Stop any ongoing speech/listening
+    stopListening()
+
+    _uiState.value = VoiceCommunicationUiState()
+  }
+
   override fun onCleared() {
     speechToTextService.destroy()
     textToSpeechService.destroy()
@@ -124,5 +163,10 @@ class MockVoiceCommunicationViewModel(initialState: VoiceCommunicationUiState) :
 
   fun updateState(state: VoiceCommunicationUiState) {
     _uiState.value = state
+  }
+
+  override fun resetConfirmation() {
+    _uiState.value =
+        _uiState.value.copy(speechState = _uiState.value.speechState.copy(isConfirmed = null))
   }
 }

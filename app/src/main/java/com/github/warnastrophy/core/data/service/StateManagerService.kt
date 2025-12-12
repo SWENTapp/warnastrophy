@@ -51,6 +51,7 @@ object StateManagerService {
   lateinit var errorHandler: ErrorHandler
   lateinit var dangerModeService: DangerModeService
   lateinit var movementService: MovementService
+  lateinit var dangerModeOrchestrator: DangerModeOrchestrator
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
   private val dangerModeScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -113,6 +114,15 @@ object StateManagerService {
             MovementSensorRepository(context), dangerModeStateFlow = dangerModeService.state)
     movementService.startListening()
     startForegroundGpsService(appContext)
+
+    dangerModeOrchestrator =
+        DangerModeOrchestrator(
+            dangerModeService = dangerModeService,
+            movementService = movementService,
+            userPreferencesRepository = userPreferencesRepository,
+            gpsService = gpsService)
+    dangerModeOrchestrator.initialize(context)
+    dangerModeOrchestrator.startMonitoring()
 
     startHazardSubscription()
 

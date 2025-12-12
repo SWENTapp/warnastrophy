@@ -2,10 +2,14 @@ package com.github.warnastrophy
 
 import VoiceCommunicationViewModel
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -143,6 +147,40 @@ fun WarnastrophyComposable(
         speechToTextService = speechToTextService,
         textToSpeechService = textToSpeechService,
         context)
+  }
+
+  // Voice confirmation for danger mode
+  val dangerModeOrchestrator = remember { StateManagerService.dangerModeOrchestrator }
+  val showVoiceConfirmation by dangerModeOrchestrator.showVoiceConfirmationScreen.collectAsState()
+
+  // Observe confirmation state from the communication view model
+  val communicationUiState by communicationViewModel.uiState.collectAsState()
+  val isConfirmed = communicationUiState.speechState.isConfirmed
+
+  // Show voice confirmation screen as overlay when triggered
+  if (showVoiceConfirmation) {
+    // Launch the communication flow when screen becomes visible
+    LaunchedEffect(Unit) { communicationViewModel.launch() }
+
+    // Handle confirmation result - only when screen is showing and we have a result
+    LaunchedEffect(isConfirmed) {
+      if (isConfirmed != null) {
+        // Small delay to let TTS finish saying "alert sent" or "alert not sent"
+        kotlinx.coroutines.delay(2000)
+        if (isConfirmed) {
+          dangerModeOrchestrator.onConfirmation()
+        } else {
+          dangerModeOrchestrator.onCancellation()
+        }
+        // Reset the confirmation state in the viewmodel
+        communicationViewModel.resetConfirmation()
+      }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+      CommunicationScreen(viewModel = communicationViewModel)
+    }
+    return // Don't render the rest of the UI while voice confirmation is showing
   }
 
   Scaffold(
