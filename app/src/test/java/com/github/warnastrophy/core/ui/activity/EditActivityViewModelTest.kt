@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.activity
 
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
+import com.github.warnastrophy.core.data.service.MovementConfig
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.ui.features.dashboard.activity.EditActivityViewModel
 import com.github.warnastrophy.core.util.AppConfig
@@ -10,6 +11,7 @@ import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -30,7 +32,14 @@ class EditActivityViewModelTest {
   private lateinit var repository: MockActivityRepository
   private lateinit var viewModel: EditActivityViewModel
   private val testDispatcher = StandardTestDispatcher()
-  private val act_1 = Activity("1", "Climbing")
+  private val act_1 =
+      Activity(
+          "1",
+          "Climbing",
+          MovementConfig(
+              preDangerThreshold = 60.0,
+              preDangerTimeout = 15.seconds,
+              dangerAverageThreshold = 2.0))
   private val act_2 = Activity("2", "Hiking")
 
   @Before
@@ -62,6 +71,18 @@ class EditActivityViewModelTest {
   }
 
   @Test
+  fun `load Activity populates movement config in UI state`() = runTest {
+    prepareRepository()
+    advanceUntilIdle()
+    viewModel.loadActivity("1")
+    advanceUntilIdle()
+    val uiState = viewModel.uiState.first()
+    assertEquals("60.0", uiState.preDangerThresholdStr)
+    assertEquals("15s", uiState.preDangerTimeoutStr)
+    assertEquals("2.0", uiState.dangerAverageThresholdStr)
+  }
+
+  @Test
   fun `Edit contact with valid contact update repository and emits navigateBack event`() = runTest {
     prepareRepository()
     advanceUntilIdle()
@@ -75,6 +96,25 @@ class EditActivityViewModelTest {
     advanceUntilIdle()
     assertEquals("Football", updated.activityName)
     assertNotNull(navigateBackEvent.await())
+  }
+
+  @Test
+  fun `edit activity updates movement config in repository`() = runTest {
+    prepareRepository()
+    advanceUntilIdle()
+    viewModel.loadActivity("1")
+    advanceUntilIdle()
+
+    viewModel.setPreDangerThreshold("80.0")
+    viewModel.setPreDangerTimeout("20s")
+    viewModel.setDangerAverageThreshold("3.5")
+    viewModel.editActivity("1")
+    advanceUntilIdle()
+
+    val updated = repository.getActivity("1", AppConfig.defaultUserId).getOrNull()!!
+    assertEquals(80.0, updated.movementConfig.preDangerThreshold)
+    assertEquals(20.seconds, updated.movementConfig.preDangerTimeout)
+    assertEquals(3.5, updated.movementConfig.dangerAverageThreshold)
   }
 
   @Test
@@ -106,6 +146,34 @@ class EditActivityViewModelTest {
   }
 
   @Test
+  fun `edit activity with invalid preDangerThreshold sets error message`() = runTest {
+    prepareRepository()
+    advanceUntilIdle()
+    viewModel.loadActivity("1")
+    advanceUntilIdle()
+
+    viewModel.setPreDangerThreshold("invalid")
+    viewModel.editActivity("1")
+    advanceUntilIdle()
+
+    assertEquals("At least one field is not valid!", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
+  fun `edit activity with invalid preDangerTimeout sets error message`() = runTest {
+    prepareRepository()
+    advanceUntilIdle()
+    viewModel.loadActivity("1")
+    advanceUntilIdle()
+
+    viewModel.setPreDangerTimeout("invalid")
+    viewModel.editActivity("1")
+    advanceUntilIdle()
+
+    assertEquals("At least one field is not valid!", viewModel.uiState.value.errorMsg)
+  }
+
+  @Test
   fun `set error message when load activity fails`() = runTest {
     prepareRepository()
     advanceUntilIdle()
@@ -113,7 +181,7 @@ class EditActivityViewModelTest {
     viewModel.loadActivity("1")
     advanceUntilIdle()
     assertTrue(
-        viewModel.uiState.value.errorMsg?.startsWith("Failed to load contacts:") ?: false,
+        viewModel.uiState.value.errorMsg?.startsWith("Failed to load activity:") ?: false,
         "Error message is not set")
   }
 

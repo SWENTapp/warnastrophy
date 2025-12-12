@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,8 +22,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 object AddActivityTestTags {
   const val INPUT_ACTIVITY_NAME = "inputActivityName"
-  const val ERROR_MESSAGE = "errorMessage"
   const val SAVE_BUTTON = "activitySave"
+  const val PRE_DANGER_THRESHOLD_INPUT = "inputPreDangerThreshold"
+  const val PRE_DANGER_TIMEOUT_INPUT = "inputPreDangerTimeout"
+  const val DANGER_AVERAGE_THRESHOLD_INPUT = "inputDangerAverageThreshold"
 }
 
 /**
@@ -63,20 +64,12 @@ fun AddActivityScreen(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 32.dp))
 
-        OutlinedTextField(
-            value = activityUIState.activityName,
-            onValueChange = { addActivityViewModel.setActivityName(it) },
-            label = { Text("Activity Name") },
-            isError = activityUIState.invalidActivityName != null,
-            supportingText = {
-              activityUIState.invalidActivityName?.let {
-                Text(it, modifier = Modifier.testTag(AddActivityTestTags.ERROR_MESSAGE))
-              }
-            },
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(bottom = 16.dp)
-                    .testTag(AddActivityTestTags.INPUT_ACTIVITY_NAME))
+        ActivityFormFields(
+            viewModel = addActivityViewModel,
+            activityNameTestTag = AddActivityTestTags.INPUT_ACTIVITY_NAME,
+            preDangerThresholdTestTag = AddActivityTestTags.PRE_DANGER_THRESHOLD_INPUT,
+            preDangerTimeoutTestTag = AddActivityTestTags.PRE_DANGER_TIMEOUT_INPUT,
+            dangerAverageThresholdTestTag = AddActivityTestTags.DANGER_AVERAGE_THRESHOLD_INPUT)
 
         Button(
             onClick = { addActivityViewModel.addActivity() },
