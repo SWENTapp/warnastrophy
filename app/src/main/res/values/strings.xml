@@ -16,6 +16,7 @@
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
     <string name="open_article_link">Tap this bubble to open the full news article</string>
 
+
     <!-- Dashboard Strings -->
     <string name="latest_news">Latest news</string>
     <string name="no_news_yet">No news yet !</string>
@@ -73,13 +74,12 @@
 
     <!-- Error Messages -->
     <string name="no_errors">No errors</string>
-
     <string name="error_location_not_granted">Location permission not granted</string>
     <string name="error_location_update_failed">Location update failed</string>
     <string name="error_foreground_start_failed">Failed to start foreground GPS service</string>
     <string name="error_location_unavailable">No location available</string>
-
     <string name="error_hazard_fetch_failed">Failed to fetch hazard data</string>
+    <string name="error_activity_repository_failed">Error in activity repository</string>
 
     <!-- Error suggestions -->
     <string name="error_suggestion_enable_location">Please enable location services and grant location permissions.</string>
@@ -142,7 +142,6 @@
     <string name="error_text_to_speech_unavailable">Text-to-speech service is not available on this device</string>
     <string name="error_text_to_speech_failed">Unable to play the requested message</string>
     <string name="error_text_to_speech_init_failed">Unable to use speechToText on this device</string>
-
     <string name="error_text_to_speech_empty_input">Nothing to read</string>
 
     <!-- Onboarding screen -->
@@ -166,12 +165,19 @@
     <string name="confirmation_request">Hello, I am your vocal assistant. Do you have any emergency?</string>
     <string name="alert_not_sent">Okay, we wont send an emergency alert</string>
 
+    <!-- Open web page  -->
+    <string name="invalid_url">Invalid URL</string>
+    <string name="no_browser_found">No browser found to open this link.</string>
 
     <!-- TTS service -->
     <string name="tts_speech_synthesis_error">There was an error during speech synthesis</string>
 
+    <!-- Activities-->
+    <string name="activity_name_label">Activity Name</string>
+    <string name="pre_danger_threshold_label">Initial shock threshold (m/s²)</string>
+    <string name="pre_danger_timeout_label">Initial shock timeout (e.g., 5s, 1m)</string>
+    <string name="danger_average_threshold_label">Safe post shock minimal average movement (m/s²)</string>
 
-    <string name="error_activity_repository_failed">Error in activity repository</string>
     <string name="error_emergency_sms_failed">Failed to send emergency SMS</string>
     <string name="error_emergency_call_failed">Failed to make emergency call</string>
     <string name="error_emergency_action_cancelled">Emergency action was cancelled</string>
