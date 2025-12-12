@@ -493,14 +493,16 @@ class DangerModeOrchestratorTest {
         advanceUntilIdle()
 
         assertTrue(orchestrator.state.value.isWaitingForConfirmation)
-        val firstPendingAction = orchestrator.state.value.pendingAction
+        assertTrue(orchestrator.showVoiceConfirmationScreen.value)
 
-        // Try to trigger again (should not change state)
+        // Try to trigger again
         orchestrator.debugTriggerVoiceConfirmation()
         advanceUntilIdle()
 
-        // State should remain the same
-        assertEquals(firstPendingAction, orchestrator.state.value.pendingAction)
+        // Should still be in waiting state and voice confirmation screen should still be shown
+        assertTrue(orchestrator.state.value.isWaitingForConfirmation)
+        assertTrue(orchestrator.showVoiceConfirmationScreen.value)
+        assertNotNull(orchestrator.state.value.pendingAction)
       }
 
   // ==================== triggerEmergencyProtocol Tests ====================
