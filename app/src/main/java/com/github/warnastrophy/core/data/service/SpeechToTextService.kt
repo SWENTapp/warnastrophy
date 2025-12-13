@@ -220,8 +220,8 @@ class SpeechToTextService(
    */
   override fun destroy() {
     currentContinuation = null
-    speechRecognizer.stopListening()
     speechRecognizer.destroy()
+    speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
     _uiState.value =
         SpeechRecognitionUiState() // Reset to initial state including isConfirmed = null
   }
