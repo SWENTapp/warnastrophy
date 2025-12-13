@@ -3,12 +3,15 @@ package com.github.warnastrophy.core.ui.features.map
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.FloatingActionButton
@@ -21,18 +24,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
+import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.model.Location.Companion.toLatLng
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.PermissionRequestCard
 import com.github.warnastrophy.core.ui.components.PermissionUiTags
+import com.github.warnastrophy.core.util.GeometryParser
 import com.github.warnastrophy.core.util.findActivity
 import com.github.warnastrophy.core.util.openAppSettings
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -44,7 +50,9 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.MapsComposeExperimentalApi
 
 object MapScreenTestTags {
   const val GOOGLE_MAP_SCREEN = "mapScreen"
@@ -204,6 +212,7 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
       }
 }
 
+@OptIn(MapsComposeExperimentalApi::class)
 @Composable
 fun HazardsGoogleMap(
     cameraPositionState: CameraPositionState,
@@ -211,6 +220,7 @@ fun HazardsGoogleMap(
     context: Context = LocalContext.current,
 ) {
   val hazards = uiState.hazardState.hazards
+  val clusterItems = hazards.map { HazardClusterItem(it) }
 
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
@@ -221,7 +231,36 @@ fun HazardsGoogleMap(
               zoomControlsEnabled = true,
               mapToolbarEnabled = false),
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
-        hazards.forEach { hazard -> HazardMarker(hazard) }
+        // Draw affected zone polygons for all hazards
+        hazards.forEach { hazard ->
+          hazard.affectedZone?.let { zone ->
+            val locations = GeometryParser.jtsGeometryToLatLngList(zone)
+            if (locations!!.size > 1) {
+              val polygonCoords = locations.map { location -> com.github.warnastrophy.core.model.Location.toLatLng(location) }
+              PolygonWrapper(polygonCoords)
+            }
+          }
+        }
+
+        // Clustered hazard markers
+        Clustering(
+            items = clusterItems,
+            onClusterClick = { cluster ->
+              // Zoom in when clicking on a cluster
+              false // Return false to allow default behavior (zoom in)
+            },
+            onClusterItemClick = { clusterItem ->
+              false // Return false to show info window
+            },
+            clusterContent = { cluster ->
+              // Custom cluster appearance
+              ClusterContent(cluster.size)
+            },
+            clusterItemContent = { clusterItem ->
+              // Individual marker content when not clustered
+              HazardMarkerContent(clusterItem.hazard)
+            }
+        )
 
         uiState.selectedLocation?.let { loc ->
           val pos = toLatLng(loc)
@@ -231,6 +270,32 @@ fun HazardsGoogleMap(
               icon = bitmapDescriptorFromJpeg(context, R.drawable.material_symobls_pin))
         }
       }
+}
+
+@Composable
+fun ClusterContent(size: Int) {
+  androidx.compose.foundation.layout.Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier
+          .size(40.dp)
+          .clip(androidx.compose.foundation.shape.CircleShape)
+          .background(MaterialTheme.colorScheme.primary)
+  ) {
+    Text(
+        text = size.toString(),
+        color = MaterialTheme.colorScheme.onPrimary,
+        style = MaterialTheme.typography.bodyMedium
+    )
+  }
+}
+
+@Composable
+fun HazardMarkerContent(hazard: Hazard) {
+  val severityTint = getSeverityColor(hazard)
+  val icon: MapIcon = hazardTypeToMapIcon(hazard.type)
+  Box(modifier = Modifier.size(64.dp)) {
+    icon(tint = severityTint)
+  }
 }
 
 suspend fun defaultAnimate(cameraPositionState: CameraPositionState, position: LatLng) {
