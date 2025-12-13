@@ -81,35 +81,46 @@ class HazardsRepository() : HazardsDataSource {
    * @return The response body as a String, or null when the status code is not 2xx or on error.
    */
   private suspend fun httpGet(urlStr: String): String? {
-    TrafficStats.setThreadStatsTag(0x123456) // Tag network traffic for monitoring
     // Throttle API calls to avoid rate limiting
     delay(AppConfig.gdacsThrottleDelay - lastApiCall.elapsedNow())
     lastApiCall = TimeSource.Monotonic.markNow()
 
-    val url = URL(urlStr)
-    val conn =
-        (url.openConnection() as HttpURLConnection).apply {
-          requestMethod = "GET"
-          setRequestProperty("Accept", "application/json")
-          connectTimeout = HTTP_TIMEOUT
-          readTimeout = HTTP_TIMEOUT
-        }
+    // Tag network traffic BEFORE any socket operations
+    val previousTag = TrafficStats.getThreadStatsTag()
+    TrafficStats.setThreadStatsTag(0x123456)
+
     return try {
-      when (conn.responseCode) {
-        in VALID_REPONSE_CODE_RANGE -> {
-          BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+      val url = URL(urlStr)
+      val conn =
+          (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            setRequestProperty("Accept", "application/json")
+            connectTimeout = HTTP_TIMEOUT
+            readTimeout = HTTP_TIMEOUT
+          }
+      try {
+        when (conn.responseCode) {
+          in VALID_REPONSE_CODE_RANGE -> {
+            BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+          }
+          404 -> null // 404 means no data, return null
+          else -> { // This usually indicates rate limiting, bad request, or server error
+            throw IOException(
+                "HTTP GET failed with response: ${
+              BufferedReader(InputStreamReader(conn.errorStream)).readText()
+            }")
+          }
         }
-        404 -> null // 404 means no data, return null
-        else -> { // This usually indicates rate limiting, bad request, or server error
-          throw IOException(
-              "HTTP GET failed with response: ${
-            BufferedReader(InputStreamReader(conn.errorStream)).readText()
-          }")
-        }
+      } finally {
+        conn.disconnect()
       }
     } finally {
-      conn.disconnect()
-      TrafficStats.clearThreadStatsTag()
+      // Restore previous tag (or clear if there was none)
+      if (previousTag == 0) {
+        TrafficStats.clearThreadStatsTag()
+      } else {
+        TrafficStats.setThreadStatsTag(previousTag)
+      }
     }
   }
 
