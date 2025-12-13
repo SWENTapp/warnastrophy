@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
+import android.net.TrafficStats
 import android.util.Log
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
@@ -80,6 +81,7 @@ class HazardsRepository() : HazardsDataSource {
    * @return The response body as a String, or null when the status code is not 2xx or on error.
    */
   private suspend fun httpGet(urlStr: String): String? {
+    TrafficStats.setThreadStatsTag(0x123456) // Tag network traffic for monitoring
     // Throttle API calls to avoid rate limiting
     delay(AppConfig.gdacsThrottleDelay - lastApiCall.elapsedNow())
     lastApiCall = TimeSource.Monotonic.markNow()
@@ -107,6 +109,7 @@ class HazardsRepository() : HazardsDataSource {
       }
     } finally {
       conn.disconnect()
+      TrafficStats.clearThreadStatsTag()
     }
   }
 
