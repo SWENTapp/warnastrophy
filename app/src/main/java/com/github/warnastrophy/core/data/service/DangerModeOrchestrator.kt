@@ -317,11 +317,7 @@ class DangerModeOrchestrator(
       errorHandler.addErrorToScreen(ErrorType.EMERGENCY_ACTION_CANCELLED, Screen.Dashboard)
     }
 
-    // Reset after a delay to allow re-triggering if conditions persist
-    scope.launch {
-      kotlinx.coroutines.delay(5000)
-      resetState()
-    }
+    resetState()
   }
 
   /** Executes the emergency action (SMS, Call, or both). */
