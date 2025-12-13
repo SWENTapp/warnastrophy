@@ -181,7 +181,7 @@ object StateManagerService {
       speechToTextService.destroy()
     }
     if (::textToSpeechService.isInitialized) {
-      textToSpeechService.shutdown()
+      textToSpeechService.destroy()
     }
     stopForegroundGpsService(appContext)
   }

@@ -145,11 +145,6 @@ fun WarnastrophyComposable(
         context)
   }
 
-  // Reset confirmation when composable is disposed to clean up ViewModel state
-  DisposableEffect(communicationViewModel) {
-    onDispose { communicationViewModel.resetConfirmation() }
-  }
-
   // Voice confirmation for danger mode
   val dangerModeOrchestrator = remember { StateManagerService.dangerModeOrchestrator }
   val showVoiceConfirmation by dangerModeOrchestrator.showVoiceConfirmationScreen.collectAsState()
