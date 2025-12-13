@@ -11,6 +11,8 @@ import com.github.warnastrophy.core.util.AppConfig
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 /**
  * Service responsible for fetching and maintaining the current list of hazards based on the user's
@@ -63,6 +67,9 @@ class HazardsService(
   /** Coroutine scope used for background hazard fetching. */
   private val serviceScope = CoroutineScope(Dispatchers.IO)
 
+  /** Semaphore to limit concurrent network requests and prevent overwhelming the API/device */
+  private val networkSemaphore = Semaphore(4) // Allow max 4 concurrent parsing operations
+
   /** Internal state flow holding the current list of hazards. */
   private val _fetcherState = MutableStateFlow(FetcherState())
 
@@ -87,20 +94,23 @@ class HazardsService(
         val wktPolygon = Location.locationsToWktPolygon(polygon)
         try {
           val lastFetch = TimeSource.Monotonic.markNow()
+          val initialHazards = fetchHazardsForLocation(wktPolygon)
           _fetcherState.value =
-              _fetcherState.value.copy(
-                  hazards = fetchHazardsForLocation(wktPolygon), isLoading = false)
+              _fetcherState.value.copy(hazards = initialHazards, isLoading = false)
 
-          // Fetch complete data sequentially for each hazard to avoid making the UI wait
-          val currentHazards = _fetcherState.value.hazards.toMutableList()
-          currentHazards.forEachIndexed { index, hazard ->
-            val completed: Hazard? = repository.completeParsingOf(hazard)
-            if (completed != null) {
-              currentHazards[index] = completed
-              _fetcherState.value =
-                  _fetcherState.value.copy(hazards = currentHazards.toList(), isLoading = false)
-            }
-          }
+          // Parallel processing of hazard completion with semaphore to limit concurrent requests
+          val completedHazards =
+              initialHazards
+                  .map { hazard ->
+                    async {
+                      networkSemaphore.withPermit { repository.completeParsingOf(hazard) ?: hazard }
+                    }
+                  }
+                  .awaitAll()
+
+          _fetcherState.value =
+              _fetcherState.value.copy(hazards = completedHazards, isLoading = false)
+
           errorHandler.clearErrorFromScreen(ErrorType.HAZARD_FETCHING_ERROR, Screen.Map)
 
           delay(AppConfig.gdacsFetchDelay - lastFetch.elapsedNow())

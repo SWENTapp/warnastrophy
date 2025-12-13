@@ -3,13 +3,14 @@ package com.github.warnastrophy.core.domain.usecase
 import android.util.Log
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Hazard
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Envelope
 import org.locationtech.jts.geom.Geometry
@@ -24,15 +25,8 @@ import org.locationtech.jts.geom.Point
  * hazard zone for the duration defined by [HAZARD_TIME_THRESHOLD_MS].
  *
  * @property allHazards A static list of all known hazards, including geometry and priority level.
- * @property dispatcher The CoroutineDispatcher used for executing geofencing checks and scheduling
- *   delays.
- * @property scope The parent CoroutineScope that manages the lifecycle of the checker jobs.
  */
-class HazardCheckerService(
-    private val allHazards: List<Hazard>,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
-    private val scope: CoroutineScope
-) {
+class HazardCheckerService(private val allHazards: List<Hazard>) {
   private val geometryFactory = GeometryFactory()
   private val hazardLock = Mutex()
 
@@ -69,21 +63,33 @@ class HazardCheckerService(
   }
 
   /** Performs the initial check to find the hazard the user is currently inside. */
-  private fun findHighestPriorityActiveHazard(userLng: Double, userLat: Double): Hazard? {
-    var highestPriorityHazard: Hazard? = null
+  private suspend fun findHighestPriorityActiveHazard(userLng: Double, userLat: Double): Hazard? {
+    // Use Default dispatcher for CPU-intensive geometry calculations
+    return withContext(Dispatchers.Default) {
+      // First, quick BBox filter (very fast, no parallelization needed)
+      val bboxFilteredHazards =
+          allHazards.filter { hazard ->
+            hazard.bbox != null && isInsideBBox(userLng, userLat, hazard.bbox)
+          }
 
-    for (hazard in allHazards) {
-      // Assumes isInsideBBox is already implemented
-      if (hazard.bbox != null && isInsideBBox(userLng, userLat, hazard.bbox)) {
-        if (hazard.affectedZone == null) continue
-        if (isInsideMultiPolygon(userLat, userLng, hazard.affectedZone) &&
-            (highestPriorityHazard == null ||
-                (hazard.alertLevel ?: 0.0) > (highestPriorityHazard.alertLevel ?: 0.0))) {
-          highestPriorityHazard = hazard
-        }
-      }
+      if (bboxFilteredHazards.isEmpty()) return@withContext null
+
+      // Parallel geometry checks for CPU-intensive point-in-polygon calculations
+      val matchingHazards =
+          bboxFilteredHazards
+              .filter { it.affectedZone != null }
+              .map { hazard ->
+                async {
+                  if (isInsideMultiPolygon(userLat, userLng, hazard.affectedZone!!)) hazard
+                  else null
+                }
+              }
+              .awaitAll()
+              .filterNotNull()
+
+      // Find highest priority among matching hazards
+      matchingHazards.maxByOrNull { it.alertLevel ?: 0.0 }
     }
-    return highestPriorityHazard
   }
 
   /**

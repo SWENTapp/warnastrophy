@@ -6,13 +6,16 @@ import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
 import com.github.warnastrophy.core.data.service.SpeechToTextServiceInterface
 import com.github.warnastrophy.core.data.service.TextToSpeechServiceInterface
 import com.github.warnastrophy.core.data.service.TextToSpeechUiState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 interface VoiceCommunicationViewModelInterface {
   val uiState: StateFlow<VoiceCommunicationUiState>
@@ -107,7 +110,11 @@ class VoiceCommunicationViewModel(
           VoiceCommunicationUiState(
               speechState = speechState, textToSpeechState = textToSpeechState)
         }
-        .onEach { _uiState.value = it }
+        .flowOn(Dispatchers.Default) // Process state combination off main thread
+        .onEach { newState ->
+          // Update UI state on Main thread
+          withContext(Dispatchers.Main.immediate) { _uiState.value = newState }
+        }
         .launchIn(viewModelScope)
   }
 

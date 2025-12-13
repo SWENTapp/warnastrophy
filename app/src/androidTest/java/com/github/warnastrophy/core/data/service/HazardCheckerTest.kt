@@ -7,7 +7,6 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -80,12 +79,10 @@ class HazardCheckerTest {
             )
 
     val serviceStateManager = StateManagerService
-    val testDispatcher = StandardTestDispatcher(testScheduler)
 
     serviceStateManager.updateActiveHazard(null)
 
-    val hazardChecker =
-        HazardCheckerService(listOf(testHazardA, testHazardB), testDispatcher, scope = this)
+    val hazardChecker = HazardCheckerService(listOf(testHazardA, testHazardB))
 
     hazardChecker.checkAndPublishAlert(10.0, 10.0)
 
@@ -127,9 +124,7 @@ class HazardCheckerTest {
     val serviceStateManager = StateManagerService
     serviceStateManager.clearActiveAlert()
 
-    val hazardChecker =
-        HazardCheckerService(
-            listOf(testHazardA), StandardTestDispatcher(testScheduler), scope = this)
+    val hazardChecker = HazardCheckerService(listOf(testHazardA))
 
     hazardChecker.checkAndPublishAlert(20.0, 20.0) // User outside hazard
 
@@ -167,8 +162,7 @@ class HazardCheckerTest {
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZone = geometryA)
 
-    val hazardChecker =
-        HazardCheckerService(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
+    val hazardChecker = HazardCheckerService(listOf(hazardA))
 
     // User enters hazard
     hazardChecker.checkAndPublishAlert(10.0, 10.0)
@@ -210,8 +204,7 @@ class HazardCheckerTest {
             bbox = listOf(9.9, 9.9, 10.1, 10.1),
             affectedZone = geometryA)
 
-    val hazardChecker =
-        HazardCheckerService(listOf(hazardA), StandardTestDispatcher(testScheduler), scope = this)
+    val hazardChecker = HazardCheckerService(listOf(hazardA))
 
     // --- Step 1: User enters the hazard ---
     hazardChecker.checkAndPublishAlert(10.0, 10.0)

@@ -42,7 +42,8 @@ object StateManagerService {
   private lateinit var appContext: Context
   private var initialized = false
   private val serviceScope = CoroutineScope(Dispatchers.IO)
-  private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
+  // Use Default dispatcher for CPU-intensive hazard checking calculations
+  private val hazardCheckerScope = CoroutineScope(Dispatchers.Default)
   private var hazardCheckerJob: Job? = null
 
   lateinit var gpsService: PositionService
@@ -193,7 +194,8 @@ object StateManagerService {
             hazardCheckerJob?.cancel()
             hazardCheckerJob =
                 hazardCheckerScope.launch {
-                  HazardCheckerService(fetcherState.hazards, Dispatchers.Main, hazardCheckerScope)
+                  // Run hazard checking on Default dispatcher (CPU-intensive)
+                  HazardCheckerService(fetcherState.hazards)
                       .checkAndPublishAlert(
                           positionState.position.longitude, positionState.position.latitude)
                 }
