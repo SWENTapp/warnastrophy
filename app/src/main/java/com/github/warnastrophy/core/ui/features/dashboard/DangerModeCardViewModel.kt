@@ -6,23 +6,45 @@ import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.data.service.StateManagerService.permissionManager
 import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.permissions.AppPermissions
+import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.util.AppConfig
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Capabilities of the danger mode that can be enabled in Danger Mode with associated labels. */
 enum class DangerModeCapability(val label: String) {
   CALL("Call"),
   SMS("SMS"),
+}
+
+data class AlertModeUiState(
+    val alertModeManualEnabled: Boolean = false,
+    val alertModePermissionResult: PermissionResult,
+    val waitingForUserResponse: Boolean = false
+)
+
+sealed interface Effect {
+  object RequestLocationPermission : Effect
+
+  object StartForegroundService : Effect
+
+  object StopForegroundService : Effect
+
+  object ShowOpenAppSettings : Effect
 }
 
 /**
@@ -38,10 +60,20 @@ class DangerModeCardViewModel(
         FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
+  val alertModePermission = AppPermissions.AlertModePermission
   private val dangerModeService = StateManagerService.dangerModeService
 
   private val _activities = MutableStateFlow<List<Activity>>(emptyList())
   val activities: StateFlow<List<Activity>> = _activities.asStateFlow()
+  private val _effects = MutableSharedFlow<Effect>()
+  val effects = _effects.asSharedFlow()
+
+  private val _alertModeUiState =
+      MutableStateFlow(
+          AlertModeUiState(
+              alertModePermissionResult =
+                  permissionManager.getPermissionResult(alertModePermission)))
+  val permissionUiState = _alertModeUiState.asStateFlow()
 
   init {
     refreshActivities()
@@ -102,10 +134,12 @@ class DangerModeCardViewModel(
    * @param context The context used to start or stop the GPS service.
    */
   fun onDangerModeToggled(enabled: Boolean) {
-    if (enabled) {
+    if (enabled && _alertModeUiState.value.alertModePermissionResult is PermissionResult.Granted) {
       dangerModeService.manualActivate()
+      emitEffect(Effect.StartForegroundService)
     } else {
       dangerModeService.manualDeactivate()
+      emitEffect(Effect.StopForegroundService)
     }
   }
 
@@ -169,5 +203,48 @@ class DangerModeCardViewModel(
   fun onConfirmVoiceChanged(enabled: Boolean) {
     _confirmVoiceRequired.value = enabled
     // TODO: Persist & enforce voice confirmation before actions.
+  }
+
+  private fun emitEffect(effect: Effect) {
+    viewModelScope.launch { _effects.emit(effect) }
+  }
+
+  fun onPermissionsRequestStart() {
+    _alertModeUiState.update { it.copy(waitingForUserResponse = true) }
+  }
+
+  fun onPermissionResult(activity: android.app.Activity) {
+    val newAlertModeResult = permissionManager.getPermissionResult(alertModePermission, activity)
+    _alertModeUiState.update { it.copy(alertModePermissionResult = newAlertModeResult) }
+    if (_alertModeUiState.value.waitingForUserResponse) {
+      permissionManager.markPermissionsAsAsked(alertModePermission)
+      if (newAlertModeResult is PermissionResult.Granted) {
+        onDangerModeToggled(true)
+        Log.d("onPermRes", "permission is granted after dialog")
+      }
+    }
+    _alertModeUiState.update { it.copy(waitingForUserResponse = false) }
+  }
+
+  /**
+   * Handles the logic when user toggle the button, checking permissions and dispatching actions.
+   *
+   * @param isChecked The new state of the preference toggle.
+   * @param permissionResult The current permission status for this feature.
+   */
+  fun handleToggle(isChecked: Boolean, permissionResult: PermissionResult) {
+    if (isChecked) {
+      when (permissionResult) {
+        PermissionResult.Granted -> {
+          Log.d("handleToggle", "permission is granted")
+          onDangerModeToggled(true)
+        }
+        is PermissionResult.Denied -> emitEffect(Effect.RequestLocationPermission)
+        is PermissionResult.PermanentlyDenied -> emitEffect(Effect.ShowOpenAppSettings)
+      }
+    } else {
+      Log.d("handleToggle", "permission is granted")
+      onDangerModeToggled(false)
+    }
   }
 }
