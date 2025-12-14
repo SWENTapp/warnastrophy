@@ -55,9 +55,9 @@ interface HazardsDataSource {
  * conversion to JTS Geometry objects.
  */
 class HazardsRepository() : HazardsDataSource {
-
   private val VALID_REPONSE_CODE_RANGE = 200..299
   private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay
+  private val socketTag = 0x123456
 
   /**
    * Constructs the full URL for fetching hazard events within a specific geographic area.
@@ -87,7 +87,7 @@ class HazardsRepository() : HazardsDataSource {
 
     // Tag network traffic BEFORE any socket operations
     val previousTag = TrafficStats.getThreadStatsTag()
-    TrafficStats.setThreadStatsTag(0x123456)
+    TrafficStats.setThreadStatsTag(socketTag)
 
     return try {
       val url = URL(urlStr)
@@ -103,7 +103,7 @@ class HazardsRepository() : HazardsDataSource {
           in VALID_REPONSE_CODE_RANGE -> {
             BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
           }
-          404 -> null // 404 means no data, return null
+          404 -> null
           else -> { // This usually indicates rate limiting, bad request, or server error
             throw IOException(
                 "HTTP GET failed with response: ${
