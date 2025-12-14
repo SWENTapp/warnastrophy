@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
+import android.net.TrafficStats
 import android.util.Log
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.util.AppConfig
@@ -54,9 +55,9 @@ interface HazardsDataSource {
  * conversion to JTS Geometry objects.
  */
 class HazardsRepository() : HazardsDataSource {
-
   private val VALID_REPONSE_CODE_RANGE = 200..299
   private var lastApiCall = TimeSource.Monotonic.markNow() - AppConfig.gdacsThrottleDelay
+  private val socketTag = 0x123456
 
   /**
    * Constructs the full URL for fetching hazard events within a specific geographic area.
@@ -84,29 +85,42 @@ class HazardsRepository() : HazardsDataSource {
     delay(AppConfig.gdacsThrottleDelay - lastApiCall.elapsedNow())
     lastApiCall = TimeSource.Monotonic.markNow()
 
-    val url = URL(urlStr)
-    val conn =
-        (url.openConnection() as HttpURLConnection).apply {
-          requestMethod = "GET"
-          setRequestProperty("Accept", "application/json")
-          connectTimeout = HTTP_TIMEOUT
-          readTimeout = HTTP_TIMEOUT
-        }
+    // Tag network traffic BEFORE any socket operations
+    val previousTag = TrafficStats.getThreadStatsTag()
+    TrafficStats.setThreadStatsTag(socketTag)
+
     return try {
-      when (conn.responseCode) {
-        in VALID_REPONSE_CODE_RANGE -> {
-          BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+      val url = URL(urlStr)
+      val conn =
+          (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            setRequestProperty("Accept", "application/json")
+            connectTimeout = HTTP_TIMEOUT
+            readTimeout = HTTP_TIMEOUT
+          }
+      try {
+        when (conn.responseCode) {
+          in VALID_REPONSE_CODE_RANGE -> {
+            BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+          }
+          404 -> null
+          else -> { // This usually indicates rate limiting, bad request, or server error
+            throw IOException(
+                "HTTP GET failed with response: ${
+              BufferedReader(InputStreamReader(conn.errorStream)).readText()
+            }")
+          }
         }
-        404 -> null // 404 means no data, return null
-        else -> { // This usually indicates rate limiting, bad request, or server error
-          throw IOException(
-              "HTTP GET failed with response: ${
-            BufferedReader(InputStreamReader(conn.errorStream)).readText()
-          }")
-        }
+      } finally {
+        conn.disconnect()
       }
     } finally {
-      conn.disconnect()
+      // Restore previous tag (or clear if there was none)
+      if (previousTag == 0) {
+        TrafficStats.clearThreadStatsTag()
+      } else {
+        TrafficStats.setThreadStatsTag(previousTag)
+      }
     }
   }
 

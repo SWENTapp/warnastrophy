@@ -4,7 +4,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import org.junit.After
@@ -19,7 +21,8 @@ class EndToEndM2Test : EndToEndUtils() {
 
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.initLocal(context)
-    StateManagerService.init(context)
+    UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
+    composeTestRule.runOnUiThread { StateManagerService.init(context) }
     contactRepository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
   }
@@ -27,7 +30,7 @@ class EndToEndM2Test : EndToEndUtils() {
   @After
   override fun tearDown() {
     super.tearDown()
-    StateManagerService.shutdown()
+    composeTestRule.runOnUiThread { StateManagerService.shutdown() }
   }
 
   @Test

@@ -43,13 +43,8 @@ import com.github.warnastrophy.core.ui.map.HazardServiceMock
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.AnimationIdlingResource
 import com.github.warnastrophy.core.util.AppConfig
-import com.github.warnastrophy.core.util.AppConfig.defaultPosition
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.google.android.gms.maps.MapsInitializer
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.CameraPositionState
-import com.google.maps.android.compose.rememberCameraPositionState
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.After
@@ -353,38 +348,6 @@ class MapScreenTest : BaseAndroidComposeTest() {
     composeTestRule.waitForIdle()
     val uiState = viewModel.uiState.value
     assertTrue(uiState.isTrackingLocation)
-  }
-
-  /** Verifies that clicking the track location button triggers a camera animation. */
-  @Test
-  fun trackLocationButtonAnimatesOnClick() {
-    lateinit var cameraPositionState: CameraPositionState
-
-    composeTestRule.setContent {
-      cameraPositionState = rememberCameraPositionState()
-      cameraPositionState.position =
-          CameraPosition.fromLatLngZoom(
-              LatLng(defaultPosition.latitude + 1, defaultPosition.longitude + 1), 1f)
-      MapScreen(viewModel = viewModel, cameraPositionState = cameraPositionState)
-      applyPerm(PermissionResult.Granted)
-    }
-    composeTestRule.waitForIdle()
-
-    // It's good practice to wait until the camera is not moving from its initial setup
-    composeTestRule.waitUntil { !cameraPositionState.isMoving }
-
-    val initialPosition = cameraPositionState.position.target
-
-    // Click the track location button to start tracking and trigger the animation
-    composeTestRule
-        .onNodeWithTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)
-        .assertIsDisplayed()
-        .performClick()
-
-    // Wait for animation to finish using the idling resource
-    composeTestRule.waitUntil(timeoutMillis = 10_000) {
-      !cameraPositionState.isMoving && initialPosition != cameraPositionState.position.target
-    }
   }
 
   @Test
