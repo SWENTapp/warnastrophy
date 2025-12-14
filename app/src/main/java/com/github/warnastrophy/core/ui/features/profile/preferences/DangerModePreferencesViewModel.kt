@@ -101,7 +101,8 @@ class DangerModePreferencesViewModel(
                 alertModeAutomaticEnabled = prefs.dangerModePreferences.alertMode,
                 inactivityDetectionEnabled = prefs.dangerModePreferences.inactivityDetection,
                 automaticSmsEnabled = prefs.dangerModePreferences.automaticSms,
-                automaticCallsEnabled = prefs.dangerModePreferences.automaticCalls)
+                automaticCallsEnabled = prefs.dangerModePreferences.automaticCalls,
+                microphoneAccessEnabled = prefs.dangerModePreferences.microphoneAccess)
           }
         }
         .launchIn(viewModelScope)
@@ -159,7 +160,7 @@ class DangerModePreferencesViewModel(
   }
 
   fun onMicrophoneToggled(enabled: Boolean) {
-    TODO("Not yet implemented")
+    viewModelScope.launch { userPreferencesRepository.setMicrophoneAccess(enabled) }
   }
 
   /**

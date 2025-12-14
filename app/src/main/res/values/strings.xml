@@ -190,7 +190,7 @@
     <string name="error_suggestion_no_emergency_contact">Add an emergency contact in your profile to enable automatic SMS and call features.</string>
 
 
-    <string name="danger_mode_microphone_access_title">Microphone Access Required</string>
+    <string name="danger_mode_microphone_access_title">Microphone Access</string>
     <string name="danger_mode_microphone_access_description">To use voice confirmation for emergency actions, the app needs access to your device\'s microphone. Please grant microphone permission in your device settings.</string>
     <string name="voice_confirmation_title">Confirm Emergency Action</string>
 </resources>
