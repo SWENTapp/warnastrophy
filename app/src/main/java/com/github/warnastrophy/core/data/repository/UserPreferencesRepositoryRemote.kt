@@ -36,6 +36,8 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     const val FIELD_INACTIVITY_DETECTION = "inactivityDetection"
     const val FIELD_AUTOMATIC_SMS = "automaticSms"
     const val FIELD_AUTOMATIC_CALLS = "automaticCalls"
+
+    const val FIELD_MICROPHONE_ACCESS = "microphoneAccess"
     const val FIELD_DARK_MODE = "darkMode"
   }
 
@@ -126,6 +128,10 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     updateField(FIELD_AUTOMATIC_CALLS, enabled)
   }
 
+  override suspend fun setMicrophoneAccess(enabled: Boolean) {
+    updateField(FIELD_MICROPHONE_ACCESS, enabled)
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     updateField(FIELD_DARK_MODE, isDark)
   }
@@ -162,13 +168,15 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     val automaticSms = data?.get(FIELD_AUTOMATIC_SMS) as? Boolean ?: false
     val automaticCalls = data?.get(FIELD_AUTOMATIC_CALLS) as? Boolean ?: false
     val darkMode = data?.get(FIELD_DARK_MODE) as? Boolean ?: false
+    val microphoneAcess = data?.get(FIELD_MICROPHONE_ACCESS) as? Boolean ?: false
 
     val dangerModePreferences =
         DangerModePreferences(
             alertMode = alertMode,
             inactivityDetection = inactivityDetection,
             automaticSms = automaticSms,
-            automaticCalls = automaticCalls)
+            automaticCalls = automaticCalls,
+            microphoneAcess)
 
     return UserPreferences(
         dangerModePreferences = dangerModePreferences, themePreferences = darkMode)

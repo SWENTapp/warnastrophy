@@ -79,6 +79,9 @@ class HybridUserPreferencesRepository(
     updateBothRepositories { setAutomaticCalls(enabled) }
   }
 
+  override suspend fun setMicrophoneAccess(enabled: Boolean) {
+    updateBothRepositories { setMicrophoneAccess(enabled) }
+  }
   /**
    * Updates both local and remote repositories to set the dark mode preference.
    *

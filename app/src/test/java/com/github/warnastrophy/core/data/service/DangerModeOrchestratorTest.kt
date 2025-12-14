@@ -268,7 +268,8 @@ class DangerModeOrchestratorTest {
                         alertMode = true,
                         inactivityDetection = true,
                         automaticSms = true,
-                        automaticCalls = false))
+                        automaticCalls = false,
+                        microphoneAccess = false))
     advanceUntilIdle()
 
     // Trigger via debug which creates SendSmsAndCall, then test direct SMS
@@ -804,6 +805,13 @@ class MockUserPreferencesRepository(
         preferencesFlow.value.copy(
             dangerModePreferences =
                 preferencesFlow.value.dangerModePreferences.copy(automaticCalls = enabled))
+  }
+
+  override suspend fun setMicrophoneAccess(enabled: Boolean) {
+    preferencesFlow.value =
+        preferencesFlow.value.copy(
+            dangerModePreferences =
+                preferencesFlow.value.dangerModePreferences.copy(microphoneAccess = enabled))
   }
 
   override suspend fun setDarkMode(isDark: Boolean) {}

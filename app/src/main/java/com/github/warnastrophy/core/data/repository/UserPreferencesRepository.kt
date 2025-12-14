@@ -41,6 +41,11 @@ interface UserPreferencesRepository {
    */
   suspend fun setAutomaticCalls(enabled: Boolean)
 
+  /*
+   * Enables or disables microphone access for the app.
+   */
+  suspend fun setMicrophoneAccess(enabled: Boolean)
+
   /**
    * Enables or disables dark mode for the app's UI.
    *

@@ -26,7 +26,8 @@ enum class PendingAction {
   TOGGLE_ALERT_MODE,
   TOGGLE_INACTIVITY_DETECTION,
   TOGGLE_AUTOMATIC_SMS,
-  TOGGLE_AUTOMATIC_CALLS
+  TOGGLE_AUTOMATIC_CALLS,
+  TOGGLE_MICROPHONE
 }
 
 /**
@@ -47,11 +48,13 @@ data class DangerModePreferencesUiState(
     val inactivityDetectionEnabled: Boolean = false,
     val automaticSmsEnabled: Boolean = false,
     val automaticCallsEnabled: Boolean = false,
+    val microphoneAccessEnabled: Boolean = false,
     val alertModePermissionResult: PermissionResult,
     val inactivityDetectionPermissionResult: PermissionResult,
     val smsPermissionResult: PermissionResult,
     val callPermissionResult: PermissionResult,
-    val pendingPermissionAction: PendingAction? = null
+    val pendingPermissionAction: PendingAction? = null,
+    val microphonePermissionResult: PermissionResult
 ) {
   /** A computed property that is true if a permission request is in flight. */
   val isOsRequestInFlight: Boolean
@@ -74,6 +77,8 @@ class DangerModePreferencesViewModel(
   val smsPermissions = AppPermissions.SendEmergencySms
   val callPermissions = AppPermissions.MakeEmergencyCall
 
+  val microphonePermissions = AppPermissions.Microphone
+
   private val _uiState =
       MutableStateFlow(
           DangerModePreferencesUiState(
@@ -82,7 +87,9 @@ class DangerModePreferencesViewModel(
               inactivityDetectionPermissionResult =
                   permissionManager.getPermissionResult(inactivityDetectionPermissions),
               smsPermissionResult = permissionManager.getPermissionResult(smsPermissions),
-              callPermissionResult = permissionManager.getPermissionResult(callPermissions)))
+              callPermissionResult = permissionManager.getPermissionResult(callPermissions),
+              microphonePermissionResult =
+                  permissionManager.getPermissionResult(microphonePermissions)))
 
   val uiState = _uiState.asStateFlow()
 
@@ -151,6 +158,10 @@ class DangerModePreferencesViewModel(
     viewModelScope.launch { userPreferencesRepository.setAutomaticCalls(enabled) }
   }
 
+  fun onMicrophoneToggled(enabled: Boolean) {
+    TODO("Not yet implemented")
+  }
+
   /**
    * Records that a permission request has been initiated for a specific action.
    *
@@ -172,6 +183,7 @@ class DangerModePreferencesViewModel(
         permissionManager.getPermissionResult(inactivityDetectionPermissions, activity)
     val newSmsResult = permissionManager.getPermissionResult(smsPermissions, activity)
     val newCallResult = permissionManager.getPermissionResult(callPermissions, activity)
+    val newMicrophoneResult = permissionManager.getPermissionResult(microphonePermissions, activity)
 
     _uiState.update {
       it.copy(
@@ -204,6 +216,12 @@ class DangerModePreferencesViewModel(
         permissionManager.markPermissionsAsAsked(callPermissions)
         if (newCallResult is PermissionResult.Granted) {
           onAutomaticCallsToggled(true)
+        }
+      }
+      PendingAction.TOGGLE_MICROPHONE -> {
+        permissionManager.markPermissionsAsAsked(microphonePermissions)
+        if (newMicrophoneResult is PermissionResult.Granted) {
+          onMicrophoneToggled(true)
         }
       }
       null -> {}

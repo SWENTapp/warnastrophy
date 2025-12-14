@@ -18,7 +18,8 @@ class MockUserPreferencesRepository : UserPreferencesRepository {
                       alertMode = false,
                       inactivityDetection = false,
                       automaticSms = false,
-                      automaticCalls = false),
+                      automaticCalls = false,
+                      microphoneAccess = false),
               themePreferences = false))
 
   override val getUserPreferences: StateFlow<UserPreferences> = _preferences.asStateFlow()
@@ -50,6 +51,13 @@ class MockUserPreferencesRepository : UserPreferencesRepository {
     _preferences.value =
         current.copy(
             dangerModePreferences = current.dangerModePreferences.copy(automaticCalls = enabled))
+  }
+
+  override suspend fun setMicrophoneAccess(enabled: Boolean) {
+    val current = _preferences.value
+    _preferences.value =
+        current.copy(
+            dangerModePreferences = current.dangerModePreferences.copy(microphoneAccess = enabled))
   }
 
   override suspend fun setDarkMode(isDark: Boolean) {}

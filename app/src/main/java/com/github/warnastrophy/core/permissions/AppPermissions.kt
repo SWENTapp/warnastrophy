@@ -79,9 +79,11 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
   object MakeEmergencyCall :
       AppPermissions(
           key = "make_emergency_call",
-          Manifest.permission.CALL_PHONE,
+          Manifest.permission.RECORD_AUDIO,
           Manifest.permission.ACCESS_FINE_LOCATION,
       )
+
+  object Microphone : AppPermissions(key = "microphone", Manifest.permission.RECORD_AUDIO)
 
   companion object {
     /** A reusable check for SDK versions, annotated to help the compiler with smart casting. */

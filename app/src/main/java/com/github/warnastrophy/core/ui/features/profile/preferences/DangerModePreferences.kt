@@ -41,12 +41,13 @@ object DangerModePreferencesScreenTestTags {
   const val INACTIVITY_DETECTION_ITEM = "inactivityDetectionItem"
   const val AUTOMATIC_SMS_ITEM = "automaticSmsItem"
   const val AUTOMATIC_CALLS_ITEM = "automaticCallsItem"
-  const val VOICE_CONFIRMATION_ITEM = "voiceConfirmationItem"
+
+  const val MICROPHONE_ACESS = "microphoneAccessItem"
   const val ALERT_MODE_SWITCH = "alertModeSwitch"
   const val INACTIVITY_DETECTION_SWITCH = "inactivitySwitch"
   const val AUTOMATIC_SMS_SWITCH = "automaticSmsSwitch"
   const val AUTOMATIC_CALLS_SWITCH = "automaticCallsSwitch"
-  const val VOICE_CONFIRMATION_SWITCH = "voiceConfirmationSwitch"
+  const val MICROPHONE_ACESS_SWITCH = "microphoneAccessSwitch"
 }
 
 /**
@@ -92,6 +93,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
           PendingAction.TOGGLE_INACTIVITY_DETECTION -> viewModel.inactivityDetectionPermissions
           PendingAction.TOGGLE_AUTOMATIC_SMS -> viewModel.smsPermissions
           PendingAction.TOGGLE_AUTOMATIC_CALLS -> viewModel.callPermissions
+          PendingAction.TOGGLE_MICROPHONE -> viewModel.microphonePermissions
         }
 
     viewModel.onPermissionsRequestStart(action = action)
@@ -174,6 +176,27 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                     enabled = uiState.inactivityDetectionEnabled,
                     isRequestInFlight = uiState.isOsRequestInFlight),
             switchTestTag = DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
+        PreferenceItem(
+            modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACESS),
+            data =
+                PreferenceItemData(
+                    title = stringResource(R.string.danger_mode_microphone_access_title),
+                    description =
+                        stringResource(R.string.danger_mode_microphone_access_description),
+                    checked = uiState.microphoneAccessEnabled,
+                    onCheckedChange = { isChecked ->
+                      viewModel.handlePreferenceChange(
+                          isChecked = isChecked,
+                          permissionResult = uiState.microphonePermissionResult,
+                          onToggle = { viewModel.onMicrophoneToggled(it) },
+                          onPermissionDenied = {
+                            requestPermission(PendingAction.TOGGLE_MICROPHONE)
+                          },
+                          onPermissionPermDenied = { openAppSettings(activity) },
+                      )
+                    },
+                    isRequestInFlight = uiState.isOsRequestInFlight),
+            switchTestTag = DangerModePreferencesScreenTestTags.MICROPHONE_ACESS_SWITCH)
 
         PreferenceItem(
             modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM),
@@ -202,23 +225,6 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
         val orchestrator = remember {
           com.github.warnastrophy.core.data.service.StateManagerService.dangerModeOrchestrator
         }
-
-        PreferenceItem(
-            modifier =
-                Modifier.testTag(DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_ITEM),
-            data =
-                PreferenceItemData(
-                    title = stringResource(R.string.danger_mode_voice_confirmation_title),
-                    description =
-                        stringResource(R.string.danger_mode_voice_confirmation_description),
-                    checked = voiceConfirmationEnabled,
-                    onCheckedChange = { isChecked ->
-                      voiceConfirmationEnabled = isChecked
-                      orchestrator.setVoiceConfirmationEnabled(isChecked)
-                    },
-                    enabled = uiState.inactivityDetectionEnabled,
-                    isRequestInFlight = uiState.isOsRequestInFlight),
-            switchTestTag = DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_SWITCH)
       }
 }
 

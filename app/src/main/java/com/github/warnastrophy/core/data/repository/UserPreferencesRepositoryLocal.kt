@@ -35,6 +35,7 @@ data class DangerModePreferences(
     val inactivityDetection: Boolean,
     val automaticSms: Boolean,
     val automaticCalls: Boolean,
+    val microphoneAccess: Boolean = false
 ) {
   companion object {
     fun default() =
@@ -42,7 +43,8 @@ data class DangerModePreferences(
             alertMode = false,
             inactivityDetection = false,
             automaticSms = false,
-            automaticCalls = false)
+            automaticCalls = false,
+            microphoneAccess = false)
   }
 }
 
@@ -59,6 +61,8 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val AUTOMATIC_SMS_KEY = booleanPreferencesKey("automatic_sms")
     val AUTOMATIC_CALLS_KEY = booleanPreferencesKey("automatic_calls")
     val DARK_MODE_KEY = booleanPreferencesKey("theme_preferences")
+
+    val MICROPHONE_KEY = booleanPreferencesKey("microphone")
 
     // Add more keys for other preferences
   }
@@ -90,6 +94,10 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     dataStore.edit { preferences -> preferences[AUTOMATIC_CALLS_KEY] = enabled }
   }
 
+  override suspend fun setMicrophoneAccess(enabled: Boolean) {
+    dataStore.edit { preferences -> preferences[MICROPHONE_KEY] = enabled }
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     dataStore.edit { preferences -> preferences[DARK_MODE_KEY] = isDark }
   }
@@ -107,10 +115,12 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val inactivityDetection = preferences[INACTIVITY_DETECTION_KEY] ?: false
     val automaticSms = preferences[AUTOMATIC_SMS_KEY] ?: false
     val automaticCalls = preferences[AUTOMATIC_CALLS_KEY] ?: false
+    val microphoneAccess = preferences[MICROPHONE_KEY] ?: false
     val themePreferences = preferences[DARK_MODE_KEY] ?: false
 
     val dangerModePreferences =
-        DangerModePreferences(alertMode, inactivityDetection, automaticSms, automaticCalls)
+        DangerModePreferences(
+            alertMode, inactivityDetection, automaticSms, automaticCalls, microphoneAccess)
     return UserPreferences(dangerModePreferences, themePreferences)
   }
 }
