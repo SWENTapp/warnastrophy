@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 object ConfirmationPopupTestTags {
@@ -73,16 +72,4 @@ fun ConfirmationPopup(
       },
       confirmButton = {},
       dismissButton = {})
-}
-
-@Preview
-@Composable
-fun ConfirmationPopupPreview() {
-  ConfirmationPopup(
-      title = "Delete Item",
-      message = "Are you sure you want to delete this item? This action cannot be undone.",
-      confirmLabel = "Delete",
-      cancelLabel = "Cancel",
-      onConfirm = {},
-      onCancel = {})
 }
