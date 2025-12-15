@@ -1,6 +1,7 @@
 package com.github.warnastrophy
 
 import android.os.Bundle
+import android.os.StrictMode
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -71,6 +72,28 @@ class MainActivity : ComponentActivity() {
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    if (BuildConfig.DEBUG) {
+      StrictMode.setThreadPolicy(
+          StrictMode.ThreadPolicy.Builder()
+              .detectDiskReads()
+              .detectDiskWrites()
+              .detectNetwork()
+              .detectCustomSlowCalls()
+              .penaltyLog()
+              .penaltyFlashScreen() // Visual indicator
+              .build())
+
+      // Add VM policy for memory/resource leaks and untagged sockets
+      StrictMode.setVmPolicy(
+          StrictMode.VmPolicy.Builder()
+              .detectLeakedSqlLiteObjects()
+              .detectLeakedClosableObjects()
+              .detectActivityLeaks()
+              .detectUntaggedSockets()
+              .penaltyLog()
+              .build())
+    }
+
     super.onCreate(savedInstanceState)
     FirebaseApp.initializeApp(this)
 
