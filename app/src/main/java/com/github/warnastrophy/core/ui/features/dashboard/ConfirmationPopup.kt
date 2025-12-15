@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 object ConfirmationPopupTestTags {
   const val DIALOG = "confirmationPopupDialog"
   const val TITLE = "confirmationPopupTitle"
-  const val MESSAGE = "confirmationPopupMessage"
   const val CONFIRM_BUTTON = "confirmationPopupConfirm"
   const val CANCEL_BUTTON = "confirmationPopupCancel"
   const val TITLE_TEXT = "confirmationPopupTitleText"
