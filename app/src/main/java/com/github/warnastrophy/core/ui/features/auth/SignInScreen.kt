@@ -92,11 +92,10 @@ fun SignInScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center) {
-              Text(
-                  modifier = Modifier.size(250.dp).testTag(SignInScreenTestTags.APP_LOGO),
-                  text =
-                      "Application logo placeholder") // To replace with an image when we will have
-              // a logo
+              Image(
+                  painter = painterResource(id = R.drawable.app_logo2),
+                  contentDescription = "App Logo",
+                  modifier = Modifier.size(250.dp).testTag(SignInScreenTestTags.APP_LOGO))
 
               Spacer(modifier = Modifier.height(16.dp))
 
