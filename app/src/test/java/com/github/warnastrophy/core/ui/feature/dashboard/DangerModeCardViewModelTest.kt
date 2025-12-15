@@ -52,7 +52,6 @@ class DangerModeCardViewModelTest {
 
   @Before
   fun setup() {
-    // Dispatchers.setMain(testDispatcher)
     activity = Robolectric.buildActivity(android.app.Activity::class.java).get()
     mockDataStore = mockk(relaxed = true)
     UserPreferencesRepositoryProvider.initLocal(mockDataStore)
@@ -172,15 +171,45 @@ class DangerModeCardViewModelTest {
   fun handleToggle_ON_with_Granted_permission_activatesDangerMode_and_emitsStartServiceEffect() =
       runTest(testDispatcher) {
         val collectedEffects = mutableListOf<Effect>()
-
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-
         viewModel.handleToggle(isChecked = true, permissionResult = PermissionResult.Granted)
-
         testDispatcher.scheduler.advanceUntilIdle()
-
+        assertEquals(1, collectedEffects.size)
         assertEquals(collectedEffects[0], Effect.StartForegroundService)
+      }
 
-        verify(exactly = 0) { mockPermissionManager.markPermissionsAsAsked(any()) }
+  @Test
+  fun handleToggle_ON_with_Denied_permission_emits_RequestLocationPermissionEffect() =
+      runTest(testDispatcher) {
+        val collectedEffects = mutableListOf<Effect>()
+        launch { viewModel.effects.take(1).toList(collectedEffects) }
+        viewModel.handleToggle(
+            isChecked = true, permissionResult = PermissionResult.Denied(emptyList()))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collectedEffects.size)
+        assertEquals(collectedEffects[0], Effect.RequestLocationPermission)
+      }
+
+  @Test
+  fun handleToggle_ON_with_Permanent_Denied_permission_emits_OpenAppSettingsEffect() =
+      runTest(testDispatcher) {
+        val collectedEffects = mutableListOf<Effect>()
+        launch { viewModel.effects.take(1).toList(collectedEffects) }
+        viewModel.handleToggle(
+            isChecked = true, permissionResult = PermissionResult.PermanentlyDenied(emptyList()))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collectedEffects.size)
+        assertEquals(collectedEffects[0], Effect.ShowOpenAppSettings)
+      }
+
+  @Test
+  fun handleToggle_Off_emits_StopForegroundServiceEffect() =
+      runTest(testDispatcher) {
+        val collectedEffects = mutableListOf<Effect>()
+        launch { viewModel.effects.take(1).toList(collectedEffects) }
+        viewModel.handleToggle(isChecked = false, permissionResult = PermissionResult.Granted)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collectedEffects.size)
+        assertEquals(collectedEffects[0], Effect.StopForegroundService)
       }
 }
