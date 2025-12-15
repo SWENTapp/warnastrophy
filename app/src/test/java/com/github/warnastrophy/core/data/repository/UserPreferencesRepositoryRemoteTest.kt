@@ -92,6 +92,8 @@ class UserPreferencesRepositoryRemoteTest {
     assertFalse(result.dangerModePreferences.alertMode)
     assertFalse(result.dangerModePreferences.inactivityDetection)
     assertFalse(result.dangerModePreferences.automaticSms)
+    assertFalse(result.dangerModePreferences.automaticCalls)
+    assertFalse(result.dangerModePreferences.microphoneAccess)
     assertFalse(result.themePreferences)
   }
 
@@ -113,6 +115,8 @@ class UserPreferencesRepositoryRemoteTest {
     assertFalse(result.dangerModePreferences.alertMode)
     assertFalse(result.dangerModePreferences.inactivityDetection)
     assertFalse(result.dangerModePreferences.automaticSms)
+    assertFalse(result.dangerModePreferences.automaticCalls)
+    assertFalse(result.dangerModePreferences.microphoneAccess)
     assertFalse(result.themePreferences)
   }
 
@@ -124,6 +128,7 @@ class UserPreferencesRepositoryRemoteTest {
             "inactivityDetection" to true,
             "automaticSms" to false,
             "automaticCalls" to false,
+            "microphoneAccess" to true,
             "darkMode" to true)
 
     val mockSnapshot = mockk<DocumentSnapshot>()
@@ -145,12 +150,13 @@ class UserPreferencesRepositoryRemoteTest {
     assertTrue(result.dangerModePreferences.inactivityDetection)
     assertFalse(result.dangerModePreferences.automaticSms)
     assertFalse(result.dangerModePreferences.automaticCalls)
+    assertTrue(result.dangerModePreferences.microphoneAccess)
     assertTrue(result.themePreferences)
   }
 
   @Test
   fun `getUserPreferences handles null values in document`() = runTest {
-    val data = mapOf("alertMode" to null, "inactivityDetection" to true)
+    val data = mapOf("alertMode" to null, "inactivityDetection" to true, "microphoneAccess" to null)
 
     val mockSnapshot = mockk<DocumentSnapshot>()
     every { mockSnapshot.exists() } returns true
@@ -169,6 +175,7 @@ class UserPreferencesRepositoryRemoteTest {
     assertFalse(result.dangerModePreferences.alertMode)
     assertTrue(result.dangerModePreferences.inactivityDetection)
     assertFalse(result.dangerModePreferences.automaticSms)
+    assertFalse(result.dangerModePreferences.microphoneAccess)
     assertFalse(result.themePreferences)
   }
 
@@ -253,16 +260,34 @@ class UserPreferencesRepositoryRemoteTest {
   }
 
   @Test
+  fun `setMicrophoneAccess updates field successfully when authenticated`() = runTest {
+    repository.setMicrophoneAccess(true)
+
+    verify { mockDocument.update("microphoneAccess", true) }
+  }
+
+  @Test
+  fun `setMicrophoneAccess does nothing when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setMicrophoneAccess(true)
+
+    verify(exactly = 0) { mockDocument.update(any<String>(), any()) }
+  }
+
+  @Test
   fun `multiple field updates work correctly when authenticated`() = runTest {
     repository.setAlertMode(true)
     repository.setInactivityDetection(false)
     repository.setAutomaticSms(true)
     repository.setDarkMode(false)
+    repository.setMicrophoneAccess(true)
 
     verify { mockDocument.update("alertMode", true) }
     verify { mockDocument.update("inactivityDetection", false) }
     verify { mockDocument.update("automaticSms", true) }
     verify { mockDocument.update("darkMode", false) }
+    verify { mockDocument.update("microphoneAccess", true) }
   }
 
   @Test
@@ -273,6 +298,7 @@ class UserPreferencesRepositoryRemoteTest {
     repository.setInactivityDetection(false)
     repository.setAutomaticSms(true)
     repository.setDarkMode(false)
+    repository.setMicrophoneAccess(true)
 
     verify(exactly = 0) { mockDocument.update(any<String>(), any()) }
     verify(exactly = 0) { mockDocument.set(any<Map<String, Any>>(), any<SetOptions>()) }
@@ -312,6 +338,8 @@ class UserPreferencesRepositoryRemoteTest {
             "alertMode" to true,
             "inactivityDetection" to true,
             "automaticSms" to true,
+            "automaticCalls" to true,
+            "microphoneAccess" to true,
             "darkMode" to true)
 
     val mockSnapshot = mockk<DocumentSnapshot>()
@@ -331,6 +359,8 @@ class UserPreferencesRepositoryRemoteTest {
     assertTrue(result.dangerModePreferences.alertMode)
     assertTrue(result.dangerModePreferences.inactivityDetection)
     assertTrue(result.dangerModePreferences.automaticSms)
+    assertTrue(result.dangerModePreferences.automaticCalls)
+    assertTrue(result.dangerModePreferences.microphoneAccess)
     assertTrue(result.themePreferences)
   }
 
@@ -367,6 +397,9 @@ class UserPreferencesRepositoryRemoteTest {
 
     repository.setDarkMode(true)
     verify { mockDocument.update("darkMode", any()) }
+
+    repository.setMicrophoneAccess(true)
+    verify { mockDocument.update("microphoneAccess", any()) }
   }
 
   @Test

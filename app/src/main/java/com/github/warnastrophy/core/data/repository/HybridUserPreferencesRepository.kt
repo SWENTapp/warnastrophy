@@ -133,6 +133,7 @@ class HybridUserPreferencesRepository(
             setInactivityDetection(remotePrefs.dangerModePreferences.inactivityDetection)
             setAutomaticSms(remotePrefs.dangerModePreferences.automaticSms)
             setDarkMode(remotePrefs.themePreferences)
+            setMicrophoneAccess(remotePrefs.dangerModePreferences.microphoneAccess)
           }
         }
         isRemoteAvailable = true

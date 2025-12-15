@@ -69,6 +69,7 @@ class UserPreferencesRepositoryLocalTest {
       assertEquals(alertModeValue, preferences.dangerModePreferences.alertMode)
       assertFalse(preferences.dangerModePreferences.inactivityDetection)
       assertFalse(preferences.dangerModePreferences.automaticSms)
+      assertFalse(preferences.dangerModePreferences.microphoneAccess)
     }
   }
 
@@ -84,6 +85,7 @@ class UserPreferencesRepositoryLocalTest {
       assertFalse(preferences.dangerModePreferences.alertMode)
       assertFalse(preferences.dangerModePreferences.automaticSms)
       assertFalse(preferences.themePreferences)
+      assertFalse(preferences.dangerModePreferences.microphoneAccess)
     }
   }
 
@@ -98,6 +100,7 @@ class UserPreferencesRepositoryLocalTest {
       assertFalse(preferences.dangerModePreferences.alertMode)
       assertFalse(preferences.dangerModePreferences.inactivityDetection)
       assertFalse(preferences.themePreferences)
+      assertFalse(preferences.dangerModePreferences.microphoneAccess)
     }
   }
 
@@ -112,6 +115,7 @@ class UserPreferencesRepositoryLocalTest {
       assertFalse(preferences.dangerModePreferences.alertMode)
       assertFalse(preferences.dangerModePreferences.inactivityDetection)
       assertFalse(preferences.themePreferences)
+      assertFalse(preferences.dangerModePreferences.microphoneAccess)
     }
   }
 
@@ -127,16 +131,19 @@ class UserPreferencesRepositoryLocalTest {
     assertTrue(intermediatePrefs.dangerModePreferences.inactivityDetection)
     assertFalse(intermediatePrefs.dangerModePreferences.automaticSms)
     assertTrue(intermediatePrefs.themePreferences)
+    assertFalse(intermediatePrefs.dangerModePreferences.microphoneAccess)
 
     repository.setAutomaticSms(true)
     repository.setAlertMode(false)
     repository.setDarkMode(false)
+    repository.setMicrophoneAccess(true)
 
     val finalPrefs = repository.getUserPreferences.first()
 
     assertFalse(finalPrefs.dangerModePreferences.alertMode)
     assertTrue(finalPrefs.dangerModePreferences.inactivityDetection)
     assertTrue(finalPrefs.dangerModePreferences.automaticSms)
+    assertTrue(finalPrefs.dangerModePreferences.microphoneAccess)
     assertFalse(finalPrefs.themePreferences)
   }
 
@@ -154,6 +161,8 @@ class UserPreferencesRepositoryLocalTest {
     assertFalse(preferences.dangerModePreferences.inactivityDetection)
     assertFalse(preferences.dangerModePreferences.automaticSms)
     assertFalse(preferences.dangerModePreferences.automaticCalls)
+    assertFalse(preferences.dangerModePreferences.microphoneAccess)
+
     assertFalse(preferences.themePreferences)
   }
 

@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.profile.preferences
 
+import android.content.Context
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.assertIsDisplayed
@@ -15,7 +16,14 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
+import com.github.warnastrophy.core.data.service.DangerModeOrchestrator
+import com.github.warnastrophy.core.data.service.DangerModeService
+import com.github.warnastrophy.core.data.service.GpsService
+import com.github.warnastrophy.core.data.service.HazardsDataService
+import com.github.warnastrophy.core.data.service.MovementService
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.permissions.PermissionResult
+import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.components.FALLBACK_ACTIVITY_ERROR
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreenTestTags
@@ -24,6 +32,7 @@ import com.github.warnastrophy.core.ui.features.profile.preferences.PendingActio
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.util.MockUserPreferencesRepository
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
@@ -41,9 +50,23 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
 
   @Before
   override fun setUp() {
+    val ctx: Context = mockk(relaxed = true)
     super.setUp()
     mockPermissionManager = MockPermissionManager()
     userPreferencesRepository = MockUserPreferencesRepository()
+    val dangerModeService = mockk<DangerModeService>(relaxed = true)
+    val mouvementServiceMock = mockk<MovementService>(relaxed = true)
+    val errorHandlerMock = mockk<ErrorHandler>(relaxed = true)
+    val gpsServiceMock = mockk<GpsService>(relaxed = true)
+    val hazardServicemock = mockk<HazardsDataService>(relaxed = true)
+    val dangerModeOrchestrator = mockk<DangerModeOrchestrator>(relaxed = true)
+    StateManagerService.init(
+        gpsServiceMock,
+        hazardServicemock,
+        dangerModeService,
+        mouvementServiceMock,
+        errorHandlerMock,
+        dangerModeOrchestrator)
   }
 
   /** Helper function to set the content of the test rule with a configured ViewModel. */
@@ -67,6 +90,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
         .performScrollToNode(hasTestTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM))
   }
 
+  private fun scrollToMicrophoneAccess() {
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.SCROLL_CONTAINER)
+        .performScrollToNode(hasTestTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS))
+  }
+
   /** Applies a given [PermissionResult] to the view model. */
   private fun applyPerm(permissionResult: PermissionResult) {
     mockPermissionManager.setPermissionResult(permissionResult)
@@ -87,6 +116,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsOff()
     scrollToAutomaticCalls()
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsOff()
+    nodeWithTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS_SWITCH).assertIsOff()
   }
 
   /** Verifies that a fallback error message is shown when the context is not an Activity. */
@@ -120,6 +150,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
     scrollToAutomaticCalls()
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS_SWITCH).assertIsNotEnabled()
   }
 
   @Test
@@ -135,6 +166,7 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH).assertIsNotEnabled()
     scrollToAutomaticCalls()
     nodeWithTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH).assertIsNotEnabled()
+    nodeWithTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS_SWITCH).assertIsNotEnabled()
   }
 
   /**
@@ -283,6 +315,33 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     scrollToAutomaticCalls()
     toggleSwitch(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_SWITCH) {
       viewModel.uiState.value.automaticCallsEnabled
+    }
+  }
+
+  @Test
+  fun microphoneAccessToggle_requestsPermission_whenNotGranted() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH,
+        { viewModel.uiState.value.inactivityDetectionEnabled })
+
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+
+    // Simulate toggle the switch
+    nodeWithTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS_SWITCH)
+        .assertIsEnabled()
+        .assertIsOff()
+
+    applyPerm(PermissionResult.Granted)
+
+    scrollToMicrophoneAccess()
+    toggleSwitch(DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS_SWITCH) {
+      viewModel.uiState.value.microphoneAccessEnabled
     }
   }
 

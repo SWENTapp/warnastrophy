@@ -135,12 +135,14 @@ object StateManagerService {
       hazardsService: HazardsDataService,
       dangerModeService: DangerModeService,
       movementService: MovementService? = null,
-      errorHandler: ErrorHandler = ErrorHandler()
+      errorHandler: ErrorHandler = ErrorHandler(),
+      dangerModeOrchestrator: DangerModeOrchestrator? = null
   ) {
     this.gpsService = gpsService
     this.hazardsService = hazardsService
     this.dangerModeService = dangerModeService
     this.errorHandler = errorHandler
+    if (dangerModeOrchestrator != null) this.dangerModeOrchestrator = dangerModeOrchestrator
     if (movementService != null) {
       this.movementService = movementService
     }

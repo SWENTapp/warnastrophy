@@ -37,7 +37,8 @@ class HybridUserPreferencesRepositoryTest {
                   alertMode = true,
                   inactivityDetection = true,
                   automaticSms = true,
-                  automaticCalls = false),
+                  automaticCalls = false,
+                  microphoneAccess = false),
           themePreferences = true)
 
   @Before
@@ -52,11 +53,13 @@ class HybridUserPreferencesRepositoryTest {
     coEvery { mockLocal.setInactivityDetection(any()) } just Runs
     coEvery { mockLocal.setAutomaticSms(any()) } just Runs
     coEvery { mockLocal.setDarkMode(any()) } just Runs
+    coEvery { mockLocal.setMicrophoneAccess(any()) } just Runs
 
     coEvery { mockRemote.setAlertMode(any()) } just Runs
     coEvery { mockRemote.setInactivityDetection(any()) } just Runs
     coEvery { mockRemote.setAutomaticSms(any()) } just Runs
     coEvery { mockRemote.setDarkMode(any()) } just Runs
+    coEvery { mockRemote.setMicrophoneAccess(any()) } just Runs
 
     repository = HybridUserPreferencesRepository(mockLocal, mockRemote)
   }
@@ -85,7 +88,8 @@ class HybridUserPreferencesRepositoryTest {
                     alertMode = true,
                     inactivityDetection = false,
                     automaticSms = true,
-                    automaticCalls = false),
+                    automaticCalls = false,
+                    microphoneAccess = false),
             themePreferences = false)
 
     every { mockLocal.getUserPreferences } returns flowOf(defaultPreferences)
@@ -98,6 +102,7 @@ class HybridUserPreferencesRepositoryTest {
       mockLocal.setInactivityDetection(false)
       mockLocal.setAutomaticSms(true)
       mockLocal.setDarkMode(false)
+      mockLocal.setMicrophoneAccess(false)
     }
   }
 
@@ -214,6 +219,13 @@ class HybridUserPreferencesRepositoryTest {
     repository.setDarkMode(false)
 
     coVerify { mockLocal.setDarkMode(false) }
+  }
+
+  @Test
+  fun `setMicrophoneAccess updates both repositories when available`() = runTest {
+    repository.setMicrophoneAccess(true)
+    coVerify { mockLocal.setMicrophoneAccess(true) }
+    coVerify { mockRemote.setMicrophoneAccess(true) }
   }
 
   @Test

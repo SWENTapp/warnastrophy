@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.util.findActivity
 import com.github.warnastrophy.core.util.openAppSettings
@@ -42,12 +43,12 @@ object DangerModePreferencesScreenTestTags {
   const val AUTOMATIC_SMS_ITEM = "automaticSmsItem"
   const val AUTOMATIC_CALLS_ITEM = "automaticCallsItem"
 
-  const val MICROPHONE_ACESS = "microphoneAccessItem"
+  const val MICROPHONE_ACCESS = "microphoneAccessItem"
   const val ALERT_MODE_SWITCH = "alertModeSwitch"
   const val INACTIVITY_DETECTION_SWITCH = "inactivitySwitch"
   const val AUTOMATIC_SMS_SWITCH = "automaticSmsSwitch"
   const val AUTOMATIC_CALLS_SWITCH = "automaticCallsSwitch"
-  const val MICROPHONE_ACESS_SWITCH = "microphoneAccessSwitch"
+  const val MICROPHONE_ACCESS_SWITCH = "microphoneAccessSwitch"
 }
 
 /**
@@ -177,7 +178,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                     isRequestInFlight = uiState.isOsRequestInFlight),
             switchTestTag = DangerModePreferencesScreenTestTags.AUTOMATIC_SMS_SWITCH)
         PreferenceItem(
-            modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACESS),
+            modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS),
             data =
                 PreferenceItemData(
                     title = stringResource(R.string.danger_mode_microphone_access_title),
@@ -195,8 +196,9 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                           onPermissionPermDenied = { openAppSettings(activity) },
                       )
                     },
+                    enabled = uiState.inactivityDetectionEnabled,
                     isRequestInFlight = uiState.isOsRequestInFlight),
-            switchTestTag = DangerModePreferencesScreenTestTags.MICROPHONE_ACESS_SWITCH)
+            switchTestTag = DangerModePreferencesScreenTestTags.MICROPHONE_ACCESS_SWITCH)
 
         PreferenceItem(
             modifier = Modifier.testTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM),
@@ -222,9 +224,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
 
         // Voice confirmation - uses local state, not persisted
         var voiceConfirmationEnabled by remember { mutableStateOf(false) }
-        val orchestrator = remember {
-          com.github.warnastrophy.core.data.service.StateManagerService.dangerModeOrchestrator
-        }
+        val orchestrator = remember { StateManagerService.dangerModeOrchestrator }
       }
 }
 
