@@ -37,6 +37,7 @@ class EndToEndM1Test : EndToEndUtils() {
 
     UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
     StateManagerService.init(context)
+    composeTestRule.runOnUiThread { StateManagerService.init(context) }
     contactRepository = ContactRepositoryProvider.repository
     activityRepository = StateManagerService.activityRepository
   }
@@ -44,7 +45,7 @@ class EndToEndM1Test : EndToEndUtils() {
   @After
   override fun tearDown() {
     super.tearDown()
-    StateManagerService.shutdown()
+    composeTestRule.runOnUiThread { StateManagerService.shutdown() }
   }
 
   @Test

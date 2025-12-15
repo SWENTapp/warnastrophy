@@ -22,7 +22,7 @@ class EndToEndM2Test : EndToEndUtils() {
     val context = composeTestRule.activity.applicationContext
     ContactRepositoryProvider.initLocal(context)
     UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
-    StateManagerService.init(context)
+    composeTestRule.runOnUiThread { StateManagerService.init(context) }
     contactRepository = ContactRepositoryProvider.repository
     HealthCardRepositoryProvider.useLocalEncrypted(context)
   }
@@ -30,7 +30,7 @@ class EndToEndM2Test : EndToEndUtils() {
   @After
   override fun tearDown() {
     super.tearDown()
-    StateManagerService.shutdown()
+    composeTestRule.runOnUiThread { StateManagerService.shutdown() }
   }
 
   @Test

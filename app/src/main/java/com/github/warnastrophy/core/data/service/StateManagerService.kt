@@ -52,6 +52,8 @@ object StateManagerService {
   lateinit var dangerModeService: DangerModeService
   lateinit var movementService: MovementService
   lateinit var dangerModeOrchestrator: DangerModeOrchestrator
+  lateinit var speechToTextService: SpeechToTextServiceInterface
+  lateinit var textToSpeechService: TextToSpeechServiceInterface
   private val _activeHazardFlow = MutableStateFlow<Hazard?>(null)
 
   private val dangerModeScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -124,6 +126,10 @@ object StateManagerService {
     dangerModeOrchestrator.initialize(context)
     dangerModeOrchestrator.startMonitoring()
 
+    // Initialize speech services for voice communication
+    speechToTextService = SpeechToTextService(appContext, errorHandler)
+    textToSpeechService = TextToSpeechService(appContext, errorHandler)
+
     startHazardSubscription()
 
     initialized = true
@@ -172,6 +178,13 @@ object StateManagerService {
     gpsService.stopLocationUpdates()
     hazardsService.close()
     dangerModeService.close()
+    // Cleanup speech services
+    if (::speechToTextService.isInitialized) {
+      speechToTextService.destroy()
+    }
+    if (::textToSpeechService.isInitialized) {
+      textToSpeechService.destroy()
+    }
     stopForegroundGpsService(appContext)
   }
 
