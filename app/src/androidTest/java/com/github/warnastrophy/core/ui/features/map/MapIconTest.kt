@@ -3,7 +3,9 @@ package com.github.warnastrophy.core.ui.features.map
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -62,7 +64,7 @@ class MapIconTest : BaseAndroidComposeTest() {
 
     composeTestRule.setContent {
       hazard.value?.let {
-        HazardMarker(it, markerContent = { _, _, _, content -> Box { content() } })
+        HazardMarker(it, markerContent = { _, _, _, _, _, content -> Box { content() } })
       }
     }
 
@@ -196,7 +198,7 @@ class MapIconTest : BaseAndroidComposeTest() {
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          markerContent = { _, title, snippet, _ ->
+          markerContent = { _, title, snippet, _, _, _ ->
             HazardInfoWindowContent(
                 hazard = hazard,
                 title = title,
@@ -235,7 +237,7 @@ class MapIconTest : BaseAndroidComposeTest() {
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          markerContent = { _, title, snippet, content ->
+          markerContent = { _, title, snippet, _, _, content ->
             receivedTitle = title
             receivedSnippet = snippet
             Box { content() }
@@ -296,5 +298,79 @@ class MapIconTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithText("Tap this bubble to open the full news article")
         .assertIsDisplayed()
+  }
+
+  @Test
+  fun hazardMarker_polygonHiddenWhenClickingOutside() {
+    // Create a test polygon geometry
+    val polygonGeoJson =
+        """
+        {
+          "type": "Polygon",
+          "coordinates": [[
+            [10.0, 10.0],
+            [10.0, 11.0],
+            [11.0, 11.0],
+            [11.0, 10.0],
+            [10.0, 10.0]
+          ]]
+        }
+        """
+            .trimIndent()
+
+    val affectedZone =
+        com.github.warnastrophy.core.util.GeometryParser.convertRawGeoJsonGeometryToJTS(
+            polygonGeoJson)
+
+    val hazard =
+        Hazard(
+            id = 456,
+            type = "EQ",
+            description = "Test earthquake",
+            country = null,
+            date = null,
+            severity = 6.5,
+            severityUnit = "M",
+            articleUrl = null,
+            alertLevel = 3.0,
+            bbox = null,
+            centroid = null,
+            affectedZone = affectedZone)
+
+    // Track state with external control (simulating Map's selectedMarkerId)
+    var selectedMarkerId by mutableStateOf<Int?>(null)
+    var capturedShowPolygon = false
+
+    composeTestRule.setContent {
+      HazardMarker(
+          hazard = hazard,
+          selectedMarkerId = selectedMarkerId,
+          onMarkerSelected = { selectedMarkerId = it },
+          markerContent = { _, _, _, showPolygon, _, content ->
+            capturedShowPolygon = showPolygon
+            Box { content() }
+          })
+    }
+
+    composeTestRule.waitForIdle()
+
+    // Initially, polygon should not be shown
+    TestCase.assertFalse("Polygon should not be shown initially", capturedShowPolygon)
+
+    // Simulate marker selection
+    selectedMarkerId = hazard.id
+
+    composeTestRule.waitForIdle()
+
+    // After selection, polygon should be shown
+    TestCase.assertTrue("Polygon should be shown after marker is selected", capturedShowPolygon)
+
+    // Simulate clicking outside (clearing selection)
+    selectedMarkerId = null
+
+    composeTestRule.waitForIdle()
+
+    // After clicking outside, polygon should be hidden again
+    TestCase.assertFalse("Polygon should be hidden after clicking outside", capturedShowPolygon)
   }
 }

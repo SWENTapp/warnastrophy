@@ -20,6 +20,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -145,14 +149,24 @@ fun getSeverityColor(hazard: Hazard): Color {
 @Composable
 fun HazardMarker(
     hazard: Hazard,
+    selectedMarkerId: Int? = null,
+    onMarkerSelected: (Int?) -> Unit = {},
     markerContent:
         @Composable
         (
             state: MarkerState,
             title: String?,
             snippet: String?,
+            showPolygon: Boolean,
+            onMarkerClick: () -> Unit,
             content: @Composable () -> Unit) -> Unit =
-        { state, title, snippet, _ /* we ignore content here for default impl */ ->
+        {
+            state,
+            title,
+            snippet,
+            showPolygon,
+            onMarkerClick,
+            _ /* we ignore content here for default impl */ ->
           val ctx = LocalContext.current
           val severityTint = getSeverityColor(hazard)
           val iconRes = hazardTypeToDrawableRes(hazard.type)
@@ -162,9 +176,27 @@ fun HazardMarker(
                     context = ctx, vectorResId = it, sizeDp = 32f, tintColor = severityTint)
               }
 
+          // Display polygon only when marker is selected (info window showing)
+          if (showPolygon) {
+            val affectedZone: List<Location>? =
+                hazard.affectedZone?.let { nonNullGeometry ->
+                  GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
+                }
+
+            affectedZone?.let { locations ->
+              if (locations.size > 1) {
+                val polygonCoords = locations.map { location -> Location.toLatLng(location) }
+                PolygonWrapper(polygonCoords)
+              }
+            }
+          }
+
           MarkerInfoWindow(
               state = state,
-              onClick = { false }, // keep default behaviour
+              onClick = {
+                onMarkerClick()
+                false // keep default behaviour
+              },
               icon = markerIcon,
               onInfoWindowClick = { openWebPage(ctx, hazard.articleUrl) }) {
                 HazardInfoWindowContent(hazard = hazard, title = title, snippet = snippet)
@@ -175,34 +207,25 @@ fun HazardMarker(
   val markerLocation =
       hazard.centroid?.centroid?.let { point -> Location(point.y, point.x) } ?: Location(0.0, 0.0)
 
-  val affectedZone: List<Location>? =
-      hazard.affectedZone?.let { nonNullGeometry ->
-        // 'nonNullGeometry' inside the 'let' block is now guaranteed to be 'Geometry' (non-null)
-        GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
+  val markerState = rememberMarkerState(position = Location.toLatLng(markerLocation))
+
+  // If selectedMarkerId is provided, use it to determine if this marker should show polygon
+  // Otherwise, maintain local state for backward compatibility
+  val showPolygon =
+      if (onMarkerSelected !== {}) {
+        selectedMarkerId == hazard.id
+      } else {
+        remember { mutableStateOf(false) }.value
       }
+
   val snippet: String? = formatSeveritySnippet(hazard)
-
-  affectedZone?.let { locations ->
-    if (locations.size > 1) {
-      val polygonCoords = locations.map { location -> Location.toLatLng(location) }
-
-      PolygonWrapper(polygonCoords)
-    } else {
-      // Fallback for empty polygon.
-      // This branch is unlikely if hazard.affectedZone exists.
-      // Log or handle this case as an anomaly if necessary.
-    }
-  }
   val severityTint = getSeverityColor(hazard)
 
   markerContent(
-      rememberMarkerState(position = Location.toLatLng(markerLocation)),
-      hazard.description,
-      snippet,
-  ) {
-    val icon: MapIcon = hazardTypeToMapIcon(hazard.type)
-    icon(tint = severityTint)
-  }
+      markerState, hazard.description, snippet, showPolygon, { onMarkerSelected(hazard.id) }) {
+        val icon: MapIcon = hazardTypeToMapIcon(hazard.type)
+        icon(tint = severityTint)
+      }
 }
 
 /**
