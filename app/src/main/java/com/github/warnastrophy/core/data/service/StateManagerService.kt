@@ -12,7 +12,6 @@ import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.ui.common.ErrorHandler
-import com.github.warnastrophy.core.util.stopForegroundGpsService
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +37,6 @@ import kotlinx.coroutines.launch
  *    services when the user enters a dangerous zone.
  */
 object StateManagerService {
-  private lateinit var appContext: Context
   private var initialized = false
   private val serviceScope = CoroutineScope(Dispatchers.IO)
   private val hazardCheckerScope = CoroutineScope(Dispatchers.Main)
@@ -88,7 +86,6 @@ object StateManagerService {
 
   fun init(context: Context) {
     if (initialized) return
-    this.appContext = context.applicationContext
 
     val locationClient = LocationServices.getFusedLocationProviderClient(context)
 
@@ -168,7 +165,6 @@ object StateManagerService {
     gpsService.stopLocationUpdates()
     hazardsService.close()
     dangerModeService.close()
-    stopForegroundGpsService(appContext)
   }
 
   /**
