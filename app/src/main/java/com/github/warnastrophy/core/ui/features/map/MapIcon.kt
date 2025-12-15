@@ -20,10 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -143,71 +141,65 @@ fun getSeverityColor(hazard: Hazard): Color {
  * Composable function to display a hazard marker on the map.
  *
  * @param hazard The hazard data to be displayed.
- * @param markerContent A composable function mainly to test the marker content, because
- *   MarkerComposable is not directly testable because it's rasterized on the map.
+ * @param selectedMarkerId The ID of the currently selected marker (if any), used to show/hide
+ *   polygon.
+ * @param onMarkerSelected Callback invoked when the marker is selected.
+ * @param onInfoWindowClick Callback invoked when the info window is clicked. If null (default),
+ *   opens the article URL.
+ * @param markerIconProvider Injectable function for creating the marker icon, allows testing
+ *   without GoogleMap. If null (default), uses bitmapDescriptorFromVector.
+ * @param polygonContent Injectable composable for rendering the polygon, allows testing without
+ *   GoogleMap.
+ * @param markerInfoWindowContent Injectable composable for the marker info window, allows testing
+ *   without GoogleMap.
+ * @param iconContent Injectable composable for the icon content, allows testing without GoogleMap.
  */
 @Composable
 fun HazardMarker(
     hazard: Hazard,
     selectedMarkerId: Int? = null,
     onMarkerSelected: (Int?) -> Unit = {},
-    markerContent:
+    onInfoWindowClick: (() -> Unit)? = null,
+    markerIconProvider: ((Context, Int, Float, Color) -> BitmapDescriptor?)? = null,
+    polygonContent: @Composable (polygonCoords: List<LatLng>) -> Unit = { coords ->
+      PolygonWrapper(coords)
+    },
+    markerInfoWindowContent:
         @Composable
         (
             state: MarkerState,
-            title: String?,
-            snippet: String?,
-            showPolygon: Boolean,
+            icon: BitmapDescriptor?,
             onMarkerClick: () -> Unit,
+            onInfoWindowClick: () -> Unit,
             content: @Composable () -> Unit) -> Unit =
-        {
-            state,
-            title,
-            snippet,
-            showPolygon,
-            onMarkerClick,
-            _ /* we ignore content here for default impl */ ->
-          val ctx = LocalContext.current
-          val severityTint = getSeverityColor(hazard)
-          val iconRes = hazardTypeToDrawableRes(hazard.type)
-          val markerIcon: BitmapDescriptor? =
-              iconRes?.let {
-                bitmapDescriptorFromVector(
-                    context = ctx, vectorResId = it, sizeDp = 32f, tintColor = severityTint)
-              }
-
-          // Display polygon only when marker is selected (info window showing)
-          if (showPolygon) {
-            val affectedZone: List<Location>? =
-                hazard.affectedZone?.let { nonNullGeometry ->
-                  GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
-                }
-
-            affectedZone?.let { locations ->
-              if (locations.size > 1) {
-                val polygonCoords = locations.map { location -> Location.toLatLng(location) }
-                PolygonWrapper(polygonCoords)
-              }
-            }
-          }
-
+        { state, icon, onMarkerClick, infoWindowClick, content ->
           MarkerInfoWindow(
               state = state,
               onClick = {
                 onMarkerClick()
                 false // keep default behaviour
               },
-              icon = markerIcon,
-              onInfoWindowClick = { openWebPage(ctx, hazard.articleUrl) }) {
-                HazardInfoWindowContent(hazard = hazard, title = title, snippet = snippet)
-              }
-        }
+              icon = icon,
+              onInfoWindowClick = { infoWindowClick() },
+              content = { content() })
+        },
+    iconContent: @Composable (icon: MapIcon, tint: Color) -> Unit = { icon, tint -> icon(tint) }
 ) {
+  val ctx = LocalContext.current
+
   // The markerLocation is the centroid of the geometry.
   val markerLocation =
       hazard.centroid?.centroid?.let { point -> Location(point.y, point.x) } ?: Location(0.0, 0.0)
 
-  val markerState = rememberMarkerState(position = Location.toLatLng(markerLocation))
+  // Only create markerState when not in test mode (markerIconProvider null means production)
+  // In test mode, we'll create a fake MarkerState that won't be used
+  val markerState =
+      if (markerIconProvider == null) {
+        rememberMarkerState(position = Location.toLatLng(markerLocation))
+      } else {
+        // Test mode: create a minimal MarkerState without Google Maps
+        remember { MarkerState(position = LatLng(0.0, 0.0)) }
+      }
 
   // If selectedMarkerId is provided, use it to determine if this marker should show polygon
   // Otherwise, maintain local state for backward compatibility
@@ -220,11 +212,42 @@ fun HazardMarker(
 
   val snippet: String? = formatSeveritySnippet(hazard)
   val severityTint = getSeverityColor(hazard)
+  val iconRes = hazardTypeToDrawableRes(hazard.type)
 
-  markerContent(
-      markerState, hazard.description, snippet, showPolygon, { onMarkerSelected(hazard.id) }) {
-        val icon: MapIcon = hazardTypeToMapIcon(hazard.type)
-        icon(tint = severityTint)
+  // Use the injectable markerIconProvider if provided, otherwise use the default
+  // bitmapDescriptorFromVector
+  val markerIcon: BitmapDescriptor? =
+      iconRes?.let { res ->
+        if (markerIconProvider != null) {
+          markerIconProvider(ctx, res, 32f, severityTint)
+        } else {
+          bitmapDescriptorFromVector(
+              context = ctx, vectorResId = res, sizeDp = 32f, tintColor = severityTint)
+        }
+      }
+
+  // Display polygon only when marker is selected (info window showing)
+  if (showPolygon) {
+    val affectedZone: List<Location>? =
+        hazard.affectedZone?.let { nonNullGeometry ->
+          GeometryParser.jtsGeometryToLatLngList(nonNullGeometry)
+        }
+
+    affectedZone?.let { locations ->
+      if (locations.size > 1) {
+        val polygonCoords = locations.map { location -> Location.toLatLng(location) }
+        polygonContent(polygonCoords)
+      }
+    }
+  }
+
+  // Determine the callback for info window click: use custom if provided, otherwise open web page
+  val infoWindowClickCallback = onInfoWindowClick ?: { openWebPage(ctx, hazard.articleUrl) }
+
+  markerInfoWindowContent(
+      markerState, markerIcon, { onMarkerSelected(hazard.id) }, infoWindowClickCallback) {
+        HazardInfoWindowContent(hazard = hazard, title = hazard.description, snippet = snippet)
+        iconContent(hazardTypeToMapIcon(hazard.type), severityTint)
       }
 }
 
