@@ -8,7 +8,9 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import io.mockk.every
@@ -32,6 +34,8 @@ class EndToEndM1Test : EndToEndUtils() {
     every { themeViewModel.isDarkMode } returns mockk(relaxed = true)
 
     ContactRepositoryProvider.initLocal(context)
+
+    UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
     StateManagerService.init(context)
     contactRepository = ContactRepositoryProvider.repository
     activityRepository = StateManagerService.activityRepository
