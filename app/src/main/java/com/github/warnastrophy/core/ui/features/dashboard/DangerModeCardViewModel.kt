@@ -134,7 +134,7 @@ class DangerModeCardViewModel(
    * @param context The context used to start or stop the GPS service.
    */
   fun onDangerModeToggled(enabled: Boolean) {
-    if (enabled && _alertModeUiState.value.alertModePermissionResult is PermissionResult.Granted) {
+    if (enabled) {
       dangerModeService.manualActivate()
       emitEffect(Effect.StartForegroundService)
     } else {
@@ -206,7 +206,7 @@ class DangerModeCardViewModel(
   }
 
   private fun emitEffect(effect: Effect) {
-    viewModelScope.launch { _effects.emit(effect) }
+    viewModelScope.launch(dispatcher) { _effects.emit(effect) }
   }
 
   fun onPermissionsRequestStart() {
@@ -220,7 +220,6 @@ class DangerModeCardViewModel(
       permissionManager.markPermissionsAsAsked(alertModePermission)
       if (newAlertModeResult is PermissionResult.Granted) {
         onDangerModeToggled(true)
-        Log.d("onPermRes", "permission is granted after dialog")
       }
     }
     _alertModeUiState.update { it.copy(waitingForUserResponse = false) }
@@ -236,14 +235,12 @@ class DangerModeCardViewModel(
     if (isChecked) {
       when (permissionResult) {
         PermissionResult.Granted -> {
-          Log.d("handleToggle", "permission is granted")
           onDangerModeToggled(true)
         }
         is PermissionResult.Denied -> emitEffect(Effect.RequestLocationPermission)
         is PermissionResult.PermanentlyDenied -> emitEffect(Effect.ShowOpenAppSettings)
       }
     } else {
-      Log.d("handleToggle", "permission is granted")
       onDangerModeToggled(false)
     }
   }

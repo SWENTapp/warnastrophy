@@ -112,7 +112,6 @@ object StateManagerService {
         MovementService(
             MovementSensorRepository(context), dangerModeStateFlow = dangerModeService.state)
     movementService.startListening()
-    // startForegroundGpsService(appContext)
 
     dangerModeOrchestrator =
         DangerModeOrchestrator(
