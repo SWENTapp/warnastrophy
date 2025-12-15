@@ -31,12 +31,30 @@ enum class DangerModeCapability(val label: String) {
   SMS("SMS"),
 }
 
+/**
+ * Represents the entire state of the Alert Mode feature in the UI at any given time.
+ *
+ * @property alertModeManualEnabled True if the user has manually toggled the feature ON/OFF. This
+ *   controls the primary switch state on the screen.
+ * @property alertModePermissionResult The current permission status related to running the Alert
+ *   Mode feature.
+ * @property waitingForUserResponse True if the ViewModel is waiting for an asynchronous response
+ *   from the system or the user.
+ */
 data class AlertModeUiState(
     val alertModeManualEnabled: Boolean = false,
     val alertModePermissionResult: PermissionResult,
     val waitingForUserResponse: Boolean = false
 )
 
+/**
+ * Represents one-time, non-repeatable side effects that must be executed by the UI layer. They are
+ * typically used for:
+ * 1. Navigation.
+ * 2. Displaying Toast messages or Dialogs.
+ * 3. Starting/Stopping services.
+ * 4. Requesting system permissions.
+ */
 sealed interface Effect {
   object RequestLocationPermission : Effect
 
@@ -131,7 +149,6 @@ class DangerModeCardViewModel(
    * accordingly.
    *
    * @param enabled True to enable Danger Mode, false to disable it.
-   * @param context The context used to start or stop the GPS service.
    */
   fun onDangerModeToggled(enabled: Boolean) {
     if (enabled) {
@@ -205,14 +222,32 @@ class DangerModeCardViewModel(
     // TODO: Persist & enforce voice confirmation before actions.
   }
 
+  /**
+   * Emits a one-time side effect to the UI.
+   *
+   * This function launches a coroutine on the specified [dispatcher] within the ViewModel's
+   * lifecycle scope.
+   *
+   * The effect is emitted via the [_effects] SharedFlow, allowing the UI layer to collect it once
+   * and then discard the event, preventing replays on configuration changes.
+   *
+   * @param effect The specific [Effect] to be emitted to the collector (typically the UI/Fragment).
+   */
   private fun emitEffect(effect: Effect) {
     viewModelScope.launch(dispatcher) { _effects.emit(effect) }
   }
 
+  /** Records that a permission request has been initiated by update UIState. */
   fun onPermissionsRequestStart() {
     _alertModeUiState.update { it.copy(waitingForUserResponse = true) }
   }
 
+  /**
+   * Updates the permission results in the UI state after the user has responded to a system
+   * permission dialog.
+   *
+   * @param activity The current `Activity`, required to check the latest permission statuses.
+   */
   fun onPermissionResult(activity: android.app.Activity) {
     val newAlertModeResult = permissionManager.getPermissionResult(alertModePermission, activity)
     _alertModeUiState.update { it.copy(alertModePermissionResult = newAlertModeResult) }
