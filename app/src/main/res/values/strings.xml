@@ -11,10 +11,9 @@
     <string name="edit_activity_screen_title">Edit Activity</string>
     <string name="add_activity_screen_title">Add Activity</string>
     <string name="activity_list_title">Activities List</string>
-    <string name="health_card_screen_title">Emergency Card</string>
+    <string name="health_card_screen_title">Health Card</string>
     <string name="sign_in_title">Sign In</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
-    <string name="open_article_link">Tap this bubble to open the full news article</string>
 
 
     <!-- Dashboard Strings -->
@@ -168,6 +167,7 @@
     <!-- Open web page  -->
     <string name="invalid_url">Invalid URL</string>
     <string name="no_browser_found">No browser found to open this link.</string>
+    <string name="open_article_link">Tap this bubble to open the full news article</string>
 
     <!-- TTS service -->
     <string name="tts_speech_synthesis_error">There was an error during speech synthesis</string>
