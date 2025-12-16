@@ -5,9 +5,9 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import com.github.warnastrophy.core.data.localStorage.HealthCardStorage
-import com.github.warnastrophy.core.data.localStorage.StorageException
-import com.github.warnastrophy.core.data.localStorage.StorageResult
+import com.github.warnastrophy.core.data.local.HealthCardStorage
+import com.github.warnastrophy.core.data.local.StorageException
+import com.github.warnastrophy.core.data.local.StorageResult
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.components.LoadingTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardStateful

@@ -1,9 +1,9 @@
 package com.github.warnastrophy.core.ui.feature.dashboard
 
 import android.content.Context
-import com.github.warnastrophy.core.data.localStorage.HealthCardStorage
-import com.github.warnastrophy.core.data.localStorage.StorageException
-import com.github.warnastrophy.core.data.localStorage.StorageResult
+import com.github.warnastrophy.core.data.local.HealthCardStorage
+import com.github.warnastrophy.core.data.local.StorageException
+import com.github.warnastrophy.core.data.local.StorageResult
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardUiState
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardHealthCardViewModel

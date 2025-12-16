@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.localStorage
+package com.github.warnastrophy.core.data.local
 
 import com.github.warnastrophy.core.data.repository.HealthCardRepository
 import com.github.warnastrophy.core.data.repository.HybridHealthCardRepository

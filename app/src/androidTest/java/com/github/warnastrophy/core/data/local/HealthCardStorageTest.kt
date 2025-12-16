@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.data.localStorage.HealthCardStorage
-import com.github.warnastrophy.core.data.localStorage.StorageException
-import com.github.warnastrophy.core.data.localStorage.StorageResult
-import com.github.warnastrophy.core.data.localStorage.healthCardDataStore
+import com.github.warnastrophy.core.data.local.HealthCardStorage
+import com.github.warnastrophy.core.data.local.StorageException
+import com.github.warnastrophy.core.data.local.StorageResult
+import com.github.warnastrophy.core.data.local.healthCardDataStore
 import com.github.warnastrophy.core.model.HealthCard
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.gson.Gson

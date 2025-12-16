@@ -1,7 +1,7 @@
 package com.github.warnastrophy.core.data.provider
 
 import android.content.Context
-import com.github.warnastrophy.core.data.localStorage.LocalHealthCardRepository
+import com.github.warnastrophy.core.data.local.LocalHealthCardRepository
 import com.github.warnastrophy.core.data.repository.HealthCardRepository
 import com.github.warnastrophy.core.data.repository.HealthCardRepositoryImpl
 import com.github.warnastrophy.core.data.repository.HybridHealthCardRepository

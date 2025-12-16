@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.data.provider
 
 import android.content.Context
 import com.github.warnastrophy.core.data.interfaces.ActivityRepository
-import com.github.warnastrophy.core.data.localStorage.LocalActivityRepository
+import com.github.warnastrophy.core.data.local.LocalActivityRepository
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 

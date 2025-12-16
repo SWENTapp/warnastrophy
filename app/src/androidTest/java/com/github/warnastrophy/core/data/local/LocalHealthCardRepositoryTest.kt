@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.localStorage
+package com.github.warnastrophy.core.data.local
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
