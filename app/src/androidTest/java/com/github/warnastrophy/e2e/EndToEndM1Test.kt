@@ -36,7 +36,6 @@ class EndToEndM1Test : EndToEndUtils() {
     ContactRepositoryProvider.initLocal(context)
 
     UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
-    StateManagerService.init(context)
     composeTestRule.runOnUiThread { StateManagerService.init(context) }
     contactRepository = ContactRepositoryProvider.repository
     activityRepository = StateManagerService.activityRepository
