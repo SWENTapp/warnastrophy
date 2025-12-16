@@ -6,15 +6,9 @@ import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
-import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
-import com.github.warnastrophy.core.data.service.SpeechToTextServiceInterface
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.data.service.TextToSpeechServiceInterface
-import com.github.warnastrophy.core.data.service.TextToSpeechUiState
-import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.components.CommunicationScreenTags
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.github.warnastrophy.userPrefsDataStore
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -51,14 +45,34 @@ class EndToEndM3Test : EndToEndUtils() {
     composeTestRule.runOnUiThread { StateManagerService.shutdown() }
   }
 
+  /**
+   * Test for the voice confirmation flow:
+   * 1. The screen is displayed with the necessary elements.
+   * 2. The system speaks a confirmation request via Text-to-Speech (TTS).
+   * 3. After the TTS finishes speaking, the system starts listening for user input via
+   *    Speech-to-Text (STT).
+   * 4. The system then processes the user's response ("yes") and speaks the "alert sent"
+   *    confirmation via TTS.
+   *
+   * This test verifies that the TTS and STT interactions work as expected in the voice confirmation
+   * flow:
+   * - TTS should speak the confirmation request.
+   * - After TTS finishes, STT should be triggered and wait for the user's input.
+   * - Once the user provides "yes", the system should respond with the appropriate TTS message
+   *   ("alert sent").
+   *
+   * @see [CommunicationScreenTags.TITLE] to verify the visibility of the title.
+   * @see [CommunicationScreenTags.STATUS_CARD] to verify the visibility of the status card.
+   * @see [R.string.confirmation_request] to check if the confirmation request is spoken by TTS.
+   * @see [R.string.alert_sent] to verify the "alert sent" message is spoken by TTS after receiving
+   *   the "yes" input.
+   */
   @Test
   fun voice_confirmation_flow_tts_then_stt_then_tts_yes() {
     val context = composeTestRule.activity.applicationContext
 
-    // MUST use EndToEndUtils.setContent() (your harness).
     setContent()
 
-    // Force the overlay to appear (WarnastrophyComposable shows CommunicationScreen when true).
     composeTestRule.runOnUiThread { forceShowVoiceConfirmationOverlay() }
 
     // Screen is visible.
@@ -78,110 +92,6 @@ class EndToEndM3Test : EndToEndUtils() {
     // STT returns "yes" -> VM should speak "alert sent".
     composeTestRule.waitUntil(3_000) {
       fakeTts.spokenHistory.contains(context.getString(R.string.alert_sent))
-    }
-  }
-
-  /**
-   * Tries to set a private field on StateManagerService (used to swap services in tests). This
-   * keeps the test E2E-ish while still making STT/TTS deterministic.
-   */
-  private fun setStateManagerServiceField(fieldName: String, value: Any) {
-    runCatching {
-          val field = StateManagerService::class.java.getDeclaredField(fieldName)
-          field.isAccessible = true
-          field.set(StateManagerService, value)
-        }
-        .getOrElse {
-          throw IllegalStateException(
-              "Could not replace StateManagerService.$fieldName. " +
-                  "Expose a test hook or keep the field name stable.",
-              it)
-        }
-  }
-
-  /**
-   * Turns on the danger-mode voice confirmation overlay by mutating the orchestrator's
-   * showVoiceConfirmationScreen flow via reflection.
-   *
-   * Expected shape (typical): val showVoiceConfirmationScreen: StateFlow<Boolean> backed by a
-   * MutableStateFlow<Boolean> inside the orchestrator.
-   */
-  private fun forceShowVoiceConfirmationOverlay() {
-    val orchestrator = StateManagerService.dangerModeOrchestrator
-
-    // 1) Directly try a MutableStateFlow field called "_showVoiceConfirmationScreen"
-    val ok1 =
-        runCatching {
-              val f = orchestrator.javaClass.getDeclaredField("_showVoiceConfirmationScreen")
-              f.isAccessible = true
-              val v = f.get(orchestrator)
-              (v as? MutableStateFlow<Boolean>)?.value = true
-              true
-            }
-            .getOrDefault(false)
-
-    if (ok1) return
-
-    // 2) Try a MutableStateFlow field called "showVoiceConfirmationScreen"
-    val ok2 =
-        runCatching {
-              val f = orchestrator.javaClass.getDeclaredField("showVoiceConfirmationScreen")
-              f.isAccessible = true
-              val v = f.get(orchestrator)
-              (v as? MutableStateFlow<Boolean>)?.value = true
-              true
-            }
-            .getOrDefault(false)
-
-    if (ok2) return
-
-    throw IllegalStateException(
-        "Couldn't force showVoiceConfirmation overlay. " +
-            "Please add a test-only method on dangerModeOrchestrator like triggerVoiceConfirmation().")
-  }
-
-  private class FakeTextToSpeechService : TextToSpeechServiceInterface {
-    private val _uiState = MutableStateFlow(TextToSpeechUiState())
-    override val uiState: StateFlow<TextToSpeechUiState> = _uiState
-
-    val spokenHistory = mutableListOf<String>()
-
-    override fun speak(text: String) {
-      if (text.isBlank()) return
-      spokenHistory += text
-      _uiState.value = _uiState.value.copy(isSpeaking = true, rms = 20f, spokenText = text)
-    }
-
-    fun finishSpeaking() {
-      _uiState.value = _uiState.value.copy(isSpeaking = false, rms = 0f, spokenText = null)
-    }
-
-    override fun destroy() {
-      _uiState.value = TextToSpeechUiState()
-    }
-  }
-
-  private class FakeSpeechToTextService(private val confirmationResult: Boolean) :
-      SpeechToTextServiceInterface {
-    private val _uiState = MutableStateFlow(SpeechRecognitionUiState())
-    override val uiState: StateFlow<SpeechRecognitionUiState> = _uiState
-
-    @Volatile var listenCalled: Boolean = false
-
-    override suspend fun listenForConfirmation(): Boolean {
-      listenCalled = true
-      _uiState.value =
-          SpeechRecognitionUiState(
-              isListening = false,
-              rmsLevel = 0f,
-              recognizedText = if (confirmationResult) "yes" else "no",
-              errorMessage = null,
-              isConfirmed = confirmationResult)
-      return confirmationResult
-    }
-
-    override fun destroy() {
-      _uiState.value = SpeechRecognitionUiState()
     }
   }
 }
