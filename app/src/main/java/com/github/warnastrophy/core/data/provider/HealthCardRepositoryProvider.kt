@@ -5,7 +5,6 @@ import com.github.warnastrophy.core.data.localStorage.LocalHealthCardRepository
 import com.github.warnastrophy.core.data.repository.HealthCardRepository
 import com.github.warnastrophy.core.data.repository.HealthCardRepositoryImpl
 import com.github.warnastrophy.core.data.repository.HybridHealthCardRepository
-import com.github.warnastrophy.core.data.service.DeviceIdProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow

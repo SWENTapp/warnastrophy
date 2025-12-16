@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.service
+package com.github.warnastrophy.core.data.provider
 
 import android.content.Context
 import java.util.UUID

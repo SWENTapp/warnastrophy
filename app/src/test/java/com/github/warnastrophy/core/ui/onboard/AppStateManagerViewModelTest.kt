@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.ui.onboard
 
 import com.github.warnastrophy.core.data.repository.IntroductionRepository
+import com.github.warnastrophy.core.ui.features.onboard.AppStateManagerViewModel
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
