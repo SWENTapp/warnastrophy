@@ -41,6 +41,15 @@ interface UserPreferencesRepository {
    */
   suspend fun setAutomaticCalls(enabled: Boolean)
 
+  /** Enables or disables automatic emergency actions as a whole. */
+  suspend fun setAutoActionsEnabled(enabled: Boolean)
+
+  /** Requires or lifts touch confirmation before running automatic actions. */
+  suspend fun setTouchConfirmationRequired(required: Boolean)
+
+  /** Enables or disables voice confirmation before running automatic actions. */
+  suspend fun setVoiceConfirmationEnabled(enabled: Boolean)
+
   /**
    * Enables or disables dark mode for the app's UI.
    *

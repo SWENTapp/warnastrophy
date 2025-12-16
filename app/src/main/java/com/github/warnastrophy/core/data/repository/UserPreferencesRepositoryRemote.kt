@@ -36,6 +36,9 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     const val FIELD_INACTIVITY_DETECTION = "inactivityDetection"
     const val FIELD_AUTOMATIC_SMS = "automaticSms"
     const val FIELD_AUTOMATIC_CALLS = "automaticCalls"
+    const val FIELD_AUTO_ACTIONS = "autoActionsEnabled"
+    const val FIELD_TOUCH_CONFIRMATION = "touchConfirmationRequired"
+    const val FIELD_VOICE_CONFIRMATION = "voiceConfirmationEnabled"
     const val FIELD_DARK_MODE = "darkMode"
   }
 
@@ -126,6 +129,18 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     updateField(FIELD_AUTOMATIC_CALLS, enabled)
   }
 
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    updateField(FIELD_AUTO_ACTIONS, enabled)
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    updateField(FIELD_TOUCH_CONFIRMATION, required)
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    updateField(FIELD_VOICE_CONFIRMATION, enabled)
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     updateField(FIELD_DARK_MODE, isDark)
   }
@@ -161,6 +176,9 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     val inactivityDetection = data?.get(FIELD_INACTIVITY_DETECTION) as? Boolean ?: false
     val automaticSms = data?.get(FIELD_AUTOMATIC_SMS) as? Boolean ?: false
     val automaticCalls = data?.get(FIELD_AUTOMATIC_CALLS) as? Boolean ?: false
+    val autoActionsEnabled = data?.get(FIELD_AUTO_ACTIONS) as? Boolean ?: false
+    val touchConfirmationRequired = data?.get(FIELD_TOUCH_CONFIRMATION) as? Boolean ?: false
+    val voiceConfirmationEnabled = data?.get(FIELD_VOICE_CONFIRMATION) as? Boolean ?: false
     val darkMode = data?.get(FIELD_DARK_MODE) as? Boolean ?: false
 
     val dangerModePreferences =
@@ -168,7 +186,10 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
             alertMode = alertMode,
             inactivityDetection = inactivityDetection,
             automaticSms = automaticSms,
-            automaticCalls = automaticCalls)
+            automaticCalls = automaticCalls,
+            autoActionsEnabled = autoActionsEnabled,
+            touchConfirmationRequired = touchConfirmationRequired,
+            voiceConfirmationEnabled = voiceConfirmationEnabled)
 
     return UserPreferences(
         dangerModePreferences = dangerModePreferences, themePreferences = darkMode)

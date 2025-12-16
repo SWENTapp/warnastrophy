@@ -29,12 +29,18 @@ data class UserPreferences(
  *   triggered.
  * @property automaticCalls Specifies if automatic phone calls should be made when an alert is
  *   triggered.
+ * @property autoActionsEnabled Enables automatic emergency actions overall.
+ * @property touchConfirmationRequired Requires a tactile confirmation (button) before actions run.
+ * @property voiceConfirmationEnabled Allows voice confirmation before actions run.
  */
 data class DangerModePreferences(
     val alertMode: Boolean,
     val inactivityDetection: Boolean,
     val automaticSms: Boolean,
     val automaticCalls: Boolean,
+    val autoActionsEnabled: Boolean = false,
+    val touchConfirmationRequired: Boolean = false,
+    val voiceConfirmationEnabled: Boolean = false,
 ) {
   companion object {
     fun default() =
@@ -42,7 +48,10 @@ data class DangerModePreferences(
             alertMode = false,
             inactivityDetection = false,
             automaticSms = false,
-            automaticCalls = false)
+            automaticCalls = false,
+            autoActionsEnabled = false,
+            touchConfirmationRequired = false,
+            voiceConfirmationEnabled = false)
   }
 }
 
@@ -58,6 +67,9 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val INACTIVITY_DETECTION_KEY = booleanPreferencesKey("inactivity_detection")
     val AUTOMATIC_SMS_KEY = booleanPreferencesKey("automatic_sms")
     val AUTOMATIC_CALLS_KEY = booleanPreferencesKey("automatic_calls")
+    val AUTO_ACTIONS_KEY = booleanPreferencesKey("auto_actions_enabled")
+    val TOUCH_CONFIRMATION_KEY = booleanPreferencesKey("touch_confirmation_required")
+    val VOICE_CONFIRMATION_KEY = booleanPreferencesKey("voice_confirmation_enabled")
     val DARK_MODE_KEY = booleanPreferencesKey("theme_preferences")
 
     // Add more keys for other preferences
@@ -90,6 +102,18 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     dataStore.edit { preferences -> preferences[AUTOMATIC_CALLS_KEY] = enabled }
   }
 
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    dataStore.edit { prefs -> prefs[AUTO_ACTIONS_KEY] = enabled }
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    dataStore.edit { prefs -> prefs[TOUCH_CONFIRMATION_KEY] = required }
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    dataStore.edit { prefs -> prefs[VOICE_CONFIRMATION_KEY] = enabled }
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     dataStore.edit { preferences -> preferences[DARK_MODE_KEY] = isDark }
   }
@@ -107,10 +131,20 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val inactivityDetection = preferences[INACTIVITY_DETECTION_KEY] ?: false
     val automaticSms = preferences[AUTOMATIC_SMS_KEY] ?: false
     val automaticCalls = preferences[AUTOMATIC_CALLS_KEY] ?: false
+    val autoActionsEnabled = preferences[AUTO_ACTIONS_KEY] ?: false
+    val touchConfirmationRequired = preferences[TOUCH_CONFIRMATION_KEY] ?: false
+    val voiceConfirmationEnabled = preferences[VOICE_CONFIRMATION_KEY] ?: false
     val themePreferences = preferences[DARK_MODE_KEY] ?: false
 
     val dangerModePreferences =
-        DangerModePreferences(alertMode, inactivityDetection, automaticSms, automaticCalls)
+        DangerModePreferences(
+            alertMode,
+            inactivityDetection,
+            automaticSms,
+            automaticCalls,
+            autoActionsEnabled,
+            touchConfirmationRequired,
+            voiceConfirmationEnabled)
     return UserPreferences(dangerModePreferences, themePreferences)
   }
 }
