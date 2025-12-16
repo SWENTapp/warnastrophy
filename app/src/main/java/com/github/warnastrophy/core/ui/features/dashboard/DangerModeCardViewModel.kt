@@ -115,8 +115,24 @@ class DangerModeCardViewModel(
         }
       }
     }
+    // Collect user preferences from the repository. Run collection on the provided dispatcher
+    // but update UI state on the Main thread. Guard the collector against unexpected exceptions
+    // so a single bad read won't crash the ViewModel.
     viewModelScope.launch(dispatcher) {
-      prefsRepo.getUserPreferences.collect { prefs -> applyPreferences(prefs) }
+      try {
+        prefsRepo.getUserPreferences.collect { prefs ->
+          try {
+            // Ensure updates happen on main thread
+            viewModelScope.launch(kotlinx.coroutines.Dispatchers.Main.immediate) {
+              applyPreferencesInternal(prefs)
+            }
+          } catch (e: Throwable) {
+            Log.e("DangerModeCardViewModel", "Failed to schedule applyPreferences", e)
+          }
+        }
+      } catch (e: Throwable) {
+        Log.e("DangerModeCardViewModel", "Error collecting user preferences", e)
+      }
     }
   }
 
@@ -326,14 +342,24 @@ class DangerModeCardViewModel(
     }
   }
 
-  private fun applyPreferences(prefs: UserPreferences) {
-    _autoActionsEnabled.value = prefs.dangerModePreferences.autoActionsEnabled
-    _confirmTouchRequired.value = prefs.dangerModePreferences.touchConfirmationRequired
-    _confirmVoiceRequired.value = prefs.dangerModePreferences.voiceConfirmationEnabled
+  // Internal suspend function that performs the actual state updates. Must be called on the
+  // Main dispatcher to safely update StateFlow-backed UI state.
+  private suspend fun applyPreferencesInternal(prefs: UserPreferences) {
+    runCatching {
+          _autoActionsEnabled.value = prefs.dangerModePreferences.autoActionsEnabled
+          _confirmTouchRequired.value = prefs.dangerModePreferences.touchConfirmationRequired
+          _confirmVoiceRequired.value = prefs.dangerModePreferences.voiceConfirmationEnabled
 
-    val caps = mutableSetOf<DangerModeCapability>()
-    if (prefs.dangerModePreferences.automaticCalls) caps.add(DangerModeCapability.CALL)
-    if (prefs.dangerModePreferences.automaticSms) caps.add(DangerModeCapability.SMS)
-    onCapabilitiesChanged(caps)
+          val caps = mutableSetOf<DangerModeCapability>()
+          if (prefs.dangerModePreferences.automaticCalls) caps.add(DangerModeCapability.CALL)
+          if (prefs.dangerModePreferences.automaticSms) caps.add(DangerModeCapability.SMS)
+
+          try {
+            onCapabilitiesChanged(caps)
+          } catch (e: Throwable) {
+            Log.e("DangerModeCardViewModel", "Failed to apply capabilities from prefs", e)
+          }
+        }
+        .onFailure { e -> Log.e("DangerModeCardViewModel", "Failed to apply user preferences", e) }
   }
 }
