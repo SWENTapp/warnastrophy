@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.warnastrophy.core.ui.onboard.OnboardingScreenTestTags
+import com.github.warnastrophy.core.ui.features.onboard.OnboardingScreenTestTags
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser

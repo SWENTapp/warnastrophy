@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.data.repository
 
 import android.util.Log
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
-import com.github.warnastrophy.core.data.localStorage.StorageException
+import com.github.warnastrophy.core.data.local.StorageException
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.CryptoUtils
 import com.google.firebase.firestore.FirebaseFirestore

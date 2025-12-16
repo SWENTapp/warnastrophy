@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -211,17 +214,24 @@ fun HazardsGoogleMap(
     context: Context = LocalContext.current,
 ) {
   val hazards = uiState.hazardState.hazards
+  var selectedMarkerId by remember { mutableStateOf<Int?>(null) }
 
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
       cameraPositionState = cameraPositionState,
+      onMapClick = { selectedMarkerId = null },
       uiSettings =
           MapUiSettings(
               myLocationButtonEnabled = false,
               zoomControlsEnabled = true,
               mapToolbarEnabled = false),
       properties = MapProperties(isMyLocationEnabled = uiState.isGranted)) {
-        hazards.forEach { hazard -> HazardMarker(hazard) }
+        hazards.forEach { hazard ->
+          HazardMarker(
+              hazard = hazard,
+              selectedMarkerId = selectedMarkerId,
+              onMarkerSelected = { selectedMarkerId = it })
+        }
 
         uiState.selectedLocation?.let { loc ->
           val pos = toLatLng(loc)

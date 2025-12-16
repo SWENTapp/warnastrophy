@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
+import com.github.warnastrophy.core.data.interfaces.ActivityRepository
 import com.github.warnastrophy.core.model.Activity
 import java.util.UUID
 

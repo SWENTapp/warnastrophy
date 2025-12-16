@@ -5,9 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
-import com.github.warnastrophy.core.data.localStorage.ContactsStorage
-import com.github.warnastrophy.core.data.localStorage.StorageException
-import com.github.warnastrophy.core.data.localStorage.contactDataStore
+import com.github.warnastrophy.core.data.local.ContactsStorage
+import com.github.warnastrophy.core.data.local.StorageException
+import com.github.warnastrophy.core.data.local.contactDataStore
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.util.CryptoUtils
 import io.mockk.coEvery

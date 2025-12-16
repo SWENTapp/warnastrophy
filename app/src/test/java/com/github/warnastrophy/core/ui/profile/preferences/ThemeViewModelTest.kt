@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.ui.profile.preferences
 
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.DangerModePreferences
 import com.github.warnastrophy.core.data.repository.UserPreferences
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import io.mockk.Runs
 import io.mockk.coEvery

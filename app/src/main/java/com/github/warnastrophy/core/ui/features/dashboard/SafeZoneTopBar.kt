@@ -1,0 +1,45 @@
+package com.github.warnastrophy.core.ui.features.dashboard
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.github.warnastrophy.R
+import com.github.warnastrophy.core.data.service.StateManagerService
+
+/**
+ * This Composable displays a top bar indicating that the user is in a safe zone. It features a
+ * green background with white text to convey safety.
+ */
+@Composable
+fun SafeZoneTopBar(modifier: Modifier = Modifier) {
+  val state by StateManagerService.dangerModeService.state.collectAsState()
+  val safe = !state.isActive
+  val colorScheme = MaterialTheme.colorScheme
+  Box(
+      modifier =
+          modifier
+              .fillMaxWidth()
+              .background(if (safe) colorScheme.primary else colorScheme.error)
+              .padding(vertical = 8.dp),
+      contentAlignment = Alignment.Center) {
+        Text(
+            text =
+                if (safe) stringResource(R.string.safe_zone_message)
+                else stringResource(R.string.danger_mode_active_message),
+            color = if (safe) colorScheme.onPrimary else colorScheme.onError,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.sp)
+      }
+}

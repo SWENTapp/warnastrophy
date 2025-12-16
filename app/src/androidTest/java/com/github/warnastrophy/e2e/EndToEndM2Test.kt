@@ -6,9 +6,9 @@ import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreenTestTags
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
+import com.github.warnastrophy.userPrefsDataStore
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

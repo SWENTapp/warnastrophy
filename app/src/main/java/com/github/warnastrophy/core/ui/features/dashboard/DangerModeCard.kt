@@ -1,5 +1,7 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -42,10 +45,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.core.data.service.DangerLevel
+import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.core.ui.theme.extendedColors
+import com.github.warnastrophy.core.util.findActivity
+import com.github.warnastrophy.core.util.openAppSettings
+import com.github.warnastrophy.core.util.startForegroundGpsService
+import com.github.warnastrophy.core.util.stopForegroundGpsService
 
 object DangerModeTestTags {
   const val CARD = "dangerModeCard"
@@ -104,6 +112,37 @@ fun DangerModeCard(
 
   val colorScheme = MaterialTheme.colorScheme
   val extendedColors = MaterialTheme.extendedColors
+
+  val context = LocalContext.current
+  val activity = LocalContext.current.findActivity()
+  if (activity == null) {
+    ActivityFallback()
+    return
+  }
+  val launcher =
+      rememberLauncherForActivityResult(
+          contract = ActivityResultContracts.RequestMultiplePermissions(),
+          onResult = { viewModel.onPermissionResult(activity = activity) })
+
+  LaunchedEffect(Unit) {
+    viewModel.effects.collect { effect ->
+      when (effect) {
+        Effect.RequestLocationPermission -> {
+          viewModel.onPermissionsRequestStart()
+          launcher.launch(viewModel.alertModePermission.permissions)
+        }
+        Effect.StartForegroundService -> {
+          startForegroundGpsService(activity)
+        }
+        Effect.StopForegroundService -> {
+          stopForegroundGpsService(context)
+        }
+        Effect.ShowOpenAppSettings -> {
+          openAppSettings(context)
+        }
+      }
+    }
+  }
 
   StandardDashboardCard(
       modifier = modifier.fillMaxWidth().testTag(DangerModeTestTags.CARD),
@@ -356,9 +395,13 @@ private fun DangerModeSwitch(
     viewModel: DangerModeCardViewModel,
     modifier: Modifier = Modifier
 ) {
+  val permissionResState by viewModel.permissionUiState.collectAsState()
 
   Switch(
       checked = checked,
-      onCheckedChange = { viewModel.onDangerModeToggled(it) },
+      onCheckedChange = { isChecked ->
+        viewModel.handleToggle(
+            isChecked = isChecked, permissionResult = permissionResState.alertModePermissionResult)
+      },
       modifier = modifier.testTag(DangerModeTestTags.SWITCH))
 }

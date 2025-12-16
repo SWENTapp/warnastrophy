@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser

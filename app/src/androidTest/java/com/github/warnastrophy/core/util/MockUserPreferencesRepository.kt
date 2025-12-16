@@ -1,8 +1,8 @@
 package com.github.warnastrophy.core.ui.util
 
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.DangerModePreferences
 import com.github.warnastrophy.core.data.repository.UserPreferences
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

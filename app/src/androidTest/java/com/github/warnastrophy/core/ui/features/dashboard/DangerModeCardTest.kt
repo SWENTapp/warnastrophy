@@ -19,12 +19,12 @@ import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
+import com.github.warnastrophy.userPrefsDataStore
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
