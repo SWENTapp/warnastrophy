@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.onboard
+package com.github.warnastrophy.core.ui.features.onboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

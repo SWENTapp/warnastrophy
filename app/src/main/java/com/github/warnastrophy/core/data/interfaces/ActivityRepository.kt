@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.repository
+package com.github.warnastrophy.core.data.interfaces
 
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.util.AppConfig
@@ -8,7 +8,8 @@ interface ActivityRepository {
    * Adds a new Activity item to the repository.
    *
    * @param activity The Activity item to add.
-   * @param userId user ID that is using the app. The default value is [AppConfig.defaultUserId]
+   * @param userId user ID that is using the app. The default value is
+   *   [com.github.warnastrophy.core.util.AppConfig.defaultUserId]
    * @return A [Result] containing Unit on success or a failure with the exception on error.
    */
   suspend fun addActivity(

@@ -2,8 +2,8 @@ package com.github.warnastrophy.core.data.provider
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.HybridUserPreferencesRepository
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryRemote
 import com.google.firebase.firestore.FirebaseFirestore

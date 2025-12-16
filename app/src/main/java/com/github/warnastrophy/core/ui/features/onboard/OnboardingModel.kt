@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.onboard
+package com.github.warnastrophy.core.ui.features.onboard
 
 import androidx.annotation.StringRes
 import com.github.warnastrophy.R

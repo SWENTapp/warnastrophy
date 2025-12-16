@@ -1,8 +1,9 @@
-package com.github.warnastrophy.core.data.localStorage
+package com.github.warnastrophy.core.data.provider
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.github.warnastrophy.core.data.localStorage.healthCardDataStore
 import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

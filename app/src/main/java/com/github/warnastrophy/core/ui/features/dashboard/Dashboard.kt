@@ -25,7 +25,6 @@ import com.github.warnastrophy.core.data.service.HazardsDataService
 import com.github.warnastrophy.core.model.Contact
 import com.github.warnastrophy.core.ui.features.contact.ContactPopUp
 import com.github.warnastrophy.core.ui.features.health.HealthCardPopUp
-import com.github.warnastrophy.core.ui.layout.SafeZoneTopBar
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
 object DashboardScreenTestTags {

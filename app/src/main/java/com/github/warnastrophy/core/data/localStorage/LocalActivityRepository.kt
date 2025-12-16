@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.github.warnastrophy.core.data.repository.ActivityRepository
+import com.github.warnastrophy.core.data.interfaces.ActivityRepository
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType

@@ -1,5 +1,6 @@
-package com.github.warnastrophy.core.data.repository
+package com.github.warnastrophy.core.data.interfaces
 
+import com.github.warnastrophy.core.data.repository.UserPreferences
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -8,8 +9,9 @@ import kotlinx.coroutines.flow.Flow
  */
 interface UserPreferencesRepository {
   /**
-   * Retrieves a cold flow of the user's preferences. This flow emits a new [UserPreferences] object
-   * whenever any preference value changes.
+   * Retrieves a cold flow of the user's preferences. This flow emits a new
+   * [com.github.warnastrophy.core.data.repository.UserPreferences] object whenever any preference
+   * value changes.
    */
   val getUserPreferences: Flow<UserPreferences>
 

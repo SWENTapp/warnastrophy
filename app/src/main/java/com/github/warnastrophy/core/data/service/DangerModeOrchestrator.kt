@@ -3,9 +3,9 @@ package com.github.warnastrophy.core.data.service
 import android.content.Context
 import android.util.Log
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.DangerModePreferences
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
 import com.github.warnastrophy.core.model.Location
 import com.github.warnastrophy.core.ui.common.ErrorHandler

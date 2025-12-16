@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.data.localStorage
+package com.github.warnastrophy.core.data.provider
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties

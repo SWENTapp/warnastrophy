@@ -1,9 +1,9 @@
-package com.github.warnastrophy.core.ui.onboard
+package com.github.warnastrophy.core.ui.features.onboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.warnastrophy.core.data.provider.OnboardingRepositoryProvider
 import com.github.warnastrophy.core.data.repository.IntroductionRepository
-import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

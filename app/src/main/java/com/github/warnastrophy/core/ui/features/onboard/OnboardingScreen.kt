@@ -1,4 +1,4 @@
-package com.github.warnastrophy.core.ui.onboard
+package com.github.warnastrophy.core.ui.features.onboard
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background

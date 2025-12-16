@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.data.repository
 
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,8 +13,10 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
 /**
- * A remote implementation of [UserPreferencesRepository] that interacts with Firestore to manage
- * user preferences, such as alert mode, inactivity detection, SMS alerts, and dark mode.
+ * A remote implementation of
+ * [com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository] that interacts with
+ * Firestore to manage user preferences, such as alert mode, inactivity detection, SMS alerts, and
+ * dark mode.
  *
  * This repository provides functionality for both retrieving and updating user preferences stored
  * in Firestore. It listens to changes in Firestore and emits updated preferences to subscribers,
