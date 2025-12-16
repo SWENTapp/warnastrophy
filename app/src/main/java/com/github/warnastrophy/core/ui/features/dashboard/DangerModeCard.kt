@@ -140,6 +140,11 @@ fun DangerModeCard(
         Effect.ShowOpenAppSettings -> {
           openAppSettings(context)
         }
+        is Effect.RequestCapabilityPermission -> {
+          // Reuse the same launcher to request the capability permissions
+          viewModel.onPermissionsRequestStart()
+          launcher.launch(effect.permissions.permissions)
+        }
       }
     }
   }
@@ -250,11 +255,18 @@ fun DangerModeCard(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
               DangerModeCapability.entries.forEach { capability ->
                 val selected = capabilities.contains(capability)
+                // Disabled if another capability is selected and this one is not the selected one
+                val disabled = capabilities.isNotEmpty() && !selected
+
                 val (color, textColor) =
-                    if (selected) {
-                      Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
-                    } else {
-                      Pair(colorScheme.error, colorScheme.onError)
+                    when {
+                      selected ->
+                          Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
+                      disabled ->
+                          Pair(
+                              colorScheme.error.copy(alpha = 0.25f),
+                              colorScheme.onError.copy(alpha = 0.25f))
+                      else -> Pair(colorScheme.error, colorScheme.onError)
                     }
 
                 StandardDashboardButton(
@@ -265,7 +277,12 @@ fun DangerModeCard(
                         },
                     color = color,
                     borderColor = colorScheme.onError,
-                    onClick = { viewModel.onCapabilityToggled(capability) },
+                    onClick = {
+                      if (disabled) return@StandardDashboardButton
+                      // Delegate to ViewModel which enforces mutual exclusivity and enables
+                      // auto-actions
+                      viewModel.onCapabilityToggled(capability)
+                    },
                     textColor = textColor)
               }
             }

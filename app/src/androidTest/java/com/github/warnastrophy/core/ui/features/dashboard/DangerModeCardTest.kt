@@ -34,9 +34,9 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
   @Before
   fun setup() {
-    UserPreferencesRepositoryProvider.initLocal(
-        composeTestRule.activity.applicationContext.userPrefsDataStore)
-    StateManagerService.init(composeTestRule.activity.applicationContext)
+    val context = composeTestRule.activity.applicationContext
+    UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
+    InstrumentationRegistry.getInstrumentation().runOnMainSync { StateManagerService.init(context) }
     StateManagerService.permissionManager =
         MockPermissionManager(currentResult = PermissionResult.Granted)
     StateManagerService.dangerModeService =
@@ -315,5 +315,69 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     confirmVoiceSwitch.performClick()
     confirmVoiceSwitch.assertIsOn()
     assert(viewModel.confirmVoiceRequired.value)
+  }
+
+  @Test
+  fun dangerModeCard_capabilities_are_mutually_exclusive_ui() {
+    lateinit var viewModel: DangerModeCardViewModel
+    composeTestRule.setContent {
+      viewModel = testViewModel
+      MaterialTheme { DangerModeCard(viewModel = viewModel) }
+    }
+
+    // Click CALL capability
+    val callNode =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
+    callNode.performClick()
+    callNode.assertIsSelected()
+
+    // Click SMS capability - should become selected and CALL should be deselected
+    val smsNode =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.capabilityTag(DangerModeCapability.SMS), useUnmergedTree = true)
+    smsNode.performClick()
+    smsNode.assertIsSelected()
+    callNode.assertIsDisplayed()
+    // Ensure CALL is not selected anymore
+    assert(!viewModel.capabilities.value.contains(DangerModeCapability.CALL))
+
+    // Attempt to click CALL (should be disabled and not re-enable while SMS active)
+    callNode.performClick()
+    // Still should have SMS selected
+    assert(viewModel.capabilities.value.contains(DangerModeCapability.SMS))
+    assert(!viewModel.capabilities.value.contains(DangerModeCapability.CALL))
+  }
+
+  @Test
+  fun dangerModeCard_confirmSwitches_are_mutually_exclusive_ui() {
+    lateinit var viewModel: DangerModeCardViewModel
+    composeTestRule.setContent {
+      viewModel = testViewModel
+      MaterialTheme { DangerModeCard(viewModel = viewModel) }
+    }
+
+    // Enable CALL capability to show advanced section
+    val callNode =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
+    callNode.performClick()
+
+    val confirmTouchSwitch =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.CONFIRM_TOUCH_SWITCH, useUnmergedTree = true)
+    val confirmVoiceSwitch =
+        composeTestRule.onNodeWithTag(
+            DangerModeTestTags.CONFIRM_VOICE_SWITCH, useUnmergedTree = true)
+
+    // Toggle voice -> voice on, touch off
+    confirmVoiceSwitch.performClick()
+    confirmVoiceSwitch.assertIsOn()
+    confirmTouchSwitch.assertIsOff()
+
+    // Toggle touch -> touch on, voice off
+    confirmTouchSwitch.performClick()
+    confirmTouchSwitch.assertIsOn()
+    confirmVoiceSwitch.assertIsOff()
   }
 }

@@ -122,11 +122,18 @@ class DangerModeCardViewModelTest {
   }
 
   @Test
-  fun `onCapabilityToggled removes capability when present`() = runTest {
-    viewModel.onCapabilitiesChanged(setOf(DangerModeCapability.SMS))
-    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
+  fun `capability exclusivity enforces single selection and enables autoActions`() = runTest {
+    // Enable SMS capability
     viewModel.onCapabilityToggled(DangerModeCapability.SMS)
-    assertEquals(emptySet<DangerModeCapability>(), viewModel.capabilities.first())
+    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
+    // autoActions should be enabled when capability turned on
+    assertEquals(true, viewModel.autoActionsEnabled.first())
+
+    // Now toggle CALL - should replace SMS with CALL
+    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
+    assertEquals(setOf(DangerModeCapability.CALL), viewModel.capabilities.first())
+    // SMS should be off
+    assertFalse(viewModel.capabilities.first().contains(DangerModeCapability.SMS))
   }
 
   @Test
@@ -212,4 +219,15 @@ class DangerModeCardViewModelTest {
         assertEquals(1, collectedEffects.size)
         assertEquals(collectedEffects[0], Effect.StopForegroundService)
       }
+
+  @Test
+  fun `confirm switches are mutually exclusive`() = runTest {
+    viewModel.onConfirmVoiceChanged(true)
+    assertTrue(viewModel.confirmVoiceRequired.first())
+    assertFalse(viewModel.confirmTouchRequired.first())
+
+    viewModel.onConfirmTouchChanged(true)
+    assertTrue(viewModel.confirmTouchRequired.first())
+    assertFalse(viewModel.confirmVoiceRequired.first())
+  }
 }

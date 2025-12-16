@@ -11,8 +11,8 @@ import com.github.warnastrophy.core.data.service.SpeechToTextServiceInterface
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.data.service.TextToSpeechServiceInterface
 import com.github.warnastrophy.core.data.service.TextToSpeechUiState
-import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.components.CommunicationScreenTags
+import com.github.warnastrophy.userPrefsDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.After

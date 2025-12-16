@@ -8,6 +8,7 @@ import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.repository.DangerModePreferences
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
 import com.github.warnastrophy.core.model.Location
+import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
@@ -120,6 +121,23 @@ class DangerModeOrchestrator(
 
   private var smsSenderInstance: SmsSender? = smsSender
   private var callSenderInstance: CallSender? = callSender
+
+  private val _permissionRequests = MutableStateFlow<AppPermissions?>(null)
+  val permissionRequests: StateFlow<AppPermissions?> = _permissionRequests.asStateFlow()
+
+  init {
+    scope.launch {
+      dangerModeService.events.collectLatest { event ->
+        when (event) {
+          DangerModeService.DangerModeEvent.MissingSmsPermission ->
+              _permissionRequests.value = AppPermissions.SendEmergencySms
+          DangerModeService.DangerModeEvent.MissingCallPermission ->
+              _permissionRequests.value = AppPermissions.MakeEmergencyCall
+          null -> Unit
+        }
+      }
+    }
+  }
 
   /**
    * Initializes the orchestrator with context-dependent services. Must be called before starting
@@ -393,6 +411,7 @@ class DangerModeOrchestrator(
   private fun resetState() {
     _state.value = OrchestratorState()
     _showVoiceConfirmationScreen.value = false
+    _permissionRequests.value = null
   }
 
   /** Gets the current emergency phone number. This could be fetched from contacts in the future. */

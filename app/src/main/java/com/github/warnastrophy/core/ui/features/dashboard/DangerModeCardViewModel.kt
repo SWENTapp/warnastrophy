@@ -4,7 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.interfaces.ActivityRepository
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
+import com.github.warnastrophy.core.data.repository.UserPreferences
 import com.github.warnastrophy.core.data.service.DangerLevel
+import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.data.service.StateManagerService.permissionManager
 import com.github.warnastrophy.core.model.Activity
@@ -63,6 +67,8 @@ sealed interface Effect {
   object StopForegroundService : Effect
 
   object ShowOpenAppSettings : Effect
+
+  data class RequestCapabilityPermission(val permissions: AppPermissions) : Effect
 }
 
 /**
@@ -76,10 +82,13 @@ class DangerModeCardViewModel(
     private val repository: ActivityRepository = StateManagerService.activityRepository,
     private val userId: String =
         FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val userPreferencesRepository: UserPreferencesRepository =
+        UserPreferencesRepositoryProvider.repository,
+    private val dangerModeService: DangerModeService = StateManagerService.dangerModeService
 ) : ViewModel() {
   val alertModePermission = AppPermissions.AlertModePermission
-  private val dangerModeService = StateManagerService.dangerModeService
+  private val prefsRepo = userPreferencesRepository
 
   private val _activities = MutableStateFlow<List<Activity>>(emptyList())
   val activities: StateFlow<List<Activity>> = _activities.asStateFlow()
@@ -95,6 +104,20 @@ class DangerModeCardViewModel(
 
   init {
     refreshActivities()
+    viewModelScope.launch(dispatcher) {
+      dangerModeService.events.collect { event ->
+        when (event) {
+          DangerModeService.DangerModeEvent.MissingSmsPermission ->
+              emitEffect(Effect.RequestCapabilityPermission(AppPermissions.SendEmergencySms))
+          DangerModeService.DangerModeEvent.MissingCallPermission ->
+              emitEffect(Effect.RequestCapabilityPermission(AppPermissions.MakeEmergencyCall))
+          null -> Unit
+        }
+      }
+    }
+    viewModelScope.launch(dispatcher) {
+      prefsRepo.getUserPreferences.collect { prefs -> applyPreferences(prefs) }
+    }
   }
 
   /** Refreshes the activities list from the repository. */
@@ -188,14 +211,29 @@ class DangerModeCardViewModel(
    */
   fun onCapabilityToggled(capability: DangerModeCapability) {
     val current = dangerModeService.state.value.capabilities
-    val future =
-        if (current.contains(capability)) {
-          current - capability
-        } else {
-          current + capability
-        }
+    val enabling = !current.contains(capability)
 
-    onCapabilitiesChanged(future)
+    val newCaps: Set<DangerModeCapability> = if (enabling) setOf(capability) else emptySet()
+
+    // If enabling, also enable auto-actions so the advanced section becomes visible.
+    if (enabling) {
+      onAutoActionsEnabled(true)
+    }
+
+    onCapabilitiesChanged(newCaps)
+
+    viewModelScope.launch(dispatcher) {
+      when (capability) {
+        DangerModeCapability.CALL -> {
+          prefsRepo.setAutomaticCalls(enabling)
+          if (enabling) prefsRepo.setAutomaticSms(false)
+        }
+        DangerModeCapability.SMS -> {
+          prefsRepo.setAutomaticSms(enabling)
+          if (enabling) prefsRepo.setAutomaticCalls(false)
+        }
+      }
+    }
   }
 
   /**
@@ -209,17 +247,25 @@ class DangerModeCardViewModel(
 
   fun onConfirmTouchChanged(enabled: Boolean) {
     _confirmTouchRequired.value = enabled
-    // TODO: Persist & enforce tactile confirmation before actions.
+    if (enabled) _confirmVoiceRequired.value = false
+    viewModelScope.launch(dispatcher) {
+      prefsRepo.setTouchConfirmationRequired(enabled)
+      if (enabled) prefsRepo.setVoiceConfirmationEnabled(false)
+    }
   }
 
   fun onAutoActionsEnabled(enabled: Boolean) {
     _autoActionsEnabled.value = enabled
-    // TODO: Persist & enforce tactile confirmation before actions.
+    viewModelScope.launch(dispatcher) { prefsRepo.setAutoActionsEnabled(enabled) }
   }
 
   fun onConfirmVoiceChanged(enabled: Boolean) {
     _confirmVoiceRequired.value = enabled
-    // TODO: Persist & enforce voice confirmation before actions.
+    if (enabled) _confirmTouchRequired.value = false
+    viewModelScope.launch(dispatcher) {
+      prefsRepo.setVoiceConfirmationEnabled(enabled)
+      if (enabled) prefsRepo.setTouchConfirmationRequired(false)
+    }
   }
 
   /**
@@ -278,5 +324,16 @@ class DangerModeCardViewModel(
     } else {
       onDangerModeToggled(false)
     }
+  }
+
+  private fun applyPreferences(prefs: UserPreferences) {
+    _autoActionsEnabled.value = prefs.dangerModePreferences.autoActionsEnabled
+    _confirmTouchRequired.value = prefs.dangerModePreferences.touchConfirmationRequired
+    _confirmVoiceRequired.value = prefs.dangerModePreferences.voiceConfirmationEnabled
+
+    val caps = mutableSetOf<DangerModeCapability>()
+    if (prefs.dangerModePreferences.automaticCalls) caps.add(DangerModeCapability.CALL)
+    if (prefs.dangerModePreferences.automaticSms) caps.add(DangerModeCapability.SMS)
+    onCapabilitiesChanged(caps)
   }
 }
