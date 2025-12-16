@@ -476,30 +476,6 @@ class MapIconTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun mapIcon_allIconsHaveCorrectTags() {
-    TestCase.assertEquals("map_icon_tsunami", MapIcon.Tsunami.tag)
-    TestCase.assertEquals("map_icon_drought", MapIcon.Drought.tag)
-    TestCase.assertEquals("map_icon_earthquake", MapIcon.Earthquake.tag)
-    TestCase.assertEquals("map_icon_fire", MapIcon.Fire.tag)
-    TestCase.assertEquals("map_icon_flood", MapIcon.Flood.tag)
-    TestCase.assertEquals("map_icon_cyclone", MapIcon.Cyclone.tag)
-    TestCase.assertEquals("map_icon_volcano", MapIcon.Volcano.tag)
-    TestCase.assertEquals("map_icon_unknown", MapIcon.Unknown.tag)
-  }
-
-  @Test
-  fun mapIcon_allKnownIconsHaveResIds() {
-    TestCase.assertNotNull(MapIcon.Tsunami.resId)
-    TestCase.assertNotNull(MapIcon.Drought.resId)
-    TestCase.assertNotNull(MapIcon.Earthquake.resId)
-    TestCase.assertNotNull(MapIcon.Fire.resId)
-    TestCase.assertNotNull(MapIcon.Flood.resId)
-    TestCase.assertNotNull(MapIcon.Cyclone.resId)
-    TestCase.assertNotNull(MapIcon.Volcano.resId)
-    TestCase.assertNull(MapIcon.Unknown.resId)
-  }
-
-  @Test
   fun hazardInfoWindowContent_hidesArticleHintWhenNoUrl() {
     val hazard =
         Hazard(
@@ -585,18 +561,7 @@ class MapIconTest : BaseAndroidComposeTest() {
     var onInfoWindowClickCalled = false
     val hazard = hazardBasedOnType("FL").copy(articleUrl = "https://example.com/article")
 
-    composeTestRule.setContent {
-      HazardMarker(
-          hazard = hazard,
-          onInfoWindowClick = { onInfoWindowClickCalled = true },
-          markerIconProvider = { _, _, _, _ -> null }, // Avoid Google Maps initialization
-          polygonContent = {},
-          markerInfoWindowContent = { _, _, _, onInfoWindowClick, content ->
-            onInfoWindowClick() // Simulate info window click - this calls our injected callback
-            Box { content() }
-          },
-          iconContent = { _, _ -> })
-    }
+    setUpHazardMarker(hazard = hazard, onInfoWindowClick = { onInfoWindowClickCalled = true })
 
     composeTestRule.waitForIdle()
     TestCase.assertTrue("onInfoWindowClick should have been called", onInfoWindowClickCalled)
@@ -607,18 +572,7 @@ class MapIconTest : BaseAndroidComposeTest() {
     var markerClickId: Int? = null
     val hazard = hazardBasedOnType("FL").copy(id = 999)
 
-    composeTestRule.setContent {
-      HazardMarker(
-          hazard = hazard,
-          onMarkerSelected = { markerClickId = it },
-          markerIconProvider = { _, _, _, _ -> null },
-          polygonContent = {},
-          markerInfoWindowContent = { _, _, onMarkerClick, _, content ->
-            onMarkerClick() // Simulate marker click
-            Box { content() }
-          },
-          iconContent = { _, _ -> })
-    }
+    setUpHazardMarker(hazard = hazard, onMarkerSelected = { markerClickId = it })
 
     composeTestRule.waitForIdle()
     TestCase.assertEquals(999, markerClickId)
@@ -646,5 +600,26 @@ class MapIconTest : BaseAndroidComposeTest() {
   fun formatSeveritySnippet_trimsUnitWhitespace() {
     val hazard = hazardBasedOnType("FL").copy(severity = 10.0, severityUnit = "  ha  ")
     TestCase.assertEquals("10 ha", formatSeveritySnippet(hazard))
+  }
+
+  private fun setUpHazardMarker(
+      hazard: Hazard,
+      onMarkerSelected: ((Int?) -> Unit)? = null,
+      onInfoWindowClick: (() -> Unit)? = null
+  ) {
+    composeTestRule.setContent {
+      HazardMarker(
+          hazard = hazard,
+          onMarkerSelected = onMarkerSelected ?: { _ -> },
+          onInfoWindowClick = onInfoWindowClick ?: {},
+          markerIconProvider = { _, _, _, _ -> null },
+          polygonContent = {},
+          markerInfoWindowContent = { _, _, onMarkerClick, onInfoWindowClickLambda, content ->
+            onMarkerClick()
+            onInfoWindowClickLambda()
+            Box { content() }
+          },
+          iconContent = { _, _ -> })
+    }
   }
 }

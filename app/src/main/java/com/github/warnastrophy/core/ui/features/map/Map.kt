@@ -219,7 +219,7 @@ fun HazardsGoogleMap(
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
       cameraPositionState = cameraPositionState,
-      onMapClick = { selectedMarkerId = null }, // Clear selection when clicking on map
+      onMapClick = { selectedMarkerId = null },
       uiSettings =
           MapUiSettings(
               myLocationButtonEnabled = false,
