@@ -24,6 +24,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.WarnastrophyComposable
 import com.github.warnastrophy.core.data.repository.UserPreferencesRepositoryLocal
+import com.github.warnastrophy.core.data.service.SpeechRecognitionUiState
+import com.github.warnastrophy.core.data.service.SpeechToTextServiceInterface
+import com.github.warnastrophy.core.data.service.StateManagerService
+import com.github.warnastrophy.core.data.service.TextToSpeechServiceInterface
+import com.github.warnastrophy.core.data.service.TextToSpeechUiState
 import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
@@ -47,6 +52,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.junit.After
 import org.junit.Before
 
@@ -525,5 +532,109 @@ abstract class EndToEndUtils : UITest() {
     Box(Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN)) {
       Text("Fake map for testing", Modifier.align(Alignment.Center))
     }
+  }
+
+  /**
+   * Tries to set a private field on StateManagerService (used to swap services in tests). This
+   * keeps the test E2E-ish while still making STT/TTS deterministic.
+   */
+  fun setStateManagerServiceField(fieldName: String, value: Any) {
+    runCatching {
+          val field = StateManagerService::class.java.getDeclaredField(fieldName)
+          field.isAccessible = true
+          field.set(StateManagerService, value)
+        }
+        .getOrElse {
+          throw IllegalStateException(
+              "Could not replace StateManagerService.$fieldName. " +
+                  "Expose a test hook or keep the field name stable.",
+              it)
+        }
+  }
+
+  /**
+   * Turns on the danger-mode voice confirmation overlay by mutating the orchestrator's
+   * showVoiceConfirmationScreen flow via reflection.
+   *
+   * Expected shape (typical): val showVoiceConfirmationScreen: StateFlow<Boolean> backed by a
+   * MutableStateFlow<Boolean> inside the orchestrator.
+   */
+  fun forceShowVoiceConfirmationOverlay() {
+    val orchestrator = StateManagerService.dangerModeOrchestrator
+
+    // 1) Directly try a MutableStateFlow field called "_showVoiceConfirmationScreen"
+    val ok1 =
+        runCatching {
+              val f = orchestrator.javaClass.getDeclaredField("_showVoiceConfirmationScreen")
+              f.isAccessible = true
+              val v = f.get(orchestrator)
+              (v as? MutableStateFlow<Boolean>)?.value = true
+              true
+            }
+            .getOrDefault(false)
+
+    if (ok1) return
+
+    // 2) Try a MutableStateFlow field called "showVoiceConfirmationScreen"
+    val ok2 =
+        runCatching {
+              val f = orchestrator.javaClass.getDeclaredField("showVoiceConfirmationScreen")
+              f.isAccessible = true
+              val v = f.get(orchestrator)
+              (v as? MutableStateFlow<Boolean>)?.value = true
+              true
+            }
+            .getOrDefault(false)
+
+    if (ok2) return
+
+    throw IllegalStateException(
+        "Couldn't force showVoiceConfirmation overlay. " +
+            "Please add a test-only method on dangerModeOrchestrator like triggerVoiceConfirmation().")
+  }
+}
+
+class FakeTextToSpeechService : TextToSpeechServiceInterface {
+  private val _uiState = MutableStateFlow(TextToSpeechUiState())
+  override val uiState: StateFlow<TextToSpeechUiState> = _uiState
+
+  val spokenHistory = mutableListOf<String>()
+
+  override fun speak(text: String) {
+    if (text.isBlank()) return
+    spokenHistory += text
+    _uiState.value = _uiState.value.copy(isSpeaking = true, rms = 20f, spokenText = text)
+  }
+
+  fun finishSpeaking() {
+    _uiState.value = _uiState.value.copy(isSpeaking = false, rms = 0f, spokenText = null)
+  }
+
+  override fun destroy() {
+    _uiState.value = TextToSpeechUiState()
+  }
+}
+
+class FakeSpeechToTextService(private val confirmationResult: Boolean) :
+    SpeechToTextServiceInterface {
+  private val _uiState = MutableStateFlow(SpeechRecognitionUiState())
+  override val uiState: StateFlow<SpeechRecognitionUiState> = _uiState
+
+  @Volatile var listenCalled: Boolean = false
+
+  override suspend fun listenForConfirmation(): Boolean {
+    listenCalled = true
+    _uiState.value =
+        SpeechRecognitionUiState(
+            isListening = false,
+            rmsLevel = 0f,
+            recognizedText = if (confirmationResult) "yes" else "no",
+            errorMessage = null,
+            isConfirmed = confirmationResult)
+    return confirmationResult
+  }
+
+  override fun destroy() {
+    _uiState.value = SpeechRecognitionUiState()
   }
 }
