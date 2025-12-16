@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
 import com.github.warnastrophy.core.model.Contact
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,10 +15,8 @@ import kotlinx.coroutines.launch
  *
  * @property repository The [ContactsRepository] used to fetch contact data from the data layer.
  */
-@HiltViewModel
-class DashboardEmergencyContactsStatefulViewModel
-@Inject
-constructor(private val repository: ContactsRepository) : ViewModel() {
+class DashboardEmergencyContactsStatefulViewModel(private val repository: ContactsRepository) :
+    ViewModel() {
   private val _contactsState = MutableStateFlow<ContactCardState>(ContactCardState.Loading)
   val contactsState: StateFlow<ContactCardState> = _contactsState.asStateFlow()
 

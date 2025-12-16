@@ -3,7 +3,7 @@ package com.github.warnastrophy.core.ui.features.dashboard
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.warnastrophy.core.data.repository.ActivityRepository
+import com.github.warnastrophy.core.data.interfaces.ActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.data.service.StateManagerService.permissionManager

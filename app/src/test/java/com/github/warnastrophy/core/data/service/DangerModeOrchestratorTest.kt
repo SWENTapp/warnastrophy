@@ -1,9 +1,9 @@
 package com.github.warnastrophy.core.data.service
 
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.github.warnastrophy.core.data.repository.MotionData
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
 import com.github.warnastrophy.core.data.repository.UserPreferences
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.domain.model.EmergencyMessage
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.AppPermissions

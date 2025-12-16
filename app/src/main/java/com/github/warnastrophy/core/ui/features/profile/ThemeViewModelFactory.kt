@@ -2,7 +2,7 @@ package com.github.warnastrophy.core.ui.features.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 
 /**
  * Factory class responsible for creating instances of the [ThemeViewModel].
