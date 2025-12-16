@@ -65,11 +65,9 @@ object DangerModeTestTags {
   const val CAPABILITY_PREFIX = "dangerModeContactButton"
   const val MODE_PREFIX = "dangerModePresetButton"
   const val COLOR_BOX_PREFIX = "dangerModeColorBox"
-
   const val ADVANCED_SECTION = "dangerModeAdvancedSection"
   const val CONFIRM_TOUCH_SWITCH = "dangerModeConfirmTouchSwitch"
   const val CONFIRM_VOICE_SWITCH = "dangerModeConfirmVoiceSwitch"
-
   const val AUTO_CALL_SWITCH = "dangerModeAutoActionsSwitch"
 
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label

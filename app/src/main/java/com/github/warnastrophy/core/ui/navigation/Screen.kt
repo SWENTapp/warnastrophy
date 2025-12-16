@@ -40,6 +40,9 @@ object NavRoutes {
   const val DANGER_MODE_PREFERENCES = "danger_mode_preferences"
   const val COMMUNICATION = "communication"
   const val VOICE_CONFIRMATION = "voice_confirmation"
+  const val ACTIVITY_LIST = "activity_list"
+  const val ADD_ACTIVITY = "add_activity"
+  const val EDIT_ACTIVITY = "edit_activity"
 }
 
 /**
@@ -117,14 +120,19 @@ sealed class Screen(
   }
 
   object AddActivity :
-      Screen(R.string.add_activity_screen_title, icon = Icons.Filled.Add, route = "add_activity")
+      Screen(
+          R.string.add_activity_screen_title,
+          icon = Icons.Filled.Add,
+          route = NavRoutes.ADD_ACTIVITY)
 
-  object ActivitiesList : Screen(R.string.activity_list_title, route = "activities_list")
+  object ActivitiesList : Screen(R.string.activity_list_title, route = NavRoutes.ACTIVITY_LIST)
 
   data class EditActivity(val activityID: String) :
-      Screen(route = "edit_activity/${activityID}", title = R.string.edit_activity_screen_title) {
+      Screen(
+          route = "${NavRoutes.EDIT_ACTIVITY}/${activityID}",
+          title = R.string.edit_activity_screen_title) {
     companion object {
-      const val route = "edit_activity/{id}"
+      const val route = "${NavRoutes.EDIT_ACTIVITY}/{id}"
     }
   }
 
