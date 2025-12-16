@@ -359,7 +359,7 @@ abstract class EndToEndUtils : UITest() {
     }
   }
 
-  /** This method allows to navigate to preferences mode screen. */
+  /** This method allows to navigate to preference modes screen. */
   fun goToDangerModePreferencesScreen() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.DANGER_MODE_PREFERENCES).performClick()

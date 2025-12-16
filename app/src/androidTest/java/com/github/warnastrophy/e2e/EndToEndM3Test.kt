@@ -55,7 +55,7 @@ class EndToEndM3Test : EndToEndUtils() {
     composeTestRule.runOnUiThread { StateManagerService.shutdown() }
   }
 
-  /** This test checks if preferences mode are saved across navigation */
+  /** This test checks if preference modes are saved across navigation */
   @Test
   fun preferences_saved_across_navigation() {
     setContent()
