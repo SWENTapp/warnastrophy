@@ -342,6 +342,11 @@ abstract class EndToEndUtils : UITest() {
             "Please add a test-only method on dangerModeOrchestrator like triggerVoiceConfirmation().")
   }
 
+  /**
+   * This method check if given toggle button (which triggers an asynchronous operation) is checked.
+   *
+   * @param testTag test tag string of the button.
+   */
   fun isSwitchOnAfterAsyncOperation(testTag: String) {
     val switchMatcher = hasTestTag(testTag) and hasClickAction()
     composeTestRule.waitUntil(timeoutMillis = DEFAULT_TIMEOUT) {
@@ -354,6 +359,7 @@ abstract class EndToEndUtils : UITest() {
     }
   }
 
+  /** This method allows to navigate to preferences mode screen. */
   fun goToDangerModePreferencesScreen() {
     composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
     composeTestRule.onNodeWithTag(NavigationTestTags.DANGER_MODE_PREFERENCES).performClick()
