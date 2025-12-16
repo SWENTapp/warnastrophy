@@ -1,19 +1,17 @@
 package com.github.warnastrophy.core.data.service
 
 import android.content.Context
+import com.github.warnastrophy.core.data.interfaces.ActivityRepository
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.github.warnastrophy.core.data.provider.ActivityRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HazardRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
-import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.data.repository.MovementSensorRepository
-import com.github.warnastrophy.core.data.repository.UserPreferencesRepository
 import com.github.warnastrophy.core.domain.usecase.HazardCheckerService
 import com.github.warnastrophy.core.model.Hazard
 import com.github.warnastrophy.core.permissions.PermissionManager
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.ui.common.ErrorHandler
-import com.github.warnastrophy.core.util.startForegroundGpsService
-import com.github.warnastrophy.core.util.stopForegroundGpsService
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +37,7 @@ import kotlinx.coroutines.launch
  *    services when the user enters a dangerous zone.
  */
 object StateManagerService {
+
   private lateinit var appContext: Context
   private var initialized = false
   private val serviceScope = CoroutineScope(Dispatchers.IO)
@@ -115,7 +114,6 @@ object StateManagerService {
         MovementService(
             MovementSensorRepository(context), dangerModeStateFlow = dangerModeService.state)
     movementService.startListening()
-    startForegroundGpsService(appContext)
 
     dangerModeOrchestrator =
         DangerModeOrchestrator(
@@ -183,7 +181,6 @@ object StateManagerService {
     if (::textToSpeechService.isInitialized) {
       textToSpeechService.destroy()
     }
-    stopForegroundGpsService(appContext)
   }
 
   /**

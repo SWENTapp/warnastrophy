@@ -1,5 +1,6 @@
 package com.github.warnastrophy
 
+import android.content.Context
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.activity.ComponentActivity
@@ -11,26 +12,46 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.CredentialManager
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
+import com.github.warnastrophy.core.data.provider.OnboardingRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
-import com.github.warnastrophy.core.data.repository.OnboardingRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.features.auth.SignInScreen
+import com.github.warnastrophy.core.ui.features.onboard.AppStateManagerViewModel
+import com.github.warnastrophy.core.ui.features.onboard.OnboardingScreen
 import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModelFactory
-import com.github.warnastrophy.core.ui.onboard.AppStateManagerViewModel
-import com.github.warnastrophy.core.ui.onboard.OnboardingScreen
 import com.github.warnastrophy.core.ui.theme.MainAppTheme
+import com.github.warnastrophy.core.util.AppConfig
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+
+/**
+ * Extension property for [Context] to provide a singleton instance of
+ * [androidx.datastore.core.DataStore] for user preferences. This DataStore is used to persist
+ * simple key-value pairs, such as user settings, using the Jetpack DataStore library.
+ *
+ * The `preferencesDataStore` delegate ensures that there's only one instance of DataStore with the
+ * name [AppConfig.PREF_FILE_NAME] per application process.
+ *
+ * Usage:
+ * ```
+ * context.userPrefsDataStore.edit { prefs ->
+ *     prefs[USER_THEME_KEY] = "dark"
+ * }
+ * ```
+ *
+ * Note: This code was generated with the help of AI
+ */
+val Context.userPrefsDataStore by preferencesDataStore(name = AppConfig.PREF_FILE_NAME)
 
 /**
  * `MainActivity` is the entry point of the application. It initializes Firebase, sets up the data

@@ -7,8 +7,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import com.github.warnastrophy.core.data.interfaces.ActivityRepository
 import com.github.warnastrophy.core.data.interfaces.ContactsRepository
-import com.github.warnastrophy.core.data.repository.ActivityRepository
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
 import com.github.warnastrophy.core.ui.features.dashboard.activity.AddActivityTestTags

@@ -10,9 +10,9 @@ import androidx.compose.ui.test.performClick
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
-import com.github.warnastrophy.core.di.userPrefsDataStore
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
 import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
+import com.github.warnastrophy.userPrefsDataStore
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.After

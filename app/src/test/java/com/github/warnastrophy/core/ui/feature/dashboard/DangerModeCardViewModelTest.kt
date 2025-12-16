@@ -1,18 +1,32 @@
-package com.github.warnastrophy.core.ui.dangermodecard
+package com.github.warnastrophy.core.ui.feature.dashboard
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.test.core.app.ApplicationProvider
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
+import com.github.warnastrophy.core.ui.features.dashboard.Effect
 import com.github.warnastrophy.core.util.AppConfig
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.unmockkAll
+import io.mockk.verify
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -21,6 +35,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 
 @ExperimentalCoroutinesApi
@@ -29,24 +44,34 @@ class DangerModeCardViewModelTest {
   private lateinit var viewModel: DangerModeCardViewModel
   private lateinit var repository: MockActivityRepository
   private val testDispatcher = StandardTestDispatcher()
+  private lateinit var activity: android.app.Activity
+
+  private lateinit var mockPermissionManager: PermissionManagerInterface
+
+  private lateinit var mockDataStore: DataStore<Preferences>
 
   @Before
   fun setup() {
+    activity = Robolectric.buildActivity(android.app.Activity::class.java).get()
+    mockDataStore = mockk(relaxed = true)
+    UserPreferencesRepositoryProvider.initLocal(mockDataStore)
     StateManagerService.init(ApplicationProvider.getApplicationContext())
-    StateManagerService.permissionManager =
-        MockPermissionManager(currentResult = PermissionResult.Granted)
+    val realMockPermissionManager = MockPermissionManager(currentResult = PermissionResult.Granted)
+    mockPermissionManager = spyk(realMockPermissionManager)
+    StateManagerService.permissionManager = mockPermissionManager
     StateManagerService.dangerModeService =
         DangerModeService(permissionManager = StateManagerService.permissionManager)
     // Initialize the mock repository for testing
     repository = MockActivityRepository()
     viewModel =
         DangerModeCardViewModel(
-            repository = repository, userId = AppConfig.defaultUserId, dispatcher = testDispatcher)
+            repository = repository, userId = AppConfig.defaultUserId, testDispatcher)
   }
 
   @After
   fun tearDown() {
     Dispatchers.resetMain()
+    unmockkAll()
   }
 
   @Test
@@ -128,4 +153,63 @@ class DangerModeCardViewModelTest {
     val activities = viewModel.activities.first()
     assertEquals(2, activities.size)
   }
+
+  @Test
+  fun onPermissionsResult_markPermissionAsAsked() =
+      runTest(testDispatcher) {
+        viewModel.onPermissionsRequestStart()
+        assertTrue(viewModel.permissionUiState.value.waitingForUserResponse)
+        viewModel.onPermissionResult(activity)
+        testDispatcher.scheduler.advanceUntilIdle()
+        verify(exactly = 1) {
+          mockPermissionManager.markPermissionsAsAsked(viewModel.alertModePermission)
+        }
+        assertFalse(viewModel.permissionUiState.value.waitingForUserResponse)
+      }
+
+  @Test
+  fun handleToggle_ON_with_Granted_permission_activatesDangerMode_and_emitsStartServiceEffect() =
+      runTest(testDispatcher) {
+        val collectedEffects = mutableListOf<Effect>()
+        launch { viewModel.effects.take(1).toList(collectedEffects) }
+        viewModel.handleToggle(isChecked = true, permissionResult = PermissionResult.Granted)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collectedEffects.size)
+        assertEquals(collectedEffects[0], Effect.StartForegroundService)
+      }
+
+  @Test
+  fun handleToggle_ON_with_Denied_permission_emits_RequestLocationPermissionEffect() =
+      runTest(testDispatcher) {
+        val collectedEffects = mutableListOf<Effect>()
+        launch { viewModel.effects.take(1).toList(collectedEffects) }
+        viewModel.handleToggle(
+            isChecked = true, permissionResult = PermissionResult.Denied(emptyList()))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collectedEffects.size)
+        assertEquals(collectedEffects[0], Effect.RequestLocationPermission)
+      }
+
+  @Test
+  fun handleToggle_ON_with_Permanent_Denied_permission_emits_OpenAppSettingsEffect() =
+      runTest(testDispatcher) {
+        val collectedEffects = mutableListOf<Effect>()
+        launch { viewModel.effects.take(1).toList(collectedEffects) }
+        viewModel.handleToggle(
+            isChecked = true, permissionResult = PermissionResult.PermanentlyDenied(emptyList()))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collectedEffects.size)
+        assertEquals(collectedEffects[0], Effect.ShowOpenAppSettings)
+      }
+
+  @Test
+  fun handleToggle_Off_emits_StopForegroundServiceEffect() =
+      runTest(testDispatcher) {
+        val collectedEffects = mutableListOf<Effect>()
+        launch { viewModel.effects.take(1).toList(collectedEffects) }
+        viewModel.handleToggle(isChecked = false, permissionResult = PermissionResult.Granted)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collectedEffects.size)
+        assertEquals(collectedEffects[0], Effect.StopForegroundService)
+      }
 }

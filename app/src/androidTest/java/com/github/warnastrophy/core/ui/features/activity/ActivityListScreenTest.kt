@@ -6,7 +6,7 @@ import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
-import com.github.warnastrophy.core.data.repository.ActivityRepository
+import com.github.warnastrophy.core.data.interfaces.ActivityRepository
 import com.github.warnastrophy.core.data.repository.MockActivityRepository
 import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.ui.features.dashboard.activity.ActivityListScreen

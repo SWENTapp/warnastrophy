@@ -1,6 +1,7 @@
 package com.github.warnastrophy.core.data.repository
 
 import android.util.Log
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
