@@ -204,111 +204,78 @@ fun DependencyHandlerScope.globalTestImplementation(dep: Any) {
 }
 
 dependencies {
+    // BOMs
+    val composeBom = platform(libs.compose.bom)
+    implementation(composeBom)
+    globalTestImplementation(composeBom)
+
+    implementation(platform(libs.firebase.bom))
+
+    // Implementation / runtime
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.coil.compose)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(platform(libs.compose.bom))
-    implementation(libs.androidx.espresso.idling.resource)
     implementation(libs.googleid)
-    testImplementation(libs.junit)
-    globalTestImplementation(libs.androidx.junit)
-    globalTestImplementation(libs.androidx.espresso.core)
-    globalTestImplementation(libs.hamcrest)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.test.rules)
-
-    // ------------- Jetpack Compose ------------------
-    val composeBom = platform(libs.compose.bom)
-    implementation(composeBom)
-    globalTestImplementation(composeBom)
-
+    implementation(libs.androidx.espresso.idling.resource)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
-    // Material Design 3
     implementation(libs.compose.material3)
-    // Material Icons Extended (for icons like Mic)
     implementation(libs.androidx.material.icons.extended)
-    // Integration with activities
     implementation(libs.compose.activity)
-    // Integration with ViewModels
     implementation(libs.compose.viewmodel)
-    // Android Studio Preview support
     implementation(libs.compose.preview)
-    debugImplementation(libs.compose.tooling)
-    // UI Tests
-    globalTestImplementation(libs.compose.test.junit)
-    debugImplementation(libs.compose.test.manifest)
-
-    // Navigation for Compose
     implementation(libs.androidx.navigation.compose)
-
-    // --------- Kaspresso test framework ----------
-    globalTestImplementation(libs.kaspresso)
-    globalTestImplementation(libs.kaspresso.compose)
-
-    // ----------       Robolectric     ------------
-    testImplementation(libs.robolectric)
-
-    // --------------- firebase -------------------
-    // Import the Firebase BoM
-    implementation(platform(libs.firebase.bom))
-
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
-
-
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-
-    // Add the dependencies for Firebase products you want to use
-    // See https://firebase.google.com/docs/android/setup#available-libraries
-    // For example, add the dependencies for Firebase Authentication and Cloud Firestore
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-
-    // --------------- Google Maps -------------------
     implementation(libs.play.services.maps)
     implementation(libs.maps.compose)
     implementation(libs.play.services.location)
-
-    // --------------- Gson -------------------
     implementation(libs.gson)
-
-    // --------------- DataStore -------------------
     implementation(libs.androidx.datastore.preferences)
-
-    // --------------- OkHttp -------------------
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.okhttp.mockwebserver)
-
-    // test mock
-    androidTestImplementation(libs.mockk.android)
-    testImplementation(libs.mockk)
     implementation(libs.json)
+    implementation(libs.jts.core)
+    implementation(libs.jts.io.common)
+    implementation(libs.androidx.browser)
+
+    // Debug-only
+    debugImplementation(libs.compose.tooling)
+    debugImplementation(libs.compose.test.manifest)
+
+    // Test-only (unit)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.mockk)
     testImplementation(libs.json)
     testImplementation(libs.androidx.core.testing)
-
-    // For mocking objects in tests
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.mockito.kotlin.v510)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.androidx.espresso.intents)
+    testImplementation(kotlin("test"))
+
+    // Android Instrumentation tests
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockito.core)
     androidTestImplementation(libs.mockito.android)
     androidTestImplementation(libs.mockito.kotlin)
-    testImplementation(libs.mockito.kotlin.v510)
-    testImplementation(libs.mockito.inline)
-
-    implementation(libs.jts.core)
-    implementation(libs.jts.io.common)
-
-    // Espresso-Intents
-    testImplementation(libs.androidx.espresso.intents)
     androidTestImplementation(libs.androidx.espresso.intents)
-    testImplementation(kotlin("test"))
 
-    // in-app browser
-    implementation(libs.androidx.browser)
+    // Global test dependencies (both unit and androidTest)
+    globalTestImplementation(libs.androidx.junit)
+    globalTestImplementation(libs.androidx.espresso.core)
+    globalTestImplementation(libs.hamcrest)
+    globalTestImplementation(libs.compose.test.junit)
+    globalTestImplementation(libs.kaspresso)
+    globalTestImplementation(libs.kaspresso.compose)
 }
 
 tasks.withType<Test> {
@@ -320,6 +287,9 @@ tasks.withType<Test> {
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
+    group = "verification"
+    description = "Generate JaCoCo XML and HTML test coverage reports"
+
     mustRunAfter("testDebugUnitTest", "connectedDebugAndroidTest")
 
     reports {

@@ -233,6 +233,7 @@ class DangerModeCardViewModel(
    *
    * @param effect The specific [Effect] to be emitted to the collector (typically the UI/Fragment).
    */
+  @Suppress("RemoveRedundantDispatcherCall")
   private fun emitEffect(effect: Effect) {
     viewModelScope.launch(dispatcher) { _effects.emit(effect) }
   }

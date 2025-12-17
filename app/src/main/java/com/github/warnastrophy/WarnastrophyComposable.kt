@@ -235,7 +235,6 @@ fun WarnastrophyComposable(
               }
               composable(Screen.AddContact.route) {
                 AddContactScreen(
-                    userId = userId,
                     addContactViewModel = addContactViewModel,
                     onDone = { navigationActions.goBack() })
               }
