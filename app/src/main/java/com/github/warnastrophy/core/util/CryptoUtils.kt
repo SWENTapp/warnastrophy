@@ -47,7 +47,7 @@ object CryptoUtils {
    */
   fun decrypt(cipherText: String): String {
     val data = Base64.getDecoder().decode(cipherText)
-    require(data.size < IV_LENGTH) { "Invalid data: too short" }
+    require(data.size >= IV_LENGTH) { "Invalid data: too short" }
     val iv = data.copyOfRange(0, IV_LENGTH)
     val encrypted = data.copyOfRange(IV_LENGTH, data.size)
 
