@@ -15,7 +15,6 @@
     <string name="sign_in_title">Sign In</string>
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
 
-
     <!-- Dashboard Strings -->
     <string name="latest_news">Latest news</string>
     <string name="no_news_yet">No news yet !</string>
@@ -31,6 +30,21 @@
     <!-- Dashboard Health Card -->
     <string name="dashboard_health_card_title">Health</string>
     <string name="dashboard_health_card_empty_text">Add your medical info,\nallergies and meds</string>
+
+    <!-- Dashboard Danger Mode Card -->
+    <string name="danger_mode_card_title">Danger Mode</string>
+    <string name="danger_mode_card_mode_label">Mode</string>
+    <string name="danger_mode_card_select_activity">Select Activity</string>
+    <string name="danger_mode_card_dropdown_arrow_cd">Dropdown Arrow</string>
+    <string name="danger_mode_card_manage_activities">Manage Activities</string>
+    <string name="danger_mode_card_danger_level_label">Danger Level</string>
+    <string name="danger_mode_card_sends_label">Sends</string>
+    <string name="danger_mode_advanced_auto_actions_title">Automatic actions</string>
+    <string name="danger_mode_advanced_auto_actions_desc">When Danger Mode is triggered, calls and messages can be sent automatically. Use the options below to choose what happens, and how you confirm it.</string>
+    <string name="danger_mode_advanced_confirmation_title">Confirmation methods</string>
+    <string name="danger_mode_advanced_confirmation_desc">For extra control, you can require a quick confirmation before actions are sent.</string>
+    <string name="danger_mode_advanced_touch_confirmation_label">Require touch confirmation</string>
+    <string name="danger_mode_advanced_voice_confirmation_label">Allow voice confirmation</string>
 
     <!-- Logout strings -->
     <string name="logout_string">Logout</string>
@@ -64,7 +78,7 @@
 
     <!-- No activity fallback -->
     <string name="no_activity_fallback_message">Error: Screen cannot function without an Activity context.</string>
-    
+
     <!-- Theme management strings -->
     <string name="theme_string">Theme</string>
     <string name="dark_string">Dark</string>
