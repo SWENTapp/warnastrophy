@@ -72,9 +72,12 @@ class MainActivityTest {
     composeTestRule.waitForIdle()
 
     // --- Page 2 to Page 3 (Button Text: "Next") ---
+    /*
     nextButtonNode.assertIsDisplayed()
     nextButtonNode.performClick()
     composeTestRule.waitForIdle()
+
+     */
 
     // --- Final Click (Button Text: "Start") ---
     nextButtonNode.assertIsDisplayed()

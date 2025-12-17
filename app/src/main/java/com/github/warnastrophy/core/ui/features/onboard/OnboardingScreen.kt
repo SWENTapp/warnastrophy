@@ -51,18 +51,25 @@ object OnboardingScreenTestTags {
 data class OnboardingButtons(val back: String, val next: String)
 
 /**
- * Returns the Back and Next button labels for the given onboarding page index.
+ * Returns the Back and Next button labels for the given onboarding screen index.
  *
- * @param page Current page index (0-based).
+ * @param screenIndex Current screen index (0-based).
+ * @param numberOfScreens number of onboarding screens.
  * @return An [OnboardingButtons] instance containing labels for the current page.
  */
-private fun getButtonState(page: Int): OnboardingButtons =
-    when (page) {
-      0 -> OnboardingButtons("", "Next")
-      1 -> OnboardingButtons("Back", "Next")
-      2 -> OnboardingButtons("Back", "Start")
-      else -> OnboardingButtons("", "")
+private fun getButtonState(screenIndex: Int, numberOfScreens: Int): OnboardingButtons {
+  return when (screenIndex) {
+    0 -> {
+      OnboardingButtons("", "Next")
     }
+    numberOfScreens - 1 -> {
+      OnboardingButtons("Back", "Start")
+    }
+    else -> {
+      OnboardingButtons("Back", "Next")
+    }
+  }
+}
 
 /**
  * Handles the Next button click behavior.
@@ -107,11 +114,13 @@ private suspend fun handleBackClick(page: Int, pagerState: PagerState) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
-  val pages = listOf(OnboardingModel.FirstPage, OnboardingModel.SecondPage)
+  val screens = listOf(OnboardingModel.FirstPage, OnboardingModel.SecondPage)
 
-  val pagerState = rememberPagerState(initialPage = 0) { pages.size }
+  val screenState = rememberPagerState(initialPage = 0) { screens.size }
 
-  val buttons by remember { derivedStateOf { getButtonState(pagerState.currentPage) } }
+  val buttons by remember {
+    derivedStateOf { getButtonState(screenState.currentPage, screens.size) }
+  }
 
   val scope = rememberCoroutineScope()
 
@@ -129,13 +138,13 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                       backgroundColor = Color.Transparent,
                       textColor = Color.Gray) {
                         scope.launch {
-                          handleBackClick(page = pagerState.currentPage, pagerState = pagerState)
+                          handleBackClick(page = screenState.currentPage, pagerState = screenState)
                         }
                       }
                 }
               }
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                IndicatorUI(pageSize = pages.size, currentPage = pagerState.currentPage)
+                IndicatorUI(pageSize = screens.size, currentPage = screenState.currentPage)
               }
 
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
@@ -147,9 +156,9 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                     textColor = MaterialTheme.colorScheme.onPrimary) {
                       scope.launch {
                         handleNextClick(
-                            page = pagerState.currentPage,
-                            pageCount = pages.size,
-                            pagerState = pagerState,
+                            page = screenState.currentPage,
+                            pageCount = screens.size,
+                            pagerState = screenState,
                             onFinished = onFinished)
                       }
                     }
@@ -158,8 +167,8 @@ fun OnboardingScreen(onFinished: () -> Unit) {
       },
       content = {
         Column(Modifier.padding(it)) {
-          HorizontalPager(state = pagerState) { index ->
-            OnboardingGraphUI(onboardingModel = pages[index])
+          HorizontalPager(state = screenState) { index ->
+            OnboardingGraphUI(onboardingModel = screens[index])
           }
         }
       })
