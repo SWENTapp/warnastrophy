@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.getScreenErrors
 import com.github.warnastrophy.core.ui.features.error.ErrorScreen
@@ -73,4 +74,13 @@ fun TopBar(
               }
         }
       })
+}
+
+@Preview
+@Composable
+fun TopBarPreview() {
+  androidx.compose.foundation.layout.Box(
+      modifier = Modifier.testTag(NavigationTestTags.TOP_BAR_PREVIEW)) {
+        TopBar(Screen.Dashboard)
+      }
 }
