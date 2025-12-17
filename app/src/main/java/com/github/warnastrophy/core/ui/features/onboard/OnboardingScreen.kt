@@ -107,8 +107,7 @@ private suspend fun handleBackClick(page: Int, pagerState: PagerState) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
-  val pages =
-      listOf(OnboardingModel.FirstPage, OnboardingModel.SecondPage, OnboardingModel.ThirdPage)
+  val pages = listOf(OnboardingModel.FirstPage, OnboardingModel.SecondPage)
 
   val pagerState = rememberPagerState(initialPage = 0) { pages.size }
 

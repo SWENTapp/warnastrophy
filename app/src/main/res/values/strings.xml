@@ -151,8 +151,6 @@
     <string name="title_second_page">Manual High-Risk Safety</string>
     <string name="description_second_page">Use this for activities like climbing or solo hiking. If we detect a fall followed
         by prolonged stillness, we send your location to emergency service that you chose before.</string>
-    <string name="description_third_page">To monitor your location in the background and send emergency texts, we need location and SMS permission. We use these data only for your safety.</string>
-    <string name="title_third_page">Ready for Protection?</string>
 
     <!-- communication screen-->
     <string name="communication_tts_speaking_label">Speaking…</string>
