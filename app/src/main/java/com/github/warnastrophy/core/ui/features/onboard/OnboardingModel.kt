@@ -10,6 +10,7 @@ import com.github.warnastrophy.R
  * Each onboarding page has a [title] and [description] explaining the feature or permissions
  * required to the user.
  *
+ * @property image image to display on onboarding page
  * @property title The main title displayed for the onboarding page.
  * @property description A descriptive text explaining the feature or permission.
  */

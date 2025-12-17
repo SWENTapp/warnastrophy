@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.onboard
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,9 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.warnastrophy.R
 import kotlinx.coroutines.launch
 
 /** Test tag for onboarding screen */
@@ -45,10 +48,13 @@ object OnboardingScreenTestTags {
 /**
  * Represents the Back and Next button labels for a specific onboarding page.
  *
- * @property back Label for the back button.
- * @property next Label for the next button.
+ * @property leftButtonRes Label for the back button.
+ * @property rightButtonRes Label for the next button.
  */
-data class OnboardingButtons(val back: String, val next: String)
+data class OnboardingButtons(
+    @StringRes val leftButtonRes: Int?, // Use Int for the R.string ID
+    @StringRes val rightButtonRes: Int
+)
 
 /**
  * Returns the Back and Next button labels for the given onboarding screen index.
@@ -60,13 +66,13 @@ data class OnboardingButtons(val back: String, val next: String)
 private fun getButtonState(screenIndex: Int, numberOfScreens: Int): OnboardingButtons {
   return when (screenIndex) {
     0 -> {
-      OnboardingButtons("", "Next")
+      OnboardingButtons(null, R.string.next_button)
     }
     numberOfScreens - 1 -> {
-      OnboardingButtons("Back", "Start")
+      OnboardingButtons(R.string.back_button, R.string.start_button)
     }
     else -> {
-      OnboardingButtons("Back", "Next")
+      OnboardingButtons(R.string.back_button, R.string.next_button)
     }
   }
 }
@@ -131,10 +137,11 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                if (buttons.back.isNotEmpty()) {
+                val leftRes = buttons.leftButtonRes
+                if (leftRes != null) {
                   // Back button
                   ButtonUi(
-                      text = buttons.back,
+                      text = stringResource(leftRes),
                       backgroundColor = Color.Transparent,
                       textColor = Color.Gray) {
                         scope.launch {
@@ -151,7 +158,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                 // Next button
                 ButtonUi(
                     modifier = Modifier.testTag(OnboardingScreenTestTags.NEXT_BUTTON),
-                    text = buttons.next,
+                    text = stringResource(buttons.rightButtonRes),
                     backgroundColor = MaterialTheme.colorScheme.primary,
                     textColor = MaterialTheme.colorScheme.onPrimary) {
                       scope.launch {
