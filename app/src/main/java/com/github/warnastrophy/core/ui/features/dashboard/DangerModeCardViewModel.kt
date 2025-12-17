@@ -176,7 +176,6 @@ class DangerModeCardViewModel(
    */
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
     if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
-      // TODO
       Log.e("DangerModeCardViewModel", "Failed to set capabilities: $newCapabilities")
     }
   }
