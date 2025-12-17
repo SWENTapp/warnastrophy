@@ -19,7 +19,6 @@ private fun tagFor(screen: Screen): String =
       Screen.Map -> NavigationTestTags.TAB_MAP
       Screen.Profile -> NavigationTestTags.TAB_PROFILE
       else -> ""
-    // TODO: add test tags if needed
     }
 
 @Composable
