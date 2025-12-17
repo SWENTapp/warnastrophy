@@ -83,6 +83,9 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
           Manifest.permission.ACCESS_FINE_LOCATION,
       )
 
+  object MicrophonePermission :
+      AppPermissions(key = "microphone_permission", Manifest.permission.RECORD_AUDIO)
+
   companion object {
     /** A reusable check for SDK versions, annotated to help the compiler with smart casting. */
     @ChecksSdkIntAtLeast(parameter = 0)

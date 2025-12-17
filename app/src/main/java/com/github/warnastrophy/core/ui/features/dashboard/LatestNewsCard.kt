@@ -89,9 +89,10 @@ fun LatestNewsCard(
 ) {
   val fetcherState by hazardsService.fetcherState.collectAsState()
   var currentIndex by remember { mutableIntStateOf(0) }
-  currentIndex = currentIndex.coerceIn(0, (fetcherState.hazards.size - 1).coerceAtLeast(0))
+  val hazards = fetcherState.hazards.filter { hazard -> hazard.articleUrl != null }
+  currentIndex = currentIndex.coerceIn(0, (hazards.size - 1).coerceAtLeast(0))
 
-  val currentHazard = fetcherState.hazards.getOrNull(currentIndex) ?: Hazard()
+  val currentHazard = hazards.getOrNull(currentIndex) ?: Hazard()
   val extendedColors = MaterialTheme.extendedColors
 
   Column(
