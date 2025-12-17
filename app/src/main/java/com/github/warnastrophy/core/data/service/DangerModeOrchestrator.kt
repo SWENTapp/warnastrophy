@@ -240,7 +240,6 @@ class DangerModeOrchestrator(
     // Check if all conditions are met for triggering emergency actions
     val shouldTrigger =
         dangerState.isActive &&
-            dangerState.activatingHazard != null &&
             preferences.alertMode &&
             preferences.inactivityDetection &&
             movementState is MovementState.Danger
