@@ -23,9 +23,7 @@ class AddContactScreenTest : UITest() {
     super.setUp()
     contactRepository = MockContactRepository()
     val mockViewModel = AddContactViewModel(repository = contactRepository, userId = userId)
-    composeTestRule.setContent {
-      AddContactScreen(addContactViewModel = mockViewModel, userId = userId)
-    }
+    composeTestRule.setContent { AddContactScreen(addContactViewModel = mockViewModel) }
   }
 
   @Test
