@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -88,7 +89,6 @@ class DangerModeCardViewModel(
     private val dangerModeService: DangerModeService = StateManagerService.dangerModeService
 ) : ViewModel() {
   val alertModePermission = AppPermissions.AlertModePermission
-  private val prefsRepo = userPreferencesRepository
 
   private val _activities = MutableStateFlow<List<Activity>>(emptyList())
   val activities: StateFlow<List<Activity>> = _activities.asStateFlow()
@@ -101,6 +101,27 @@ class DangerModeCardViewModel(
               alertModePermissionResult =
                   permissionManager.getPermissionResult(alertModePermission)))
   val permissionUiState = _alertModeUiState.asStateFlow()
+
+  // UI-facing optimistic capabilities state. The UI should consume this for immediate
+  // feedback when toggling capabilities. It is kept in sync with the service-backed
+  // `capabilities` and will be reverted if the service rejects the change.
+  private val _capabilitiesInternal = MutableStateFlow<Set<DangerModeCapability>>(emptySet())
+  val capabilitiesInternal: StateFlow<Set<DangerModeCapability>> =
+      _capabilitiesInternal.asStateFlow()
+
+  private val _autoActionsEnabled = MutableStateFlow(false)
+  val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
+  private val _confirmTouchRequired =
+      MutableStateFlow(
+          false) // This is tactile confirmation before the app takes actions like calling/emergency
+  // SMS
+  val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
+
+  private val _confirmVoiceRequired =
+      MutableStateFlow(
+          false) // This is audio confirmation before the app takes actions like calling/emergency
+  // SMS
+  val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
 
   init {
     refreshActivities()
@@ -120,12 +141,10 @@ class DangerModeCardViewModel(
     // so a single bad read won't crash the ViewModel.
     viewModelScope.launch(dispatcher) {
       try {
-        prefsRepo.getUserPreferences.collect { prefs ->
+        userPreferencesRepository.getUserPreferences.collect { prefs ->
           try {
             // Ensure updates happen on main thread
-            viewModelScope.launch(kotlinx.coroutines.Dispatchers.Main.immediate) {
-              applyPreferencesInternal(prefs)
-            }
+            viewModelScope.launch(Dispatchers.Main.immediate) { applyPreferencesInternal(prefs) }
           } catch (e: Throwable) {
             Log.e("DangerModeCardViewModel", "Failed to schedule applyPreferences", e)
           }
@@ -169,20 +188,6 @@ class DangerModeCardViewModel(
           .map { it.capabilities }
           .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
 
-  private val _autoActionsEnabled = MutableStateFlow(false)
-  val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
-  private val _confirmTouchRequired =
-      MutableStateFlow(
-          false) // This is tactile confirmation before the app takes actions like calling/emergency
-  // SMS
-  val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
-
-  private val _confirmVoiceRequired =
-      MutableStateFlow(
-          false) // This is audio confirmation before the app takes actions like calling/emergency
-  // SMS
-  val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
-
   /**
    * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
    * accordingly.
@@ -214,8 +219,20 @@ class DangerModeCardViewModel(
    * @param newCapabilities The new set of enabled capabilities.
    */
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
-    if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
-      // TODO
+    // Optimistically update the UI-facing capabilities so the UI reacts immediately.
+    val previous = _capabilitiesInternal.value
+    _capabilitiesInternal.value = newCapabilities
+
+    val result =
+        try {
+          dangerModeService.setCapabilities(newCapabilities)
+        } catch (t: Throwable) {
+          Result.failure<Unit>(t)
+        }
+
+    if (result.isFailure) {
+      // revert optimistic update and log
+      _capabilitiesInternal.value = previous
       Log.e("DangerModeCardViewModel", "Failed to set capabilities: $newCapabilities")
     }
   }
@@ -226,27 +243,25 @@ class DangerModeCardViewModel(
    * @param capability The capability to be toggled.
    */
   fun onCapabilityToggled(capability: DangerModeCapability) {
-    val current = dangerModeService.state.value.capabilities
+    // Use the UI-facing internal capabilities as the source of truth for immediate toggling
+    val current = _capabilitiesInternal.value
     val enabling = !current.contains(capability)
 
     val newCaps: Set<DangerModeCapability> = if (enabling) setOf(capability) else emptySet()
 
-    // If enabling, also enable auto-actions so the advanced section becomes visible.
-    if (enabling) {
-      onAutoActionsEnabled(true)
-    }
+    // Do not implicitly toggle auto-actions when changing capability; keep user control.
 
     onCapabilitiesChanged(newCaps)
 
     viewModelScope.launch(dispatcher) {
       when (capability) {
         DangerModeCapability.CALL -> {
-          prefsRepo.setAutomaticCalls(enabling)
-          if (enabling) prefsRepo.setAutomaticSms(false)
+          userPreferencesRepository.setAutomaticCalls(enabling)
+          if (enabling) userPreferencesRepository.setAutomaticSms(false)
         }
         DangerModeCapability.SMS -> {
-          prefsRepo.setAutomaticSms(enabling)
-          if (enabling) prefsRepo.setAutomaticCalls(false)
+          userPreferencesRepository.setAutomaticSms(enabling)
+          if (enabling) userPreferencesRepository.setAutomaticCalls(false)
         }
       }
     }
@@ -265,22 +280,22 @@ class DangerModeCardViewModel(
     _confirmTouchRequired.value = enabled
     if (enabled) _confirmVoiceRequired.value = false
     viewModelScope.launch(dispatcher) {
-      prefsRepo.setTouchConfirmationRequired(enabled)
-      if (enabled) prefsRepo.setVoiceConfirmationEnabled(false)
+      userPreferencesRepository.setTouchConfirmationRequired(enabled)
+      if (enabled) userPreferencesRepository.setVoiceConfirmationEnabled(false)
     }
   }
 
   fun onAutoActionsEnabled(enabled: Boolean) {
     _autoActionsEnabled.value = enabled
-    viewModelScope.launch(dispatcher) { prefsRepo.setAutoActionsEnabled(enabled) }
+    viewModelScope.launch(dispatcher) { userPreferencesRepository.setAutoActionsEnabled(enabled) }
   }
 
   fun onConfirmVoiceChanged(enabled: Boolean) {
     _confirmVoiceRequired.value = enabled
     if (enabled) _confirmTouchRequired.value = false
     viewModelScope.launch(dispatcher) {
-      prefsRepo.setVoiceConfirmationEnabled(enabled)
-      if (enabled) prefsRepo.setTouchConfirmationRequired(false)
+      userPreferencesRepository.setVoiceConfirmationEnabled(enabled)
+      if (enabled) userPreferencesRepository.setTouchConfirmationRequired(false)
     }
   }
 
@@ -344,7 +359,7 @@ class DangerModeCardViewModel(
 
   // Internal suspend function that performs the actual state updates. Must be called on the
   // Main dispatcher to safely update StateFlow-backed UI state.
-  private suspend fun applyPreferencesInternal(prefs: UserPreferences) {
+  private fun applyPreferencesInternal(prefs: UserPreferences) {
     runCatching {
           _autoActionsEnabled.value = prefs.dangerModePreferences.autoActionsEnabled
           _confirmTouchRequired.value = prefs.dangerModePreferences.touchConfirmationRequired
@@ -355,11 +370,28 @@ class DangerModeCardViewModel(
           if (prefs.dangerModePreferences.automaticSms) caps.add(DangerModeCapability.SMS)
 
           try {
-            onCapabilitiesChanged(caps)
+            // Apply persisted capabilities to the UI-facing state directly without calling
+            // `onCapabilitiesChanged` to avoid triggering a service call which can overwrite
+            // optimistic UI updates during tests or startup.
+            _capabilitiesInternal.value = caps
           } catch (e: Throwable) {
             Log.e("DangerModeCardViewModel", "Failed to apply capabilities from prefs", e)
           }
         }
         .onFailure { e -> Log.e("DangerModeCardViewModel", "Failed to apply user preferences", e) }
+  }
+
+  // Initial sync: read the current service state once and seed the UI-facing capabilities.
+  // We intentionally do not continuously overwrite the UI-facing optimistic state to avoid
+  // reverting user actions during transient service updates.
+  init {
+    viewModelScope.launch(dispatcher) {
+      try {
+        val initial = dangerModeService.state.first()
+        _capabilitiesInternal.value = initial.capabilities
+      } catch (t: Throwable) {
+        Log.w("DangerModeCardViewModel", "Failed to initial-sync capabilities: ${t.message}")
+      }
+    }
   }
 }

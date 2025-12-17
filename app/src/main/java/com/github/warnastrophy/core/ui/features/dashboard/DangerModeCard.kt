@@ -38,8 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,7 +98,7 @@ fun DangerModeCard(
 
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
   val currentActivity by viewModel.currentActivity.collectAsState(null)
-  val capabilities by viewModel.capabilities.collectAsState(emptySet())
+  val capabilities by viewModel.capabilitiesInternal.collectAsState(emptySet())
   val dangerLevel by viewModel.dangerLevel.collectAsState(DangerLevel.LOW)
   val autoActionsEnabled by viewModel.autoActionsEnabled.collectAsState(false)
 
@@ -255,14 +253,14 @@ fun DangerModeCard(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
               DangerModeCapability.entries.forEach { capability ->
                 val selected = capabilities.contains(capability)
-                // Disabled if another capability is selected and this one is not the selected one
-                val disabled = capabilities.isNotEmpty() && !selected
+                // Visual disabled styling when another capability is selected and this one is not
+                val visuallyDisabled = capabilities.isNotEmpty() && !selected
 
                 val (color, textColor) =
                     when {
                       selected ->
                           Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
-                      disabled ->
+                      visuallyDisabled ->
                           Pair(
                               colorScheme.error.copy(alpha = 0.25f),
                               colorScheme.onError.copy(alpha = 0.25f))
@@ -271,16 +269,13 @@ fun DangerModeCard(
 
                 StandardDashboardButton(
                     label = capability.label,
-                    modifier =
-                        Modifier.testTag(DangerModeTestTags.capabilityTag(capability)).semantics {
-                          this.selected = selected
-                        },
+                    modifier = Modifier.testTag(DangerModeTestTags.capabilityTag(capability)),
+                    isSelected = selected,
                     color = color,
                     borderColor = colorScheme.onError,
                     onClick = {
-                      if (disabled) return@StandardDashboardButton
-                      // Delegate to ViewModel which enforces mutual exclusivity and enables
-                      // auto-actions
+                      // Delegate to ViewModel which enforces mutual exclusivity. Allow clicking
+                      // other capabilities to switch selection.
                       viewModel.onCapabilityToggled(capability)
                     },
                     textColor = textColor)

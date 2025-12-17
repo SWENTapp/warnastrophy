@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -36,13 +38,17 @@ fun StandardDashboardButton(
     onClick: () -> Unit = {},
     textColor: Color = MaterialTheme.colorScheme.onSurface,
     borderColor: Color = MaterialTheme.colorScheme.surface,
-    icon: @Composable () -> Unit = {}
+    icon: @Composable () -> Unit = {},
+    isSelected: Boolean? = null
 ) {
+  val effectiveModifier =
+      if (isSelected != null) modifier.semantics { selected = isSelected } else modifier
+
   Surface(
       onClick = onClick,
       shape = RoundedCornerShape(20.dp),
       color = color,
-      modifier = modifier,
+      modifier = effectiveModifier,
       tonalElevation = 0.dp,
       border = BorderStroke(1.dp, borderColor)) {
         Row(
