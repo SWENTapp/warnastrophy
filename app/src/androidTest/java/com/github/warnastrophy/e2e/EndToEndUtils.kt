@@ -11,13 +11,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextClearance
-import androidx.compose.ui.test.performTextInput
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
@@ -33,7 +32,6 @@ import com.github.warnastrophy.core.ui.features.UITest
 import com.github.warnastrophy.core.ui.features.contact.AddContactTestTags
 import com.github.warnastrophy.core.ui.features.contact.ContactListScreenTestTags
 import com.github.warnastrophy.core.ui.features.contact.EditContactTestTags
-import com.github.warnastrophy.core.ui.features.health.HealthCardTestTags
 import com.github.warnastrophy.core.ui.features.map.MapScreenTestTags
 import com.github.warnastrophy.core.ui.features.profile.LocalThemeViewModel
 import com.github.warnastrophy.core.ui.features.profile.ThemeViewModel
@@ -248,255 +246,6 @@ abstract class EndToEndUtils : UITest() {
     composeTestRule.onNodeWithText(name, ignoreCase = true).assertDoesNotExist()
   }
 
-  /** Simulates a full user flow for creating and saving a Health Card. */
-  fun createHealthCard(
-      fullName: String = "Jane Doe",
-      birthDate: String = "01/01/1990",
-      ssn: String = "123.456.789-00",
-      sex: String = "Female",
-      bloodType: String = "O+",
-      height: String = "170",
-      weight: String = "65.0",
-      conditions: String = "Asthma",
-      allergies: String = "Pollen, Peanuts",
-      medications: String = "Ventolin",
-      treatments: String = "None",
-      history: String = "Chickenpox",
-      isOrganDonor: Boolean = true,
-      notes: String = "Allergic to penicillin."
-  ) {
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Emergency Card", ignoreCase = true)
-
-    // Fill the form
-    fillHealthCardForm(
-        fullName,
-        birthDate,
-        ssn,
-        sex,
-        bloodType,
-        height,
-        weight,
-        conditions,
-        allergies,
-        medications,
-        treatments,
-        history,
-        isOrganDonor,
-        notes)
-
-    composeTestRule.waitForIdle()
-
-    // Save
-    composeTestRule
-        .onNodeWithTag(HealthCardTestTags.ADD_BUTTON)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .performClick()
-
-    // After creating, the 'Add' button becomes an 'Update' button. Wait for it to appear.
-    composeTestRule.waitUntil(defaultTimeout) {
-      composeTestRule
-          .onAllNodesWithTag(HealthCardTestTags.UPDATE_BUTTON)
-          .fetchSemanticsNodes()
-          .isNotEmpty()
-    }
-
-    // Check if content saved
-    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, fullName)
-    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, birthDate)
-    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, ssn)
-    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, sex)
-    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, bloodType)
-    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, height)
-    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, weight)
-    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, conditions)
-    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, allergies)
-    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, medications)
-    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, treatments)
-    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, history)
-    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, notes)
-  }
-
-  /** Simulates editing and saving a Health Card. */
-  fun editHealthCard(
-      fullName: String? = null,
-      birthDate: String? = null,
-      ssn: String? = null,
-      sex: String? = null,
-      bloodType: String? = null,
-      height: String? = null,
-      weight: String? = null,
-      conditions: String? = null,
-      allergies: String? = null,
-      medications: String? = null,
-      treatments: String? = null,
-      history: String? = null,
-      isOrganDonor: Boolean = false,
-      notes: String? = null
-  ) {
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Emergency Card", ignoreCase = true)
-
-    // Edit the form
-    fillHealthCardForm(
-        fullName,
-        birthDate,
-        ssn,
-        sex,
-        bloodType,
-        height,
-        weight,
-        conditions,
-        allergies,
-        medications,
-        treatments,
-        history,
-        isOrganDonor,
-        notes)
-
-    composeTestRule.waitForIdle()
-
-    // Save
-    composeTestRule
-        .onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON)
-        .performScrollTo()
-        .assertIsDisplayed()
-        .performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Check if content saved
-    composeTestRule
-        .onNodeWithTag(HealthCardTestTags.UPDATE_BUTTON)
-        .performScrollTo()
-        .assertIsDisplayed()
-
-    composeTestRule.waitForIdle()
-
-    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, fullName)
-    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, birthDate)
-    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, ssn)
-    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, sex)
-    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, bloodType)
-    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, height)
-    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, weight)
-    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, conditions)
-    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, allergies)
-    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, medications)
-    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, treatments)
-    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, history)
-    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, notes)
-  }
-
-  /** Simulates deleting a Health Card. */
-  fun deleteHealthCard() {
-    composeTestRule
-        .onNodeWithTag(NavigationTestTags.TOP_BAR_TITLE)
-        .assertTextContains("Emergency Card", ignoreCase = true)
-
-    // Delete
-    composeTestRule.onNodeWithTag(HealthCardTestTags.DELETE_BUTTON).performScrollTo().performClick()
-
-    composeTestRule.waitForIdle()
-
-    // Check all fields empty
-    checkTextFieldValue(HealthCardTestTags.FULL_NAME_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.BIRTH_DATE_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.SSN_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.SEX_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.BLOOD_TYPE_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.HEIGHT_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.WEIGHT_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.ALLERGIES_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.MEDICATIONS_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.TREATMENTS_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.HISTORY_FIELD, null)
-    checkTextFieldValue(HealthCardTestTags.NOTES_FIELD, null)
-  }
-
-  /**
-   * Simulates a full user flow for filling out the Health Card form. It enters text into all
-   * available fields.
-   *
-   * @param fullName The full name to enter.
-   * @param birthDate The birth date in dd/MM/yyyy format.
-   * @param ssn The social security number.
-   * @param sex The biological sex.
-   * @param bloodType The blood type.
-   * @param height The height in cm.
-   * @param weight The weight in kg.
-   * @param conditions Chronic conditions, comma-separated.
-   * @param allergies Allergies, comma-separated.
-   * @param medications Medications, comma-separated.
-   * @param treatments Ongoing treatments, comma-separated.
-   * @param history Medical history, comma-separated.
-   * @param isOrganDonor Whether to toggle the organ donor switch on.
-   * @param notes Additional notes.
-   */
-  private fun fillHealthCardForm(
-      fullName: String? = "Jane Doe",
-      birthDate: String? = "01/01/1990",
-      ssn: String? = "123.456.789-00",
-      sex: String? = "Female",
-      bloodType: String? = "O+",
-      height: String? = "170",
-      weight: String? = "65.0",
-      conditions: String? = "Asthma",
-      allergies: String? = "Pollen, Peanuts",
-      medications: String? = "Ventolin",
-      treatments: String? = "None",
-      history: String? = "Chickenpox",
-      isOrganDonor: Boolean = false,
-      notes: String? = "Allergic to penicillin."
-  ) {
-    // Helper lambda to reduce repetition for text fields
-    val enterText: (String, String?) -> Unit = { tag, text ->
-      if (text != null) {
-        composeTestRule.onNodeWithTag(tag).performTextClearance()
-        composeTestRule.onNodeWithTag(tag).performTextInput(text)
-      }
-    }
-
-    enterText(HealthCardTestTags.FULL_NAME_FIELD, fullName)
-    enterText(HealthCardTestTags.BIRTH_DATE_FIELD, birthDate)
-    enterText(HealthCardTestTags.SSN_FIELD, ssn)
-    enterText(HealthCardTestTags.SEX_FIELD, sex)
-    enterText(HealthCardTestTags.BLOOD_TYPE_FIELD, bloodType)
-    enterText(HealthCardTestTags.HEIGHT_FIELD, height)
-    enterText(HealthCardTestTags.WEIGHT_FIELD, weight)
-    enterText(HealthCardTestTags.CHRONIC_CONDITIONS_FIELD, conditions)
-    enterText(HealthCardTestTags.ALLERGIES_FIELD, allergies)
-    enterText(HealthCardTestTags.MEDICATIONS_FIELD, medications)
-    enterText(HealthCardTestTags.TREATMENTS_FIELD, treatments)
-    enterText(HealthCardTestTags.HISTORY_FIELD, history)
-    enterText(HealthCardTestTags.NOTES_FIELD, notes)
-
-    if (isOrganDonor) {
-      // Assume the switch is not checked by default
-      composeTestRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).performClick()
-      composeTestRule.onNodeWithTag(HealthCardTestTags.ORGAN_DONOR_FIELD).assertIsOn()
-    }
-  }
-
-  /**
-   * Checks that a text field identified by a test tag contains the expected text.
-   *
-   * @param fieldTag The test tag of the OutlinedTextField.
-   * @param expectedText The text that the field is expected to contain.
-   */
-  private fun checkTextFieldValue(fieldTag: String, expectedText: String?) {
-    expectedText?.let {
-      composeTestRule
-          .onNodeWithTag(fieldTag)
-          .performScrollTo()
-          .assertTextContains(it, ignoreCase = true)
-    }
-  }
-
   /**
    * Private helper to fill the contact form. It's an extension on UITest to access composeTestRule
    * and the helper methods like enterEditFullName.
@@ -591,6 +340,29 @@ abstract class EndToEndUtils : UITest() {
     throw IllegalStateException(
         "Couldn't force showVoiceConfirmation overlay. " +
             "Please add a test-only method on dangerModeOrchestrator like triggerVoiceConfirmation().")
+  }
+
+  /**
+   * This method check if given toggle button (which triggers an asynchronous operation) is checked.
+   *
+   * @param testTag test tag string of the button.
+   */
+  fun isSwitchOnAfterAsyncOperation(testTag: String) {
+    val switchMatcher = hasTestTag(testTag) and hasClickAction()
+    composeTestRule.waitUntil(timeoutMillis = DEFAULT_TIMEOUT) {
+      try {
+        composeTestRule.onNode(switchMatcher, useUnmergedTree = true).assertIsOn()
+        true
+      } catch (_: AssertionError) {
+        false
+      }
+    }
+  }
+
+  /** This method allows to navigate to preference modes screen. */
+  fun goToDangerModePreferencesScreen() {
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_PROFILE).performClick()
+    composeTestRule.onNodeWithTag(NavigationTestTags.DANGER_MODE_PREFERENCES).performClick()
   }
 }
 

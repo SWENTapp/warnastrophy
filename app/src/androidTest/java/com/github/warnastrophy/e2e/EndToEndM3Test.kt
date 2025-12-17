@@ -1,22 +1,32 @@
 package com.github.warnastrophy.e2e
 
+import android.Manifest
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.test.rule.GrantPermissionRule
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.data.provider.HealthCardRepositoryProvider
 import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.components.CommunicationScreenTags
+import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreenTestTags
+import com.github.warnastrophy.core.ui.navigation.NavigationTestTags
 import com.github.warnastrophy.userPrefsDataStore
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class EndToEndM3Test : EndToEndUtils() {
 
   private lateinit var fakeTts: FakeTextToSpeechService
   private lateinit var fakeStt: FakeSpeechToTextService
+  @get:Rule
+  val permissionRule: GrantPermissionRule =
+      GrantPermissionRule.grant(Manifest.permission.ACCESS_FINE_LOCATION)
 
   @Before
   override fun setUp() {
@@ -43,6 +53,35 @@ class EndToEndM3Test : EndToEndUtils() {
   override fun tearDown() {
     super.tearDown()
     composeTestRule.runOnUiThread { StateManagerService.shutdown() }
+  }
+
+  /** This test checks if preference modes are saved across navigation */
+  @Test
+  fun preferences_saved_across_navigation() {
+    setContent()
+    goToDangerModePreferencesScreen()
+    composeTestRule
+        .onNodeWithTag(
+            DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH, useUnmergedTree = true)
+        .performClick()
+    isSwitchOnAfterAsyncOperation(DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH)
+    composeTestRule
+        .onNodeWithTag(
+            DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH, useUnmergedTree = true)
+        .performClick()
+    isSwitchOnAfterAsyncOperation(DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH)
+    // Go to Dashboard tab
+    composeTestRule.onNodeWithTag(NavigationTestTags.TAB_DASHBOARD).performClick()
+    // Go to Danger Mode Preference tab again and check if it's saved
+    goToDangerModePreferencesScreen()
+    composeTestRule
+        .onNodeWithTag(
+            DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH, useUnmergedTree = true)
+        .assertIsOn()
+    composeTestRule
+        .onNodeWithTag(
+            DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH, useUnmergedTree = true)
+        .assertIsOn()
   }
 
   /**
