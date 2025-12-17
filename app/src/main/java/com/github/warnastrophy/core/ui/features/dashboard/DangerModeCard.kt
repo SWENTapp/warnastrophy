@@ -2,6 +2,9 @@ package com.github.warnastrophy.core.ui.features.dashboard
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,9 +21,12 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -48,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.ui.components.StandardDashboardButton
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
@@ -72,6 +78,7 @@ object DangerModeTestTags {
   const val CONFIRM_TOUCH_SWITCH = "dangerModeConfirmTouchSwitch"
   const val CONFIRM_VOICE_SWITCH = "dangerModeConfirmVoiceSwitch"
   const val AUTO_CALL_SWITCH = "dangerModeAutoActionsSwitch"
+  const val EXPAND_ARROW = "dangerModeExpandArrow"
 
   fun capabilityTag(capability: DangerModeCapability) = CAPABILITY_PREFIX + capability.label
 
@@ -110,17 +117,26 @@ fun DangerModeCard(
     return
   }
 
+  // Track which permission set is being requested
+  var pendingPermission by remember { mutableStateOf<AppPermissions?>(null) }
+
   val launcher =
       rememberLauncherForActivityResult(
           contract = ActivityResultContracts.RequestMultiplePermissions(),
-          onResult = { viewModel.onPermissionResult(activity = activity) })
+          onResult = {
+            pendingPermission?.let { permissionType ->
+              viewModel.onPermissionResult(activity = activity, permissionType = permissionType)
+            }
+            pendingPermission = null
+          })
 
   LaunchedEffect(Unit) {
     viewModel.effects.collect { effect ->
       when (effect) {
-        Effect.RequestLocationPermission -> {
-          viewModel.onPermissionsRequestStart()
-          launcher.launch(viewModel.alertModePermission.permissions)
+        is Effect.RequestPermissions -> {
+          pendingPermission = effect.permissionType
+          viewModel.onPermissionsRequestStart(effect.permissionType)
+          launcher.launch(effect.permissionType.permissions)
         }
         Effect.StartForegroundService -> startForegroundGpsService(activity)
         Effect.StopForegroundService -> stopForegroundGpsService(context)
@@ -131,19 +147,27 @@ fun DangerModeCard(
 
   val isDangerModeEnabled by viewModel.isDangerModeEnabled.collectAsState(false)
 
+  // State for expanding/collapsing advanced options
+  var isExpanded by remember { mutableStateOf(false) }
+
   StandardDashboardCard(
       modifier = modifier.fillMaxWidth().testTag(DangerModeTestTags.CARD),
       backgroundColor = MaterialTheme.colorScheme.error,
       borderColor = MaterialTheme.colorScheme.error,
   ) {
-    Column(modifier = Modifier.padding(16.dp)) {
+    // reduced vertical padding to make the card shorter on screen
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp)) {
       DangerModeHeader(
           isDangerModeEnabled = isDangerModeEnabled,
-          onCheckedChange = {
-            viewModel.handleToggle(it, viewModel.permissionUiState.value.alertModePermissionResult)
-          })
+          onCheckedChange = { viewModel.handleToggle(it, activity) })
 
-      DangerModeBody(viewModel, onManageActivitiesClick)
+      DangerModeBody(
+          viewModel = viewModel,
+          onManageActivitiesClick = onManageActivitiesClick,
+          isExpanded = isExpanded)
+
+      // Expand/Collapse arrow at the bottom
+      ExpandArrow(isExpanded = isExpanded, onToggle = { isExpanded = !isExpanded })
     }
   }
 }
@@ -159,7 +183,7 @@ fun DangerModeCard(
 @Composable
 private fun DangerModeHeader(isDangerModeEnabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
   Row(
-      modifier = Modifier.fillMaxWidth().offset(y = (-10).dp),
+      modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -187,11 +211,14 @@ private fun DangerModeHeader(isDangerModeEnabled: Boolean, onCheckedChange: (Boo
  * @param viewModel The ViewModel that provides state for the UI and handles user events.
  * @param onManageActivitiesClick A lambda function to be invoked when the user clicks the "Manage"
  *   button, typically to navigate to a screen for managing activities.
+ * @param isExpanded A boolean state that controls whether the advanced options section is expanded
+ *   or collapsed.
  */
 @Composable
 private fun DangerModeBody(
     viewModel: DangerModeCardViewModel,
-    onManageActivitiesClick: () -> Unit
+    onManageActivitiesClick: () -> Unit,
+    isExpanded: Boolean
 ) {
   val currentActivity by viewModel.currentActivity.collectAsState(null)
   val activities by viewModel.activities.collectAsState()
@@ -216,19 +243,33 @@ private fun DangerModeBody(
   CapabilitiesRow(
       capabilities = capabilities, onCapabilityToggled = { viewModel.onCapabilityToggled(it) })
 
-  if (capabilities.contains(DangerModeCapability.CALL) ||
-      capabilities.contains(DangerModeCapability.SMS)) {
-    Spacer(modifier = Modifier.height(12.dp))
-    DangerModeAdvancedOptionsSection(
-        autoActionsEnabled = autoActionsEnabled,
-        confirmTouchRequired = confirmTouchRequired,
-        confirmVoiceRequired = confirmVoiceRequired,
-        onAutoActionsChanged = viewModel::onAutoActionsEnabled,
-        onConfirmTouchChanged = viewModel::onConfirmTouchChanged,
-        onConfirmVoiceChanged = viewModel::onConfirmVoiceChanged)
+  // Advanced section is shown when expanded
+  AnimatedVisibility(visible = isExpanded, enter = expandVertically(), exit = shrinkVertically()) {
+    Column {
+      // reduced spacer to shrink height around the expand arrow
+      DangerModeAdvancedOptionsSection(
+          autoActionsEnabled = autoActionsEnabled,
+          confirmTouchRequired = confirmTouchRequired,
+          confirmVoiceRequired = confirmVoiceRequired,
+          onAutoActionsChanged = viewModel::onAutoActionsEnabled,
+          onConfirmTouchChanged = viewModel::onConfirmTouchChanged,
+          onConfirmVoiceChanged = viewModel::onConfirmVoiceChanged)
+    }
   }
+}
 
-  Spacer(modifier = Modifier.height(4.dp))
+/** A small arrow at the bottom of the card to expand/collapse advanced options. */
+@Composable
+private fun ExpandArrow(isExpanded: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
+  Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+    IconButton(onClick = onToggle, modifier = Modifier.testTag(DangerModeTestTags.EXPAND_ARROW)) {
+      Icon(
+          imageVector =
+              if (isExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+          contentDescription = if (isExpanded) "Collapse" else "Expand",
+          tint = MaterialTheme.colorScheme.onError)
+    }
+  }
 }
 
 /**

@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
+import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,7 +8,7 @@ import com.github.warnastrophy.core.data.interfaces.ActivityRepository
 import com.github.warnastrophy.core.data.service.DangerLevel
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.data.service.StateManagerService.permissionManager
-import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.model.Activity as DangerActivity
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.util.AppConfig
@@ -47,16 +48,10 @@ data class AlertModeUiState(
     val waitingForUserResponse: Boolean = false
 )
 
-/**
- * Represents one-time, non-repeatable side effects that must be executed by the UI layer. They are
- * typically used for:
- * 1. Navigation.
- * 2. Displaying Toast messages or Dialogs.
- * 3. Starting/Stopping services.
- * 4. Requesting system permissions.
- */
+/** Represents one-time, non-repeatable side effects that must be executed by the UI layer. */
 sealed interface Effect {
-  object RequestLocationPermission : Effect
+  /** Request a specific set of permissions. */
+  data class RequestPermissions(val permissionType: AppPermissions) : Effect
 
   object StartForegroundService : Effect
 
@@ -81,8 +76,8 @@ class DangerModeCardViewModel(
   val alertModePermission = AppPermissions.AlertModePermission
   private val dangerModeService = StateManagerService.dangerModeService
 
-  private val _activities = MutableStateFlow<List<Activity>>(emptyList())
-  val activities: StateFlow<List<Activity>> = _activities.asStateFlow()
+  private val _activities = MutableStateFlow<List<DangerActivity>>(emptyList())
+  val activities: StateFlow<List<DangerActivity>> = _activities.asStateFlow()
   private val _effects = MutableSharedFlow<Effect>()
   val effects = _effects.asSharedFlow()
 
@@ -92,6 +87,18 @@ class DangerModeCardViewModel(
               alertModePermissionResult =
                   permissionManager.getPermissionResult(alertModePermission)))
   val permissionUiState = _alertModeUiState.asStateFlow()
+
+  // Sequence of permissions required to enable danger/alert mode.
+  private val permissionSequence =
+      listOf(
+          AppPermissions.AlertModePermission, // location
+          AppPermissions.MicrophonePermission, // microphone
+          AppPermissions.SendEmergencySms, // sms
+          AppPermissions.MakeEmergencyCall // call
+          )
+
+  // Tracks whether enabling was requested so we can continue chain after each grant.
+  private var enableRequested = false
 
   init {
     refreshActivities()
@@ -132,16 +139,11 @@ class DangerModeCardViewModel(
 
   private val _autoActionsEnabled = MutableStateFlow(false)
   val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
-  private val _confirmTouchRequired =
-      MutableStateFlow(
-          false) // This is tactile confirmation before the app takes actions like calling/emergency
-  // SMS
+
+  private val _confirmTouchRequired = MutableStateFlow(false)
   val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
 
-  private val _confirmVoiceRequired =
-      MutableStateFlow(
-          false) // This is audio confirmation before the app takes actions like calling/emergency
-  // SMS
+  private val _confirmVoiceRequired = MutableStateFlow(false)
   val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
 
   /**
@@ -165,7 +167,7 @@ class DangerModeCardViewModel(
    *
    * @param activity The selected Activity.
    */
-  fun onActivitySelected(activity: Activity?) {
+  fun onActivitySelected(activity: DangerActivity?) {
     dangerModeService.setActivity(activity)
   }
 
@@ -176,7 +178,6 @@ class DangerModeCardViewModel(
    */
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
     if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
-      // TODO
       Log.e("DangerModeCardViewModel", "Failed to set capabilities: $newCapabilities")
     }
   }
@@ -194,7 +195,6 @@ class DangerModeCardViewModel(
         } else {
           current + capability
         }
-
     onCapabilitiesChanged(future)
   }
 
@@ -209,17 +209,14 @@ class DangerModeCardViewModel(
 
   fun onConfirmTouchChanged(enabled: Boolean) {
     _confirmTouchRequired.value = enabled
-    // TODO: Persist & enforce tactile confirmation before actions.
   }
 
   fun onAutoActionsEnabled(enabled: Boolean) {
     _autoActionsEnabled.value = enabled
-    // TODO: Persist & enforce tactile confirmation before actions.
   }
 
   fun onConfirmVoiceChanged(enabled: Boolean) {
     _confirmVoiceRequired.value = enabled
-    // TODO: Persist & enforce voice confirmation before actions.
   }
 
   /**
@@ -237,46 +234,85 @@ class DangerModeCardViewModel(
     viewModelScope.launch(dispatcher) { _effects.emit(effect) }
   }
 
-  /** Records that a permission request has been initiated by update UIState. */
-  fun onPermissionsRequestStart() {
+  /** Records that a permission request has been initiated. */
+  fun onPermissionsRequestStart(permissionType: AppPermissions? = null) {
     _alertModeUiState.update { it.copy(waitingForUserResponse = true) }
   }
 
   /**
-   * Updates the permission results in the UI state after the user has responded to a system
-   * permission dialog.
-   *
-   * @param activity The current `Activity`, required to check the latest permission statuses.
+   * Backward-compatible single-parameter permission result handler. Delegates to the full handler
+   * using the AlertModePermission.
    */
-  fun onPermissionResult(activity: android.app.Activity) {
-    val newAlertModeResult = permissionManager.getPermissionResult(alertModePermission, activity)
-    _alertModeUiState.update { it.copy(alertModePermissionResult = newAlertModeResult) }
-    if (_alertModeUiState.value.waitingForUserResponse) {
-      permissionManager.markPermissionsAsAsked(alertModePermission)
-      if (newAlertModeResult is PermissionResult.Granted) {
-        onDangerModeToggled(true)
-      }
-    }
-    _alertModeUiState.update { it.copy(waitingForUserResponse = false) }
+  fun onPermissionResult(activity: Activity) {
+    onPermissionResult(activity, alertModePermission)
   }
 
   /**
-   * Handles the logic when user toggle the button, checking permissions and dispatching actions.
-   *
-   * @param isChecked The new state of the preference toggle.
-   * @param permissionResult The current permission status for this feature.
+   * Permission result handler which receives the Activity and the specific permission set.
+   * Continues the permission chain if allowed, or cancels enabling if denied.
    */
-  fun handleToggle(isChecked: Boolean, permissionResult: PermissionResult) {
-    if (isChecked) {
-      when (permissionResult) {
-        PermissionResult.Granted -> {
-          onDangerModeToggled(true)
-        }
-        is PermissionResult.Denied -> emitEffect(Effect.RequestLocationPermission)
-        is PermissionResult.PermanentlyDenied -> emitEffect(Effect.ShowOpenAppSettings)
-      }
-    } else {
+  fun onPermissionResult(activity: Activity, permissionType: AppPermissions) {
+    val newResult = permissionManager.getPermissionResult(permissionType, activity)
+
+    // Update UI state if this was the alert mode permission
+    if (permissionType == alertModePermission) {
+      _alertModeUiState.update { it.copy(alertModePermissionResult = newResult) }
+    }
+
+    if (_alertModeUiState.value.waitingForUserResponse) {
+      permissionManager.markPermissionsAsAsked(permissionType)
+    }
+
+    _alertModeUiState.update { it.copy(waitingForUserResponse = false) }
+
+    // If granted and we were enabling, continue to next required permission
+    if (newResult is PermissionResult.Granted && enableRequested) {
+      requestNextRequiredPermission(activity)
+    } else if (newResult !is PermissionResult.Granted) {
+      // If any permission denied, cancel the enable flow
+      enableRequested = false
+    }
+  }
+
+  /** Starts the toggle flow. The Activity is required to query current permission statuses. */
+  fun handleToggle(isChecked: Boolean, activity: Activity) {
+    if (!isChecked) {
       onDangerModeToggled(false)
+      return
+    }
+    // Start the enable flow
+    enableRequested = true
+    requestNextRequiredPermission(activity)
+  }
+
+  /**
+   * Scan the permissionSequence and either enable the mode (if none missing) or emit an effect to
+   * request the next missing permission (or open app settings if permanently denied).
+   */
+  private fun requestNextRequiredPermission(activity: Activity) {
+    // Find the first permission that is not granted
+    val missing =
+        permissionSequence.firstNotNullOfOrNull { permissionType ->
+          val result = permissionManager.getPermissionResult(permissionType, activity)
+          if (result is PermissionResult.Granted) null else permissionType to result
+        }
+
+    if (missing == null) {
+      // All required permissions are granted -> enable
+      enableRequested = false
+      onDangerModeToggled(true)
+      return
+    }
+
+    val (permissionType, result) = missing
+    when (result) {
+      is PermissionResult.PermanentlyDenied -> {
+        enableRequested = false
+        emitEffect(Effect.ShowOpenAppSettings)
+      }
+      else -> {
+        emitEffect(Effect.RequestPermissions(permissionType))
+      }
     }
   }
 }

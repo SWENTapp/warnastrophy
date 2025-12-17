@@ -25,6 +25,7 @@ import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.userPrefsDataStore
+import kotlin.collections.isNotEmpty
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
