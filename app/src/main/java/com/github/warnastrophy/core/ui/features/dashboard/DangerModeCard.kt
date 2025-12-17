@@ -80,6 +80,10 @@ object DangerModeTestTags {
   fun dangerLevelTag(level: Int) = COLOR_BOX_PREFIX + level
 }
 
+private object DangerModeCardDefaults {
+  val DEFAULT_FONT_SIZE = 13.sp
+}
+
 /**
  * This Composable displays a dashboard card for Danger Mode settings. It uses a light red
  * background color and darker red accents to indicate caution. The card includes a title, a switch
@@ -250,7 +254,7 @@ private fun ActivitySelectionRow(
     Text(
         text = stringResource(R.string.danger_mode_card_mode_label),
         color = colorScheme.onError,
-        fontSize = 13.sp)
+        fontSize = DangerModeCardDefaults.DEFAULT_FONT_SIZE)
     Spacer(modifier = Modifier.width(20.dp))
 
     // Use the new, cleaner dropdown composable
@@ -359,7 +363,7 @@ private fun DangerLevelRow(dangerLevel: DangerLevel, onDangerLevelChanged: (Dang
         Text(
             text = stringResource(R.string.danger_mode_card_danger_level_label),
             color = colorScheme.onError,
-            fontSize = 13.sp)
+            fontSize = DangerModeCardDefaults.DEFAULT_FONT_SIZE)
         listOf(
                 extendedColors.dangerLevels.green,
                 extendedColors.dangerLevels.yellow,
@@ -397,7 +401,7 @@ private fun CapabilitiesRow(
         Text(
             text = stringResource(R.string.danger_mode_card_sends_label),
             color = colorScheme.onError,
-            fontSize = 13.sp)
+            fontSize = DangerModeCardDefaults.DEFAULT_FONT_SIZE)
         Spacer(modifier = Modifier.width(20.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           DangerModeCapability.entries.forEach { capability ->
@@ -481,7 +485,7 @@ private fun DangerModeAdvancedOptionsSection(
       Text(
           text = stringResource(R.string.danger_mode_advanced_auto_actions_title),
           color = colors.onError,
-          fontSize = 13.sp,
+          fontSize = DangerModeCardDefaults.DEFAULT_FONT_SIZE,
           fontWeight = FontWeight.SemiBold,
           modifier = Modifier.weight(1f))
       Switch(
@@ -502,7 +506,7 @@ private fun DangerModeAdvancedOptionsSection(
     Text(
         text = stringResource(R.string.danger_mode_advanced_confirmation_title),
         color = colors.onError,
-        fontSize = 13.sp,
+        fontSize = DangerModeCardDefaults.DEFAULT_FONT_SIZE,
         fontWeight = FontWeight.SemiBold)
     Spacer(modifier = Modifier.height(4.dp))
     Text(
@@ -517,7 +521,7 @@ private fun DangerModeAdvancedOptionsSection(
       Text(
           text = stringResource(R.string.danger_mode_advanced_touch_confirmation_label),
           color = colors.onError,
-          fontSize = 13.sp,
+          fontSize = DangerModeCardDefaults.DEFAULT_FONT_SIZE,
           modifier = Modifier.weight(1f))
       Switch(
           checked = confirmTouchRequired,
@@ -530,7 +534,7 @@ private fun DangerModeAdvancedOptionsSection(
       Text(
           text = stringResource(R.string.danger_mode_advanced_voice_confirmation_label),
           color = colors.onError,
-          fontSize = 13.sp,
+          fontSize = DangerModeCardDefaults.DEFAULT_FONT_SIZE,
           modifier = Modifier.weight(1f))
       Switch(
           checked = confirmVoiceRequired,
