@@ -144,6 +144,14 @@ fun DangerModeCard(
   }
 }
 
+/**
+ * A composable that displays the header for the Danger Mode card. It includes a title and a switch
+ * to enable or disable Danger Mode.
+ *
+ * @param isDangerModeEnabled A boolean indicating whether Danger Mode is currently enabled.
+ * @param onCheckedChange A lambda function that is invoked when the switch state changes. It passes
+ *   the new boolean state.
+ */
 @Composable
 private fun DangerModeHeader(isDangerModeEnabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
   Row(
@@ -160,6 +168,22 @@ private fun DangerModeHeader(isDangerModeEnabled: Boolean, onCheckedChange: (Boo
       }
 }
 
+/**
+ * This composable function arranges the controls for configuring Danger Mode. It collects various
+ * state properties from the [viewModel] (like the current activity, danger level, capabilities,
+ * etc.) and displays them. It also provides callbacks to the [viewModel] for user interactions.
+ *
+ * The layout includes:
+ * - An `ActivitySelectionRow` for choosing or managing the current activity preset.
+ * - A `DangerLevelRow` to set the danger level, represented by colors.
+ * - A `CapabilitiesRow` to toggle what actions are performed (e.g., SMS, Call).
+ * - A `DangerModeAdvancedOptionsSection` which is conditionally displayed if the 'CALL' or 'SMS'
+ *   capability is enabled, allowing for finer control over automation and confirmation steps.
+ *
+ * @param viewModel The ViewModel that provides state for the UI and handles user events.
+ * @param onManageActivitiesClick A lambda function to be invoked when the user clicks the "Manage"
+ *   button, typically to navigate to a screen for managing activities.
+ */
 @Composable
 private fun DangerModeBody(
     viewModel: DangerModeCardViewModel,
@@ -203,6 +227,16 @@ private fun DangerModeBody(
   Spacer(modifier = Modifier.height(4.dp))
 }
 
+/**
+ * A Composable that displays a row for selecting the current activity in Danger Mode.
+ *
+ * @param currentActivity The currently selected activity, or null if none is selected.
+ * @param activities A list of available activities to choose from.
+ * @param onActivitySelected A lambda function that is invoked when a new activity is selected from
+ *   the dropdown.
+ * @param onManageActivitiesClick A lambda function that is invoked when the "Manage" button is
+ *   clicked.
+ */
 @Composable
 private fun ActivitySelectionRow(
     currentActivity: Activity?,
@@ -236,6 +270,19 @@ private fun ActivitySelectionRow(
   }
 }
 
+/**
+ * A composable that provides a dropdown menu for selecting a predefined [Activity]. It displays the
+ * `currentActivity` name on a button. When clicked, it expands a dropdown menu listing all
+ * available `activities`. Selecting an item from the list triggers the `onActivitySelected`
+ * callback.
+ *
+ * @param currentActivity The currently selected activity, or null if no activity is selected. This
+ *   is displayed as the button's label.
+ * @param activities The list of available activities to display in the dropdown menu.
+ * @param onActivitySelected A lambda function that is invoked with the chosen [Activity] when an
+ *   item is selected from the dropdown.
+ * @param modifier A [Modifier] to be applied to the root [Box] of the composable.
+ */
 @Composable
 private fun ActivityDropdown(
     currentActivity: Activity?,
@@ -291,6 +338,15 @@ private fun ActivityDropdown(
   }
 }
 
+/**
+ * A Composable that displays a row for selecting the danger level. It shows a label and a series of
+ * colored boxes representing different danger levels. The currently selected level is highlighted
+ * with a more prominent border.
+ *
+ * @param dangerLevel The currently selected [DangerLevel].
+ * @param onDangerLevelChanged A callback function that is invoked when a new danger level is
+ *   selected.
+ */
 @Composable
 private fun DangerLevelRow(dangerLevel: DangerLevel, onDangerLevelChanged: (DangerLevel) -> Unit) {
   val colorScheme = MaterialTheme.colorScheme
@@ -320,6 +376,14 @@ private fun DangerLevelRow(dangerLevel: DangerLevel, onDangerLevelChanged: (Dang
       }
 }
 
+/**
+ * A row of buttons representing the different communication capabilities of Danger Mode, such as
+ * sending an SMS or making a call. Users can tap these buttons to toggle them on or off.
+ *
+ * @param capabilities The set of currently selected [DangerModeCapability]s.
+ * @param onCapabilityToggled A lambda function invoked when a capability button is clicked, passing
+ *   the toggled [DangerModeCapability].
+ */
 @Composable
 private fun CapabilitiesRow(
     capabilities: Set<DangerModeCapability>,
@@ -384,6 +448,22 @@ private fun DangerColorBox(
   ) {}
 }
 
+/**
+ * A composable that displays advanced options for Danger Mode, specifically for when "Call" or
+ * "SMS" capabilities are enabled. This section allows users to configure automatic actions and
+ * confirmation requirements.
+ *
+ * @param autoActionsEnabled Whether automatic actions (like auto-calling) are currently enabled.
+ * @param confirmTouchRequired Whether a touch confirmation is required before actions are taken.
+ * @param confirmVoiceRequired Whether a voice confirmation is required before actions are taken.
+ * @param onAutoActionsChanged A lambda function to be invoked when the "Auto Actions" switch is
+ *   toggled.
+ * @param onConfirmTouchChanged A lambda function to be invoked when the "Touch Confirmation" switch
+ *   is toggled.
+ * @param onConfirmVoiceChanged A lambda function to be invoked when the "Voice Confirmation" switch
+ *   is toggled.
+ * @param modifier The [Modifier] to be applied to this composable.
+ */
 @Composable
 private fun DangerModeAdvancedOptionsSection(
     autoActionsEnabled: Boolean,
@@ -460,6 +540,14 @@ private fun DangerModeAdvancedOptionsSection(
   }
 }
 
+/**
+ * A composable that displays a switch to toggle Danger Mode on or off.
+ *
+ * @param checked Whether the switch is currently in the "on" state.
+ * @param onCheckedChange A lambda function that is invoked when the user toggles the switch. It
+ *   receives the new checked state as a Boolean.
+ * @param modifier A [Modifier] to be applied to the switch.
+ */
 @Composable
 private fun DangerModeSwitch(
     checked: Boolean,
