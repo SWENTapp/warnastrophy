@@ -18,7 +18,10 @@ class MockUserPreferencesRepository : UserPreferencesRepository {
                       alertMode = false,
                       inactivityDetection = false,
                       automaticSms = false,
-                      automaticCalls = false),
+                      automaticCalls = false,
+                      autoActionsEnabled = false,
+                      touchConfirmationRequired = false,
+                      voiceConfirmationEnabled = false),
               themePreferences = false))
 
   override val getUserPreferences: StateFlow<UserPreferences> = _preferences.asStateFlow()
@@ -50,6 +53,30 @@ class MockUserPreferencesRepository : UserPreferencesRepository {
     _preferences.value =
         current.copy(
             dangerModePreferences = current.dangerModePreferences.copy(automaticCalls = enabled))
+  }
+
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    val current = _preferences.value
+    _preferences.value =
+        current.copy(
+            dangerModePreferences =
+                current.dangerModePreferences.copy(autoActionsEnabled = enabled))
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    val current = _preferences.value
+    _preferences.value =
+        current.copy(
+            dangerModePreferences =
+                current.dangerModePreferences.copy(touchConfirmationRequired = required))
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    val current = _preferences.value
+    _preferences.value =
+        current.copy(
+            dangerModePreferences =
+                current.dangerModePreferences.copy(voiceConfirmationEnabled = enabled))
   }
 
   override suspend fun setDarkMode(isDark: Boolean) {}
