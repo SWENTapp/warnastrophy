@@ -183,10 +183,12 @@ class DangerModeCardViewModel(
           .map { it.dangerLevel }
           .stateIn(viewModelScope, SharingStarted.Lazily, DangerLevel.LOW)
 
-  val capabilities =
-      dangerModeService.state
-          .map { it.capabilities }
-          .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
+  /**
+   * Public view of capabilities consumed by UI/tests. This returns the optimistic internal state so
+   * updates are immediate and deterministic. The service-backed `capabilities` is still updated by
+   * `onCapabilitiesChanged` which calls into DangerModeService.
+   */
+  val capabilities: StateFlow<Set<DangerModeCapability>> = _capabilitiesInternal.asStateFlow()
 
   /**
    * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
@@ -249,7 +251,11 @@ class DangerModeCardViewModel(
 
     val newCaps: Set<DangerModeCapability> = if (enabling) setOf(capability) else emptySet()
 
-    // Do not implicitly toggle auto-actions when changing capability; keep user control.
+    // If enabling a capability, enable auto-actions so the advanced section becomes visible.
+    if (enabling) {
+      _autoActionsEnabled.value = true
+      viewModelScope.launch(dispatcher) { userPreferencesRepository.setAutoActionsEnabled(true) }
+    }
 
     onCapabilitiesChanged(newCaps)
 
