@@ -124,11 +124,19 @@ dependencies inside services, and ensures that core logic remains easy to test.
 1. Clone the repository:
    ```bash
    git clone https://github.com/SWENTapp/warnastrophy.git
+   ```
 2. Open the project in Android Studio.
 3. Add your Firebase configuration file:
 4. Place google-services.json in the app/ directory.
-5. Sync Gradle and build the project.
-6. Run the application on an emulator or a physical device.
+5. Generate the `debug.keystore` (this is needed for the authentication to work) with the following command: 
+```bash
+keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "C=US, O=Android, CN=Android Debug"
+```
+6. Place the generated `debug.keystore` in the app/directory. 
+   See [Securing a keystore](https://github.com/SWENTapp/warnastrophy/wiki/Setting-Up-and-Securing-a-Keystore-for-CI-CD) to add its fingerprints to Firebase.
+7. In the project root, create a `keystore.properties` file (See [Securing a keystore](https://github.com/SWENTapp/warnastrophy/wiki/Setting-Up-and-Securing-a-Keystore-for-CI-CD))
+8. Sync Gradle and build the project.
+9. Run the application on an emulator or a physical device.
 
 ## Using the main features
 
@@ -136,9 +144,9 @@ dependencies inside services, and ensures that core logic remains easy to test.
 
 1. Launch the application.
 2. Sign in or create an account.
-4. Complete the onboarding process.
-5. Add emergency contacts.
-6. Optionally fill in health card information.
+3. Complete the onboarding process.
+4. Add emergency contacts.
+5. Optionally fill in health card information.
 
 ## Voice confirmation flow
 
