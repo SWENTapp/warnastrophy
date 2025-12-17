@@ -210,9 +210,7 @@ private fun ActivitySelectionRow(
     onActivitySelected: (Activity) -> Unit,
     onManageActivitiesClick: () -> Unit
 ) {
-  val hasActivities = activities.isNotEmpty()
   val colorScheme = MaterialTheme.colorScheme
-  var expanded by remember { mutableStateOf(false) }
 
   Row(verticalAlignment = Alignment.CenterVertically) {
     Text(
@@ -220,57 +218,76 @@ private fun ActivitySelectionRow(
         color = colorScheme.onError,
         fontSize = 13.sp)
     Spacer(modifier = Modifier.width(20.dp))
-    Box(modifier = Modifier.wrapContentSize(Alignment.TopStart)) {
-      Row(
-          modifier =
-              Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable(enabled = hasActivities) {
-                expanded = true
-              },
-          verticalAlignment = Alignment.CenterVertically) {
-            StandardDashboardButton(
-                label =
-                    currentActivity?.activityName
-                        ?: stringResource(R.string.danger_mode_card_select_activity),
-                color =
-                    if (hasActivities) colorScheme.errorContainer
-                    else colorScheme.errorContainer.copy(alpha = 0.5f),
-                onClick = { if (hasActivities) expanded = true },
-                textColor =
-                    if (hasActivities) colorScheme.onErrorContainer
-                    else colorScheme.onErrorContainer.copy(alpha = 0.5f),
-                icon = {
-                  Icon(
-                      imageVector = Icons.Filled.ArrowDropDown,
-                      contentDescription =
-                          stringResource(R.string.danger_mode_card_dropdown_arrow_cd),
-                      tint =
-                          if (hasActivities) colorScheme.onErrorContainer
-                          else colorScheme.onErrorContainer.copy(alpha = 0.5f))
-                })
-          }
-      DropdownMenu(
-          expanded = expanded,
-          onDismissRequest = { expanded = false },
-          modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL)) {
-            activities.forEach { activity ->
-              DropdownMenuItem(
-                  text = { Text(activity.activityName) },
-                  onClick = {
-                    onActivitySelected(activity)
-                    expanded = false
-                  },
-                  modifier =
-                      Modifier.testTag(DangerModeTestTags.activityTag(activity.activityName)))
-            }
-          }
-    }
+
+    // Use the new, cleaner dropdown composable
+    ActivityDropdown(
+        currentActivity = currentActivity,
+        activities = activities,
+        onActivitySelected = onActivitySelected)
+
     Spacer(modifier = Modifier.width(8.dp))
+
     StandardDashboardButton(
         label = stringResource(R.string.danger_mode_card_manage_activities),
         color = colorScheme.errorContainer,
         modifier = Modifier.testTag(NavigationTestTags.BUTTON_MANAGE_ACTIVITY_DANGER_MODE),
         onClick = onManageActivitiesClick,
         textColor = colorScheme.onErrorContainer)
+  }
+}
+
+@Composable
+private fun ActivityDropdown(
+    currentActivity: Activity?,
+    activities: List<Activity>,
+    onActivitySelected: (Activity) -> Unit,
+    modifier: Modifier = Modifier
+) {
+  val hasActivities = activities.isNotEmpty()
+  val colorScheme = MaterialTheme.colorScheme
+  var expanded by remember { mutableStateOf(false) }
+
+  Box(modifier = modifier.wrapContentSize(Alignment.TopStart)) {
+    // The button that triggers the dropdown
+    StandardDashboardButton(
+        label =
+            currentActivity?.activityName
+                ?: stringResource(R.string.danger_mode_card_select_activity),
+        onClick = { if (hasActivities) expanded = true },
+        color =
+            if (hasActivities) colorScheme.errorContainer
+            else colorScheme.errorContainer.copy(alpha = 0.5f),
+        textColor =
+            if (hasActivities) colorScheme.onErrorContainer
+            else colorScheme.onErrorContainer.copy(alpha = 0.5f),
+        icon = {
+          Icon(
+              imageVector = Icons.Filled.ArrowDropDown,
+              contentDescription = stringResource(R.string.danger_mode_card_dropdown_arrow_cd),
+              tint =
+                  if (hasActivities) colorScheme.onErrorContainer
+                  else colorScheme.onErrorContainer.copy(alpha = 0.5f))
+        },
+        modifier =
+            Modifier.testTag(DangerModeTestTags.MODE_LABEL).clickable(enabled = hasActivities) {
+              expanded = true
+            })
+
+    // The DropdownMenu itself
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        modifier = Modifier.testTag(DangerModeTestTags.MODE_LABEL)) {
+          activities.forEach { activity ->
+            DropdownMenuItem(
+                text = { Text(activity.activityName) },
+                onClick = {
+                  onActivitySelected(activity)
+                  expanded = false
+                },
+                modifier = Modifier.testTag(DangerModeTestTags.activityTag(activity.activityName)))
+          }
+        }
   }
 }
 
