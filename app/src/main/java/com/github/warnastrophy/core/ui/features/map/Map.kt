@@ -289,7 +289,9 @@ fun BoxScope.TrackLocationButton(isTracking: Boolean, onClick: () -> Unit = {}) 
           Modifier.align(Alignment.BottomStart)
               .padding(16.dp)
               .testTag(MapScreenTestTags.TRACK_LOCATION_BUTTON)) {
-        Icon(Icons.Outlined.LocationOn, contentDescription = "Current location")
+        Icon(
+            Icons.Outlined.LocationOn,
+            contentDescription = stringResource(id = R.string.map_track_location_button_cd))
       }
 }
 
