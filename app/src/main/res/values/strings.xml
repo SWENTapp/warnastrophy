@@ -46,6 +46,14 @@
     <string name="danger_mode_advanced_touch_confirmation_label">Require touch confirmation</string>
     <string name="danger_mode_advanced_voice_confirmation_label">Allow voice confirmation</string>
 
+    <!-- Map Screen Strings -->
+    <string name="map_location_blocked_title">Location blocked</string>
+    <string name="map_location_blocked_message">You selected “Don’t ask again”. To enable location, open Android Settings and grant permission.</string>
+    <string name="map_location_disabled_title">Location disabled</string>
+    <string name="map_location_disabled_message">Map require fine location permissions. You can allow location now or later in Android Settings.</string>
+    <string name="map_requesting_location_permission">Requesting Android location permission…</string>
+    <string name="map_track_location_button_cd">Current location</string>
+
     <!-- Logout strings -->
     <string name="logout_string">Logout</string>
     <string name="logout_message">Are you sure you want to logout?</string>
