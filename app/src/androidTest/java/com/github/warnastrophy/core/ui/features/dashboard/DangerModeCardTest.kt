@@ -327,6 +327,7 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     assert(viewModel.confirmVoiceRequired.value)
   }
 
+  /** Verify that toggling one capability disables the other (mutually exclusive) in the UI */
   @Test
   fun dangerModeCard_capabilities_are_mutually_exclusive_ui() {
     lateinit var viewModel: DangerModeCardViewModel
