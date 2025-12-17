@@ -185,15 +185,8 @@ class NominatimRepository() : GeocodeRepository {
    * @return `true` if the repository should consider the next request as rate limited; `false`
    *   otherwise.
    */
-  override fun delayForNextQuery(): Long {
-    val last = lastQueryTimestamp
-    if (last == null) {
-      return 0L
-    } else {
-      val timeSinceLastQuery = System.currentTimeMillis() - last
-      return max(maxRateMs - timeSinceLastQuery, 0L)
-    }
-  }
+  override fun delayForNextQuery(): Long =
+      lastQueryTimestamp?.let { max(maxRateMs - (System.currentTimeMillis() - it), 0L) } ?: 0L
 }
 
 class MockNominatimRepository : GeocodeRepository {
@@ -206,18 +199,6 @@ class MockNominatimRepository : GeocodeRepository {
 
   override suspend fun reverseGeocode(location: String): List<Location> {
     return locations
-  }
-
-  override fun delayForNextQuery(): Long {
-    return 0L
-  }
-}
-
-class MockNominatimRepo(private val returnList: List<Location> = emptyList<Location>()) :
-    GeocodeRepository {
-
-  override suspend fun reverseGeocode(location: String): List<Location> {
-    return returnList
   }
 
   override fun delayForNextQuery(): Long {
