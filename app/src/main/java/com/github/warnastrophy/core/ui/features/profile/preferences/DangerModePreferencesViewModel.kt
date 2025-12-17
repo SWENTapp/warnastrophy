@@ -206,7 +206,9 @@ class DangerModePreferencesViewModel(
           onAutomaticCallsToggled(true)
         }
       }
-      null -> {}
+      else -> {
+        /* Do nothing */
+      }
     }
 
     _uiState.update { it.copy(pendingPermissionAction = null) }

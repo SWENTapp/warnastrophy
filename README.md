@@ -18,6 +18,18 @@ or cancel using voice commands.
 
 ## Main features
 
+## Offline Mode
+
+In offline mode, Warnastrophy ensures that users can still access critical information even without an active internet connection. 
+Locally stored data such as the health card, emergency contacts, 
+user preferences, and recent activities are readily available. 
+The app relies on this local storage to provide a seamless user experience, 
+allowing the user to view their health card, manage emergency contacts, 
+and check preferences and activities without needing cloud synchronization. 
+Furthermore, the danger mode functionality continues to use this locally stored data to initiate emergency actions, 
+confirm user responses, and trigger alerts, ensuring that the user can still receive timely assistance 
+and make informed decisions in critical situations, even when offline.
+
 ### Authentication and onboarding
 
 The application supports user authentication using Firebase Authentication. It integrates
@@ -160,10 +172,10 @@ keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddeb
 
 ## Building and testing
 ### Run unit tests
-./gradlew test
+```bash ./gradlew test```
 
 ### Run instrumented and end-to-end tests
-./gradlew connectedAndroidTest
+```bash ./gradlew connectedAndroidTest```
 
 End-to-end tests use an isolated DataStore and can replace real components, 
 such as the map, with fake implementations to reduce flakiness.

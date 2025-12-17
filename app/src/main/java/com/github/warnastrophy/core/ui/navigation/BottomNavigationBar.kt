@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -18,7 +19,6 @@ private fun tagFor(screen: Screen): String =
       Screen.Map -> NavigationTestTags.TAB_MAP
       Screen.Profile -> NavigationTestTags.TAB_PROFILE
       else -> ""
-    // TODO: add test tags if needed
     }
 
 @Composable
@@ -30,14 +30,13 @@ fun BottomNavigationBar(currentScreen: Screen, navController: NavController) {
   NavigationBar(modifier = Modifier.testTag(NavigationTestTags.BOTTOM_NAV)) {
     BOTTOM_NAVIGATION_BAR_SCREENS.forEach { screen ->
       NavigationBarItem(
-          // FIXME: Use correctly centered labels ,
           modifier = Modifier.testTag(tagFor(screen)),
           icon = { screen.icon?.let { Icon(it, contentDescription = null) } },
           label = {
             Text(
                 ctx.getString(screen.title),
                 modifier = Modifier.testTag(tagFor(screen)),
-            )
+                textAlign = TextAlign.Center)
           },
           selected = currentScreen == screen,
           onClick = {

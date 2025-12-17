@@ -1,5 +1,6 @@
 package com.github.warnastrophy.core.ui.features.onboard
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,9 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.warnastrophy.R
 import kotlinx.coroutines.launch
 
 /** Test tag for onboarding screen */
@@ -45,24 +48,34 @@ object OnboardingScreenTestTags {
 /**
  * Represents the Back and Next button labels for a specific onboarding page.
  *
- * @property back Label for the back button.
- * @property next Label for the next button.
+ * @property leftButtonRes Label for the back button.
+ * @property rightButtonRes Label for the next button.
  */
-data class OnboardingButtons(val back: String, val next: String)
+data class OnboardingButtons(
+    @StringRes val leftButtonRes: Int?, // Use Int for the R.string ID
+    @StringRes val rightButtonRes: Int
+)
 
 /**
- * Returns the Back and Next button labels for the given onboarding page index.
+ * Returns the Back and Next button labels for the given onboarding screen index.
  *
- * @param page Current page index (0-based).
+ * @param screenIndex Current screen index (0-based).
+ * @param numberOfScreens number of onboarding screens.
  * @return An [OnboardingButtons] instance containing labels for the current page.
  */
-private fun getButtonState(page: Int): OnboardingButtons =
-    when (page) {
-      0 -> OnboardingButtons("", "Next")
-      1 -> OnboardingButtons("Back", "Next")
-      2 -> OnboardingButtons("Back", "Start")
-      else -> OnboardingButtons("", "")
+private fun getButtonState(screenIndex: Int, numberOfScreens: Int): OnboardingButtons {
+  return when (screenIndex) {
+    0 -> {
+      OnboardingButtons(null, R.string.next_button)
     }
+    numberOfScreens - 1 -> {
+      OnboardingButtons(R.string.back_button, R.string.start_button)
+    }
+    else -> {
+      OnboardingButtons(R.string.back_button, R.string.next_button)
+    }
+  }
+}
 
 /**
  * Handles the Next button click behavior.
@@ -107,12 +120,13 @@ private suspend fun handleBackClick(page: Int, pagerState: PagerState) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
-  val pages =
-      listOf(OnboardingModel.FirstPage, OnboardingModel.SecondPage, OnboardingModel.ThirdPage)
+  val screens = listOf(OnboardingModel.FirstPage, OnboardingModel.SecondPage)
 
-  val pagerState = rememberPagerState(initialPage = 0) { pages.size }
+  val screenState = rememberPagerState(initialPage = 0) { screens.size }
 
-  val buttons by remember { derivedStateOf { getButtonState(pagerState.currentPage) } }
+  val buttons by remember {
+    derivedStateOf { getButtonState(screenState.currentPage, screens.size) }
+  }
 
   val scope = rememberCoroutineScope()
 
@@ -123,34 +137,35 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                if (buttons.back.isNotEmpty()) {
+                val leftRes = buttons.leftButtonRes
+                if (leftRes != null) {
                   // Back button
                   ButtonUi(
-                      text = buttons.back,
+                      text = stringResource(leftRes),
                       backgroundColor = Color.Transparent,
                       textColor = Color.Gray) {
                         scope.launch {
-                          handleBackClick(page = pagerState.currentPage, pagerState = pagerState)
+                          handleBackClick(page = screenState.currentPage, pagerState = screenState)
                         }
                       }
                 }
               }
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                IndicatorUI(pageSize = pages.size, currentPage = pagerState.currentPage)
+                IndicatorUI(pageSize = screens.size, currentPage = screenState.currentPage)
               }
 
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
                 // Next button
                 ButtonUi(
                     modifier = Modifier.testTag(OnboardingScreenTestTags.NEXT_BUTTON),
-                    text = buttons.next,
+                    text = stringResource(buttons.rightButtonRes),
                     backgroundColor = MaterialTheme.colorScheme.primary,
                     textColor = MaterialTheme.colorScheme.onPrimary) {
                       scope.launch {
                         handleNextClick(
-                            page = pagerState.currentPage,
-                            pageCount = pages.size,
-                            pagerState = pagerState,
+                            page = screenState.currentPage,
+                            pageCount = screens.size,
+                            pagerState = screenState,
                             onFinished = onFinished)
                       }
                     }
@@ -159,8 +174,8 @@ fun OnboardingScreen(onFinished: () -> Unit) {
       },
       content = {
         Column(Modifier.padding(it)) {
-          HorizontalPager(state = pagerState) { index ->
-            OnboardingGraphUI(onboardingModel = pages[index])
+          HorizontalPager(state = screenState) { index ->
+            OnboardingGraphUI(onboardingModel = screens[index])
           }
         }
       })

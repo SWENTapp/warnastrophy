@@ -113,6 +113,9 @@ fun WarnastrophyComposable(
         // with arguments, or null/fallback.
         Screen.EditContact.route -> Screen.EditContact(contactID = "") // Match the base route
         Screen.DangerModePreferences.route -> Screen.DangerModePreferences
+        Screen.ActivitiesList.route -> Screen.ActivitiesList
+        Screen.AddActivity.route -> Screen.AddActivity
+        Screen.EditActivity.route -> Screen.EditActivity(activityID = "")
 
         // Default/Fallback: If no match, fallback to the Dashboard screen object.
         else -> Dashboard
@@ -232,7 +235,6 @@ fun WarnastrophyComposable(
               }
               composable(Screen.AddContact.route) {
                 AddContactScreen(
-                    userId = userId,
                     addContactViewModel = addContactViewModel,
                     onDone = { navigationActions.goBack() })
               }
