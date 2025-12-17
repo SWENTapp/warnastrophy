@@ -34,7 +34,6 @@ class EndToEndM1Test : EndToEndUtils() {
     every { themeViewModel.isDarkMode } returns mockk(relaxed = true)
 
     ContactRepositoryProvider.initLocal(context)
-
     UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
     composeTestRule.runOnUiThread { StateManagerService.init(context) }
     contactRepository = ContactRepositoryProvider.repository
