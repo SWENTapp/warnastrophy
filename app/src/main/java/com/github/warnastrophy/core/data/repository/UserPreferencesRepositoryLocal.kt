@@ -72,8 +72,6 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val TOUCH_CONFIRMATION_KEY = booleanPreferencesKey("touch_confirmation_required")
     val VOICE_CONFIRMATION_KEY = booleanPreferencesKey("voice_confirmation_enabled")
     val DARK_MODE_KEY = booleanPreferencesKey("theme_preferences")
-
-    // Add more keys for other preferences
   }
 
   override val getUserPreferences: Flow<UserPreferences> =
