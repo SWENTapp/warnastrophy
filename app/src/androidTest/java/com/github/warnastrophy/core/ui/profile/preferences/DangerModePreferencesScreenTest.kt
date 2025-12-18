@@ -303,5 +303,34 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     }
   }
 
+  @Test
+  fun voiceConfirmationToggle_requestsMicrophonePermission_whenNotGranted() {
+    mockPermissionManager.setPermissionResult(PermissionResult.Granted)
+    setContent()
+
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.ALERT_MODE_SWITCH,
+        { viewModel.uiState.value.alertModeAutomaticEnabled })
+    toggleSwitch(
+        DangerModePreferencesScreenTestTags.INACTIVITY_DETECTION_SWITCH,
+        { viewModel.uiState.value.inactivityDetectionEnabled })
+
+    mockPermissionManager.setPermissionResult(PermissionResult.Denied(listOf("FAKE_PERMISSION")))
+
+    nodeWithTag(DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_SWITCH)
+        .assertIsEnabled()
+        .assertIsOff()
+
+    // Simulate user granting permission
+    applyPerm(PermissionResult.Granted)
+
+    // Scroll, click the switch and assert on the UI node directly (voice confirmation is local
+    // state)
+    scrollToVoiceConfirmation()
+    nodeWithTag(DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_SWITCH).performClick()
+    composeTestRule.waitForIdle()
+    nodeWithTag(DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_SWITCH).assertIsOn()
+  }
+
   private fun nodeWithTag(tag: String) = composeTestRule.onNodeWithTag(tag, useUnmergedTree = true)
 }
