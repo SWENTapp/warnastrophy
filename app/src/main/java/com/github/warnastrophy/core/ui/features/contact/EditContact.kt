@@ -17,12 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -31,7 +28,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
-import com.github.warnastrophy.core.model.fakeNumber
 
 object EditContactTestTags {
   const val INPUT_FULL_NAME = "inputFullName"
@@ -107,10 +103,8 @@ fun EditContactScreen(
                     .testTag(EditContactTestTags.INPUT_FULL_NAME))
 
         // --- Input Field: Phone Number ---
-        var isPhoneNumberFocused by remember { mutableStateOf(false) }
-
         OutlinedTextField(
-            value = if (isPhoneNumberFocused) contactUIState.phoneNumber else fakeNumber,
+            value = contactUIState.phoneNumber,
             onValueChange = { editContactViewModel.setPhoneNumber(it) },
             label = { Text(stringResource(R.string.emergency_contact_phone_number)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -123,8 +117,7 @@ fun EditContactScreen(
             modifier =
                 Modifier.fillMaxWidth()
                     .padding(bottom = 16.dp)
-                    .testTag(EditContactTestTags.INPUT_PHONE_NUMBER)
-                    .onFocusChanged { focusState -> isPhoneNumberFocused = focusState.isFocused })
+                    .testTag(EditContactTestTags.INPUT_PHONE_NUMBER))
 
         // --- Input Field: Relationship ---
         OutlinedTextField(
