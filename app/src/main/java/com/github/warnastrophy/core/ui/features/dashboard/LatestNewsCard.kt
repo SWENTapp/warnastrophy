@@ -125,7 +125,7 @@ private fun CardHeader(date: String?, extendedColors: ExtendedColorScheme) {
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = stringResource(id = R.string.latest_news),
+            text = stringResource(id = R.string.latest_news_title),
             modifier = Modifier.testTag(LatestNewsTestTags.HEADER_TITLE),
             color = extendedColors.newsCard.headerText,
             fontWeight = FontWeight.Bold,
@@ -229,9 +229,9 @@ private fun RowScope.HazardInfo(
 
     if (fetcherState.hazards.isNotEmpty() && currentHazard.articleUrl != null) {
       Text(
-          text = "read",
+          text = stringResource(R.string.latest_news_read_article),
           color = extendedColors.newsCard.readArticleText,
-          fontSize = 16.sp,
+          fontSize = 13.sp,
           textDecoration = TextDecoration.Underline,
           modifier =
               Modifier.clickable { openWebPage(context, currentHazard.articleUrl) }
@@ -274,7 +274,7 @@ private fun HazardImage(eventType: String?) {
         val imageRes = getImageForEvent(eventType ?: "default")
         Image(
             painter = painterResource(id = imageRes),
-            contentDescription = "Event Image",
+            contentDescription = stringResource(R.string.latest_news_event_image_description),
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)))
       }

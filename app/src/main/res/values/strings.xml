@@ -16,10 +16,10 @@
     <string name="default_web_client_id">327661063729-5v74bg67jtne1ol3t7oinv04i94og11i.apps.googleusercontent.com</string>
 
     <!-- Dashboard Strings -->
-    <string name="latest_news">Latest news</string>
+    <string name="latest_news_title">Latest news</string>
     <string name="no_news_yet">No news yet !</string>
-    <string name="read">read</string>
-    <string name="event_image_description">Event Image</string>
+    <string name="latest_news_read_article">read article</string>
+    <string name="latest_news_event_image_description">Event Image</string>
     <string name="loading">Loading…</string>
 
     <!-- Dashboard Emergency Contacts Card -->
@@ -91,7 +91,6 @@
     <string name="theme_string">Theme</string>
     <string name="dark_string">Dark</string>
     <string name="light_string">Light</string>
-    <string name="theme_viewmodel_error">No ThemeViewModel provided</string>
 
     <!-- Error Messages -->
     <string name="no_errors">No errors</string>
@@ -160,10 +159,8 @@
     <!-- Speech Recognition Error Messages -->
     <string name="error_speech_recognition_failed">No recognition speech service available on this device</string>
     <string name="error_suggestion_speech_recognition">Speech recognition service is not available on this device. Your phone may be too old</string>
-    <string name="error_text_to_speech_unavailable">Text-to-speech service is not available on this device</string>
     <string name="error_text_to_speech_failed">Unable to play the requested message</string>
     <string name="error_text_to_speech_init_failed">Unable to use speechToText on this device</string>
-    <string name="error_text_to_speech_empty_input">Nothing to read</string>
 
     <!-- Onboarding screen -->
     <string name="description_first_page">We track your location in the background, if you enter a high-risk area,
@@ -182,7 +179,6 @@
     <string name="communication_listening_label">Listening…</string>
     <string name="communication_no_input_hint">We will show the transcript here.</string>
     <string name="communication_listen_button">Start listening</string>
-    <string name="navigate_back">Back</string>
     <string name="alert_sent">Help is on the way. Stay calm</string>
     <string name="confirmation_request">Hello, I am your vocal assistant. Do you have any emergency?</string>
     <string name="alert_not_sent">Okay, we wont send an emergency alert</string>
