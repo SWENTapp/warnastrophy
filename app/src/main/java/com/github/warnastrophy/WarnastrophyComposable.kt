@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,6 +32,7 @@ import com.github.warnastrophy.core.ui.features.contact.ContactListScreen
 import com.github.warnastrophy.core.ui.features.contact.ContactListViewModel
 import com.github.warnastrophy.core.ui.features.contact.EditContactScreen
 import com.github.warnastrophy.core.ui.features.contact.EditContactViewModel
+import com.github.warnastrophy.core.ui.features.dashboard.ConfirmationPopup
 import com.github.warnastrophy.core.ui.features.dashboard.DashboardScreen
 import com.github.warnastrophy.core.ui.features.dashboard.activity.ActivityListScreen
 import com.github.warnastrophy.core.ui.features.dashboard.activity.ActivityListViewModel
@@ -151,6 +153,9 @@ fun WarnastrophyComposable(
   // Voice confirmation for danger mode
   val dangerModeOrchestrator = remember { StateManagerService.dangerModeOrchestrator }
   val showVoiceConfirmation by dangerModeOrchestrator.showVoiceConfirmationScreen.collectAsState()
+  val showTouchConfirmation by
+      dangerModeOrchestrator.showTouchConfirmationScreen.collectAsState(initial = false)
+  val orchestratorState by dangerModeOrchestrator.state.collectAsState()
 
   // Observe confirmation state from the communication view model
   val communicationUiState by communicationViewModel.uiState.collectAsState()
@@ -180,6 +185,12 @@ fun WarnastrophyComposable(
       CommunicationScreen(viewModel = communicationViewModel)
     }
     return // Don't render the rest of the UI while voice confirmation is showing
+  }
+
+  // Show touch confirmation using the generic ConfirmationPopup when requested
+  if (showTouchConfirmation) {
+    TouchConfirmationPopup(dangerModeOrchestrator, orchestratorState.pendingAction)
+    return // Don't render the rest of the UI while touch confirmation is showing
   }
 
   Scaffold(
@@ -291,4 +302,36 @@ fun WarnastrophyComposable(
               }
             }
       }
+}
+
+/**
+ * Shows a touch confirmation popup for the given pending emergency action. Extracted to keep the
+ * main composable concise.
+ *
+ * @param orchestrator The DangerModeOrchestrator managing danger mode state.
+ * @param pendingAction The pending emergency action requiring confirmation.
+ */
+@Composable
+private fun TouchConfirmationPopup(
+    orchestrator: com.github.warnastrophy.core.data.service.DangerModeOrchestrator,
+    pendingAction: com.github.warnastrophy.core.data.service.PendingEmergencyAction?
+) {
+  val message =
+      when (pendingAction) {
+        is com.github.warnastrophy.core.data.service.PendingEmergencyAction.MakeCall ->
+            stringResource(id = R.string.touch_confirmation_call_message)
+        is com.github.warnastrophy.core.data.service.PendingEmergencyAction.SendSms ->
+            stringResource(id = R.string.touch_confirmation_sms_message)
+        is com.github.warnastrophy.core.data.service.PendingEmergencyAction.SendSmsAndCall ->
+            stringResource(id = R.string.touch_confirmation_both_message)
+        else -> stringResource(id = R.string.touch_confirmation_generic_message)
+      }
+
+  ConfirmationPopup(
+      title = stringResource(id = R.string.touch_confirmation_title),
+      message = message,
+      confirmLabel = stringResource(id = R.string.confirmation_confirm_label),
+      cancelLabel = stringResource(id = R.string.confirmation_cancel_label),
+      onConfirm = { orchestrator.onTouchConfirmation() },
+      onCancel = { orchestrator.onCancellation() })
 }
