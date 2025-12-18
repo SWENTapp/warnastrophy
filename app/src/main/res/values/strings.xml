@@ -63,8 +63,9 @@
     <string name="danger_mode_active_message">Danger mode is enabled</string>
 
     <!-- Search Bar Strings -->
-    <string name="search_bar_search">Search</string>
-    <string name="search_bar_icon">Search Icon</string>
+    <string name="search_bar_search">Search location…</string>
+    <string name="search_bar_icon">Search icon</string>
+    <string name="search_bar_clear">Clear search</string>
 
     <!-- Danger Mode Preferences -->
     <string name="danger_mode_preferences_title">Danger Mode Preferences</string>

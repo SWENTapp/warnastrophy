@@ -431,4 +431,29 @@ class MapScreenTest : BaseAndroidComposeTest() {
     // We don’t have a direct tag, but rendering without crash covers all lines
     composeTestRule.waitForIdle()
   }
+
+  @Test
+  fun search_bar_cleared_when_clear_button_clicked() {
+    setContent()
+    applyPerm(PermissionResult.Granted)
+    waitForMapReadyAndAssertVisibility()
+
+    val testInput = "Test Location"
+    val textField = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_TEXT_FIELD)
+
+    textField.assertIsDisplayed()
+    textField.performClick()
+    textField.performTextInput(testInput)
+    textField.assert(hasText(testInput))
+
+    val clearBtn = composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_CLEAR_BUTTON)
+    clearBtn.assertIsDisplayed()
+    clearBtn.performClick()
+    composeTestRule.waitForIdle()
+
+    // Vérifications après clear
+    textField.assert(hasText(""))
+    composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_CLEAR_BUTTON).assertIsNotDisplayed()
+    composeTestRule.onNodeWithTag(MapScreenTestTags.SEARCH_BAR_DROPDOWN).assertIsNotDisplayed()
+  }
 }

@@ -57,12 +57,12 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
   object ForegroundServiceLocation :
       AppPermissions(
           key = "foreground_service_location",
-          if (isAtLeastSdkVersion(34)) {
-            Manifest.permission.FOREGROUND_SERVICE_LOCATION
-            Manifest.permission.POST_NOTIFICATIONS
-          } else {
-            null
-          })
+          // Add FOREGROUND_SERVICE_LOCATION on API 34+, and POST_NOTIFICATIONS on TIRAMISU+ as
+          // needed.
+          if (isAtLeastSdkVersion(34)) Manifest.permission.FOREGROUND_SERVICE_LOCATION else null,
+          if (isAtLeastSdkVersion(Build.VERSION_CODES.TIRAMISU))
+              Manifest.permission.POST_NOTIFICATIONS
+          else null)
 
   /** Permissions required to send emergency messages */
   object SendEmergencySms :
@@ -82,6 +82,9 @@ sealed class AppPermissions(val key: String, vararg permissionsWithNulls: String
           Manifest.permission.CALL_PHONE,
           Manifest.permission.ACCESS_FINE_LOCATION,
       )
+
+  object MicrophonePermission :
+      AppPermissions(key = "microphone_permission", Manifest.permission.RECORD_AUDIO)
 
   companion object {
     /** A reusable check for SDK versions, annotated to help the compiler with smart casting. */

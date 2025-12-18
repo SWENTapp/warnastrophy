@@ -61,6 +61,8 @@ object MapScreenTestTags {
   const val SEARCH_BAR_DROPDOWN = "searchBarDropdown"
 
   const val SEARCH_BAR_DROPDOWN_ITEM = "searchBarDropdownItem"
+
+  const val SEARCH_BAR_CLEAR_BUTTON = "searchBarClearButton"
 }
 
 @Composable
@@ -325,7 +327,7 @@ fun HazardsGoogleMap(
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
       cameraPositionState = cameraPositionState,
-      onMapClick = {},
+      onMapClick = { selectedMarkerId = null },
       uiSettings =
           MapUiSettings(
               myLocationButtonEnabled = false,
