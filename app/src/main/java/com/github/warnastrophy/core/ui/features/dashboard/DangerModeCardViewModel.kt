@@ -68,6 +68,7 @@ class DangerModeCardViewModel(
         UserPreferencesRepositoryProvider.repository,
     private val dangerModeService: DangerModeService = StateManagerService.dangerModeService,
 ) : ViewModel() {
+
   val alertModePermission = AppPermissions.AlertModePermission
 
   // Sequence of permissions required to enable danger/alert mode.
@@ -196,12 +197,14 @@ class DangerModeCardViewModel(
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
     val previous = _capabilitiesInternal.value
     _capabilitiesInternal.value = newCapabilities
+
     val result =
         try {
           dangerModeService.setCapabilities(newCapabilities)
         } catch (t: Throwable) {
           Result.failure<Unit>(t)
         }
+
     if (result.isFailure) {
       _capabilitiesInternal.value = previous
       Log.e("DangerModeCardViewModel", "Failed to set capabilities: $newCapabilities")
@@ -221,6 +224,8 @@ class DangerModeCardViewModel(
       viewModelScope.launch(dispatcher) { userPreferencesRepository.setAutoActionsEnabled(true) }
     }
 
+    onCapabilitiesChanged(newCaps)
+
     viewModelScope.launch(dispatcher) {
       when (capability) {
         DangerModeCapability.CALL -> {
@@ -233,9 +238,6 @@ class DangerModeCardViewModel(
         }
       }
     }
-
-    // Apply to service (non-blocking)
-    viewModelScope.launch(dispatcher) { dangerModeService.setCapabilities(newCaps) }
   }
 
   fun onDangerLevelChanged(level: DangerLevel) {

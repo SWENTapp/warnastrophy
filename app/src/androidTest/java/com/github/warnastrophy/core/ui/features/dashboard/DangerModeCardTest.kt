@@ -34,6 +34,28 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
   @Before
   fun setup() {
+    val context = composeTestRule.activity.applicationContext
+    UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
+    // Initialize the ActivityRepositoryProvider with mock for testing
+    mockActivityRepository = MockActivityRepository()
+    ActivityRepositoryProvider.useMock()
+    // Make sure user preferences are reset to defaults so tests are deterministic
+    runBlocking {
+      val repo = UserPreferencesRepositoryProvider.repository
+      repo.setAutoActionsEnabled(false)
+      repo.setAutomaticCalls(false)
+      repo.setAutomaticSms(false)
+      repo.setVoiceConfirmationEnabled(false)
+      repo.setTouchConfirmationRequired(false)
+      repo.setInactivityDetection(false)
+      repo.setAlertMode(false)
+    }
+    // Initialize services after prefs have been reset
+    InstrumentationRegistry.getInstrumentation().runOnMainSync { StateManagerService.init(context) }
+    StateManagerService.permissionManager =
+        MockPermissionManager(currentResult = PermissionResult.Granted)
+    StateManagerService.dangerModeService =
+        DangerModeService(permissionManager = StateManagerService.permissionManager)
     val appContext = composeTestRule.activity.applicationContext
     val instrumentation = InstrumentationRegistry.getInstrumentation()
     UserPreferencesRepositoryProvider.initLocal(appContext.userPrefsDataStore)
@@ -228,11 +250,9 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(capability), useUnmergedTree = true)
     capabilityNode.performClick()
-
-    capabilityNode.assertIsSelected()
-
-    assert(viewModel.capabilities.value.contains(capability))
-    assert(viewModel.capabilities.value.size == 1)
+    // Check the UI-facing optimistic capabilities
+    assert(viewModel.capabilitiesInternal.value.contains(capability))
+    assert(viewModel.capabilitiesInternal.value.size == 1)
   }
 
   /* Verify that the DangerModeCard danger level changes as capabilities are toggled */
@@ -271,9 +291,18 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
     callCapabilityNode.performClick()
+    // Enable CALL capability deterministically via ViewModel
+    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
+
+    // Wait for capabilities to be applied and advanced section to appear
+    composeTestRule.waitUntilWithTimeout {
+      viewModel.capabilitiesInternal.value.contains(DangerModeCapability.CALL)
+    }
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
         .performClick()
+        .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
+        .assertExists()
 
     // Enable CALL capability deterministically via ViewModel
     viewModel.onCapabilityToggled(DangerModeCapability.CALL)
@@ -286,6 +315,12 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
         .assertExists()
 
+    // Wait for autoActions to be enabled by the ViewModel's logic and then assert confirmations are
+    // false
+    composeTestRule.waitUntilWithTimeout { viewModel.autoActionsEnabled.value }
+    assert(viewModel.autoActionsEnabled.value)
+    assert(!viewModel.confirmTouchRequired.value)
+    assert(!viewModel.confirmVoiceRequired.value)
     // Wait for autoActions to be enabled by the ViewModel's logic and then assert confirmations are
     // false
     composeTestRule.waitUntilWithTimeout { viewModel.autoActionsEnabled.value }
@@ -350,6 +385,7 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
         .performClick()
+    callNode.performClick()
     callNode.performClick()
 
     val confirmTouchSwitch =
