@@ -333,6 +333,5 @@ private fun TouchConfirmationPopup(
       confirmLabel = stringResource(id = R.string.confirmation_confirm_label),
       cancelLabel = stringResource(id = R.string.confirmation_cancel_label),
       onConfirm = { orchestrator.onTouchConfirmation() },
-      onCancel = { orchestrator.onCancellation() },
-      modifier = Modifier.fillMaxSize())
+      onCancel = { orchestrator.onCancellation() })
 }
