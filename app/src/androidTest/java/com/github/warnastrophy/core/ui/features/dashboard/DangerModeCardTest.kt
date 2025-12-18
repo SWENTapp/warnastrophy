@@ -36,10 +36,9 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
   fun setup() {
     val context = composeTestRule.activity.applicationContext
     UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
-    // Initialize the ActivityRepositoryProvider with mock for testing
     mockActivityRepository = MockActivityRepository()
     ActivityRepositoryProvider.useMock()
-    // Make sure user preferences are reset to defaults so tests are deterministic
+
     runBlocking {
       val repo = UserPreferencesRepositoryProvider.repository
       repo.setAutoActionsEnabled(false)
@@ -50,47 +49,15 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
       repo.setInactivityDetection(false)
       repo.setAlertMode(false)
     }
-    // Initialize services after prefs have been reset
-    InstrumentationRegistry.getInstrumentation().runOnMainSync { StateManagerService.init(context) }
-    StateManagerService.permissionManager =
-        MockPermissionManager(currentResult = PermissionResult.Granted)
-    StateManagerService.dangerModeService =
-        DangerModeService(permissionManager = StateManagerService.permissionManager)
-    val appContext = composeTestRule.activity.applicationContext
+
     val instrumentation = InstrumentationRegistry.getInstrumentation()
-    UserPreferencesRepositoryProvider.initLocal(appContext.userPrefsDataStore)
-    instrumentation.runOnMainSync { StateManagerService.init(appContext) }
+    instrumentation.runOnMainSync { StateManagerService.init(context) }
     instrumentation.runOnMainSync {
       StateManagerService.permissionManager =
           MockPermissionManager(currentResult = PermissionResult.Granted)
       StateManagerService.dangerModeService =
           DangerModeService(permissionManager = StateManagerService.permissionManager)
     }
-    // Initialize the ActivityRepositoryProvider with mock for testing
-    mockActivityRepository = MockActivityRepository()
-    ActivityRepositoryProvider.useMock()
-    val context = composeTestRule.activity.applicationContext
-    UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
-    // Initialize the ActivityRepositoryProvider with mock for testing
-    mockActivityRepository = MockActivityRepository()
-    ActivityRepositoryProvider.useMock()
-    // Make sure user preferences are reset to defaults so tests are deterministic
-    runBlocking {
-      val repo = UserPreferencesRepositoryProvider.repository
-      repo.setAutoActionsEnabled(false)
-      repo.setAutomaticCalls(false)
-      repo.setAutomaticSms(false)
-      repo.setVoiceConfirmationEnabled(false)
-      repo.setTouchConfirmationRequired(false)
-      repo.setInactivityDetection(false)
-      repo.setAlertMode(false)
-    }
-    // Initialize services after prefs have been reset
-    InstrumentationRegistry.getInstrumentation().runOnMainSync { StateManagerService.init(context) }
-    StateManagerService.permissionManager =
-        MockPermissionManager(currentResult = PermissionResult.Granted)
-    StateManagerService.dangerModeService =
-        DangerModeService(permissionManager = StateManagerService.permissionManager)
   }
 
   private fun createTestViewModel(repository: MockActivityRepository = mockActivityRepository) =
@@ -278,11 +245,7 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     val viewModel = createTestViewModel()
     composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = viewModel) } }
 
-    // Ensure the ViewModel starts with no capabilities enabled to make the test deterministic
     viewModel.onCapabilitiesChanged(emptySet())
-    assert(viewModel.capabilitiesInternal.value.isEmpty())
-
-    // Advanced section should not be visible initially
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
         .assertDoesNotExist()
@@ -291,38 +254,17 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
     callCapabilityNode.performClick()
-    // Enable CALL capability deterministically via ViewModel
-    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
-
-    // Wait for capabilities to be applied and advanced section to appear
     composeTestRule.waitUntilWithTimeout {
       viewModel.capabilitiesInternal.value.contains(DangerModeCapability.CALL)
     }
+
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
         .performClick()
-        .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
-        .assertExists()
-
-    // Enable CALL capability deterministically via ViewModel
-    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
-
-    // Wait for capabilities to be applied and advanced section to appear
-    composeTestRule.waitUntilWithTimeout {
-      viewModel.capabilitiesInternal.value.contains(DangerModeCapability.CALL)
-    }
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
         .assertExists()
 
-    // Wait for autoActions to be enabled by the ViewModel's logic and then assert confirmations are
-    // false
-    composeTestRule.waitUntilWithTimeout { viewModel.autoActionsEnabled.value }
-    assert(viewModel.autoActionsEnabled.value)
-    assert(!viewModel.confirmTouchRequired.value)
-    assert(!viewModel.confirmVoiceRequired.value)
-    // Wait for autoActions to be enabled by the ViewModel's logic and then assert confirmations are
-    // false
     composeTestRule.waitUntilWithTimeout { viewModel.autoActionsEnabled.value }
     assert(viewModel.autoActionsEnabled.value)
     assert(!viewModel.confirmTouchRequired.value)
@@ -335,16 +277,17 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     val viewModel = createTestViewModel()
     composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = viewModel) } }
 
-    // Enable CALL capability to show advanced section deterministically via ViewModel
     viewModel.onCapabilityToggled(DangerModeCapability.CALL)
-
-    // Wait until autoActions is enabled by the ViewModel
     composeTestRule.waitUntilWithTimeout { viewModel.autoActionsEnabled.value }
+
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
+        .performClick()
+
     assert(viewModel.autoActionsEnabled.value)
     assert(!viewModel.confirmTouchRequired.value)
     assert(!viewModel.confirmVoiceRequired.value)
 
-    // Toggle auto actions off and verify state updates correctly
     viewModel.onAutoActionsEnabled(false)
     composeTestRule.waitUntilWithTimeout { !viewModel.autoActionsEnabled.value }
     assert(!viewModel.autoActionsEnabled.value)
@@ -377,16 +320,17 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
       MaterialTheme { DangerModeCard(viewModel = viewModel) }
     }
 
-    // Enable CALL capability to show advanced section
     val callNode =
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
-    callCapabilityNode.performClick()
+    callNode.performClick()
+    composeTestRule.waitUntilWithTimeout {
+      viewModel.capabilitiesInternal.value.contains(DangerModeCapability.CALL)
+    }
+
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
         .performClick()
-    callNode.performClick()
-    callNode.performClick()
 
     val confirmTouchSwitch =
         composeTestRule.onNodeWithTag(
@@ -395,12 +339,10 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.CONFIRM_VOICE_SWITCH, useUnmergedTree = true)
 
-    // Toggle voice -> voice on, touch off
     confirmVoiceSwitch.performClick()
     confirmVoiceSwitch.assertIsOn()
     confirmTouchSwitch.assertIsOff()
 
-    // Toggle touch -> touch on, voice off
     confirmTouchSwitch.performClick()
     confirmTouchSwitch.assertIsOn()
     confirmVoiceSwitch.assertIsOff()

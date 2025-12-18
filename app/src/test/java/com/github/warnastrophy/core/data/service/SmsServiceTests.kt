@@ -64,11 +64,17 @@ class SmsServiceTests {
   fun sendSms_callsSendTextMessage_API_above_S() {
     Mockito.`when`(mockContext.getSystemService(SmsManager::class.java)).thenReturn(mockSmsManager)
 
+    // The implementation may split long messages and call sendMultipartTextMessage.
+    // Stub divideMessage to return an ArrayList so we can verify the multipart call.
+    Mockito.`when`(mockSmsManager.divideMessage(expectedString))
+        .thenReturn(arrayListOf(expectedString))
+
     smsManagerSender = SmsManagerSender(mockContext)
 
     smsManagerSender.sendSms(phoneNumber, message)
 
-    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, expectedString, null, null)
+    Mockito.verify(mockSmsManager)
+        .sendMultipartTextMessage(phoneNumber, null, arrayListOf(expectedString), null, null)
   }
 
   @Test
@@ -78,11 +84,16 @@ class SmsServiceTests {
     val mockedStaticSmsManager = Mockito.mockStatic(SmsManager::class.java)
     mockedStaticSmsManager.`when`<SmsManager> { SmsManager.getDefault() }.thenReturn(mockSmsManager)
 
+    // Stub divideMessage similarly for the API < S path
+    Mockito.`when`(mockSmsManager.divideMessage(expectedString))
+        .thenReturn(arrayListOf(expectedString))
+
     smsManagerSender = SmsManagerSender(mockContext)
 
     smsManagerSender.sendSms(phoneNumber, message)
 
-    Mockito.verify(mockSmsManager).sendTextMessage(phoneNumber, null, expectedString, null, null)
+    Mockito.verify(mockSmsManager)
+        .sendMultipartTextMessage(phoneNumber, null, arrayListOf(expectedString), null, null)
 
     mockedStaticSmsManager.close()
   }

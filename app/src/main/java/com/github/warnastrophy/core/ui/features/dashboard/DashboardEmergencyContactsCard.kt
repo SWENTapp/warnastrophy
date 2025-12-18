@@ -51,7 +51,6 @@ object DashboardEmergencyContactsTestTags {
  *
  * Defines the visual appearance with a light yellow background and gray text variants.
  */
-// TODO remove hardcoded colors
 object DashboardEmergencyContactsCardColors {
   fun getColors(colorScheme: ColorScheme, isDarkTheme: Boolean): Colors {
     return Colors(

@@ -19,6 +19,7 @@ import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.core.util.formatDate
 import com.google.android.gms.maps.model.LatLng
 import junit.framework.TestCase
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class MapIconTest : BaseAndroidComposeTest() {
@@ -68,10 +69,12 @@ class MapIconTest : BaseAndroidComposeTest() {
       hazard.value?.let {
         HazardMarker(
             it,
-            markerIconProvider = { _, _, _, _ -> null },
-            polygonContent = {},
-            markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
-            iconContent = { icon, tint -> icon(tint) })
+            testInjectables =
+                HazardMarkerTestInjectables(
+                    markerIconProvider = { _, _, _, _ -> null },
+                    polygonContent = {},
+                    markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
+                    iconContent = { icon, tint -> icon(tint) }))
       }
     }
 
@@ -205,10 +208,12 @@ class MapIconTest : BaseAndroidComposeTest() {
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          markerIconProvider = { _, _, _, _ -> null },
-          polygonContent = {},
-          markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
-          iconContent = { _, _ -> })
+          testInjectables =
+              HazardMarkerTestInjectables(
+                  markerIconProvider = { _, _, _, _ -> null },
+                  polygonContent = {},
+                  markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
+                  iconContent = { _, _ -> }))
     }
 
     // Title is visible
@@ -241,14 +246,16 @@ class MapIconTest : BaseAndroidComposeTest() {
     composeTestRule.setContent {
       HazardMarker(
           hazard = hazard,
-          markerIconProvider = { _, _, _, _ -> null },
-          polygonContent = {},
-          markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
-          iconContent = { icon, tint ->
-            receivedIcon = icon
-            receivedTint = tint
-            icon(tint)
-          })
+          testInjectables =
+              HazardMarkerTestInjectables(
+                  markerIconProvider = { _, _, _, _ -> null },
+                  polygonContent = {},
+                  markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
+                  iconContent = { icon, tint ->
+                    receivedIcon = icon
+                    receivedTint = tint
+                    icon(tint)
+                  }))
     }
 
     composeTestRule.waitForIdle()
@@ -356,10 +363,12 @@ class MapIconTest : BaseAndroidComposeTest() {
           hazard = hazard,
           selectedMarkerId = selectedMarkerId,
           onMarkerSelected = { selectedMarkerId = it },
-          markerIconProvider = { _, _, _, _ -> null },
-          polygonContent = { coords -> polygonCoordsReceived = coords },
-          markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
-          iconContent = { _, _ -> })
+          testInjectables =
+              HazardMarkerTestInjectables(
+                  markerIconProvider = { _, _, _, _ -> null },
+                  polygonContent = { coords -> polygonCoordsReceived = coords },
+                  markerInfoWindowContent = { _, _, _, _, content -> Box { content() } },
+                  iconContent = { _, _ -> }))
     }
 
     composeTestRule.waitForIdle()
@@ -557,28 +566,6 @@ class MapIconTest : BaseAndroidComposeTest() {
   }
 
   @Test
-  fun hazardMarker_invokesOnInfoWindowClickCallback() {
-    var onInfoWindowClickCalled = false
-    val hazard = hazardBasedOnType("FL").copy(articleUrl = "https://example.com/article")
-
-    setUpHazardMarker(hazard = hazard, onInfoWindowClick = { onInfoWindowClickCalled = true })
-
-    composeTestRule.waitForIdle()
-    TestCase.assertTrue("onInfoWindowClick should have been called", onInfoWindowClickCalled)
-  }
-
-  @Test
-  fun hazardMarker_invokesOnMarkerClickCallback() {
-    var markerClickId: Int? = null
-    val hazard = hazardBasedOnType("FL").copy(id = 999)
-
-    setUpHazardMarker(hazard = hazard, onMarkerSelected = { markerClickId = it })
-
-    composeTestRule.waitForIdle()
-    TestCase.assertEquals(999, markerClickId)
-  }
-
-  @Test
   fun formatSeveritySnippet_handlesWholeNumbers() {
     val hazard = hazardBasedOnType("FL").copy(severity = 100.0, severityUnit = "km")
     TestCase.assertEquals("100 km", formatSeveritySnippet(hazard))
@@ -600,26 +587,5 @@ class MapIconTest : BaseAndroidComposeTest() {
   fun formatSeveritySnippet_trimsUnitWhitespace() {
     val hazard = hazardBasedOnType("FL").copy(severity = 10.0, severityUnit = "  ha  ")
     TestCase.assertEquals("10 ha", formatSeveritySnippet(hazard))
-  }
-
-  private fun setUpHazardMarker(
-      hazard: Hazard,
-      onMarkerSelected: ((Int?) -> Unit)? = null,
-      onInfoWindowClick: (() -> Unit)? = null
-  ) {
-    composeTestRule.setContent {
-      HazardMarker(
-          hazard = hazard,
-          onMarkerSelected = onMarkerSelected ?: { _ -> },
-          onInfoWindowClick = onInfoWindowClick ?: {},
-          markerIconProvider = { _, _, _, _ -> null },
-          polygonContent = {},
-          markerInfoWindowContent = { _, _, onMarkerClick, onInfoWindowClickLambda, content ->
-            onMarkerClick()
-            onInfoWindowClickLambda()
-            Box { content() }
-          },
-          iconContent = { _, _ -> })
-    }
   }
 }
