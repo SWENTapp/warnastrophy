@@ -1,14 +1,17 @@
 package com.github.warnastrophy.core.ui.features.dashboard
 
-import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.warnastrophy.core.data.interfaces.ActivityRepository
+import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
+import com.github.warnastrophy.core.data.repository.UserPreferences
 import com.github.warnastrophy.core.data.service.DangerLevel
+import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.data.service.StateManagerService.permissionManager
-import com.github.warnastrophy.core.model.Activity as DangerActivity
+import com.github.warnastrophy.core.model.Activity
 import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.util.AppConfig
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -48,22 +52,24 @@ data class AlertModeUiState(
     val waitingForUserResponse: Boolean = false
 )
 
-data class DangerModePreferencesUiState(
-    val autoActionsEnabled: Boolean = false,
-    val confirmTouchRequired: Boolean = false,
-    val confirmVoiceRequired: Boolean = false
-)
-
-/** Represents one-time, non-repeatable side effects that must be executed by the UI layer. */
+/**
+ * Represents one-time, non-repeatable side effects that must be executed by the UI layer. They are
+ * typically used for:
+ * 1. Navigation.
+ * 2. Displaying Toast messages or Dialogs.
+ * 3. Starting/Stopping services.
+ * 4. Requesting system permissions.
+ */
 sealed interface Effect {
-  /** Request a specific set of permissions. */
-  data class RequestPermissions(val permissionType: AppPermissions) : Effect
+  object RequestLocationPermission : Effect
 
   object StartForegroundService : Effect
 
   object StopForegroundService : Effect
 
   object ShowOpenAppSettings : Effect
+
+  data class RequestCapabilityPermission(val permissions: AppPermissions) : Effect
 }
 
 /**
@@ -77,13 +83,15 @@ class DangerModeCardViewModel(
     private val repository: ActivityRepository = StateManagerService.activityRepository,
     private val userId: String =
         FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val userPreferencesRepository: UserPreferencesRepository =
+        UserPreferencesRepositoryProvider.repository,
+    private val dangerModeService: DangerModeService = StateManagerService.dangerModeService
 ) : ViewModel() {
   val alertModePermission = AppPermissions.AlertModePermission
-  private val dangerModeService = StateManagerService.dangerModeService
 
-  private val _activities = MutableStateFlow<List<DangerActivity>>(emptyList())
-  val activities: StateFlow<List<DangerActivity>> = _activities.asStateFlow()
+  private val _activities = MutableStateFlow<List<Activity>>(emptyList())
+  val activities: StateFlow<List<Activity>> = _activities.asStateFlow()
   private val _effects = MutableSharedFlow<Effect>()
   val effects = _effects.asSharedFlow()
 
@@ -94,20 +102,57 @@ class DangerModeCardViewModel(
                   permissionManager.getPermissionResult(alertModePermission)))
   val permissionUiState = _alertModeUiState.asStateFlow()
 
-  // Sequence of permissions required to enable danger/alert mode.
-  private val permissionSequence =
-      listOf(
-          AppPermissions.AlertModePermission, // location
-          AppPermissions.MicrophonePermission, // microphone
-          AppPermissions.SendEmergencySms, // sms
-          AppPermissions.MakeEmergencyCall // call
-          )
+  // UI-facing optimistic capabilities state. The UI should consume this for immediate
+  // feedback when toggling capabilities. It is kept in sync with the service-backed
+  // `capabilities` and will be reverted if the service rejects the change.
+  private val _capabilitiesInternal = MutableStateFlow<Set<DangerModeCapability>>(emptySet())
+  val capabilitiesInternal: StateFlow<Set<DangerModeCapability>> =
+      _capabilitiesInternal.asStateFlow()
 
-  // Tracks whether enabling was requested so we can continue chain after each grant.
-  private var enableRequested = false
+  private val _autoActionsEnabled = MutableStateFlow(false)
+  val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
+  private val _confirmTouchRequired =
+      MutableStateFlow(
+          false) // This is tactile confirmation before the app takes actions like calling/emergency
+  // SMS
+  val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
+
+  private val _confirmVoiceRequired =
+      MutableStateFlow(
+          false) // This is audio confirmation before the app takes actions like calling/emergency
+  // SMS
+  val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
 
   init {
     refreshActivities()
+    viewModelScope.launch(dispatcher) {
+      dangerModeService.events.collect { event ->
+        when (event) {
+          DangerModeService.DangerModeEvent.MissingSmsPermission ->
+              emitEffect(Effect.RequestCapabilityPermission(AppPermissions.SendEmergencySms))
+          DangerModeService.DangerModeEvent.MissingCallPermission ->
+              emitEffect(Effect.RequestCapabilityPermission(AppPermissions.MakeEmergencyCall))
+          null -> Unit
+        }
+      }
+    }
+    // Collect user preferences from the repository. Run collection on the provided dispatcher
+    // but update UI state on the Main thread. Guard the collector against unexpected exceptions
+    // so a single bad read won't crash the ViewModel.
+    viewModelScope.launch(dispatcher) {
+      try {
+        userPreferencesRepository.getUserPreferences.collect { prefs ->
+          try {
+            // Ensure updates happen on main thread
+            viewModelScope.launch(Dispatchers.Main.immediate) { applyPreferencesInternal(prefs) }
+          } catch (e: Throwable) {
+            Log.e("DangerModeCardViewModel", "Failed to schedule applyPreferences", e)
+          }
+        }
+      } catch (e: Throwable) {
+        Log.e("DangerModeCardViewModel", "Error collecting user preferences", e)
+      }
+    }
   }
 
   /** Refreshes the activities list from the repository. */
@@ -138,22 +183,12 @@ class DangerModeCardViewModel(
           .map { it.dangerLevel }
           .stateIn(viewModelScope, SharingStarted.Lazily, DangerLevel.LOW)
 
-  val capabilities =
-      dangerModeService.state
-          .map { it.capabilities }
-          .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
-
-  private val _autoActionsEnabled = MutableStateFlow(false)
-  val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
-
-  private val _confirmTouchRequired = MutableStateFlow(false)
-  val confirmTouchRequired: StateFlow<Boolean> = _confirmTouchRequired.asStateFlow()
-
-  private val _confirmVoiceRequired = MutableStateFlow(false)
-  val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
-
-  private val _dangerModePreferencesUiState = MutableStateFlow(DangerModePreferencesUiState())
-  val dangerModePreferencesUiState = _dangerModePreferencesUiState.asStateFlow()
+  /**
+   * Public view of capabilities consumed by UI/tests. This returns the optimistic internal state so
+   * updates are immediate and deterministic. The service-backed `capabilities` is still updated by
+   * `onCapabilitiesChanged` which calls into DangerModeService.
+   */
+  val capabilities: StateFlow<Set<DangerModeCapability>> = _capabilitiesInternal.asStateFlow()
 
   /**
    * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
@@ -176,7 +211,7 @@ class DangerModeCardViewModel(
    *
    * @param activity The selected Activity.
    */
-  fun onActivitySelected(activity: DangerActivity?) {
+  fun onActivitySelected(activity: Activity?) {
     dangerModeService.setActivity(activity)
   }
 
@@ -186,7 +221,20 @@ class DangerModeCardViewModel(
    * @param newCapabilities The new set of enabled capabilities.
    */
   fun onCapabilitiesChanged(newCapabilities: Set<DangerModeCapability>) {
-    if (dangerModeService.setCapabilities(newCapabilities).isFailure) {
+    // Optimistically update the UI-facing capabilities so the UI reacts immediately.
+    val previous = _capabilitiesInternal.value
+    _capabilitiesInternal.value = newCapabilities
+
+    val result =
+        try {
+          dangerModeService.setCapabilities(newCapabilities)
+        } catch (t: Throwable) {
+          Result.failure<Unit>(t)
+        }
+
+    if (result.isFailure) {
+      // revert optimistic update and log
+      _capabilitiesInternal.value = previous
       Log.e("DangerModeCardViewModel", "Failed to set capabilities: $newCapabilities")
     }
   }
@@ -197,14 +245,32 @@ class DangerModeCardViewModel(
    * @param capability The capability to be toggled.
    */
   fun onCapabilityToggled(capability: DangerModeCapability) {
-    val current = dangerModeService.state.value.capabilities
-    val future =
-        if (current.contains(capability)) {
-          current - capability
-        } else {
-          current + capability
+    // Use the UI-facing internal capabilities as the source of truth for immediate toggling
+    val current = _capabilitiesInternal.value
+    val enabling = !current.contains(capability)
+
+    val newCaps: Set<DangerModeCapability> = if (enabling) setOf(capability) else emptySet()
+
+    // If enabling a capability, enable auto-actions so the advanced section becomes visible.
+    if (enabling) {
+      _autoActionsEnabled.value = true
+      viewModelScope.launch(dispatcher) { userPreferencesRepository.setAutoActionsEnabled(true) }
+    }
+
+    onCapabilitiesChanged(newCaps)
+
+    viewModelScope.launch(dispatcher) {
+      when (capability) {
+        DangerModeCapability.CALL -> {
+          userPreferencesRepository.setAutomaticCalls(enabling)
+          if (enabling) userPreferencesRepository.setAutomaticSms(false)
         }
-    onCapabilitiesChanged(future)
+        DangerModeCapability.SMS -> {
+          userPreferencesRepository.setAutomaticSms(enabling)
+          if (enabling) userPreferencesRepository.setAutomaticCalls(false)
+        }
+      }
+    }
   }
 
   /**
@@ -218,17 +284,25 @@ class DangerModeCardViewModel(
 
   fun onConfirmTouchChanged(enabled: Boolean) {
     _confirmTouchRequired.value = enabled
-    _dangerModePreferencesUiState.update { it.copy(confirmTouchRequired = enabled) }
+    if (enabled) _confirmVoiceRequired.value = false
+    viewModelScope.launch(dispatcher) {
+      userPreferencesRepository.setTouchConfirmationRequired(enabled)
+      if (enabled) userPreferencesRepository.setVoiceConfirmationEnabled(false)
+    }
   }
 
   fun onAutoActionsEnabled(enabled: Boolean) {
     _autoActionsEnabled.value = enabled
-    _dangerModePreferencesUiState.update { it.copy(autoActionsEnabled = enabled) }
+    viewModelScope.launch(dispatcher) { userPreferencesRepository.setAutoActionsEnabled(enabled) }
   }
 
   fun onConfirmVoiceChanged(enabled: Boolean) {
     _confirmVoiceRequired.value = enabled
-    _dangerModePreferencesUiState.update { it.copy(confirmVoiceRequired = enabled) }
+    if (enabled) _confirmTouchRequired.value = false
+    viewModelScope.launch(dispatcher) {
+      userPreferencesRepository.setVoiceConfirmationEnabled(enabled)
+      if (enabled) userPreferencesRepository.setTouchConfirmationRequired(false)
+    }
   }
 
   /**
@@ -247,84 +321,83 @@ class DangerModeCardViewModel(
     viewModelScope.launch(dispatcher) { _effects.emit(effect) }
   }
 
-  /** Records that a permission request has been initiated. */
-  fun onPermissionsRequestStart(permissionType: AppPermissions? = null) {
+  /** Records that a permission request has been initiated by update UIState. */
+  fun onPermissionsRequestStart() {
     _alertModeUiState.update { it.copy(waitingForUserResponse = true) }
   }
 
   /**
-   * Backward-compatible single-parameter permission result handler. Delegates to the full handler
-   * using the AlertModePermission.
+   * Updates the permission results in the UI state after the user has responded to a system
+   * permission dialog.
+   *
+   * @param activity The current `Activity`, required to check the latest permission statuses.
    */
-  fun onPermissionResult(activity: Activity) {
-    onPermissionResult(activity, alertModePermission)
-  }
-
-  /**
-   * Permission result handler which receives the Activity and the specific permission set.
-   * Continues the permission chain if allowed, or cancels enabling if denied.
-   */
-  fun onPermissionResult(activity: Activity, permissionType: AppPermissions) {
-    val newResult = permissionManager.getPermissionResult(permissionType, activity)
-
-    // Update UI state if this was the alert mode permission
-    if (permissionType == alertModePermission) {
-      _alertModeUiState.update { it.copy(alertModePermissionResult = newResult) }
-    }
-
+  fun onPermissionResult(activity: android.app.Activity) {
+    val newAlertModeResult = permissionManager.getPermissionResult(alertModePermission, activity)
+    _alertModeUiState.update { it.copy(alertModePermissionResult = newAlertModeResult) }
     if (_alertModeUiState.value.waitingForUserResponse) {
-      permissionManager.markPermissionsAsAsked(permissionType)
+      permissionManager.markPermissionsAsAsked(alertModePermission)
+      if (newAlertModeResult is PermissionResult.Granted) {
+        onDangerModeToggled(true)
+      }
     }
-
     _alertModeUiState.update { it.copy(waitingForUserResponse = false) }
-
-    // If granted and we were enabling, continue to next required permission
-    if (newResult is PermissionResult.Granted && enableRequested) {
-      requestNextRequiredPermission(activity)
-    } else if (newResult !is PermissionResult.Granted) {
-      // If any permission denied, cancel the enable flow
-      enableRequested = false
-    }
-  }
-
-  /** Starts the toggle flow. The Activity is required to query current permission statuses. */
-  fun handleToggle(isChecked: Boolean, activity: Activity) {
-    if (!isChecked) {
-      onDangerModeToggled(false)
-      return
-    }
-    // Start the enable flow
-    enableRequested = true
-    requestNextRequiredPermission(activity)
   }
 
   /**
-   * Scan the permissionSequence and either enable the mode (if none missing) or emit an effect to
-   * request the next missing permission (or open app settings if permanently denied).
+   * Handles the logic when user toggle the button, checking permissions and dispatching actions.
+   *
+   * @param isChecked The new state of the preference toggle.
+   * @param permissionResult The current permission status for this feature.
    */
-  private fun requestNextRequiredPermission(activity: Activity) {
-    // Find the first permission that is not granted
-    val missing =
-        permissionSequence.firstNotNullOfOrNull { permissionType ->
-          val result = permissionManager.getPermissionResult(permissionType, activity)
-          if (result is PermissionResult.Granted) null else permissionType to result
+  fun handleToggle(isChecked: Boolean, permissionResult: PermissionResult) {
+    if (isChecked) {
+      when (permissionResult) {
+        PermissionResult.Granted -> {
+          onDangerModeToggled(true)
         }
-
-    if (missing == null) {
-      // All required permissions are granted -> enable
-      enableRequested = false
-      onDangerModeToggled(true)
-      return
-    }
-
-    val (permissionType, result) = missing
-    when (result) {
-      is PermissionResult.PermanentlyDenied -> {
-        enableRequested = false
-        emitEffect(Effect.ShowOpenAppSettings)
+        is PermissionResult.Denied -> emitEffect(Effect.RequestLocationPermission)
+        is PermissionResult.PermanentlyDenied -> emitEffect(Effect.ShowOpenAppSettings)
       }
-      else -> {
-        emitEffect(Effect.RequestPermissions(permissionType))
+    } else {
+      onDangerModeToggled(false)
+    }
+  }
+
+  // Internal suspend function that performs the actual state updates. Must be called on the
+  // Main dispatcher to safely update StateFlow-backed UI state.
+  private fun applyPreferencesInternal(prefs: UserPreferences) {
+    runCatching {
+          _autoActionsEnabled.value = prefs.dangerModePreferences.autoActionsEnabled
+          _confirmTouchRequired.value = prefs.dangerModePreferences.touchConfirmationRequired
+          _confirmVoiceRequired.value = prefs.dangerModePreferences.voiceConfirmationEnabled
+
+          val caps = mutableSetOf<DangerModeCapability>()
+          if (prefs.dangerModePreferences.automaticCalls) caps.add(DangerModeCapability.CALL)
+          if (prefs.dangerModePreferences.automaticSms) caps.add(DangerModeCapability.SMS)
+
+          try {
+            // Apply persisted capabilities to the UI-facing state directly without calling
+            // `onCapabilitiesChanged` to avoid triggering a service call which can overwrite
+            // optimistic UI updates during tests or startup.
+            _capabilitiesInternal.value = caps
+          } catch (e: Throwable) {
+            Log.e("DangerModeCardViewModel", "Failed to apply capabilities from prefs", e)
+          }
+        }
+        .onFailure { e -> Log.e("DangerModeCardViewModel", "Failed to apply user preferences", e) }
+  }
+
+  // Initial sync: read the current service state once and seed the UI-facing capabilities.
+  // We intentionally do not continuously overwrite the UI-facing optimistic state to avoid
+  // reverting user actions during transient service updates.
+  init {
+    viewModelScope.launch(dispatcher) {
+      try {
+        val initial = dangerModeService.state.first()
+        _capabilitiesInternal.value = initial.capabilities
+      } catch (t: Throwable) {
+        Log.w("DangerModeCardViewModel", "Failed to initial-sync capabilities: ${t.message}")
       }
     }
   }
