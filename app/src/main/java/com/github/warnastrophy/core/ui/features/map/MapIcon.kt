@@ -226,7 +226,7 @@ fun HazardMarker(
   val markerIcon: BitmapDescriptor? =
       iconRes?.let { res ->
         if (testInjectables.markerIconProvider != null) {
-          testInjectables.markerIconProvider!!(ctx, res, 32f, severityTint)
+          testInjectables.markerIconProvider.invoke(ctx, res, 32f, severityTint)
         } else {
           bitmapDescriptorFromVector(
               context = ctx, vectorResId = res, sizeDp = 32f, tintColor = severityTint)
