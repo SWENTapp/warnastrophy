@@ -327,7 +327,7 @@ fun HazardsGoogleMap(
   GoogleMap(
       modifier = Modifier.fillMaxSize().testTag(MapScreenTestTags.GOOGLE_MAP_SCREEN),
       cameraPositionState = cameraPositionState,
-      onMapClick = { selectedMarkerId = null },
+      onMapClick = {},
       uiSettings =
           MapUiSettings(
               myLocationButtonEnabled = false,

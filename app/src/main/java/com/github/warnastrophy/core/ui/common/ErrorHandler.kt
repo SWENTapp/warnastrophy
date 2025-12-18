@@ -51,19 +51,22 @@ class ErrorHandler : ViewModel() {
    * @param screens The list of screens associated with the error.
    */
   fun addErrorToScreens(type: ErrorType, screens: List<Screen>) {
-    if (screens.size == 1) addErrorToScreen(type, screens.first())
-    else if (_state.value.errors.any { it.type == type && screens.isSubsequenceOf(it.screenTypes) })
-        return
-    else if (_state.value.errors.any {
-      it.type == type && it.screenTypes.isSubsequenceOf(screens)
-    }) {
-      _state.value =
-          _state.value.copy(
-              errors =
-                  _state.value.errors.map {
-                    if (it.type == type) it.copy(screenTypes = screens) else it
-                  })
-    } else _state.value = _state.value.copy(errors = _state.value.errors + Error(type, screens))
+    _state.value =
+        when {
+          screens.size == 1 -> {
+            addErrorToScreen(type, screens.first())
+            return
+          }
+          _state.value.errors.any { it.type == type && screens.isSubsequenceOf(it.screenTypes) } ->
+              _state.value
+          _state.value.errors.any { it.type == type && it.screenTypes.isSubsequenceOf(screens) } ->
+              _state.value.copy(
+                  errors =
+                      _state.value.errors.map {
+                        if (it.type == type) it.copy(screenTypes = screens) else it
+                      })
+          else -> _state.value.copy(errors = _state.value.errors + Error(type, screens))
+        }
   }
 
   /**

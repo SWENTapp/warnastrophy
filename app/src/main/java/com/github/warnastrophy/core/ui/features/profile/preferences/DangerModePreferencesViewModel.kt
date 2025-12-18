@@ -206,7 +206,9 @@ class DangerModePreferencesViewModel(
           onAutomaticCallsToggled(true)
         }
       }
-      null -> {}
+      else -> {
+        /* Do nothing */
+      }
     }
 
     _uiState.update { it.copy(pendingPermissionAction = null) }
@@ -237,6 +239,21 @@ class DangerModePreferencesViewModel(
       }
     } else {
       onToggle(false)
+    }
+  }
+
+  /**
+   * Requests the necessary permissions for a given action. This function centralizes the logic for
+   * determining which permissions to request based on the action being performed.
+   *
+   * @param action The action for which permissions are being requested.
+   */
+  fun requestPermissionFor(action: PendingAction) {
+    when (action) {
+      PendingAction.TOGGLE_AUTOMATIC_SMS -> onPermissionsRequestStart(action)
+      PendingAction.TOGGLE_AUTOMATIC_CALLS -> onPermissionsRequestStart(action)
+      PendingAction.TOGGLE_ALERT_MODE -> onPermissionsRequestStart(action)
+      PendingAction.TOGGLE_INACTIVITY_DETECTION -> onPermissionsRequestStart(action)
     }
   }
 }

@@ -162,14 +162,14 @@ private fun ErrorChip(err: Error) {
       contentAlignment = Alignment.Center) {
         Text(
             modifier = Modifier.testTag(ErrorScreenTestTags.ERROR_SUGGESTION_TEXT),
-            text = ErrorSuggestion(err),
+            text = errorSuggestion(err),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp)
       }
 }
 
 @Composable
-private fun ErrorSuggestion(err: Error): String {
+private fun errorSuggestion(err: Error): String {
   return when (err.type) {
     ErrorType.LOCATION_NOT_GRANTED_ERROR ->
         stringResource(R.string.error_suggestion_enable_location)

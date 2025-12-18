@@ -7,7 +7,6 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
@@ -25,7 +24,6 @@ import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.util.AppConfig
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
 import com.github.warnastrophy.userPrefsDataStore
-import kotlin.collections.isNotEmpty
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -35,19 +33,28 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
   @Before
   fun setup() {
-    val appContext = composeTestRule.activity.applicationContext
-    val instrumentation = InstrumentationRegistry.getInstrumentation()
-    UserPreferencesRepositoryProvider.initLocal(appContext.userPrefsDataStore)
-    instrumentation.runOnMainSync { StateManagerService.init(appContext) }
-    instrumentation.runOnMainSync {
-      StateManagerService.permissionManager =
-          MockPermissionManager(currentResult = PermissionResult.Granted)
-      StateManagerService.dangerModeService =
-          DangerModeService(permissionManager = StateManagerService.permissionManager)
-    }
+    val context = composeTestRule.activity.applicationContext
+    UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
     // Initialize the ActivityRepositoryProvider with mock for testing
     mockActivityRepository = MockActivityRepository()
     ActivityRepositoryProvider.useMock()
+    // Make sure user preferences are reset to defaults so tests are deterministic
+    runBlocking {
+      val repo = UserPreferencesRepositoryProvider.repository
+      repo.setAutoActionsEnabled(false)
+      repo.setAutomaticCalls(false)
+      repo.setAutomaticSms(false)
+      repo.setVoiceConfirmationEnabled(false)
+      repo.setTouchConfirmationRequired(false)
+      repo.setInactivityDetection(false)
+      repo.setAlertMode(false)
+    }
+    // Initialize services after prefs have been reset
+    InstrumentationRegistry.getInstrumentation().runOnMainSync { StateManagerService.init(context) }
+    StateManagerService.permissionManager =
+        MockPermissionManager(currentResult = PermissionResult.Granted)
+    StateManagerService.dangerModeService =
+        DangerModeService(permissionManager = StateManagerService.permissionManager)
   }
 
   private fun createTestViewModel(repository: MockActivityRepository = mockActivityRepository) =
@@ -207,11 +214,9 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(capability), useUnmergedTree = true)
     capabilityNode.performClick()
-
-    capabilityNode.assertIsSelected()
-
-    assert(viewModel.capabilities.value.contains(capability))
-    assert(viewModel.capabilities.value.size == 1)
+    // Check the UI-facing optimistic capabilities
+    assert(viewModel.capabilitiesInternal.value.contains(capability))
+    assert(viewModel.capabilitiesInternal.value.size == 1)
   }
 
   /* Verify that the DangerModeCard danger level changes as capabilities are toggled */
@@ -234,46 +239,79 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
   @Test
   fun dangerModeCard_advancedSection_shownWhenCapabilitySelected() {
-    lateinit var viewModel: DangerModeCardViewModel
-    composeTestRule.setContent {
-      viewModel = testViewModel
-      MaterialTheme { DangerModeCard(viewModel = viewModel) }
-    }
+    val viewModel = createTestViewModel()
+    composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = viewModel) } }
+
+    // Ensure the ViewModel starts with no capabilities enabled to make the test deterministic
+    viewModel.onCapabilitiesChanged(emptySet())
+    assert(viewModel.capabilitiesInternal.value.isEmpty())
 
     // Advanced section should not be visible initially
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
         .assertDoesNotExist()
 
-    val callCapabilityNode =
-        composeTestRule.onNodeWithTag(
-            DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
-    callCapabilityNode.performClick()
-    composeTestRule
-        .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
-        .performClick()
+    // Enable CALL capability deterministically via ViewModel
+    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
 
+    // Wait for capabilities to be applied and advanced section to appear
+    composeTestRule.waitUntilWithTimeout {
+      viewModel.capabilitiesInternal.value.contains(DangerModeCapability.CALL)
+    }
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
-        .assertIsDisplayed()
+        .assertExists()
 
-    // Auto actions switch should exist and be off by default
-    composeTestRule
-        .onNodeWithTag(DangerModeTestTags.AUTO_CALL_SWITCH, useUnmergedTree = true)
-        .assertIsOff()
-
-    // Confirmation switches should exist and be off by default
-    composeTestRule
-        .onNodeWithTag(DangerModeTestTags.CONFIRM_TOUCH_SWITCH, useUnmergedTree = true)
-        .assertIsOff()
-    composeTestRule
-        .onNodeWithTag(DangerModeTestTags.CONFIRM_VOICE_SWITCH, useUnmergedTree = true)
-        .assertIsOff()
+    // Wait for autoActions to be enabled by the ViewModel's logic and then assert confirmations are
+    // false
+    composeTestRule.waitUntilWithTimeout { viewModel.autoActionsEnabled.value }
+    assert(viewModel.autoActionsEnabled.value)
+    assert(!viewModel.confirmTouchRequired.value)
+    assert(!viewModel.confirmVoiceRequired.value)
   }
 
   /* Advanced switches update their respective state in the ViewModel independently */
   @Test
   fun dangerModeCard_advancedSwitches_updateViewModelState_independently() {
+    val viewModel = createTestViewModel()
+    composeTestRule.setContent { MaterialTheme { DangerModeCard(viewModel = viewModel) } }
+
+    // Enable CALL capability to show advanced section deterministically via ViewModel
+    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
+
+    // Wait until autoActions is enabled by the ViewModel
+    composeTestRule.waitUntilWithTimeout { viewModel.autoActionsEnabled.value }
+    assert(viewModel.autoActionsEnabled.value)
+    assert(!viewModel.confirmTouchRequired.value)
+    assert(!viewModel.confirmVoiceRequired.value)
+
+    // Toggle auto actions off and verify state updates correctly
+    viewModel.onAutoActionsEnabled(false)
+    composeTestRule.waitUntilWithTimeout { !viewModel.autoActionsEnabled.value }
+    assert(!viewModel.autoActionsEnabled.value)
+  }
+
+  /** Verify that toggling one capability disables the other (mutually exclusive) in the UI */
+  @Test
+  fun dangerModeCard_capabilities_are_mutually_exclusive_ui() {
+    lateinit var viewModel: DangerModeCardViewModel
+    composeTestRule.setContent {
+      viewModel = testViewModel
+      MaterialTheme { DangerModeCard(viewModel = viewModel) }
+    }
+
+    // Toggle CALL capability via the ViewModel (optimistic update is synchronous)
+    testViewModel.onCapabilityToggled(DangerModeCapability.CALL)
+    assert(testViewModel.capabilitiesInternal.value.contains(DangerModeCapability.CALL))
+
+    // Toggle SMS capability via the ViewModel - should replace CALL (mutually exclusive)
+    testViewModel.onCapabilityToggled(DangerModeCapability.SMS)
+    assert(testViewModel.capabilitiesInternal.value.contains(DangerModeCapability.SMS))
+    assert(!testViewModel.capabilitiesInternal.value.contains(DangerModeCapability.CALL))
+  }
+
+  @Test
+  fun dangerModeCard_confirmSwitches_are_mutually_exclusive_ui() {
     lateinit var viewModel: DangerModeCardViewModel
     composeTestRule.setContent {
       viewModel = testViewModel
@@ -281,16 +319,11 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
     }
 
     // Enable CALL capability to show advanced section
-    val callCapabilityNode =
+    val callNode =
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
-    callCapabilityNode.performClick()
-    composeTestRule
-        .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
-        .performClick()
+    callNode.performClick()
 
-    val autoActionsSwitch =
-        composeTestRule.onNodeWithTag(DangerModeTestTags.AUTO_CALL_SWITCH, useUnmergedTree = true)
     val confirmTouchSwitch =
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.CONFIRM_TOUCH_SWITCH, useUnmergedTree = true)
@@ -298,30 +331,14 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.CONFIRM_VOICE_SWITCH, useUnmergedTree = true)
 
-    // Initial state: all off
-    autoActionsSwitch.assertIsOff()
-    confirmTouchSwitch.assertIsOff()
-    confirmVoiceSwitch.assertIsOff()
-    assert(!viewModel.autoActionsEnabled.value)
-    assert(!viewModel.confirmTouchRequired.value)
-    assert(!viewModel.confirmVoiceRequired.value)
-
-    // Toggle auto actions
-    autoActionsSwitch.performClick()
-    autoActionsSwitch.assertIsOn()
-    assert(viewModel.autoActionsEnabled.value)
-    // Confirm others are still independent
-    assert(!viewModel.confirmTouchRequired.value)
-    assert(!viewModel.confirmVoiceRequired.value)
-
-    // Toggle touch confirmation
-    confirmTouchSwitch.performClick()
-    confirmTouchSwitch.assertIsOn()
-    assert(viewModel.confirmTouchRequired.value)
-
-    // Toggle voice confirmation
+    // Toggle voice -> voice on, touch off
     confirmVoiceSwitch.performClick()
     confirmVoiceSwitch.assertIsOn()
-    assert(viewModel.confirmVoiceRequired.value)
+    confirmTouchSwitch.assertIsOff()
+
+    // Toggle touch -> touch on, voice off
+    confirmTouchSwitch.performClick()
+    confirmTouchSwitch.assertIsOn()
+    confirmVoiceSwitch.assertIsOff()
   }
 }

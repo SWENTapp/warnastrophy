@@ -30,7 +30,7 @@ class HybridContactRepository(
 
   private val hybridRepositoryTag = "HybridContactRepository"
 
-  override fun getNewUid(): String = remote.getNewUid()
+  @Suppress("ReplaceWithDelegationBy") override fun getNewUid(): String = remote.getNewUid()
 
   override suspend fun getAllContacts(userId: String): Result<List<Contact>> {
     try {

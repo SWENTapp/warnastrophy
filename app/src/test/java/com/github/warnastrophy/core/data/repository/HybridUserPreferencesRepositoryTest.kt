@@ -37,7 +37,10 @@ class HybridUserPreferencesRepositoryTest {
                   alertMode = true,
                   inactivityDetection = true,
                   automaticSms = true,
-                  automaticCalls = false),
+                  automaticCalls = false,
+                  autoActionsEnabled = true,
+                  touchConfirmationRequired = true,
+                  voiceConfirmationEnabled = false),
           themePreferences = true)
 
   @Before
@@ -51,11 +54,19 @@ class HybridUserPreferencesRepositoryTest {
     coEvery { mockLocal.setAlertMode(any()) } just Runs
     coEvery { mockLocal.setInactivityDetection(any()) } just Runs
     coEvery { mockLocal.setAutomaticSms(any()) } just Runs
+    coEvery { mockLocal.setAutomaticCalls(any()) } just Runs
+    coEvery { mockLocal.setAutoActionsEnabled(any()) } just Runs
+    coEvery { mockLocal.setTouchConfirmationRequired(any()) } just Runs
+    coEvery { mockLocal.setVoiceConfirmationEnabled(any()) } just Runs
     coEvery { mockLocal.setDarkMode(any()) } just Runs
 
     coEvery { mockRemote.setAlertMode(any()) } just Runs
     coEvery { mockRemote.setInactivityDetection(any()) } just Runs
     coEvery { mockRemote.setAutomaticSms(any()) } just Runs
+    coEvery { mockRemote.setAutomaticCalls(any()) } just Runs
+    coEvery { mockRemote.setAutoActionsEnabled(any()) } just Runs
+    coEvery { mockRemote.setTouchConfirmationRequired(any()) } just Runs
+    coEvery { mockRemote.setVoiceConfirmationEnabled(any()) } just Runs
     coEvery { mockRemote.setDarkMode(any()) } just Runs
 
     repository = HybridUserPreferencesRepository(mockLocal, mockRemote)
@@ -74,6 +85,7 @@ class HybridUserPreferencesRepositoryTest {
 
     assertEquals(customPreferences, result)
     assertTrue(result.dangerModePreferences.alertMode)
+    assertTrue(result.dangerModePreferences.touchConfirmationRequired)
   }
 
   @Test
@@ -85,7 +97,10 @@ class HybridUserPreferencesRepositoryTest {
                     alertMode = true,
                     inactivityDetection = false,
                     automaticSms = true,
-                    automaticCalls = false),
+                    automaticCalls = true,
+                    autoActionsEnabled = true,
+                    touchConfirmationRequired = false,
+                    voiceConfirmationEnabled = true),
             themePreferences = false)
 
     every { mockLocal.getUserPreferences } returns flowOf(defaultPreferences)
@@ -97,6 +112,10 @@ class HybridUserPreferencesRepositoryTest {
       mockLocal.setAlertMode(true)
       mockLocal.setInactivityDetection(false)
       mockLocal.setAutomaticSms(true)
+      mockLocal.setAutomaticCalls(true)
+      mockLocal.setAutoActionsEnabled(true)
+      mockLocal.setTouchConfirmationRequired(false)
+      mockLocal.setVoiceConfirmationEnabled(true)
       mockLocal.setDarkMode(false)
     }
   }
@@ -200,20 +219,97 @@ class HybridUserPreferencesRepositoryTest {
   }
 
   @Test
-  fun `setDarkMode updates both repositories when available`() = runTest {
-    repository.setDarkMode(true)
+  fun `setAutomaticCalls updates both repositories when available`() = runTest {
+    repository.setAutomaticCalls(true)
 
-    coVerify { mockLocal.setDarkMode(true) }
-    coVerify { mockRemote.setDarkMode(true) }
+    coVerify { mockLocal.setAutomaticCalls(true) }
+    coVerify { mockRemote.setAutomaticCalls(true) }
   }
 
   @Test
-  fun `setDarkMode updates only local when remote fails`() = runTest {
-    coEvery { mockRemote.setDarkMode(any()) } throws Exception("Remote error")
+  fun `setAutoActionsEnabled updates both repositories when available`() = runTest {
+    repository.setAutoActionsEnabled(true)
 
-    repository.setDarkMode(false)
+    coVerify { mockLocal.setAutoActionsEnabled(true) }
+    coVerify { mockRemote.setAutoActionsEnabled(true) }
+  }
 
-    coVerify { mockLocal.setDarkMode(false) }
+  @Test
+  fun `setTouchConfirmationRequired updates both repositories when available`() = runTest {
+    repository.setTouchConfirmationRequired(true)
+
+    coVerify { mockLocal.setTouchConfirmationRequired(true) }
+    coVerify { mockRemote.setTouchConfirmationRequired(true) }
+  }
+
+  @Test
+  fun `setVoiceConfirmationEnabled updates both repositories when available`() = runTest {
+    repository.setVoiceConfirmationEnabled(true)
+
+    coVerify { mockLocal.setVoiceConfirmationEnabled(true) }
+    coVerify { mockRemote.setVoiceConfirmationEnabled(true) }
+  }
+
+  @Test
+  fun `getUserPreferences syncs remote to local on start with new preferences`() = runTest {
+    val remotePrefs =
+        UserPreferences(
+            dangerModePreferences =
+                DangerModePreferences(
+                    alertMode = false,
+                    inactivityDetection = true,
+                    automaticSms = false,
+                    automaticCalls = true,
+                    autoActionsEnabled = true,
+                    touchConfirmationRequired = true,
+                    voiceConfirmationEnabled = true),
+            themePreferences = true)
+
+    every { mockLocal.getUserPreferences } returns flowOf(defaultPreferences)
+    every { mockRemote.getUserPreferences } returns flowOf(remotePrefs)
+
+    repository.getUserPreferences.first()
+
+    coVerify {
+      mockLocal.setAlertMode(false)
+      mockLocal.setInactivityDetection(true)
+      mockLocal.setAutomaticSms(false)
+      mockLocal.setAutomaticCalls(true)
+      mockLocal.setAutoActionsEnabled(true)
+      mockLocal.setTouchConfirmationRequired(true)
+      mockLocal.setVoiceConfirmationEnabled(true)
+      mockLocal.setDarkMode(true)
+    }
+  }
+
+  @Test
+  fun `syncRemoteToLocal marks remote available again after success`() = runTest {
+    coEvery { mockRemote.setAlertMode(any()) } throws Exception("Remote write error")
+    repository.setAlertMode(true)
+
+    every { mockRemote.getUserPreferences } returns flowOf(customPreferences)
+    coEvery { mockRemote.setAlertMode(any()) } just Runs
+    coEvery { mockRemote.setAutoActionsEnabled(any()) } just Runs
+
+    repository.getUserPreferences.first()
+
+    repository.setAutoActionsEnabled(false)
+
+    coVerify { mockRemote.setAutoActionsEnabled(false) }
+  }
+
+  @Test
+  fun `remote failure disables subsequent updates for new preferences`() = runTest {
+    coEvery { mockRemote.setAutoActionsEnabled(any()) } throws Exception("Remote error")
+
+    repository.setAutoActionsEnabled(true)
+
+    repository.setTouchConfirmationRequired(true)
+
+    coVerify(exactly = 1) { mockRemote.setAutoActionsEnabled(any()) }
+    coVerify(exactly = 0) { mockRemote.setTouchConfirmationRequired(any()) }
+    coVerify(exactly = 1) { mockLocal.setAutoActionsEnabled(any()) }
+    coVerify(exactly = 1) { mockLocal.setTouchConfirmationRequired(any()) }
   }
 
   @Test

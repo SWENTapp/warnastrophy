@@ -80,6 +80,18 @@ class HybridUserPreferencesRepository(
     updateBothRepositories { setAutomaticCalls(enabled) }
   }
 
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    updateBothRepositories { setAutoActionsEnabled(enabled) }
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    updateBothRepositories { setTouchConfirmationRequired(required) }
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    updateBothRepositories { setVoiceConfirmationEnabled(enabled) }
+  }
+
   /**
    * Updates both local and remote repositories to set the dark mode preference.
    *
@@ -130,6 +142,11 @@ class HybridUserPreferencesRepository(
             setAlertMode(remotePrefs.dangerModePreferences.alertMode)
             setInactivityDetection(remotePrefs.dangerModePreferences.inactivityDetection)
             setAutomaticSms(remotePrefs.dangerModePreferences.automaticSms)
+            setAutomaticCalls(remotePrefs.dangerModePreferences.automaticCalls)
+            setAutoActionsEnabled(remotePrefs.dangerModePreferences.autoActionsEnabled)
+            setTouchConfirmationRequired(
+                remotePrefs.dangerModePreferences.touchConfirmationRequired)
+            setVoiceConfirmationEnabled(remotePrefs.dangerModePreferences.voiceConfirmationEnabled)
             setDarkMode(remotePrefs.themePreferences)
           }
         }
