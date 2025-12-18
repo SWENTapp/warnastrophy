@@ -97,10 +97,10 @@ class AuthRepositoryFirebase(
             auth.signInWithCredential(firebaseCred).await().user
                 ?: return Result.failure(
                     IllegalStateException("Login failed: Could not retrieve user information"))
-        return Result.success(user)
+
+        Result.success(user)
       } else {
-        return Result.failure(
-            IllegalStateException("Login failed: Credential is not of type GitHub"))
+        Result.failure(IllegalStateException("Login failed: Credential is not of type GitHub"))
       }
     } catch (e: Exception) {
       val errorMessage =
@@ -112,8 +112,7 @@ class AuthRepositoryFirebase(
               "GitHub login failed: ${e.localizedMessage ?: UNEXPECTED_ERROR_MESSAGE}"
             }
           }
-
-      return Result.failure(IllegalStateException(errorMessage, e))
+      Result.failure(IllegalStateException(errorMessage, e))
     }
   }
 
