@@ -114,11 +114,20 @@ class DangerModeOrchestrator(
   private val _showVoiceConfirmationScreen = MutableStateFlow(false)
   val showVoiceConfirmationScreen: StateFlow<Boolean> = _showVoiceConfirmationScreen.asStateFlow()
 
+  private val _showTouchConfirmationScreen = MutableStateFlow(false)
+  val showTouchConfirmationScreen: StateFlow<Boolean> = _showTouchConfirmationScreen.asStateFlow()
+
   private var _voiceConfirmationEnabled = false
+  private var _touchConfirmationRequired = false
 
   /** Sets whether voice confirmation is required before executing emergency actions. */
   fun setVoiceConfirmationEnabled(enabled: Boolean) {
     _voiceConfirmationEnabled = enabled
+  }
+
+  /** Sets whether touch confirmation is required before executing emergency actions. */
+  fun setTouchConfirmationRequired(required: Boolean) {
+    _touchConfirmationRequired = required
   }
 
   private var smsSenderInstance: SmsSender? = smsSender
@@ -137,6 +146,19 @@ class DangerModeOrchestrator(
               _permissionRequests.value = AppPermissions.MakeEmergencyCall
           null -> Unit
         }
+      }
+    }
+
+    // Observe persisted user preferences and update confirmation requirement flags.
+    scope.launch {
+      try {
+        userPreferencesRepository.getUserPreferences.collectLatest { prefs ->
+          // Keep in-memory flags in sync with repository so orchestrator reacts immediately
+          _voiceConfirmationEnabled = prefs.dangerModePreferences.voiceConfirmationEnabled
+          _touchConfirmationRequired = prefs.dangerModePreferences.touchConfirmationRequired
+        }
+      } catch (_: Exception) {
+        // Ignore failures to read preferences at startup; defaults remain
       }
     }
   }
@@ -186,7 +208,8 @@ class DangerModeOrchestrator(
           return
         }
       }
-      val uid: String = FirebaseAuth.getInstance().currentUser?.uid ?: AppConfig.defaultUserId
+
+      val uid = FirebaseAuth.getInstance().uid ?: AppConfig.defaultUserId
       val contacts = contactsRepo?.getAllContacts(uid)?.getOrNull()
       if (!contacts.isNullOrEmpty()) {
         emergencyPhoneNumber = contacts.first().phoneNumber
@@ -304,12 +327,15 @@ class DangerModeOrchestrator(
             pendingAction = pendingAction,
             confirmationTimeoutSeconds = CONFIRMATION_TIMEOUT_SECONDS)
 
-    // Check if voice confirmation is enabled
+    // Check confirmation mode: prefer voice, otherwise touch if required by prefs or runtime flag
     if (_voiceConfirmationEnabled) {
       // Show voice confirmation screen
       _showVoiceConfirmationScreen.value = true
+    } else if (_touchConfirmationRequired || preferences.touchConfirmationRequired) {
+      // Show touch confirmation screen
+      _showTouchConfirmationScreen.value = true
     } else {
-      // Execute action directly without voice confirmation
+      // Execute action directly without confirmation
       scope.launch { executeEmergencyAction(pendingAction) }
     }
   }
@@ -323,6 +349,15 @@ class DangerModeOrchestrator(
     scope.launch { executeEmergencyAction(pendingAction) }
   }
 
+  /** Called when the user confirms the emergency action via touch confirmation UI. */
+  fun onTouchConfirmation() {
+    val pendingAction = _state.value.pendingAction ?: return
+
+    _showTouchConfirmationScreen.value = false
+
+    scope.launch { executeEmergencyAction(pendingAction) }
+  }
+
   /**
    * Called when the user cancels the emergency action via voice ("no") or timeout.
    *
@@ -330,6 +365,7 @@ class DangerModeOrchestrator(
    */
   fun onCancellation(reportAsError: Boolean = false) {
     _showVoiceConfirmationScreen.value = false
+    _showTouchConfirmationScreen.value = false
     _state.value = OrchestratorState(lastActionTaken = EmergencyActionResult.Cancelled)
 
     if (reportAsError) {
@@ -412,7 +448,9 @@ class DangerModeOrchestrator(
   private fun resetState() {
     _state.value = OrchestratorState()
     _showVoiceConfirmationScreen.value = false
+    _showTouchConfirmationScreen.value = false
     _permissionRequests.value = null
+    movementService.setSafe()
   }
 
   /** Gets the current emergency phone number. This could be fetched from contacts in the future. */
@@ -434,5 +472,20 @@ class DangerModeOrchestrator(
                 PendingEmergencyAction.SendSmsAndCall(emergencyPhoneNumber, emergencyMessage),
             confirmationTimeoutSeconds = CONFIRMATION_TIMEOUT_SECONDS)
     _showVoiceConfirmationScreen.value = true
+  }
+
+  /** DEBUG ONLY: Manually trigger the touch confirmation screen for testing purposes. */
+  fun debugTriggerTouchConfirmation() {
+    val currentLocation = gpsService.positionState.value.position
+    val emergencyMessage =
+        EmergencyMessage(location = Location(currentLocation.latitude, currentLocation.longitude))
+
+    _state.value =
+        OrchestratorState(
+            isWaitingForConfirmation = true,
+            pendingAction =
+                PendingEmergencyAction.SendSmsAndCall(emergencyPhoneNumber, emergencyMessage),
+            confirmationTimeoutSeconds = CONFIRMATION_TIMEOUT_SECONDS)
+    _showTouchConfirmationScreen.value = true
   }
 }
