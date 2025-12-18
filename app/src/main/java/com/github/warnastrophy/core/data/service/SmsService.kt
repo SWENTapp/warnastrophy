@@ -29,6 +29,13 @@ class SmsManagerSender(context: Context) : SmsSender {
       "Phone number cannot be empty. Please add an emergency contact."
     }
     require(phoneNumber.any { it.isDigit() }) { "Invalid phone number format: $phoneNumber" }
-    smsManager.sendTextMessage(phoneNumber, null, message.toStringMessage(), null, null)
+
+    val messageText = message.toStringMessage()
+    if (messageText.length > 160) {
+      val parts = smsManager.divideMessage(messageText)
+      smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null)
+    } else {
+      smsManager.sendTextMessage(phoneNumber, null, messageText, null, null)
+    }
   }
 }
