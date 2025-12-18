@@ -39,8 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -125,6 +123,11 @@ fun DangerModeCard(
         Effect.StartForegroundService -> startForegroundGpsService(activity)
         Effect.StopForegroundService -> stopForegroundGpsService(context)
         Effect.ShowOpenAppSettings -> openAppSettings(context)
+        is Effect.RequestCapabilityPermission -> {
+          // Reuse the same launcher to request the capability permissions
+          viewModel.onPermissionsRequestStart()
+          launcher.launch(effect.permissions.permissions)
+        }
       }
     }
   }
@@ -406,19 +409,21 @@ private fun CapabilitiesRow(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           DangerModeCapability.entries.forEach { capability ->
             val selected = capabilities.contains(capability)
+            val visuallyDisabled = capabilities.isNotEmpty() && !selected
             val (color, textColor) =
-                if (selected) {
-                  Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
-                } else {
-                  Pair(colorScheme.error, colorScheme.onError)
+                when {
+                  selected -> Pair(colorScheme.secondaryContainer, colorScheme.onSecondaryContainer)
+                  visuallyDisabled ->
+                      Pair(
+                          colorScheme.error.copy(alpha = 0.25f),
+                          colorScheme.onError.copy(alpha = 0.25f))
+                  else -> Pair(colorScheme.error, colorScheme.onError)
                 }
 
             StandardDashboardButton(
                 label = capability.label,
-                modifier =
-                    Modifier.testTag(DangerModeTestTags.capabilityTag(capability)).semantics {
-                      this.selected = selected
-                    },
+                modifier = Modifier.testTag(DangerModeTestTags.capabilityTag(capability)),
+                isSelected = selected,
                 color = color,
                 borderColor = colorScheme.onError,
                 onClick = { onCapabilityToggled(capability) },

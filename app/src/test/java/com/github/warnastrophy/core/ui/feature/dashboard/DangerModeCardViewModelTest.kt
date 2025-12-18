@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -43,7 +42,8 @@ import org.robolectric.RobolectricTestRunner
 class DangerModeCardViewModelTest {
   private lateinit var viewModel: DangerModeCardViewModel
   private lateinit var repository: MockActivityRepository
-  private val testDispatcher = StandardTestDispatcher()
+  // Use an unconfined dispatcher for deterministic immediate execution in unit tests
+  private val testDispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher()
   private lateinit var activity: android.app.Activity
 
   private lateinit var mockPermissionManager: PermissionManagerInterface
@@ -65,12 +65,15 @@ class DangerModeCardViewModelTest {
     repository = MockActivityRepository()
     viewModel =
         DangerModeCardViewModel(
-            repository = repository, userId = AppConfig.defaultUserId, testDispatcher)
+            repository = repository, userId = AppConfig.defaultUserId, dispatcher = testDispatcher)
   }
 
   @After
   fun tearDown() {
-    Dispatchers.resetMain()
+    // No Main dispatcher was set in setup; resetMain is a no-op but keep for safety.
+    try {
+      kotlinx.coroutines.Dispatchers.resetMain()
+    } catch (_: Throwable) {}
     unmockkAll()
   }
 
@@ -122,11 +125,18 @@ class DangerModeCardViewModelTest {
   }
 
   @Test
-  fun `onCapabilityToggled removes capability when present`() = runTest {
-    viewModel.onCapabilitiesChanged(setOf(DangerModeCapability.SMS))
-    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
+  fun `capability exclusivity enforces single selection and enables autoActions`() = runTest {
+    // Enable SMS capability
     viewModel.onCapabilityToggled(DangerModeCapability.SMS)
-    assertEquals(emptySet<DangerModeCapability>(), viewModel.capabilities.first())
+    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
+    // autoActions should be enabled when capability turned on
+    assertEquals(true, viewModel.autoActionsEnabled.first())
+
+    // Now toggle CALL - should replace SMS with CALL
+    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
+    assertEquals(setOf(DangerModeCapability.CALL), viewModel.capabilities.first())
+    // SMS should be off
+    assertFalse(viewModel.capabilities.first().contains(DangerModeCapability.SMS))
   }
 
   @Test
@@ -212,4 +222,15 @@ class DangerModeCardViewModelTest {
         assertEquals(1, collectedEffects.size)
         assertEquals(collectedEffects[0], Effect.StopForegroundService)
       }
+
+  @Test
+  fun `confirm switches are mutually exclusive`() = runTest {
+    viewModel.onConfirmVoiceChanged(true)
+    assertTrue(viewModel.confirmVoiceRequired.first())
+    assertFalse(viewModel.confirmTouchRequired.first())
+
+    viewModel.onConfirmTouchChanged(true)
+    assertTrue(viewModel.confirmTouchRequired.first())
+    assertFalse(viewModel.confirmVoiceRequired.first())
+  }
 }
