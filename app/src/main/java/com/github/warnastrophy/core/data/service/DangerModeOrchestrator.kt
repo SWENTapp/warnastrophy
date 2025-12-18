@@ -414,6 +414,7 @@ class DangerModeOrchestrator(
     _state.value = OrchestratorState()
     _showVoiceConfirmationScreen.value = false
     _permissionRequests.value = null
+    movementService.setSafe()
   }
 
   /** Gets the current emergency phone number. This could be fetched from contacts in the future. */
