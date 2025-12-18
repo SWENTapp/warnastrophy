@@ -61,6 +61,8 @@ object MapScreenTestTags {
   const val SEARCH_BAR_DROPDOWN = "searchBarDropdown"
 
   const val SEARCH_BAR_DROPDOWN_ITEM = "searchBarDropdownItem"
+
+  const val SEARCH_BAR_CLEAR_BUTTON = "searchBarClearButton"
 }
 
 @Composable
