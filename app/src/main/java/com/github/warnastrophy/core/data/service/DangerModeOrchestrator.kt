@@ -12,6 +12,8 @@ import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.ui.common.ErrorHandler
 import com.github.warnastrophy.core.ui.common.ErrorType
 import com.github.warnastrophy.core.ui.navigation.Screen
+import com.github.warnastrophy.core.util.AppConfig
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -207,7 +209,8 @@ class DangerModeOrchestrator(
         }
       }
 
-      val contacts = contactsRepo?.getAllContacts()?.getOrNull()
+      val uid = FirebaseAuth.getInstance().uid ?: AppConfig.defaultUserId
+      val contacts = contactsRepo?.getAllContacts(uid)?.getOrNull()
       if (!contacts.isNullOrEmpty()) {
         emergencyPhoneNumber = contacts.first().phoneNumber
       } else {
@@ -447,6 +450,7 @@ class DangerModeOrchestrator(
     _showVoiceConfirmationScreen.value = false
     _showTouchConfirmationScreen.value = false
     _permissionRequests.value = null
+    movementService.setSafe()
   }
 
   /** Gets the current emergency phone number. This could be fetched from contacts in the future. */
