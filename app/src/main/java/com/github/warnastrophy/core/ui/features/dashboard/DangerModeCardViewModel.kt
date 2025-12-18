@@ -47,8 +47,10 @@ data class AlertModeUiState(
 
 /** One-time effects emitted to the UI. */
 sealed interface Effect {
+  /** Request a specific permission type (new API). */
   data class RequestPermissions(val permissionType: AppPermissions) : Effect
 
+  /** Legacy effect for location permission request. */
   object StartForegroundService : Effect
 
   object StopForegroundService : Effect
@@ -74,11 +76,10 @@ class DangerModeCardViewModel(
   // Sequence of permissions required to enable danger/alert mode.
   private val permissionSequence =
       listOf(
-          AppPermissions.AlertModePermission, // location
-          AppPermissions.MicrophonePermission, // microphone
-          AppPermissions.SendEmergencySms, // sms
-          AppPermissions.MakeEmergencyCall // call
-          )
+          AppPermissions.AlertModePermission,
+          AppPermissions.MicrophonePermission,
+          AppPermissions.SendEmergencySms,
+          AppPermissions.MakeEmergencyCall)
 
   private val _activities = MutableStateFlow<List<DangerActivity>>(emptyList())
   val activities: StateFlow<List<DangerActivity>> = _activities.asStateFlow()
@@ -93,10 +94,10 @@ class DangerModeCardViewModel(
                   permissionManager.getPermissionResult(alertModePermission)))
   val permissionUiState = _alertModeUiState.asStateFlow()
 
-  // UI-facing optimistic capabilities state. The UI should consume this for immediate
-  // feedback when toggling capabilities.
   private val _capabilitiesInternal = MutableStateFlow<Set<DangerModeCapability>>(emptySet())
   val capabilities: StateFlow<Set<DangerModeCapability>> = _capabilitiesInternal.asStateFlow()
+  // Alias for backward compatibility
+  val capabilitiesInternal: StateFlow<Set<DangerModeCapability>> = capabilities
 
   private val _autoActionsEnabled = MutableStateFlow(false)
   val autoActionsEnabled: StateFlow<Boolean> = _autoActionsEnabled.asStateFlow()
@@ -110,10 +111,9 @@ class DangerModeCardViewModel(
   private var enableRequested = false
 
   init {
-    // Load activities
     refreshActivities()
 
-    // Listen for capability-related events from the service and translate them to effects
+    // Listen for capability-related events from the service
     viewModelScope.launch(dispatcher) {
       dangerModeService.events.collect { event ->
         when (event) {
@@ -126,7 +126,7 @@ class DangerModeCardViewModel(
       }
     }
 
-    // Collect user preferences and apply to UI-state
+    // Collect user preferences
     viewModelScope.launch(dispatcher) {
       try {
         userPreferencesRepository.getUserPreferences.collect { prefs ->
@@ -137,7 +137,7 @@ class DangerModeCardViewModel(
       }
     }
 
-    // Initial sync: seed optimistic capabilities from service state once
+    // Initial sync: seed capabilities from service state
     viewModelScope.launch(dispatcher) {
       try {
         val initial = dangerModeService.state.first()
@@ -148,7 +148,6 @@ class DangerModeCardViewModel(
     }
   }
 
-  /** Refreshes the activities list from the repository. */
   fun refreshActivities() {
     viewModelScope.launch(dispatcher) {
       val result = repository.getAllActivities(userId)
@@ -176,10 +175,6 @@ class DangerModeCardViewModel(
           .map { it.dangerLevel }
           .stateIn(viewModelScope, SharingStarted.Lazily, DangerLevel.LOW)
 
-  /**
-   * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
-   * accordingly.
-   */
   fun onDangerModeToggled(enabled: Boolean) {
     if (enabled) {
       dangerModeService.manualActivate()
@@ -212,12 +207,10 @@ class DangerModeCardViewModel(
   }
 
   fun onCapabilityToggled(capability: DangerModeCapability) {
-    // derive desired set from optimistic internal state
     val current = _capabilitiesInternal.value
     val enabling = !current.contains(capability)
     val newCaps: Set<DangerModeCapability> = if (enabling) setOf(capability) else emptySet()
 
-    // optimistic update plus persistence
     _capabilitiesInternal.value = newCaps
     if (enabling) {
       _autoActionsEnabled.value = true
@@ -277,6 +270,11 @@ class DangerModeCardViewModel(
     }
   }
 
+  /** Legacy overload without permission type. */
+  fun onPermissionsRequestStart() {
+    onPermissionsRequestStart(null)
+  }
+
   fun onPermissionResult(activity: Activity) {
     onPermissionResult(activity, alertModePermission)
   }
@@ -303,7 +301,7 @@ class DangerModeCardViewModel(
     }
   }
 
-  /** Starts the toggle flow. The Activity is required to query current permission statuses. */
+  /** New API: starts the toggle flow with Activity for permission queries. */
   fun handleToggle(isChecked: Boolean, activity: Activity) {
     if (!isChecked) {
       onDangerModeToggled(false)
