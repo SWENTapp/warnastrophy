@@ -71,6 +71,14 @@ be integrated through a similar abstraction. These services are designed to be
 replaceable and testable, ensuring that emergency behavior can be validated 
 without triggering real actions during tests.
 
+### Known Limitations & Potential Improvements
+
+As an emergency assistant, Warnastrophy faces specific technical challenges related to Android's background execution limits and privacy restrictions.
+
+- **Background Execution:** Current versions of Android strictly limit access to the microphone and the ability to launch activities (like the emergency call) when the app is in the background to preserve user privacy and battery.
+- **Microphone Access:** For the voice confirmation flow to work fully in the background, a specialized *Foreground Service* with the `microphone` type must be implemented.
+- **Automatic Calling:** Triggering phone calls from the background is restricted by the system. Future updates will focus on using `SYSTEM_ALERT_WINDOW` permissions and `TelecomManager` integration to ensure emergency actions trigger even when the screen is locked or the app is minimized.
+
 ### Location and mapping
 
 The application includes map screens and a map preview used on the dashboard. 
