@@ -40,6 +40,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.model.fakeNumber
 import com.github.warnastrophy.core.ui.theme.extendedColors
 
 object ContactPopUpTestTags {
@@ -196,7 +197,7 @@ private fun ContactItem(contact: Contact, onClick: () -> Unit) {
             modifier = Modifier.size(16.dp))
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "${contact.relationship} - ${contact.phoneNumber}",
+            text = "${contact.relationship} - $fakeNumber",
             fontSize = 16.sp,
             color = colors.fieldText)
       }

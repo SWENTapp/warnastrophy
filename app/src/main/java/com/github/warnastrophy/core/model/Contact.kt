@@ -6,3 +6,5 @@ data class Contact(
     val phoneNumber: String,
     val relationship: String
 )
+
+const val fakeNumber: String = "1234567890"

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.model.fakeNumber
 
 object ContactListScreenTestTags {
   const val ADD_CONTACT_BUTTON = "addButton"
@@ -88,7 +89,7 @@ private fun ContactItem(contact: Contact, onContactClick: () -> Unit) {
                     contentDescription = stringResource(R.string.emergency_contact_phone_number),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp).padding(end = 4.dp))
-                Text(text = contact.phoneNumber, style = MaterialTheme.typography.bodyMedium)
+                Text(text = fakeNumber, style = MaterialTheme.typography.bodyMedium)
               }
             }
       }

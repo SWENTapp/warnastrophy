@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.github.warnastrophy.R
 import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
 import com.github.warnastrophy.core.model.Contact
+import com.github.warnastrophy.core.model.fakeNumber
 import com.github.warnastrophy.core.ui.components.Loading
 import com.github.warnastrophy.core.ui.components.StandardDashboardCard
 import com.github.warnastrophy.core.util.AppConfig
@@ -158,9 +159,7 @@ private fun ContactItem(contact: Contact, modifier: Modifier = Modifier, isDarkT
   Text(
       text =
           stringResource(
-              id = R.string.dashboard_emergency_contacts_item_format,
-              contact.fullName,
-              contact.phoneNumber),
+              id = R.string.dashboard_emergency_contacts_item_format, contact.fullName, fakeNumber),
       color =
           DashboardEmergencyContactsCardColors.getColors(MaterialTheme.colorScheme, isDarkTheme)
               .textColor,
