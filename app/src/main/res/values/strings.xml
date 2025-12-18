@@ -213,4 +213,11 @@
     <string name="error_suggestion_no_emergency_contact">Add an emergency contact in your profile to enable automatic SMS and call features.</string>
 
     <string name="voice_confirmation_title">Confirm Emergency Action</string>
+    <string name="touch_confirmation_title">Confirm emergency action</string>
+    <string name="touch_confirmation_call_message">A phone call will be placed to your emergency contact. Do you want to proceed?</string>
+    <string name="touch_confirmation_sms_message">A text message containing your current location will be sent to your emergency contact. Do you want to proceed?</string>
+    <string name="touch_confirmation_both_message">A text message will be sent and then a phone call will be placed to your emergency contact. Do you want to proceed?</string>
+    <string name="touch_confirmation_generic_message">An emergency action will be performed (call/SMS) to your emergency contact. Do you want to proceed?</string>
+    <string name="confirmation_confirm_label">Confirm</string>
+    <string name="confirmation_cancel_label">Cancel</string>
 </resources>
