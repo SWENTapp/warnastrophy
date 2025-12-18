@@ -9,12 +9,14 @@ import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.Effect
 import com.github.warnastrophy.core.util.AppConfig
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.unmockkAll
@@ -172,7 +174,7 @@ class DangerModeCardViewModelTest {
       runTest(testDispatcher) {
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(isChecked = true, permissionResult = PermissionResult.Granted)
+        viewModel.handleToggle(isChecked = true, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(1, collectedEffects.size)
         assertEquals(collectedEffects[0], Effect.StartForegroundService)
@@ -181,25 +183,34 @@ class DangerModeCardViewModelTest {
   @Test
   fun handleToggle_ON_with_Denied_permission_emits_RequestLocationPermissionEffect() =
       runTest(testDispatcher) {
+        every {
+          mockPermissionManager.getPermissionResult(AppPermissions.AlertModePermission, activity)
+        } returns PermissionResult.Denied(emptyList())
+
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(
-            isChecked = true, permissionResult = PermissionResult.Denied(emptyList()))
+
+        viewModel.handleToggle(isChecked = true, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(1, collectedEffects.size)
-        assertEquals(collectedEffects[0], Effect.RequestLocationPermission)
+
+        assertEquals(
+            listOf(Effect.RequestPermissions(AppPermissions.AlertModePermission)), collectedEffects)
       }
 
   @Test
   fun handleToggle_ON_with_Permanent_Denied_permission_emits_OpenAppSettingsEffect() =
       runTest(testDispatcher) {
+        every {
+          mockPermissionManager.getPermissionResult(AppPermissions.AlertModePermission, activity)
+        } returns PermissionResult.PermanentlyDenied(emptyList())
+
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(
-            isChecked = true, permissionResult = PermissionResult.PermanentlyDenied(emptyList()))
+
+        viewModel.handleToggle(isChecked = true, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(1, collectedEffects.size)
-        assertEquals(collectedEffects[0], Effect.ShowOpenAppSettings)
+
+        assertEquals(listOf(Effect.ShowOpenAppSettings), collectedEffects)
       }
 
   @Test
@@ -207,9 +218,10 @@ class DangerModeCardViewModelTest {
       runTest(testDispatcher) {
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(isChecked = false, permissionResult = PermissionResult.Granted)
+
+        viewModel.handleToggle(isChecked = false, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(1, collectedEffects.size)
-        assertEquals(collectedEffects[0], Effect.StopForegroundService)
+
+        assertEquals(listOf(Effect.StopForegroundService), collectedEffects)
       }
 }

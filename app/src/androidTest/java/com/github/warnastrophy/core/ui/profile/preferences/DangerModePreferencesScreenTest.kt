@@ -15,6 +15,9 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
+import com.github.warnastrophy.core.data.provider.ContactRepositoryProvider
+import com.github.warnastrophy.core.data.provider.UserPreferencesRepositoryProvider
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.components.FALLBACK_ACTIVITY_ERROR
 import com.github.warnastrophy.core.ui.features.profile.preferences.DangerModePreferencesScreen
@@ -24,6 +27,7 @@ import com.github.warnastrophy.core.ui.features.profile.preferences.PendingActio
 import com.github.warnastrophy.core.ui.map.MockPermissionManager
 import com.github.warnastrophy.core.ui.util.MockUserPreferencesRepository
 import com.github.warnastrophy.core.util.BaseAndroidComposeTest
+import com.github.warnastrophy.userPrefsDataStore
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertNull
@@ -49,6 +53,12 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
   /** Helper function to set the content of the test rule with a configured ViewModel. */
   private fun setContent() {
     viewModel = DangerModePreferencesViewModel(mockPermissionManager, userPreferencesRepository)
+
+    val context = composeTestRule.activity.applicationContext
+    ContactRepositoryProvider.initLocal(context)
+    UserPreferencesRepositoryProvider.initLocal(context.userPrefsDataStore)
+    composeTestRule.runOnUiThread { StateManagerService.init(context) }
+
     composeTestRule.setContent {
       CompositionLocalProvider(LocalContext provides composeTestRule.activity) {
         DangerModePreferencesScreen(viewModel = viewModel)
@@ -65,6 +75,13 @@ class DangerModePreferencesScreenTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(DangerModePreferencesScreenTestTags.SCROLL_CONTAINER)
         .performScrollToNode(hasTestTag(DangerModePreferencesScreenTestTags.AUTOMATIC_CALLS_ITEM))
+  }
+
+  private fun scrollToVoiceConfirmation() {
+    composeTestRule
+        .onNodeWithTag(DangerModePreferencesScreenTestTags.SCROLL_CONTAINER)
+        .performScrollToNode(
+            hasTestTag(DangerModePreferencesScreenTestTags.VOICE_CONFIRMATION_ITEM))
   }
 
   /** Applies a given [PermissionResult] to the view model. */

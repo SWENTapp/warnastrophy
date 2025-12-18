@@ -48,6 +48,12 @@ data class AlertModeUiState(
     val waitingForUserResponse: Boolean = false
 )
 
+data class DangerModePreferencesUiState(
+    val autoActionsEnabled: Boolean = false,
+    val confirmTouchRequired: Boolean = false,
+    val confirmVoiceRequired: Boolean = false
+)
+
 /** Represents one-time, non-repeatable side effects that must be executed by the UI layer. */
 sealed interface Effect {
   /** Request a specific set of permissions. */
@@ -146,6 +152,9 @@ class DangerModeCardViewModel(
   private val _confirmVoiceRequired = MutableStateFlow(false)
   val confirmVoiceRequired: StateFlow<Boolean> = _confirmVoiceRequired.asStateFlow()
 
+  private val _dangerModePreferencesUiState = MutableStateFlow(DangerModePreferencesUiState())
+  val dangerModePreferencesUiState = _dangerModePreferencesUiState.asStateFlow()
+
   /**
    * Handles the toggling of Danger Mode on or off and starts or stops the foreground GPS service
    * accordingly.
@@ -209,14 +218,17 @@ class DangerModeCardViewModel(
 
   fun onConfirmTouchChanged(enabled: Boolean) {
     _confirmTouchRequired.value = enabled
+    _dangerModePreferencesUiState.update { it.copy(confirmTouchRequired = enabled) }
   }
 
   fun onAutoActionsEnabled(enabled: Boolean) {
     _autoActionsEnabled.value = enabled
+    _dangerModePreferencesUiState.update { it.copy(autoActionsEnabled = enabled) }
   }
 
   fun onConfirmVoiceChanged(enabled: Boolean) {
     _confirmVoiceRequired.value = enabled
+    _dangerModePreferencesUiState.update { it.copy(confirmVoiceRequired = enabled) }
   }
 
   /**

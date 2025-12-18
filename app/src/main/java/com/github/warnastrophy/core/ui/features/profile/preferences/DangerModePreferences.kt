@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.warnastrophy.R
+import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.ui.components.ActivityFallback
 import com.github.warnastrophy.core.util.findActivity
 import com.github.warnastrophy.core.util.openAppSettings
@@ -92,6 +93,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
           PendingAction.TOGGLE_INACTIVITY_DETECTION -> viewModel.inactivityDetectionPermissions
           PendingAction.TOGGLE_AUTOMATIC_SMS -> viewModel.smsPermissions
           PendingAction.TOGGLE_AUTOMATIC_CALLS -> viewModel.callPermissions
+          PendingAction.TOGGLE_VOICE_CONFIRMATION -> viewModel.voiceConfirmationPermissions
         }
 
     viewModel.onPermissionsRequestStart(action = action)
@@ -199,9 +201,7 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
 
         // Voice confirmation - uses local state, not persisted
         var voiceConfirmationEnabled by remember { mutableStateOf(false) }
-        val orchestrator = remember {
-          com.github.warnastrophy.core.data.service.StateManagerService.dangerModeOrchestrator
-        }
+        val orchestrator = remember { StateManagerService.dangerModeOrchestrator }
 
         PreferenceItem(
             modifier =
@@ -215,6 +215,15 @@ fun DangerModePreferencesScreen(viewModel: DangerModePreferencesViewModel) {
                     onCheckedChange = { isChecked ->
                       voiceConfirmationEnabled = isChecked
                       orchestrator.setVoiceConfirmationEnabled(isChecked)
+                      viewModel.handlePreferenceChange(
+                          isChecked = isChecked,
+                          permissionResult = uiState.callPermissionResult,
+                          onToggle = { /* No-op: handled locally */},
+                          onPermissionDenied = {
+                            requestPermission(PendingAction.TOGGLE_VOICE_CONFIRMATION)
+                          },
+                          onPermissionPermDenied = { openAppSettings(activity) },
+                      )
                     },
                     enabled = uiState.inactivityDetectionEnabled,
                     isRequestInFlight = uiState.isOsRequestInFlight),
