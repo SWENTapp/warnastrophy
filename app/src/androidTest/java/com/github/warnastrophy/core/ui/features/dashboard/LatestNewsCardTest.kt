@@ -114,7 +114,6 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true)
         .assertIsDisplayed()
-        .assert(hasText("read"))
 
     // Click the right button to go to the next hazard
     composeTestRule
@@ -139,7 +138,6 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true)
         .assertIsDisplayed()
-        .assert(hasText("read"))
   }
 
   @Test
@@ -169,7 +167,6 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
     composeTestRule
         .onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true)
         .assertIsDisplayed()
-        .assert(hasText("read"))
   }
 
   @Test

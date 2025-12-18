@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -124,9 +123,11 @@ fun OnboardingScreen(onFinished: () -> Unit) {
 
   val screenState = rememberPagerState(initialPage = 0) { screens.size }
 
-  val buttons by remember {
-    derivedStateOf { getButtonState(screenState.currentPage, screens.size) }
-  }
+  val currentPage = screenState.currentPage
+  val buttons =
+      remember(currentPage, screens.size) {
+        getButtonState(screenIndex = currentPage, numberOfScreens = screens.size)
+      }
 
   val scope = rememberCoroutineScope()
 
@@ -151,7 +152,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                 }
               }
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                IndicatorUI(pageSize = screens.size, currentPage = screenState.currentPage)
+                IndicatorUI(pageSize = screens.size, currentPage = currentPage)
               }
 
               Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
@@ -163,7 +164,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                     textColor = MaterialTheme.colorScheme.onPrimary) {
                       scope.launch {
                         handleNextClick(
-                            page = screenState.currentPage,
+                            page = currentPage,
                             pageCount = screens.size,
                             pagerState = screenState,
                             onFinished = onFinished)

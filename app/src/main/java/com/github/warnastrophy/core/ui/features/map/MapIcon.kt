@@ -138,33 +138,20 @@ fun getSeverityColor(hazard: Hazard): Color {
 }
 
 /**
- * Composable function to display a hazard marker on the map.
+ * Data class to hold injectable dependencies for [HazardMarker]. This simplifies the function
+ * signature and is primarily used for testing purposes.
  *
- * @param hazard The hazard data to be displayed.
- * @param selectedMarkerId The ID of the currently selected marker (if any), used to show/hide
- *   polygon.
- * @param onMarkerSelected Callback invoked when the marker is selected.
- * @param onInfoWindowClick Callback invoked when the info window is clicked. If null (default),
- *   opens the article URL.
- * @param markerIconProvider Injectable function for creating the marker icon, allows testing
- *   without GoogleMap. If null (default), uses bitmapDescriptorFromVector.
- * @param polygonContent Injectable composable for rendering the polygon, allows testing without
- *   GoogleMap.
- * @param markerInfoWindowContent Injectable composable for the marker info window, allows testing
- *   without GoogleMap.
- * @param iconContent Injectable composable for the icon content, allows testing without GoogleMap.
+ * @param markerIconProvider Custom function to create a [BitmapDescriptor] for the marker.
+ * @param polygonContent Composable for rendering the hazard's affected area polygon.
+ * @param markerInfoWindowContent Composable for the entire marker and its info window.
+ * @param iconContent Composable for rendering the icon inside the info window.
  */
-@Composable
-fun HazardMarker(
-    hazard: Hazard,
-    selectedMarkerId: Int? = null,
-    onMarkerSelected: (Int?) -> Unit = {},
-    onInfoWindowClick: (() -> Unit)? = null,
-    markerIconProvider: ((Context, Int, Float, Color) -> BitmapDescriptor?)? = null,
-    polygonContent: @Composable (polygonCoords: List<LatLng>) -> Unit = { coords ->
+data class HazardMarkerTestInjectables(
+    val markerIconProvider: ((Context, Int, Float, Color) -> BitmapDescriptor?)? = null,
+    val polygonContent: @Composable (polygonCoords: List<LatLng>) -> Unit = { coords ->
       PolygonWrapper(coords)
     },
-    markerInfoWindowContent:
+    val markerInfoWindowContent:
         @Composable
         (
             state: MarkerState,
@@ -177,13 +164,33 @@ fun HazardMarker(
               state = state,
               onClick = {
                 onMarkerClick()
-                false // keep default behaviour
+                false
               },
               icon = icon,
               onInfoWindowClick = { infoWindowClick() },
               content = { content() })
         },
-    iconContent: @Composable (icon: MapIcon, tint: Color) -> Unit = { icon, tint -> icon(tint) }
+    val iconContent: @Composable (icon: MapIcon, tint: Color) -> Unit = { icon, tint -> icon(tint) }
+)
+
+/**
+ * Composable function to display a hazard marker on the map.
+ *
+ * @param hazard The hazard data to be displayed.
+ * @param selectedMarkerId The ID of the currently selected marker (if any), used to show/hide
+ *   polygon.
+ * @param onMarkerSelected Callback invoked when the marker is selected.
+ * @param onInfoWindowClick Callback invoked when the info window is clicked. If null (default),
+ *   opens the article URL.
+ * @param testInjectables A set of injectable dependencies, primarily for testing.
+ */
+@Composable
+fun HazardMarker(
+    hazard: Hazard,
+    selectedMarkerId: Int? = null,
+    onMarkerSelected: (Int?) -> Unit = {},
+    onInfoWindowClick: (() -> Unit)? = null,
+    testInjectables: HazardMarkerTestInjectables = HazardMarkerTestInjectables()
 ) {
   val ctx = LocalContext.current
 
@@ -194,7 +201,7 @@ fun HazardMarker(
   // Only create markerState when not in test mode (markerIconProvider null means production)
   // In test mode, we'll create a fake MarkerState that won't be used
   val markerState =
-      if (markerIconProvider == null) {
+      if (testInjectables.markerIconProvider == null) {
         rememberMarkerState(position = Location.toLatLng(markerLocation))
       } else {
         // Test mode: create a minimal MarkerState without Google Maps
@@ -218,8 +225,8 @@ fun HazardMarker(
   // bitmapDescriptorFromVector
   val markerIcon: BitmapDescriptor? =
       iconRes?.let { res ->
-        if (markerIconProvider != null) {
-          markerIconProvider(ctx, res, 32f, severityTint)
+        if (testInjectables.markerIconProvider != null) {
+          testInjectables.markerIconProvider.invoke(ctx, res, 32f, severityTint)
         } else {
           bitmapDescriptorFromVector(
               context = ctx, vectorResId = res, sizeDp = 32f, tintColor = severityTint)
@@ -236,7 +243,7 @@ fun HazardMarker(
     affectedZone?.let { locations ->
       if (locations.size > 1) {
         val polygonCoords = locations.map { location -> Location.toLatLng(location) }
-        polygonContent(polygonCoords)
+        testInjectables.polygonContent(polygonCoords)
       }
     }
   }
@@ -244,10 +251,10 @@ fun HazardMarker(
   // Determine the callback for info window click: use custom if provided, otherwise open web page
   val infoWindowClickCallback = onInfoWindowClick ?: { openWebPage(ctx, hazard.articleUrl) }
 
-  markerInfoWindowContent(
+  testInjectables.markerInfoWindowContent(
       markerState, markerIcon, { onMarkerSelected(hazard.id) }, infoWindowClickCallback) {
         HazardInfoWindowContent(hazard = hazard, title = hazard.description, snippet = snippet)
-        iconContent(hazardTypeToMapIcon(hazard.type), severityTint)
+        testInjectables.iconContent(hazardTypeToMapIcon(hazard.type), severityTint)
       }
 }
 
