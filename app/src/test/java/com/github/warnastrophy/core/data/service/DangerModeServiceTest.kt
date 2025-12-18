@@ -340,4 +340,29 @@ class DangerModeServiceTest {
     assertTrue(result.isSuccess)
     assertEquals(setOf(DangerModeCapability.SMS), service.state.value.capabilities)
   }
+
+  @Test
+  fun `capabilities must be mutually exclusive`() {
+    val result = service.setCapabilities(setOf(DangerModeCapability.CALL, DangerModeCapability.SMS))
+    assertTrue(result.isFailure)
+    assertTrue(service.state.value.capabilities.isEmpty())
+  }
+
+  @Test
+  fun `missing sms permission emits event`() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Denied(emptyList()))
+    val (svc, _) = createService(permissionManager = pm)
+    val result = svc.setCapabilities(setOf(DangerModeCapability.SMS))
+    assertTrue(result.isFailure)
+    assertEquals(DangerModeService.DangerModeEvent.MissingSmsPermission, svc.events.value)
+  }
+
+  @Test
+  fun `missing call permission emits event`() = runTest {
+    val pm = PermissionManagerMock(PermissionResult.Denied(emptyList()))
+    val (svc, _) = createService(permissionManager = pm)
+    val result = svc.setCapabilities(setOf(DangerModeCapability.CALL))
+    assertTrue(result.isFailure)
+    assertEquals(DangerModeService.DangerModeEvent.MissingCallPermission, svc.events.value)
+  }
 }
