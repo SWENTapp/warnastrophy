@@ -35,13 +35,16 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
 
   @Before
   fun setup() {
-    UserPreferencesRepositoryProvider.initLocal(
-        composeTestRule.activity.applicationContext.userPrefsDataStore)
-    StateManagerService.init(composeTestRule.activity.applicationContext)
-    StateManagerService.permissionManager =
-        MockPermissionManager(currentResult = PermissionResult.Granted)
-    StateManagerService.dangerModeService =
-        DangerModeService(permissionManager = StateManagerService.permissionManager)
+    val appContext = composeTestRule.activity.applicationContext
+    val instrumentation = InstrumentationRegistry.getInstrumentation()
+    UserPreferencesRepositoryProvider.initLocal(appContext.userPrefsDataStore)
+    instrumentation.runOnMainSync { StateManagerService.init(appContext) }
+    instrumentation.runOnMainSync {
+      StateManagerService.permissionManager =
+          MockPermissionManager(currentResult = PermissionResult.Granted)
+      StateManagerService.dangerModeService =
+          DangerModeService(permissionManager = StateManagerService.permissionManager)
+    }
     // Initialize the ActivityRepositoryProvider with mock for testing
     mockActivityRepository = MockActivityRepository()
     ActivityRepositoryProvider.useMock()
@@ -242,13 +245,14 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
         .assertDoesNotExist()
 
-    // Enable CALL capability
     val callCapabilityNode =
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
     callCapabilityNode.performClick()
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
+        .performClick()
 
-    // Advanced section should now be visible
     composeTestRule
         .onNodeWithTag(DangerModeTestTags.ADVANCED_SECTION, useUnmergedTree = true)
         .assertIsDisplayed()
@@ -281,6 +285,9 @@ class DangerModeCardTest : BaseAndroidComposeTest() {
         composeTestRule.onNodeWithTag(
             DangerModeTestTags.capabilityTag(DangerModeCapability.CALL), useUnmergedTree = true)
     callCapabilityNode.performClick()
+    composeTestRule
+        .onNodeWithTag(DangerModeTestTags.EXPAND_ARROW, useUnmergedTree = true)
+        .performClick()
 
     val autoActionsSwitch =
         composeTestRule.onNodeWithTag(DangerModeTestTags.AUTO_CALL_SWITCH, useUnmergedTree = true)
