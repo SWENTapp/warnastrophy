@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -43,7 +42,8 @@ import org.robolectric.RobolectricTestRunner
 class DangerModeCardViewModelTest {
   private lateinit var viewModel: DangerModeCardViewModel
   private lateinit var repository: MockActivityRepository
-  private val testDispatcher = StandardTestDispatcher()
+  // Use an unconfined dispatcher for deterministic immediate execution in unit tests
+  private val testDispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher()
   private lateinit var activity: android.app.Activity
 
   private lateinit var mockPermissionManager: PermissionManagerInterface
@@ -65,12 +65,15 @@ class DangerModeCardViewModelTest {
     repository = MockActivityRepository()
     viewModel =
         DangerModeCardViewModel(
-            repository = repository, userId = AppConfig.defaultUserId, testDispatcher)
+            repository = repository, userId = AppConfig.defaultUserId, dispatcher = testDispatcher)
   }
 
   @After
   fun tearDown() {
-    Dispatchers.resetMain()
+    // No Main dispatcher was set in setup; resetMain is a no-op but keep for safety.
+    try {
+      kotlinx.coroutines.Dispatchers.resetMain()
+    } catch (_: Throwable) {}
     unmockkAll()
   }
 
