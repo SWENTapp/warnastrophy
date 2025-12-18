@@ -2,7 +2,6 @@ package com.github.warnastrophy.core.data.repository
 
 import com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
@@ -12,22 +11,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
-/**
- * A remote implementation of
- * [com.github.warnastrophy.core.data.interfaces.UserPreferencesRepository] that interacts with
- * Firestore to manage user preferences, such as alert mode, inactivity detection, SMS alerts, and
- * dark mode.
- *
- * This repository provides functionality for both retrieving and updating user preferences stored
- * in Firestore. It listens to changes in Firestore and emits updated preferences to subscribers,
- * and it also provides methods to update individual preference fields.
- *
- * The preferences are stored in the "user_preferences" collection in Firestore, where each user has
- * a document identified by their unique Firebase UID. The repository listens for changes in the
- * user's document and reflects those changes in the application state.
- *
- * @param firestore The Firestore instance used to interact with Firestore for user preferences.
- */
+/** A remote implementation of UserPreferencesRepository that interacts with Firestore. */
 class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) :
     UserPreferencesRepository {
 
@@ -39,36 +23,18 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     const val FIELD_INACTIVITY_DETECTION = "inactivityDetection"
     const val FIELD_AUTOMATIC_SMS = "automaticSms"
     const val FIELD_AUTOMATIC_CALLS = "automaticCalls"
-
     const val FIELD_MICROPHONE_ACCESS = "microphoneAccess"
+    const val FIELD_AUTO_ACTIONS = "autoActionsEnabled"
+    const val FIELD_TOUCH_CONFIRMATION = "touchConfirmationRequired"
+    const val FIELD_VOICE_CONFIRMATION = "voiceConfirmationEnabled"
     const val FIELD_DARK_MODE = "darkMode"
   }
 
-  /**
-   * Retrieves the Firestore document reference for the current user's preferences.
-   *
-   * @return A [DocumentReference] pointing to the current user's preferences document in Firestore.
-   */
   private fun doc() = getUserId()?.let { firestore.collection(COLLECTION_NAME).document(it) }
 
-  /**
-   * Retrieves the current user's UID from Firebase Authentication. If the user is not
-   * authenticated, returns "anonymous".
-   *
-   * @return The current user's UID.
-   */
-  private fun getUserId(): String? {
-    return auth.currentUser?.uid
-  }
+  private fun getUserId(): String? = auth.currentUser?.uid
 
-  /**
-   * Checks if a user is currently authenticated.
-   *
-   * @return true if a user is authenticated, false otherwise.
-   */
-  private fun isUserAuthenticated(): Boolean {
-    return auth.currentUser != null
-  }
+  private fun isUserAuthenticated(): Boolean = auth.currentUser != null
 
   /**
    * Returns a cold [Flow] of the user's preferences, emitting the latest [UserPreferences] object
@@ -135,6 +101,18 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     updateField(FIELD_MICROPHONE_ACCESS, enabled)
   }
 
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    updateField(FIELD_AUTO_ACTIONS, enabled)
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    updateField(FIELD_TOUCH_CONFIRMATION, required)
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    updateField(FIELD_VOICE_CONFIRMATION, enabled)
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     updateField(FIELD_DARK_MODE, isDark)
   }
@@ -170,8 +148,11 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
     val inactivityDetection = data?.get(FIELD_INACTIVITY_DETECTION) as? Boolean ?: false
     val automaticSms = data?.get(FIELD_AUTOMATIC_SMS) as? Boolean ?: false
     val automaticCalls = data?.get(FIELD_AUTOMATIC_CALLS) as? Boolean ?: false
+    val microphoneAccess = data?.get(FIELD_MICROPHONE_ACCESS) as? Boolean ?: false
+    val autoActionsEnabled = data?.get(FIELD_AUTO_ACTIONS) as? Boolean ?: false
+    val touchConfirmationRequired = data?.get(FIELD_TOUCH_CONFIRMATION) as? Boolean ?: false
+    val voiceConfirmationEnabled = data?.get(FIELD_VOICE_CONFIRMATION) as? Boolean ?: false
     val darkMode = data?.get(FIELD_DARK_MODE) as? Boolean ?: false
-    val microphoneAcess = data?.get(FIELD_MICROPHONE_ACCESS) as? Boolean ?: false
 
     val dangerModePreferences =
         DangerModePreferences(
@@ -179,7 +160,10 @@ class UserPreferencesRepositoryRemote(private val firestore: FirebaseFirestore) 
             inactivityDetection = inactivityDetection,
             automaticSms = automaticSms,
             automaticCalls = automaticCalls,
-            microphoneAcess)
+            microphoneAccess = microphoneAccess,
+            autoActionsEnabled = autoActionsEnabled,
+            touchConfirmationRequired = touchConfirmationRequired,
+            voiceConfirmationEnabled = voiceConfirmationEnabled)
 
     return UserPreferences(
         dangerModePreferences = dangerModePreferences, themePreferences = darkMode)

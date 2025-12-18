@@ -9,26 +9,25 @@ import com.github.warnastrophy.core.data.service.DangerModeService
 import com.github.warnastrophy.core.data.service.MockPermissionManager
 import com.github.warnastrophy.core.data.service.StateManagerService
 import com.github.warnastrophy.core.model.Activity
+import com.github.warnastrophy.core.permissions.AppPermissions
 import com.github.warnastrophy.core.permissions.PermissionManagerInterface
 import com.github.warnastrophy.core.permissions.PermissionResult
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCapability
 import com.github.warnastrophy.core.ui.features.dashboard.DangerModeCardViewModel
 import com.github.warnastrophy.core.ui.features.dashboard.Effect
 import com.github.warnastrophy.core.util.AppConfig
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -43,7 +42,8 @@ import org.robolectric.RobolectricTestRunner
 class DangerModeCardViewModelTest {
   private lateinit var viewModel: DangerModeCardViewModel
   private lateinit var repository: MockActivityRepository
-  private val testDispatcher = StandardTestDispatcher()
+  // Use an unconfined dispatcher for deterministic immediate execution in unit tests
+  private val testDispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher()
   private lateinit var activity: android.app.Activity
 
   private lateinit var mockPermissionManager: PermissionManagerInterface
@@ -65,12 +65,12 @@ class DangerModeCardViewModelTest {
     repository = MockActivityRepository()
     viewModel =
         DangerModeCardViewModel(
-            repository = repository, userId = AppConfig.defaultUserId, testDispatcher)
+            repository = repository, userId = AppConfig.defaultUserId, dispatcher = testDispatcher)
   }
 
   @After
   fun tearDown() {
-    Dispatchers.resetMain()
+    // Cleanup mocks
     unmockkAll()
   }
 
@@ -122,11 +122,18 @@ class DangerModeCardViewModelTest {
   }
 
   @Test
-  fun `onCapabilityToggled removes capability when present`() = runTest {
-    viewModel.onCapabilitiesChanged(setOf(DangerModeCapability.SMS))
-    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
+  fun `capability exclusivity enforces single selection and enables autoActions`() = runTest {
+    // Enable SMS capability
     viewModel.onCapabilityToggled(DangerModeCapability.SMS)
-    assertEquals(emptySet<DangerModeCapability>(), viewModel.capabilities.first())
+    assertEquals(setOf(DangerModeCapability.SMS), viewModel.capabilities.first())
+    // autoActions should be enabled when capability turned on
+    assertEquals(true, viewModel.autoActionsEnabled.first())
+
+    // Now toggle CALL - should replace SMS with CALL
+    viewModel.onCapabilityToggled(DangerModeCapability.CALL)
+    assertEquals(setOf(DangerModeCapability.CALL), viewModel.capabilities.first())
+    // SMS should be off
+    assertFalse(viewModel.capabilities.first().contains(DangerModeCapability.SMS))
   }
 
   @Test
@@ -170,33 +177,45 @@ class DangerModeCardViewModelTest {
   @Test
   fun handleToggle_ON_with_Granted_permission_activatesDangerMode_and_emitsStartServiceEffect() =
       runTest(testDispatcher) {
+        // stub permission manager to return Granted for all permissions
+        every { mockPermissionManager.getPermissionResult(any(), any()) } returns
+            PermissionResult.Granted
+
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(isChecked = true, permissionResult = PermissionResult.Granted)
+        viewModel.handleToggle(isChecked = true, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(1, collectedEffects.size)
         assertEquals(collectedEffects[0], Effect.StartForegroundService)
       }
 
   @Test
-  fun handleToggle_ON_with_Denied_permission_emits_RequestLocationPermissionEffect() =
+  fun handleToggle_ON_with_Denied_permission_emits_RequestPermissionEffect() =
       runTest(testDispatcher) {
+        // return Denied for the AlertModePermission so the ViewModel requests it
+        every {
+          mockPermissionManager.getPermissionResult(AppPermissions.AlertModePermission, any())
+        } returns PermissionResult.Denied(emptyList())
+
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(
-            isChecked = true, permissionResult = PermissionResult.Denied(emptyList()))
+        viewModel.handleToggle(isChecked = true, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(1, collectedEffects.size)
-        assertEquals(collectedEffects[0], Effect.RequestLocationPermission)
+        assertEquals(
+            Effect.RequestPermissions(AppPermissions.AlertModePermission), collectedEffects[0])
       }
 
   @Test
   fun handleToggle_ON_with_Permanent_Denied_permission_emits_OpenAppSettingsEffect() =
       runTest(testDispatcher) {
+        every {
+          mockPermissionManager.getPermissionResult(AppPermissions.AlertModePermission, any())
+        } returns PermissionResult.PermanentlyDenied(emptyList())
+
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(
-            isChecked = true, permissionResult = PermissionResult.PermanentlyDenied(emptyList()))
+        viewModel.handleToggle(isChecked = true, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(1, collectedEffects.size)
         assertEquals(collectedEffects[0], Effect.ShowOpenAppSettings)
@@ -207,9 +226,20 @@ class DangerModeCardViewModelTest {
       runTest(testDispatcher) {
         val collectedEffects = mutableListOf<Effect>()
         launch { viewModel.effects.take(1).toList(collectedEffects) }
-        viewModel.handleToggle(isChecked = false, permissionResult = PermissionResult.Granted)
+        viewModel.handleToggle(isChecked = false, activity = activity)
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(1, collectedEffects.size)
         assertEquals(collectedEffects[0], Effect.StopForegroundService)
       }
+
+  @Test
+  fun `confirm switches are mutually exclusive`() = runTest {
+    viewModel.onConfirmVoiceChanged(true)
+    assertTrue(viewModel.confirmVoiceRequired.first())
+    assertFalse(viewModel.confirmTouchRequired.first())
+
+    viewModel.onConfirmTouchChanged(true)
+    assertTrue(viewModel.confirmTouchRequired.first())
+    assertFalse(viewModel.confirmVoiceRequired.first())
+  }
 }

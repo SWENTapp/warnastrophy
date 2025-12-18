@@ -89,9 +89,10 @@ fun LatestNewsCard(
 ) {
   val fetcherState by hazardsService.fetcherState.collectAsState()
   var currentIndex by remember { mutableIntStateOf(0) }
-  currentIndex = currentIndex.coerceIn(0, (fetcherState.hazards.size - 1).coerceAtLeast(0))
+  val hazards = fetcherState.hazards.filter { hazard -> hazard.articleUrl != null }
+  currentIndex = currentIndex.coerceIn(0, (hazards.size - 1).coerceAtLeast(0))
 
-  val currentHazard = fetcherState.hazards.getOrNull(currentIndex) ?: Hazard()
+  val currentHazard = hazards.getOrNull(currentIndex) ?: Hazard()
   val extendedColors = MaterialTheme.extendedColors
 
   Column(
@@ -110,7 +111,8 @@ fun LatestNewsCard(
             currentIndex = currentIndex,
             onIndexChange = { newIndex -> currentIndex = newIndex },
             extendedColors = extendedColors,
-            openWebPage = openWebPage)
+            openWebPage = openWebPage,
+            displayHazardCount = hazards.size)
       }
 }
 
@@ -146,7 +148,8 @@ private fun CardBody(
     currentIndex: Int,
     onIndexChange: (Int) -> Unit,
     extendedColors: ExtendedColorScheme,
-    openWebPage: (context: Context, url: String?) -> Unit
+    openWebPage: (context: Context, url: String?) -> Unit,
+    displayHazardCount: Int
 ) {
   Column(
       modifier =
@@ -157,15 +160,16 @@ private fun CardBody(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically) {
-              val hasHazards = fetcherState.hazards.isNotEmpty()
-              val hazardCount = fetcherState.hazards.size
+              val hasDisplayHazards = displayHazardCount > 0
 
-              if (hasHazards) {
+              if (hasDisplayHazards) {
                 NavigationButton(
                     testTag = LatestNewsTestTags.LEFT_BUTTON,
                     content = "<",
                     extendedColors = extendedColors,
-                    onClick = { onIndexChange((currentIndex - 1 + hazardCount) % hazardCount) })
+                    onClick = {
+                      onIndexChange((currentIndex - 1 + displayHazardCount) % displayHazardCount)
+                    })
               }
 
               HazardInfo(
@@ -176,12 +180,12 @@ private fun CardBody(
 
               HazardImage(currentHazard.type)
 
-              if (hasHazards) {
+              if (hasDisplayHazards) {
                 NavigationButton(
                     testTag = LatestNewsTestTags.RIGHT_BUTTON,
                     content = ">",
                     extendedColors = extendedColors,
-                    onClick = { onIndexChange((currentIndex + 1) % hazardCount) })
+                    onClick = { onIndexChange((currentIndex + 1) % displayHazardCount) })
               } else {
                 Spacer(modifier = Modifier.width(2.dp))
               }

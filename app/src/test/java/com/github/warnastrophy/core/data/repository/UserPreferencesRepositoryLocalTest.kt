@@ -55,6 +55,9 @@ class UserPreferencesRepositoryLocalTest {
     assertFalse(preferences.dangerModePreferences.inactivityDetection)
     assertFalse(preferences.dangerModePreferences.automaticSms)
     assertFalse(preferences.dangerModePreferences.automaticCalls)
+    assertFalse(preferences.dangerModePreferences.autoActionsEnabled)
+    assertFalse(preferences.dangerModePreferences.touchConfirmationRequired)
+    assertFalse(preferences.dangerModePreferences.voiceConfirmationEnabled)
     assertFalse(preferences.themePreferences)
   }
 
@@ -114,8 +117,45 @@ class UserPreferencesRepositoryLocalTest {
       assertEquals(automaticCallsValue, preferences.dangerModePreferences.automaticCalls)
       assertFalse(preferences.dangerModePreferences.alertMode)
       assertFalse(preferences.dangerModePreferences.inactivityDetection)
+      assertFalse(preferences.dangerModePreferences.autoActionsEnabled)
+      assertFalse(preferences.dangerModePreferences.touchConfirmationRequired)
+      assertFalse(preferences.dangerModePreferences.voiceConfirmationEnabled)
       assertFalse(preferences.themePreferences)
       assertFalse(preferences.dangerModePreferences.microphoneAccess)
+    }
+  }
+
+  @Test
+  fun setAutoActionsEnabled_updatesPreference() = runTest {
+    val testCases = listOf(true, false)
+
+    testCases.forEach { autoActionsValue ->
+      repository.setAutoActionsEnabled(autoActionsValue)
+      val preferences = repository.getUserPreferences.first()
+      assertEquals(autoActionsValue, preferences.dangerModePreferences.autoActionsEnabled)
+      assertFalse(preferences.themePreferences)
+    }
+  }
+
+  @Test
+  fun setTouchConfirmationRequired_updatesPreference() = runTest {
+    val testCases = listOf(true, false)
+
+    testCases.forEach { touchValue ->
+      repository.setTouchConfirmationRequired(touchValue)
+      val preferences = repository.getUserPreferences.first()
+      assertEquals(touchValue, preferences.dangerModePreferences.touchConfirmationRequired)
+    }
+  }
+
+  @Test
+  fun setVoiceConfirmationEnabled_updatesPreference() = runTest {
+    val testCases = listOf(true, false)
+
+    testCases.forEach { voiceValue ->
+      repository.setVoiceConfirmationEnabled(voiceValue)
+      val preferences = repository.getUserPreferences.first()
+      assertEquals(voiceValue, preferences.dangerModePreferences.voiceConfirmationEnabled)
     }
   }
 
@@ -130,6 +170,9 @@ class UserPreferencesRepositoryLocalTest {
     assertTrue(intermediatePrefs.dangerModePreferences.alertMode)
     assertTrue(intermediatePrefs.dangerModePreferences.inactivityDetection)
     assertFalse(intermediatePrefs.dangerModePreferences.automaticSms)
+    assertTrue(intermediatePrefs.dangerModePreferences.autoActionsEnabled)
+    assertTrue(intermediatePrefs.dangerModePreferences.touchConfirmationRequired)
+    assertFalse(intermediatePrefs.dangerModePreferences.voiceConfirmationEnabled)
     assertTrue(intermediatePrefs.themePreferences)
     assertFalse(intermediatePrefs.dangerModePreferences.microphoneAccess)
 
@@ -137,6 +180,7 @@ class UserPreferencesRepositoryLocalTest {
     repository.setAlertMode(false)
     repository.setDarkMode(false)
     repository.setMicrophoneAccess(true)
+    repository.setVoiceConfirmationEnabled(true)
 
     val finalPrefs = repository.getUserPreferences.first()
 
@@ -144,6 +188,9 @@ class UserPreferencesRepositoryLocalTest {
     assertTrue(finalPrefs.dangerModePreferences.inactivityDetection)
     assertTrue(finalPrefs.dangerModePreferences.automaticSms)
     assertTrue(finalPrefs.dangerModePreferences.microphoneAccess)
+    assertTrue(finalPrefs.dangerModePreferences.autoActionsEnabled)
+    assertTrue(finalPrefs.dangerModePreferences.touchConfirmationRequired)
+    assertTrue(finalPrefs.dangerModePreferences.voiceConfirmationEnabled)
     assertFalse(finalPrefs.themePreferences)
   }
 
@@ -161,6 +208,9 @@ class UserPreferencesRepositoryLocalTest {
     assertFalse(preferences.dangerModePreferences.inactivityDetection)
     assertFalse(preferences.dangerModePreferences.automaticSms)
     assertFalse(preferences.dangerModePreferences.automaticCalls)
+    assertFalse(preferences.dangerModePreferences.autoActionsEnabled)
+    assertFalse(preferences.dangerModePreferences.touchConfirmationRequired)
+    assertFalse(preferences.dangerModePreferences.voiceConfirmationEnabled)
     assertFalse(preferences.dangerModePreferences.microphoneAccess)
 
     assertFalse(preferences.themePreferences)

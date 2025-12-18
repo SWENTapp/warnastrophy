@@ -49,7 +49,6 @@ fun AddContactScreen(
     // Optional: Add a callback to handle the save action and pass the contact data
     addContactViewModel: AddContactViewModel = viewModel(),
     onDone: () -> Unit = {},
-    userId: String
 ) {
   val contactUIState by addContactViewModel.uiState.collectAsState()
   val errorMsg = contactUIState.errorMsg

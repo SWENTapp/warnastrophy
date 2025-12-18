@@ -71,6 +71,8 @@ class DangerModeService(
 
   sealed class DangerModeEvent {
     object MissingSmsPermission : DangerModeEvent()
+
+    object MissingCallPermission : DangerModeEvent()
   }
 
   private val _state = MutableStateFlow(DangerModeState())
@@ -108,29 +110,30 @@ class DangerModeService(
    * @param capabilities The set of capabilities to enable.
    */
   fun setCapabilities(capabilities: Set<DangerModeCapability>): Result<Unit> {
-    val validated = mutableSetOf<DangerModeCapability>()
-
-    for (cap in capabilities) {
-
-      val requiredPermission =
-          when (cap) {
-            DangerModeCapability.SMS -> AppPermissions.SendEmergencySms
-            DangerModeCapability.CALL -> null
-          }
-
-      requiredPermission?.let { perm ->
-        val result = permissionManager.getPermissionResult(perm)
-        if (result != PermissionResult.Granted) {
-          return Result.failure(
-              IllegalStateException("Missing permission for ${cap.label}: ${perm.key}"))
-        }
-      }
-
-      validated.add(cap)
+    if (capabilities.size > 1) {
+      return Result.failure(IllegalStateException("Capabilities must be mutually exclusive"))
     }
 
-    _state.value = _state.value.copy(capabilities = validated)
+    val capability = capabilities.firstOrNull()
+    when (capability) {
+      DangerModeCapability.SMS -> {
+        if (permissionManager.getPermissionResult(AppPermissions.SendEmergencySms) !=
+            PermissionResult.Granted) {
+          _events.value = DangerModeEvent.MissingSmsPermission
+          return Result.failure(IllegalStateException("Missing SMS permission"))
+        }
+      }
+      DangerModeCapability.CALL -> {
+        if (permissionManager.getPermissionResult(AppPermissions.MakeEmergencyCall) !=
+            PermissionResult.Granted) {
+          _events.value = DangerModeEvent.MissingCallPermission
+          return Result.failure(IllegalStateException("Missing call permission"))
+        }
+      }
+      null -> Unit
+    }
 
+    _state.value = _state.value.copy(capabilities = capabilities)
     return Result.success(Unit)
   }
 

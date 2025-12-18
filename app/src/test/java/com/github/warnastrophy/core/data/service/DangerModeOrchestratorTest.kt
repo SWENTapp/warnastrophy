@@ -814,6 +814,29 @@ class MockUserPreferencesRepository(
                 preferencesFlow.value.dangerModePreferences.copy(microphoneAccess = enabled))
   }
 
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    preferencesFlow.value =
+        preferencesFlow.value.copy(
+            dangerModePreferences =
+                preferencesFlow.value.dangerModePreferences.copy(autoActionsEnabled = enabled))
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    preferencesFlow.value =
+        preferencesFlow.value.copy(
+            dangerModePreferences =
+                preferencesFlow.value.dangerModePreferences.copy(
+                    touchConfirmationRequired = required))
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    preferencesFlow.value =
+        preferencesFlow.value.copy(
+            dangerModePreferences =
+                preferencesFlow.value.dangerModePreferences.copy(
+                    voiceConfirmationEnabled = enabled))
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {}
 }
 

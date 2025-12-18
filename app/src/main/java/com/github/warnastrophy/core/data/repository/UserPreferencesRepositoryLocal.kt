@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.map
 /** Data class to hold all user-configurable settings. */
 data class UserPreferences(
     val dangerModePreferences: DangerModePreferences,
-    // Add more preferences like storeInFirebase: Boolean, darkMode: Boolean, etc
     val themePreferences: Boolean
 ) {
   companion object {
@@ -30,13 +29,20 @@ data class UserPreferences(
  *   triggered.
  * @property automaticCalls Specifies if automatic phone calls should be made when an alert is
  *   triggered.
+ * @property microphoneAccess Indicates if microphone access is granted for voice communication.
+ * @property autoActionsEnabled Enables automatic emergency actions overall.
+ * @property touchConfirmationRequired Requires a tactile confirmation (button) before actions run.
+ * @property voiceConfirmationEnabled Allows voice confirmation before actions run.
  */
 data class DangerModePreferences(
     val alertMode: Boolean,
     val inactivityDetection: Boolean,
     val automaticSms: Boolean,
     val automaticCalls: Boolean,
-    val microphoneAccess: Boolean = false
+    val microphoneAccess: Boolean = false,
+    val autoActionsEnabled: Boolean = false,
+    val touchConfirmationRequired: Boolean = false,
+    val voiceConfirmationEnabled: Boolean = false,
 ) {
   companion object {
     fun default() =
@@ -45,7 +51,10 @@ data class DangerModePreferences(
             inactivityDetection = false,
             automaticSms = false,
             automaticCalls = false,
-            microphoneAccess = false)
+            microphoneAccess = false,
+            autoActionsEnabled = false,
+            touchConfirmationRequired = false,
+            voiceConfirmationEnabled = false)
   }
 }
 
@@ -61,11 +70,11 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     val INACTIVITY_DETECTION_KEY = booleanPreferencesKey("inactivity_detection")
     val AUTOMATIC_SMS_KEY = booleanPreferencesKey("automatic_sms")
     val AUTOMATIC_CALLS_KEY = booleanPreferencesKey("automatic_calls")
-    val DARK_MODE_KEY = booleanPreferencesKey("theme_preferences")
-
     val MICROPHONE_KEY = booleanPreferencesKey("microphone")
-
-    // Add more keys for other preferences
+    val AUTO_ACTIONS_KEY = booleanPreferencesKey("auto_actions_enabled")
+    val TOUCH_CONFIRMATION_KEY = booleanPreferencesKey("touch_confirmation_required")
+    val VOICE_CONFIRMATION_KEY = booleanPreferencesKey("voice_confirmation_enabled")
+    val DARK_MODE_KEY = booleanPreferencesKey("theme_preferences")
   }
 
   override val getUserPreferences: Flow<UserPreferences> =
@@ -99,29 +108,44 @@ class UserPreferencesRepositoryLocal(private val dataStore: DataStore<Preference
     dataStore.edit { preferences -> preferences[MICROPHONE_KEY] = enabled }
   }
 
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    dataStore.edit { prefs -> prefs[AUTO_ACTIONS_KEY] = enabled }
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    dataStore.edit { prefs -> prefs[TOUCH_CONFIRMATION_KEY] = required }
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    dataStore.edit { prefs -> prefs[VOICE_CONFIRMATION_KEY] = enabled }
+  }
+
   override suspend fun setDarkMode(isDark: Boolean) {
     dataStore.edit { preferences -> preferences[DARK_MODE_KEY] = isDark }
   }
 
-  /**
-   * Maps a [Preferences] object from DataStore to a [UserPreferences] data class. This function
-   * extracts individual preference values using their respective keys and constructs a structured
-   * [UserPreferences] object. If a preference key is not found, it defaults to `false`.
-   *
-   * @param preferences The [Preferences] object read from DataStore.
-   * @return A [UserPreferences] object populated with the values from the preferences.
-   */
+  /** Maps a [Preferences] object from DataStore to a [UserPreferences] data class. */
   private fun mapUserPreferences(preferences: Preferences): UserPreferences {
     val alertMode = preferences[ALERT_MODE_KEY] ?: false
     val inactivityDetection = preferences[INACTIVITY_DETECTION_KEY] ?: false
     val automaticSms = preferences[AUTOMATIC_SMS_KEY] ?: false
     val automaticCalls = preferences[AUTOMATIC_CALLS_KEY] ?: false
     val microphoneAccess = preferences[MICROPHONE_KEY] ?: false
+    val autoActionsEnabled = preferences[AUTO_ACTIONS_KEY] ?: false
+    val touchConfirmationRequired = preferences[TOUCH_CONFIRMATION_KEY] ?: false
+    val voiceConfirmationEnabled = preferences[VOICE_CONFIRMATION_KEY] ?: false
     val themePreferences = preferences[DARK_MODE_KEY] ?: false
 
     val dangerModePreferences =
         DangerModePreferences(
-            alertMode, inactivityDetection, automaticSms, automaticCalls, microphoneAccess)
+            alertMode = alertMode,
+            inactivityDetection = inactivityDetection,
+            automaticSms = automaticSms,
+            automaticCalls = automaticCalls,
+            microphoneAccess = microphoneAccess,
+            autoActionsEnabled = autoActionsEnabled,
+            touchConfirmationRequired = touchConfirmationRequired,
+            voiceConfirmationEnabled = voiceConfirmationEnabled)
     return UserPreferences(dangerModePreferences, themePreferences)
   }
 }

@@ -18,6 +18,18 @@ or cancel using voice commands.
 
 ## Main features
 
+## Offline Mode
+
+In offline mode, Warnastrophy ensures that users can still access critical information even without an active internet connection. 
+Locally stored data such as the health card, emergency contacts, 
+user preferences, and recent activities are readily available. 
+The app relies on this local storage to provide a seamless user experience, 
+allowing the user to view their health card, manage emergency contacts, 
+and check preferences and activities without needing cloud synchronization. 
+Furthermore, the danger mode functionality continues to use this locally stored data to initiate emergency actions, 
+confirm user responses, and trigger alerts, ensuring that the user can still receive timely assistance 
+and make informed decisions in critical situations, even when offline.
+
 ### Authentication and onboarding
 
 The application supports user authentication using Firebase Authentication. It integrates
@@ -58,6 +70,14 @@ Calling is permission-aware and uses the ACTION_CALL intent. SMS support can
 be integrated through a similar abstraction. These services are designed to be
 replaceable and testable, ensuring that emergency behavior can be validated 
 without triggering real actions during tests.
+
+### Known Limitations & Potential Improvements
+
+As an emergency assistant, Warnastrophy faces specific technical challenges related to Android's background execution limits and privacy restrictions.
+
+- **Background Execution:** Current versions of Android strictly limit access to the microphone and the ability to launch activities (like the emergency call) when the app is in the background to preserve user privacy and battery.
+- **Microphone Access:** For the voice confirmation flow to work fully in the background, a specialized *Foreground Service* with the `microphone` type must be implemented.
+- **Automatic Calling:** Triggering phone calls from the background is restricted by the system. Future updates will focus on using `SYSTEM_ALERT_WINDOW` permissions and `TelecomManager` integration to ensure emergency actions trigger even when the screen is locked or the app is minimized.
 
 ### Location and mapping
 
@@ -160,10 +180,10 @@ keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddeb
 
 ## Building and testing
 ### Run unit tests
-./gradlew test
+```bash ./gradlew test```
 
 ### Run instrumented and end-to-end tests
-./gradlew connectedAndroidTest
+```bash ./gradlew connectedAndroidTest```
 
 End-to-end tests use an isolated DataStore and can replace real components, 
 such as the map, with fake implementations to reduce flakiness.

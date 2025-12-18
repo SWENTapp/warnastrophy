@@ -50,6 +50,7 @@ class HealthCardRepositoryImpl(
     awaitClose { reg.remove() }
   }
 
+  @Suppress("ReplaceWithIndexedAccessors")
   override suspend fun getMyHealthCardOnce(fromCacheFirst: Boolean): HealthCard? {
     val source = if (fromCacheFirst) Source.CACHE else Source.SERVER
     val snap =
@@ -58,6 +59,7 @@ class HealthCardRepositoryImpl(
     return if (snap.exists()) snap.toObject(HealthCard::class.java) else null
   }
 
+  @Suppress("ReplaceWithIndexedAccessors")
   override suspend fun upsertMyHealthCard(card: HealthCard) {
     docRef().set(card, SetOptions.merge()).await()
   }

@@ -216,4 +216,13 @@ class LatestNewsCardTest : BaseAndroidComposeTest() {
 
     Assert.assertEquals(expectedUrl, capturedUrl.get())
   }
+
+  @Test
+  fun article_with_no_url_link_not_displayed() {
+    hazardService.setHazards(listOf(no_url_hazard))
+    composeTestRule.setContent { MaterialTheme { LatestNewsCard(hazardService) } }
+    composeTestRule
+        .onNodeWithTag(LatestNewsTestTags.LINK, useUnmergedTree = true)
+        .assertIsNotDisplayed()
+  }
 }

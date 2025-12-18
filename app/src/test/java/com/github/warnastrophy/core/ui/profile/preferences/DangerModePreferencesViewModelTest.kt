@@ -62,7 +62,11 @@ class DangerModePreferencesViewModelTest {
                         alertMode = false,
                         inactivityDetection = false,
                         automaticSms = false,
-                        automaticCalls = false),
+                        automaticCalls = false,
+                        microphoneAccess = false,
+                        autoActionsEnabled = false,
+                        touchConfirmationRequired = false,
+                        voiceConfirmationEnabled = false),
                     themePreferences = false)))
   }
 

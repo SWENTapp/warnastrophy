@@ -80,6 +80,18 @@ class HybridUserPreferencesRepository(
     updateBothRepositories { setAutomaticCalls(enabled) }
   }
 
+  override suspend fun setAutoActionsEnabled(enabled: Boolean) {
+    updateBothRepositories { setAutoActionsEnabled(enabled) }
+  }
+
+  override suspend fun setTouchConfirmationRequired(required: Boolean) {
+    updateBothRepositories { setTouchConfirmationRequired(required) }
+  }
+
+  override suspend fun setVoiceConfirmationEnabled(enabled: Boolean) {
+    updateBothRepositories { setVoiceConfirmationEnabled(enabled) }
+  }
+
   override suspend fun setMicrophoneAccess(enabled: Boolean) {
     updateBothRepositories { setMicrophoneAccess(enabled) }
   }
@@ -133,6 +145,11 @@ class HybridUserPreferencesRepository(
             setAlertMode(remotePrefs.dangerModePreferences.alertMode)
             setInactivityDetection(remotePrefs.dangerModePreferences.inactivityDetection)
             setAutomaticSms(remotePrefs.dangerModePreferences.automaticSms)
+            setAutomaticCalls(remotePrefs.dangerModePreferences.automaticCalls)
+            setAutoActionsEnabled(remotePrefs.dangerModePreferences.autoActionsEnabled)
+            setTouchConfirmationRequired(
+                remotePrefs.dangerModePreferences.touchConfirmationRequired)
+            setVoiceConfirmationEnabled(remotePrefs.dangerModePreferences.voiceConfirmationEnabled)
             setDarkMode(remotePrefs.themePreferences)
             setMicrophoneAccess(remotePrefs.dangerModePreferences.microphoneAccess)
           }

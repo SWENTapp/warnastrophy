@@ -95,6 +95,10 @@ class UserPreferencesRepositoryRemoteTest {
     assertFalse(result.dangerModePreferences.automaticSms)
     assertFalse(result.dangerModePreferences.automaticCalls)
     assertFalse(result.dangerModePreferences.microphoneAccess)
+    assertFalse(result.dangerModePreferences.automaticCalls)
+    assertFalse(result.dangerModePreferences.autoActionsEnabled)
+    assertFalse(result.dangerModePreferences.touchConfirmationRequired)
+    assertFalse(result.dangerModePreferences.voiceConfirmationEnabled)
     assertFalse(result.themePreferences)
   }
 
@@ -118,6 +122,10 @@ class UserPreferencesRepositoryRemoteTest {
     assertFalse(result.dangerModePreferences.automaticSms)
     assertFalse(result.dangerModePreferences.automaticCalls)
     assertFalse(result.dangerModePreferences.microphoneAccess)
+    assertFalse(result.dangerModePreferences.automaticCalls)
+    assertFalse(result.dangerModePreferences.autoActionsEnabled)
+    assertFalse(result.dangerModePreferences.touchConfirmationRequired)
+    assertFalse(result.dangerModePreferences.voiceConfirmationEnabled)
     assertFalse(result.themePreferences)
   }
 
@@ -130,6 +138,9 @@ class UserPreferencesRepositoryRemoteTest {
             "automaticSms" to false,
             "automaticCalls" to false,
             "microphoneAccess" to true,
+            "autoActionsEnabled" to true,
+            "touchConfirmationRequired" to true,
+            "voiceConfirmationEnabled" to false,
             "darkMode" to true)
 
     val mockSnapshot = mockk<DocumentSnapshot>()
@@ -152,6 +163,9 @@ class UserPreferencesRepositoryRemoteTest {
     assertFalse(result.dangerModePreferences.automaticSms)
     assertFalse(result.dangerModePreferences.automaticCalls)
     assertTrue(result.dangerModePreferences.microphoneAccess)
+    assertTrue(result.dangerModePreferences.autoActionsEnabled)
+    assertTrue(result.dangerModePreferences.touchConfirmationRequired)
+    assertFalse(result.dangerModePreferences.voiceConfirmationEnabled)
     assertTrue(result.themePreferences)
   }
 
@@ -177,6 +191,9 @@ class UserPreferencesRepositoryRemoteTest {
     assertTrue(result.dangerModePreferences.inactivityDetection)
     assertFalse(result.dangerModePreferences.automaticSms)
     assertFalse(result.dangerModePreferences.microphoneAccess)
+    assertFalse(result.dangerModePreferences.autoActionsEnabled)
+    assertFalse(result.dangerModePreferences.touchConfirmationRequired)
+    assertFalse(result.dangerModePreferences.voiceConfirmationEnabled)
     assertFalse(result.themePreferences)
   }
 
@@ -277,16 +294,72 @@ class UserPreferencesRepositoryRemoteTest {
   }
 
   @Test
+  fun `setAutoActionsEnabled updates field successfully when authenticated`() = runTest {
+    repository.setAutoActionsEnabled(true)
+
+    verify { mockDocument.update("autoActionsEnabled", true) }
+  }
+
+  @Test
+  fun `setTouchConfirmationRequired updates field successfully when authenticated`() = runTest {
+    repository.setTouchConfirmationRequired(true)
+
+    verify { mockDocument.update("touchConfirmationRequired", true) }
+  }
+
+  @Test
+  fun `setVoiceConfirmationEnabled updates field successfully when authenticated`() = runTest {
+    repository.setVoiceConfirmationEnabled(true)
+
+    verify { mockDocument.update("voiceConfirmationEnabled", true) }
+  }
+
+  @Test
+  fun `setAutoActionsEnabled does nothing when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setAutoActionsEnabled(true)
+
+    verify(exactly = 0) { mockDocument.update("autoActionsEnabled", any()) }
+  }
+
+  @Test
+  fun `setTouchConfirmationRequired does nothing when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setTouchConfirmationRequired(true)
+
+    verify(exactly = 0) { mockDocument.update("touchConfirmationRequired", any()) }
+  }
+
+  @Test
+  fun `setVoiceConfirmationEnabled does nothing when user is not authenticated`() = runTest {
+    every { mockAuth.currentUser } returns null
+
+    repository.setVoiceConfirmationEnabled(true)
+
+    verify(exactly = 0) { mockDocument.update("voiceConfirmationEnabled", any()) }
+  }
+
+  @Test
   fun `multiple field updates work correctly when authenticated`() = runTest {
     repository.setAlertMode(true)
     repository.setInactivityDetection(false)
     repository.setAutomaticSms(true)
+    repository.setAutomaticCalls(true)
+    repository.setAutoActionsEnabled(true)
+    repository.setTouchConfirmationRequired(true)
+    repository.setVoiceConfirmationEnabled(false)
     repository.setDarkMode(false)
     repository.setMicrophoneAccess(true)
 
     verify { mockDocument.update("alertMode", true) }
     verify { mockDocument.update("inactivityDetection", false) }
     verify { mockDocument.update("automaticSms", true) }
+    verify { mockDocument.update("automaticCalls", true) }
+    verify { mockDocument.update("autoActionsEnabled", true) }
+    verify { mockDocument.update("touchConfirmationRequired", true) }
+    verify { mockDocument.update("voiceConfirmationEnabled", false) }
     verify { mockDocument.update("darkMode", false) }
     verify { mockDocument.update("microphoneAccess", true) }
   }
@@ -395,6 +468,18 @@ class UserPreferencesRepositoryRemoteTest {
 
     repository.setAutomaticSms(true)
     verify { mockDocument.update("automaticSms", any()) }
+
+    repository.setAutomaticCalls(true)
+    verify { mockDocument.update("automaticCalls", any()) }
+
+    repository.setAutoActionsEnabled(true)
+    verify { mockDocument.update("autoActionsEnabled", any()) }
+
+    repository.setTouchConfirmationRequired(true)
+    verify { mockDocument.update("touchConfirmationRequired", any()) }
+
+    repository.setVoiceConfirmationEnabled(true)
+    verify { mockDocument.update("voiceConfirmationEnabled", any()) }
 
     repository.setDarkMode(true)
     verify { mockDocument.update("darkMode", any()) }
